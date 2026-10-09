@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VPX Visitas</title>
+<meta name="theme-color" content="#1C3C61">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="VPX Visitas">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="icon" href="icone-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<style>
+:root{
+  --marinho:#1C3C61; --laranja:#EB9D2B; --tinta:#13253B; --fundo:#F2F4F7;
+  --papel:#FFFFFF; --linha:#D3DAE3; --suave:#5B6B80; --erro:#B3261E; --ok:#1E7A46;
+  --texto-fonte:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --titulo-fonte:"Barlow Semi Condensed","Barlow",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--tinta:#E8EDF3;--fundo:#0E1A29;--papel:#162638;--linha:#2B3E55;--suave:#9AAABD;color-scheme:dark}
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--texto-fonte);font-size:17px;line-height:1.45;color:var(--tinta);background:var(--fundo);-webkit-tap-highlight-color:transparent}
+button,input,label{font:inherit}
+.oculto{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+
+.topo{background:var(--marinho);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5;border-bottom:4px solid var(--laranja)}
+.marca{font-family:var(--titulo-fonte);font-weight:700;font-size:22px;letter-spacing:.01em;margin:0}
+.marca span{font-weight:600;opacity:.75}
+.conta{background:transparent;border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;width:38px;height:38px;font-weight:600;cursor:pointer}
+
+main{padding:18px 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
+h1{font-family:var(--titulo-fonte);font-weight:700;font-size:30px;line-height:1.1;margin:24px 0 10px}
+p{margin:0 0 14px;max-width:60ch}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:0 18px;border-radius:10px;border:0;font-weight:600;cursor:pointer;text-decoration:none;user-select:none}
+.btn:focus-visible,.cliente:focus-visible,.conta:focus-visible,.item:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.prim{background:var(--laranja);color:var(--marinho);font-family:var(--titulo-fonte);font-size:21px;font-weight:700;width:100%}
+.prim:disabled{background:var(--linha);color:var(--suave);cursor:default}
+.sec{background:var(--papel);color:var(--tinta);border:1.5px solid var(--linha);flex:1}
+.sec svg{width:22px;height:22px}
+.link{color:var(--marinho);font-weight:600}
+@media (prefers-color-scheme:dark){.link{color:var(--laranja)}}
+
+.cliente{width:100%;text-align:left;background:var(--papel);border:1.5px solid var(--linha);border-left:6px solid var(--laranja);border-radius:10px;padding:12px 16px;cursor:pointer;color:var(--tinta);display:block}
+.cliente small{display:block;color:var(--suave);font-size:14px}
+.cliente strong{font-family:var(--titulo-fonte);font-size:23px;font-weight:700;line-height:1.2}
+.cliente.vazio strong{color:var(--suave)}
+.destino{color:var(--suave);font-size:14px;margin:8px 2px 18px;word-break:break-word}
+
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.foto{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--linha)}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto .num{position:absolute;left:6px;top:6px;background:rgba(19,37,59,.82);color:#fff;font-size:13px;font-weight:600;border-radius:5px;padding:0 6px}
+.foto .tirar{position:absolute;right:4px;top:4px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(19,37,59,.82);color:#fff;font-size:20px;line-height:1;cursor:pointer}
+.foto[data-st="enviando"] img{opacity:.45}
+.foto[data-st="ok"]::after,.foto[data-st="erro"]::after{position:absolute;right:6px;bottom:6px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
+.foto[data-st="ok"]::after{content:"✓";background:var(--ok)}
+.foto[data-st="erro"]::after{content:"!";background:var(--erro)}
+.foto[data-st]:not([data-st="nova"]) .tirar{display:none}
+.semfotos{border:2px dashed var(--linha);border-radius:10px;padding:28px 18px;text-align:center;color:var(--suave)}
+
+.barra{position:fixed;left:0;right:0;bottom:0;background:var(--papel);border-top:1px solid var(--linha);padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));z-index:5}
+.barra-in{max-width:720px;margin:0 auto;display:grid;gap:10px}
+.captura{display:flex;gap:10px}
+.trilho{height:8px;background:var(--linha);border-radius:4px;overflow:hidden}
+.cheio{height:100%;width:0;background:var(--laranja);transition:width .2s}
+.txtprog{font-size:14px;color:var(--suave);margin-top:4px}
+
+.sucesso{text-align:center;padding-top:30px}
+.selo{width:84px;height:84px;border-radius:50%;background:var(--ok);color:#fff;font-size:44px;display:grid;place-items:center;margin:0 auto 6px}
+.sucesso .acoes{display:grid;gap:12px;max-width:360px;margin:22px auto 0}
+
+dialog{border:0;padding:0;width:100%;max-width:720px;height:100%;max-height:100%;margin:0 auto;background:var(--fundo);color:var(--tinta)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+.dlg-topo{background:var(--marinho);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 14px;position:sticky;top:0}
+.dlg-topo div{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.dlg-topo h2{font-family:var(--titulo-fonte);margin:0;font-size:22px}
+.fechar{background:none;border:0;color:#fff;font-size:30px;line-height:1;cursor:pointer;width:40px;height:40px}
+.busca{width:100%;min-height:50px;border-radius:10px;border:0;padding:0 14px;font-size:18px;background:#fff;color:#13253B}
+.lista{list-style:none;margin:0;padding:8px 10px calc(30px + env(safe-area-inset-bottom,0px))}
+.grupo{font-size:14px;color:var(--suave);padding:12px 8px 4px}
+.item{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--linha);padding:14px 8px;font-size:18px;color:var(--tinta);cursor:pointer}
+.item.novo{color:var(--marinho);font-weight:600}
+@media (prefers-color-scheme:dark){.item.novo{color:var(--laranja)}}
+
+.aviso{position:fixed;left:18px;right:18px;bottom:calc(200px + env(safe-area-inset-bottom,0px));max-width:684px;margin:0 auto;background:var(--tinta);color:var(--fundo);padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:20}
+.aviso.ver{opacity:1;transform:none}
+.aviso.erro{background:var(--erro);color:#fff}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="topo">
+  <p class="marca">VPX <span>Visitas</span></p>
+  <button class="conta" id="btn-conta" hidden aria-label="Conta"></button>
+</header>
+
+<main>
+  <section id="tela-config" hidden>
+    <h1>Falta configurar o app</h1>
+    <p>Abra o arquivo <b>index.html</b> e preencha o <b>clientId</b> e o <b>tenantId</b> no bloco CONFIG, no início do script. O passo a passo está no arquivo LEIA-ME.</p>
+  </section>
+
+  <section id="tela-login" hidden>
+    <h1>Fotos da visita direto na pasta do cliente</h1>
+    <p>Entre uma vez com a sua conta Microsoft da VPX. Depois é só fotografar e salvar.</p>
+    <button class="btn prim" id="btn-entrar">Entrar com a conta da VPX</button>
+  </section>
+
+  <section id="tela-app" hidden>
+    <button class="cliente vazio" id="btn-cliente">
+      <small>Cliente</small>
+      <strong id="nome-cliente">Escolher cliente</strong>
+    </button>
+    <p class="destino" id="destino"></p>
+    <div class="grade" id="grade"></div>
+    <div class="semfotos" id="semfotos">Nenhuma foto ainda. Fotografe pela câmera ou escolha várias da galeria de uma vez.</div>
+  </section>
+
+  <section id="tela-ok" class="sucesso" hidden>
+    <div class="selo">✓</div>
+    <h1 id="ok-titulo"></h1>
+    <p id="ok-texto" style="margin:0 auto"></p>
+    <div class="acoes">
+      <a class="btn sec" id="ok-link" target="_blank" rel="noopener">Abrir pasta no OneDrive</a>
+      <button class="btn prim" id="btn-nova">Nova visita</button>
+    </div>
+  </section>
+</main>
+
+<footer class="barra" id="barra" hidden>
+  <div class="barra-in">
+    <div class="captura" id="captura">
+      <label class="btn sec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Câmera
+        <input class="oculto" type="file" accept="image/*" capture="environment" id="in-cam">
+      </label>
+      <label class="btn sec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg>
+        Galeria
+        <input class="oculto" type="file" accept="image/*" multiple id="in-gal">
+      </label>
+    </div>
+    <div id="progresso" hidden>
+      <div class="trilho"><div class="cheio" id="cheio"></div></div>
+      <div class="txtprog" id="txtprog"></div>
+    </div>
+    <button class="btn prim" id="btn-salvar" disabled>Salvar no cliente</button>
+  </div>
+</footer>
+
+<dialog id="dlg">
+  <div class="dlg-topo">
+    <div><h2>Escolher cliente</h2><button class="fechar" id="dlg-fechar" aria-label="Fechar">×</button></div>
+    <input class="busca" id="busca" type="search" placeholder="Buscar ou digitar novo cliente" autocomplete="off">
+  </div>
+  <ul class="lista" id="lista"></ul>
+</dialog>
+
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+<script>
+/* ================== CONFIGURAÇÃO ================== */
+const CONFIG = {
+  clientId: "COLE_AQUI_O_ID_DO_APLICATIVO",   // Entra ID > Registros de aplicativo > ID do aplicativo (cliente)
+  tenantId: "COLE_AQUI_O_ID_DO_DIRETORIO",    // Entra ID > Registros de aplicativo > ID do diretório (locatário)
+  // Pasta "02 - Clientes" (VPX Engenharia - AVCB › 06 - Comercial) no OneDrive do Gustavo, compartilhada com a equipe
+  driveId: "b!LWXbA_WnV0qdA93Eaa3V-E6Mee41gUxAmG8VyG43VRhmTKaEcLjtQ64K4k75--MP",
+  pastaClientesId: "01VYL4Q5YGDBCBT3E7CRDLSKCI3476CXTS",
+  pastaClientesNome: "02 - Clientes",
+  subpasta: "Fotos",                          // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
+  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i],
+  reduzirFotos: false,                        // false = envia a foto original; true = reduz para até 2560 px
+  ladoMaximo: 2560,
+  qualidade: 0.85
+};
+/* ================================================== */
+
+const ESCOPOS = ["User.Read", "Files.ReadWrite.All"];
+const BASE = () => `/drives/${CONFIG.driveId}/items/${CONFIG.pastaClientesId}`;
+const GRAPH = "https://graph.microsoft.com/v1.0";
+const $ = id => document.getElementById(id);
+
+let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
+
+/* ---------- utilidades ---------- */
+function aviso(msg, erro = false) {
+  const el = $("aviso");
+  el.textContent = msg;
+  el.className = "aviso ver" + (erro ? " erro" : "");
+  clearTimeout(aviso.t);
+  aviso.t = setTimeout(() => el.className = "aviso", erro ? 6000 : 3000);
+}
+function mostrar(tela) {
+  ["tela-config", "tela-login", "tela-app", "tela-ok"].forEach(t => $(t).hidden = t !== tela);
+  $("barra").hidden = tela !== "tela-app";
+}
+const pad = n => String(n).padStart(2, "0");
+function dataISO(d = new Date()) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function horaArq(d) { return `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`; }
+function semAcento(s) { return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+function limparNome(s) { return s.replace(/[\\/:*?"<>|#%]/g, "").replace(/\s+/g, " ").trim().replace(/\.+$/, ""); }
+function encPath(p) { return p.split("/").filter(Boolean).map(encodeURIComponent).join("/"); }
+function lerLS(k, padrao) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch { return padrao; } }
+function gravarLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+const espera = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- login ---------- */
+async function token() {
+  try {
+    const r = await msalApp.acquireTokenSilent({ scopes: ESCOPOS, account: conta });
+    return r.accessToken;
+  } catch (e) {
+    if (e instanceof msal.InteractionRequiredAuthError) {
+      await msalApp.acquireTokenRedirect({ scopes: ESCOPOS, account: conta });
+    }
+    throw e;
+  }
+}
+
+async function graph(caminho, opcoes = {}, tentativa = 0) {
+  const url = caminho.startsWith("http") ? caminho : GRAPH + caminho;
+  const res = await fetch(url, { ...opcoes, headers: { Authorization: "Bearer " + await token(), ...(opcoes.headers || {}) } });
+  if ((res.status === 429 || res.status >= 500) && tentativa < 3) {
+    const seg = Number(res.headers.get("Retry-After")) || 2 ** (tentativa + 1);
+    await espera(seg * 1000);
+    return graph(caminho, opcoes, tentativa + 1);
+  }
+  if (!res.ok) {
+    let msg = "Erro " + res.status;
+    try { msg = (await res.json()).error.message || msg; } catch {}
+    const err = new Error(msg); err.status = res.status; throw err;
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+/* ---------- clientes ---------- */
+async function carregarClientes() {
+  clientes = lerLS("vpx_clientes", []);
+  try {
+    let url = `${BASE()}/children?$select=id,name,folder&$top=999`;
+    const lista = [];
+    while (url) {
+      const r = await graph(url);
+      r.value.filter(i => i.folder && !CONFIG.ignorar.some(x => x.test(i.name))).forEach(i => lista.push(i.name));
+      url = r["@odata.nextLink"];
+    }
+    clientes = lista.sort((a, b) => a.localeCompare(b, "pt-BR"));
+    gravarLS("vpx_clientes", clientes);
+  } catch (e) {
+    if (e.status === 404 || e.status === 403) aviso(`Sem acesso à pasta "${CONFIG.pastaClientesNome}". Peça para ela ser compartilhada com você com permissão de edição.`, true);
+    else aviso("Não foi possível atualizar a lista de clientes. Usando a última lista salva.", true);
+  }
+}
+
+function desenharLista() {
+  const q = $("busca").value.trim();
+  const nq = semAcento(q);
+  const ul = $("lista");
+  ul.innerHTML = "";
+  const add = (txt, cls, fn) => {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.className = "item " + (cls || ""); b.textContent = txt; b.onclick = fn;
+    li.appendChild(b); ul.appendChild(li);
+  };
+  const grupo = t => { const li = document.createElement("li"); li.className = "grupo"; li.textContent = t; ul.appendChild(li); };
+
+  const achados = clientes.filter(c => semAcento(c).includes(nq));
+  const nome = limparNome(q);
+  if (nome && !clientes.some(c => semAcento(c) === semAcento(nome))) {
+    add(`+ Criar cliente "${nome}"`, "novo", () => criarCliente(nome));
+  }
+  if (!q) {
+    const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c));
+    if (rec.length) { grupo("Recentes"); rec.forEach(c => add(c, "", () => escolher(c))); grupo("Todos"); }
+  }
+  achados.forEach(c => add(c, "", () => escolher(c)));
+  if (!achados.length && !nome) {
+    const li = document.createElement("li"); li.className = "grupo";
+    li.textContent = "Nenhum cliente encontrado."; ul.appendChild(li);
+  }
+}
+
+function abrirDialogo() {
+  if (enviando) return;
+  $("busca").value = "";
+  desenharLista();
+  $("dlg").showModal();
+  carregarClientes().then(desenharLista);
+}
+
+async function criarCliente(nome) {
+  try {
+    await graph(`${BASE()}/children`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: nome, folder: {}, "@microsoft.graph.conflictBehavior": "fail" })
+    });
+    clientes.push(nome); clientes.sort((a, b) => a.localeCompare(b, "pt-BR")); gravarLS("vpx_clientes", clientes);
+    aviso(`Pasta do cliente "${nome}" criada.`);
+  } catch (e) {
+    if (e.status !== 409) { aviso("Não foi possível criar a pasta: " + e.message, true); return; }
+  }
+  escolher(nome);
+}
+
+function escolher(nome) {
+  cliente = nome;
+  const rec = [nome, ...lerLS("vpx_recentes", []).filter(c => c !== nome)].slice(0, 4);
+  gravarLS("vpx_recentes", rec);
+  $("dlg").close();
+  atualizar();
+}
+
+/* ---------- fotos ---------- */
+function adicionar(lista) {
+  for (const f of lista) {
+    if (!f.type.startsWith("image/") && !/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name)) continue;
+    fotos.push({ id: ++seq, arquivo: f, url: URL.createObjectURL(f), st: "nova" });
+  }
+  atualizar();
+  requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }));
+}
+
+function remover(id) {
+  const i = fotos.findIndex(f => f.id === id);
+  if (i < 0) return;
+  URL.revokeObjectURL(fotos[i].url);
+  fotos.splice(i, 1);
+  atualizar();
+}
+
+function caminhoVisita() {
+  return `${cliente}/${CONFIG.subpasta.replace("{data}", dataISO())}`;
+}
+
+function atualizar() {
+  const nc = $("nome-cliente");
+  nc.textContent = cliente || "Escolher cliente";
+  $("btn-cliente").classList.toggle("vazio", !cliente);
+  $("destino").textContent = cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + caminhoVisita().replace(/\//g, " › ") : "";
+
+  const g = $("grade");
+  g.innerHTML = "";
+  fotos.forEach((f, i) => {
+    const d = document.createElement("div");
+    d.className = "foto"; d.dataset.st = f.st;
+    d.innerHTML = `<img alt="Foto ${i + 1}" loading="lazy"><span class="num">${i + 1}</span><button class="tirar" aria-label="Remover foto ${i + 1}">×</button>`;
+    d.querySelector("img").src = f.url;
+    d.querySelector(".tirar").onclick = () => remover(f.id);
+    g.appendChild(d);
+  });
+  $("semfotos").hidden = fotos.length > 0;
+
+  const pend = fotos.filter(f => f.st !== "ok").length;
+  const b = $("btn-salvar");
+  b.disabled = enviando || !cliente || !pend;
+  if (enviando) b.textContent = "Salvando…";
+  else if (!cliente && fotos.length) b.textContent = "Escolha o cliente para salvar";
+  else if (!pend) b.textContent = "Salvar no cliente";
+  else b.textContent = `Salvar ${pend} foto${pend > 1 ? "s" : ""} no cliente`;
+  $("captura").style.display = enviando ? "none" : "";
+}
+
+async function reduzir(arquivo) {
+  if (!CONFIG.reduzirFotos) return { blob: arquivo, ext: null };
+  try {
+    const bmp = await createImageBitmap(arquivo, { imageOrientation: "from-image" });
+    const esc = Math.min(1, CONFIG.ladoMaximo / Math.max(bmp.width, bmp.height));
+    if (esc === 1 && arquivo.type === "image/jpeg") { bmp.close(); return { blob: arquivo, ext: "jpg" }; }
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * esc); c.height = Math.round(bmp.height * esc);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    bmp.close();
+    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", CONFIG.qualidade));
+    return blob ? { blob, ext: "jpg" } : { blob: arquivo, ext: null };
+  } catch { return { blob: arquivo, ext: null }; }
+}
+
+async function garantirPasta(caminho) {
+  const partes = caminho.split("/").filter(Boolean);
+  let atual = partes[0];                               // pasta do cliente (já existe)
+  let item = await graph(`${BASE()}:/${encPath(atual)}`);
+  for (const p of partes.slice(1)) {
+    const prox = atual + "/" + p;
+    try { item = await graph(`${BASE()}:/${encPath(prox)}`); }
+    catch (e) {
+      if (e.status !== 404) throw e;
+      item = await graph(`${BASE()}:/${encPath(atual)}:/children`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: p, folder: {}, "@microsoft.graph.conflictBehavior": "fail" })
+      });
+    }
+    atual = prox;
+  }
+  return item;
+}
+
+async function enviarArquivo(pastaId, nome, blob) {
+  const alvo = `/drives/${CONFIG.driveId}/items/${pastaId}:/${encodeURIComponent(nome)}:`;
+  if (blob.size < 4 * 1024 * 1024) {
+    return graph(`${alvo}/content?@microsoft.graph.conflictBehavior=rename`, {
+      method: "PUT", headers: { "Content-Type": blob.type || "application/octet-stream" }, body: blob
+    });
+  }
+  const s = await graph(`${alvo}/createUploadSession`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ item: { "@microsoft.graph.conflictBehavior": "rename" } })
+  });
+  const PEDACO = 320 * 1024 * 10;
+  for (let ini = 0; ini < blob.size; ini += PEDACO) {
+    const fim = Math.min(ini + PEDACO, blob.size);
+    let ok = false;
+    for (let t = 0; t < 3 && !ok; t++) {
+      const r = await fetch(s.uploadUrl, { method: "PUT", headers: { "Content-Range": `bytes ${ini}-${fim - 1}/${blob.size}` }, body: blob.slice(ini, fim) });
+      ok = r.ok;
+      if (!ok) await espera(2000 * (t + 1));
+    }
+    if (!ok) throw new Error("Falha no envio de foto grande");
+  }
+}
+
+async function salvar() {
+  if (enviando || !cliente) return;
+  const fila = fotos.filter(f => f.st !== "ok");
+  if (!fila.length) return;
+  enviando = true;
+  let trava = null;
+  try { trava = await navigator.wakeLock?.request("screen"); } catch {}
+  $("progresso").hidden = false;
+  const total = fila.length; let feitos = 0;
+  const prog = () => {
+    $("cheio").style.width = (feitos / total * 100) + "%";
+    $("txtprog").textContent = `${feitos} de ${total} enviadas`;
+  };
+  prog(); atualizar();
+
+  let pasta;
+  try { pasta = await garantirPasta(caminhoVisita()); }
+  catch (e) {
+    enviando = false; $("progresso").hidden = true; atualizar();
+    try { trava?.release(); } catch {}
+    aviso("Não foi possível acessar a pasta do cliente: " + e.message, true);
+    return;
+  }
+
+  const data = dataISO();
+  const trabalhar = async () => {
+    while (fila.length) {
+      const f = fila.shift();
+      const n = fotos.indexOf(f) + 1;
+      f.st = "enviando"; atualizar();
+      try {
+        const { blob, ext } = await reduzir(f.arquivo);
+        const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
+        const quando = new Date(f.arquivo.lastModified || Date.now());
+        const nome = `${data}_${horaArq(quando)}_${pad(n)}.${extensao}`;
+        await enviarArquivo(pasta.id, nome, blob);
+        f.st = "ok";
+      } catch (e) { f.st = "erro"; console.error(e); }
+      feitos++; prog(); atualizar();
+    }
+  };
+  await Promise.all([trabalhar(), trabalhar(), trabalhar()]);
+
+  enviando = false;
+  try { trava?.release(); } catch {}
+  $("progresso").hidden = true;
+  const erros = fotos.filter(f => f.st === "erro").length;
+  atualizar();
+  if (erros) {
+    aviso(`${erros} foto${erros > 1 ? "s não foram enviadas" : " não foi enviada"}. Verifique a internet e toque em Salvar de novo.`, true);
+    return;
+  }
+  $("ok-titulo").textContent = `${fotos.length} foto${fotos.length > 1 ? "s salvas" : " salva"}`;
+  $("ok-texto").textContent = `Em ${cliente} › ${CONFIG.subpasta.replace("{data}", data).replace(/\//g, " › ")}`;
+  $("ok-link").href = pasta.webUrl || "#";
+  mostrar("tela-ok");
+}
+
+function novaVisita() {
+  fotos.forEach(f => URL.revokeObjectURL(f.url));
+  fotos = []; cliente = null;
+  mostrar("tela-app"); atualizar();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- início ---------- */
+async function iniciarApp() {
+  const nome = conta.name || conta.username || "";
+  const ini = nome.split(/\s+/).filter(Boolean).map(p => p[0]).slice(0, 2).join("").toUpperCase();
+  $("btn-conta").textContent = ini || "?";
+  $("btn-conta").hidden = false;
+  mostrar("tela-app"); atualizar();
+  carregarClientes();
+}
+
+$("btn-entrar").onclick = () => msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "select_account" });
+$("btn-conta").onclick = () => {
+  if (enviando) return;
+  if (confirm(`Conectado como ${conta.username}.\n\nSair da conta?`)) msalApp.logoutRedirect({ account: conta });
+};
+$("btn-cliente").onclick = abrirDialogo;
+$("dlg-fechar").onclick = () => $("dlg").close();
+$("busca").oninput = desenharLista;
+$("busca").onkeydown = e => {
+  if (e.key === "Enter") { const b = $("lista").querySelector(".item"); if (b) b.click(); }
+};
+$("in-cam").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
+$("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
+$("btn-salvar").onclick = salvar;
+$("btn-nova").onclick = novaVisita;
+window.addEventListener("beforeunload", e => {
+  if (enviando || fotos.some(f => f.st !== "ok")) { e.preventDefault(); e.returnValue = ""; }
+});
+
+(async () => {
+  if (CONFIG.clientId.startsWith("COLE_") || CONFIG.tenantId.startsWith("COLE_")) { mostrar("tela-config"); return; }
+  if (typeof msal === "undefined") { mostrar("tela-login"); aviso("Sem conexão para carregar o login. Verifique a internet.", true); return; }
+  msalApp = new msal.PublicClientApplication({
+    auth: {
+      clientId: CONFIG.clientId,
+      authority: "https://login.microsoftonline.com/" + CONFIG.tenantId,
+      redirectUri: location.origin + location.pathname
+    },
+    cache: { cacheLocation: "localStorage" }
+  });
+  try {
+    const r = await msalApp.handleRedirectPromise();
+    conta = r?.account || msalApp.getAllAccounts()[0];
+  } catch (e) {
+    aviso("Falha no login: " + e.message, true);
+  }
+  if (conta) iniciarApp(); else mostrar("tela-login");
+})();
+</script>
+</body>
+</html>
