@@ -173,8 +173,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <script>
 /* ================== CONFIGURAÇÃO ================== */
 const CONFIG = {
-  clientId: "COLE_AQUI_O_ID_DO_APLICATIVO",   // Entra ID > Registros de aplicativo > ID do aplicativo (cliente)
-  tenantId: "COLE_AQUI_O_ID_DO_DIRETORIO",    // Entra ID > Registros de aplicativo > ID do diretório (locatário)
+  clientId: "76fc51aa-584c-443a-9170-bf123e698cfe",   // Entra ID > Registros de aplicativo > ID do aplicativo (cliente)
+  tenantId: "923857d2-a4ca-4360-a259-69078844e9d2",    // Entra ID > Registros de aplicativo > ID do diretório (locatário)
   // Pasta "02 - Clientes" (VPX Engenharia - AVCB › 06 - Comercial) no OneDrive do Gustavo, compartilhada com a equipe
   driveId: "b!LWXbA_WnV0qdA93Eaa3V-E6Mee41gUxAmG8VyG43VRhmTKaEcLjtQ64K4k75--MP",
   pastaClientesId: "01VYL4Q5YGDBCBT3E7CRDLSKCI3476CXTS",
@@ -188,7 +188,7 @@ const CONFIG = {
 /* ================================================== */
 
 const ESCOPOS = ["User.Read", "Files.ReadWrite.All"];
-const BASE = () => `/drives/${CONFIG.driveId}/items/${CONFIG.pastaClientesId}`;
+const BASE = () => `/drives/${.driveId}/items/${CONFIG.pastaClientesId}`;
 const GRAPH = "https://graph.microsoft.com/v1.0";
 const $ = id => document.getElementById(id);
 
