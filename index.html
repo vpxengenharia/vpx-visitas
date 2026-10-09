@@ -35,7 +35,11 @@ button,input,label{font:inherit}
 
 .topo{background:var(--marinho);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5;border-bottom:4px solid var(--laranja)}
 .marca{font-family:var(--titulo-fonte);font-weight:700;font-size:22px;letter-spacing:.01em;margin:0}
-.marca span{font-weight:600;opacity:.75}
+.marca{display:flex;align-items:center;gap:12px}
+.marca img{height:36px;width:auto;display:block}
+.marca span{font-weight:600;opacity:.85;padding-left:12px;border-left:1.5px solid rgba(255,255,255,.35);line-height:1.1}
+.logo-grande{display:block;margin:28px 0 4px}
+.logo-grande img{height:96px;width:auto;display:block}
 .conta{background:transparent;border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;width:38px;height:38px;font-weight:600;cursor:pointer}
 
 main{padding:18px 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
@@ -121,7 +125,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </head>
 <body>
 <header class="topo">
-  <p class="marca">VPX <span>Visitas</span></p>
+  <p class="marca"><img src="logo-branco.png" alt="VPX Engenharia" width="64" height="36"><span>Visitas</span></p>
   <button class="conta" id="btn-conta" hidden aria-label="Conta"></button>
 </header>
 
@@ -132,6 +136,10 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   </section>
 
   <section id="tela-login" hidden>
+    <picture class="logo-grande">
+      <source srcset="logo-branco.png" media="(prefers-color-scheme: dark)">
+      <img src="logo.png" alt="VPX Engenharia" width="172" height="96">
+    </picture>
     <h1>Fotos da visita direto na pasta do cliente</h1>
     <p>Entre uma vez com a sua conta Microsoft da VPX. Depois é só fotografar e salvar.</p>
     <button class="btn prim" id="btn-entrar">Entrar com a conta da VPX</button>

@@ -6,7 +6,7 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 
 - Site estático publicado pelo **GitHub Pages** a partir da branch `main`, pasta raiz:
   `https://vpxengenharia.github.io/vpx-visitas/`
-- Arquivos: `index.html` (app inteiro: HTML, CSS e JS num arquivo só), `manifest.webmanifest`, `icone-180.png`, `icone-192.png`, `icone-512.png`.
+- Arquivos: `index.html` (app inteiro: HTML, CSS e JS num arquivo só), `manifest.webmanifest`, `icone-180.png`, `icone-192.png`, `icone-512.png`, `logo.png` (logo colorida, fundo transparente) e `logo-branco.png` (letras brancas, para fundo azul ou modo escuro).
 - Login com conta Microsoft 365 da VPX via **MSAL.js 2.38.3**, carregado do jsDelivr:
   `https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js`
   (o CDN `alcdn.msauth.net` não funcionou — não volte para ele).
