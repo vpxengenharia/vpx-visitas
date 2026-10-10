@@ -639,7 +639,7 @@ function desligarCamera(c) {
 
 function contadorCam() {
   const n = cam ? cam.fotos.length : 0;
-  $("cam-cont").textContent = n ? `${n} foto${n > 1 ? "s" : ""}` : "Toque no botão laranja para fotografar";
+  $("cam-cont").textContent = n ? `${n} foto${n > 1 ? "s" : ""}` : "";
   $("cam-ok").textContent = n ? `Usar ${n} foto${n > 1 ? "s" : ""}` : "Fechar";
 }
 
