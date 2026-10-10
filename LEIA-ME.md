@@ -1,7 +1,7 @@
 # VPX Visitas — instalação
 
 O app já vem configurado para salvar em
-**VPX Engenharia - AVCB › 06 - Comercial › 02 - Clientes › [Cliente] › Fotos**, enviando a foto original, sem compressão.
+**VPX Engenharia - AVCB › 06 - Comercial › 02 - Clientes › [Cliente] › 06 - Fotos e Visitas Técnicas**, enviando a foto original, sem compressão.
 
 As Partes 1 a 4 são feitas **uma única vez, por você, no computador** (uns 15 minutos). A Parte 5 é feita em cada pessoa da equipe.
 
@@ -50,6 +50,7 @@ Envie o endereço da Parte 2 por WhatsApp ou e-mail.
 1. Abra o link no **Safari** (precisa ser o Safari; pelo WhatsApp, toque em "Abrir no Safari").
 2. Toque no botão **Compartilhar** (quadrado com seta) → **Adicionar à Tela de Início** → **Adicionar**.
 3. Abra pelo ícone **VPX Visitas** e toque em **Entrar com a conta da VPX** usando o e-mail @vpxengenharia.com.br da pessoa.
+4. Para o app não pedir permissão da câmera toda vez que é aberto: **Ajustes › Apps › Safari › Câmera › Permitir** (em iOS mais antigos: **Ajustes › Safari › Câmera**).
 
 **Android**
 1. Abra o link no **Chrome**.
@@ -61,7 +62,10 @@ O login fica salvo. Nas próximas vezes é só abrir e usar.
 ## Como usar
 
 1. **Cliente** → escolha da lista ou digite um nome novo para criar a pasta.
-2. **Câmera** quantas vezes quiser, ou **Galeria** para marcar várias de uma vez.
+2. Fotos, de três jeitos:
+   - **Câmera**: câmera do celular, uma foto por vez, qualidade máxima.
+   - **Sequência**: várias fotos seguidas dentro do app, com zoom (1x, 2x, 3x ou pinça). No iPhone a qualidade é um pouco menor e o zoom é digital.
+   - **Galeria**: marque várias de uma vez. No iPhone, para muitas fotos com qualidade máxima, tire pelo app Câmera do iPhone (sem rajada) e depois escolha todas pela Galeria.
 3. **Salvar no cliente** → todas sobem juntas, com nomes do tipo `2026-10-09_14-32-05_01.jpg`.
 
 Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de novo.

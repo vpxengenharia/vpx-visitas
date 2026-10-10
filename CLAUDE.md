@@ -28,4 +28,6 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 
 - Pastas ignoradas na lista de clientes: `01 - Arquivado` e cópias de conflito com `-DESKTOP-` no nome.
 - Alguns clientes antigos ainda têm uma pasta `Fotos` (padrão anterior). No cliente Franz Schubert existe `06 - Fotos e Visitas Técnicas/Registros`. O padrão atual é salvar direto em `06 - Fotos e Visitas Técnicas`.
+- iPhone: o app instalado na tela inicial pede permissão da câmera a cada abertura (regra do iOS, não dá para resolver no código). Resolve em **Ajustes › Apps › Safari › Câmera › Permitir** — testado e confirmado pelo Gustavo.
+- iPhone não permite tirar várias fotos seguidas com a câmera nativa a partir de um site; por isso existe o botão **Sequência** (câmera dentro do app, getUserMedia).
 - Nome dos arquivos: `AAAA-MM-DD_HH-MM-SS_NN.ext` (data/hora da foto + número de ordem).
