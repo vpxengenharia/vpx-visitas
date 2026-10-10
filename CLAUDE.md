@@ -12,7 +12,8 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
   (o CDN `alcdn.msauth.net` não funcionou — não volte para ele).
 - Acesso ao OneDrive pela **Microsoft Graph** com a permissão delegada `Files.ReadWrite.All`.
 - Destino das fotos: `VPX Engenharia - AVCB › 06 - Comercial › 02 - Clientes › [Cliente] › 06 - Fotos e Visitas Técnicas`, no OneDrive do Gustavo, compartilhado com a equipe. O app cria a subpasta se ela não existir.
-- Fotos enviadas no original (`reduzirFotos: false`); arquivos acima de 4 MB usam upload session.
+- Fotos enviadas no original (`reduzirFotos: false`); arquivos acima de 4 MB usam upload session, que retoma de onde parou (`nextExpectedRanges`) se a conexão cair.
+- Vídeos: botão **Filmar** (`<input accept="video/*" capture>`, câmera nativa) e Galeria aceitam vídeo. Vão para a mesma pasta, com o mesmo padrão de nome e a extensão original (`.mov`/`.mp4`). A miniatura é um quadro gerado uma vez em `gerarCapa`.
 
 ## Regras
 

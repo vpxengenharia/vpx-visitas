@@ -62,11 +62,14 @@ O login fica salvo. Nas próximas vezes é só abrir e usar.
 ## Como usar
 
 1. **Cliente** → escolha da lista ou digite um nome novo para criar a pasta.
-2. Fotos, de três jeitos:
+2. Fotos e vídeos, de quatro jeitos:
    - **Câmera**: câmera do celular, uma foto por vez, qualidade máxima.
    - **Sequência**: várias fotos seguidas dentro do app, com zoom (1x, 2x, 3x ou pinça). No iPhone a qualidade é um pouco menor e o zoom é digital.
-   - **Galeria**: marque várias de uma vez. No iPhone, para muitas fotos com qualidade máxima, tire pelo app Câmera do iPhone (sem rajada) e depois escolha todas pela Galeria.
+   - **Filmar**: abre a câmera do celular já no modo vídeo, com som e qualidade máxima.
+   - **Galeria**: marque várias fotos e vídeos de uma vez. No iPhone, para muitas fotos com qualidade máxima, tire pelo app Câmera do iPhone (sem rajada) e depois escolha todas pela Galeria.
 3. **Salvar no cliente** → todas sobem juntas, com nomes do tipo `2026-10-09_14-32-05_01.jpg`.
+
+Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se der, envie vídeos no Wi-Fi. Se a internet oscilar durante um vídeo, o envio continua de onde parou.
 
 Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de novo.
 

@@ -64,6 +64,9 @@ p{margin:0 0 14px;max-width:60ch}
 .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
 .foto{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--linha)}
 .foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto.video{background:#13253B}
+.foto .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:rgba(19,37,59,.8);color:#fff;display:grid;place-items:center;font-size:15px;padding-left:3px;pointer-events:none}
+.foto .dur{position:absolute;left:6px;bottom:6px;background:rgba(19,37,59,.82);color:#fff;font-size:13px;font-weight:600;border-radius:5px;padding:0 6px}
 .foto .num{position:absolute;left:6px;top:6px;background:rgba(19,37,59,.82);color:#fff;font-size:13px;font-weight:600;border-radius:5px;padding:0 6px}
 .foto .tirar{position:absolute;right:4px;top:4px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(19,37,59,.82);color:#fff;font-size:20px;line-height:1;cursor:pointer}
 .foto[data-st="enviando"] img{opacity:.45}
@@ -76,7 +79,8 @@ p{margin:0 0 14px;max-width:60ch}
 .barra{position:fixed;left:0;right:0;bottom:0;background:var(--papel);border-top:1px solid var(--linha);padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));z-index:5}
 .barra-in{max-width:720px;margin:0 auto;display:grid;gap:10px}
 .captura{display:flex;gap:10px}
-.captura .btn{flex-direction:column;gap:2px;min-height:62px;padding:6px 8px;font-size:15px}
+.captura{gap:8px}
+.captura .btn{flex-direction:column;gap:2px;min-height:62px;padding:6px 4px;font-size:14px}
 .trilho{height:8px;background:var(--linha);border-radius:4px;overflow:hidden}
 .cheio{height:100%;width:0;background:var(--laranja);transition:width .2s}
 .txtprog{font-size:14px;color:var(--suave);margin-top:4px}
@@ -159,7 +163,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     </button>
     <p class="destino" id="destino"></p>
     <div class="grade" id="grade"></div>
-    <div class="semfotos" id="semfotos">Nenhuma foto ainda. Fotografe pela câmera ou escolha várias da galeria de uma vez.</div>
+    <div class="semfotos" id="semfotos">Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.</div>
   </section>
 
   <section id="tela-ok" class="sucesso" hidden>
@@ -186,9 +190,14 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
         Sequência
       </button>
       <label class="btn sec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10.5 6-3.5v10l-6-3.5z"/></svg>
+        Filmar
+        <input class="oculto" type="file" accept="video/*" capture="environment" id="in-vid">
+      </label>
+      <label class="btn sec">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg>
         Galeria
-        <input class="oculto" type="file" accept="image/*" multiple id="in-gal">
+        <input class="oculto" type="file" accept="image/*,video/*" multiple id="in-gal">
       </label>
     </div>
     <div id="progresso" hidden>
@@ -383,22 +392,69 @@ function escolher(nome) {
 }
 
 /* ---------- fotos ---------- */
+const ehVideo = f => f.type.startsWith("video/") || /\.(mov|mp4|m4v|3gp|webm)$/i.test(f.name);
+
 function adicionar(lista) {
   for (const f of lista) {
-    if (!f.type.startsWith("image/") && !/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name)) continue;
-    fotos.push({ id: ++seq, arquivo: f, url: URL.createObjectURL(f), st: "nova" });
+    const video = ehVideo(f);
+    if (!video && !f.type.startsWith("image/") && !/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name)) continue;
+    const item = { id: ++seq, arquivo: f, url: URL.createObjectURL(f), st: "nova", video };
+    fotos.push(item);
+    if (video) gerarCapa(item);
   }
   atualizar();
   requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }));
 }
 
+// miniatura do vídeo: um quadro do início, desenhado uma vez só (a lista é redesenhada várias vezes durante o envio)
+function gerarCapa(item) {
+  const v = document.createElement("video");
+  v.muted = true; v.playsInline = true; v.preload = "auto";
+  let feito = false;
+  const fim = () => { if (feito) return; feito = true; v.removeAttribute("src"); v.load(); };
+  setTimeout(fim, 8000);
+  v.onloadedmetadata = () => {
+    if (isFinite(v.duration)) { item.dur = v.duration; atualizar(); }
+    try { v.currentTime = Math.min(0.5, (v.duration || 1) / 2); } catch { fim(); }
+  };
+  v.onseeked = () => {
+    if (feito || !v.videoWidth) return fim();
+    const esc = Math.min(1, 320 / Math.max(v.videoWidth, v.videoHeight));
+    const cv = document.createElement("canvas");
+    cv.width = Math.round(v.videoWidth * esc); cv.height = Math.round(v.videoHeight * esc);
+    cv.getContext("2d").drawImage(v, 0, 0, cv.width, cv.height);
+    cv.toBlob(b => {
+      if (b && fotos.includes(item)) { item.capa = URL.createObjectURL(b); atualizar(); }
+      fim();
+    }, "image/jpeg", 0.8);
+  };
+  v.onerror = fim;
+  v.src = item.url;
+}
+
+function liberar(f) {
+  URL.revokeObjectURL(f.url);
+  if (f.capa) URL.revokeObjectURL(f.capa);
+}
+
 function remover(id) {
   const i = fotos.findIndex(f => f.id === id);
   if (i < 0) return;
-  URL.revokeObjectURL(fotos[i].url);
+  liberar(fotos[i]);
   fotos.splice(i, 1);
   atualizar();
 }
+
+// "3 fotos e 1 vídeo"
+function descrever(lista) {
+  const v = lista.filter(f => f.video).length, p = lista.length - v;
+  const partes = [];
+  if (p) partes.push(`${p} foto${p > 1 ? "s" : ""}`);
+  if (v) partes.push(`${v} vídeo${v > 1 ? "s" : ""}`);
+  return partes.join(" e ");
+}
+const duracao = s => { const t = Math.round(s); return `${Math.floor(t / 60)}:${pad(t % 60)}`; };
+const mb = b => (b / 1048576).toLocaleString("pt-BR", { maximumFractionDigits: b < 10485760 ? 1 : 0 }) + " MB";
 
 /* ---------- câmera em sequência ---------- */
 // Android (Chrome): ImageCapture tira a foto em resolução cheia.
@@ -635,26 +691,31 @@ function atualizar() {
   g.innerHTML = "";
   fotos.forEach((f, i) => {
     const d = document.createElement("div");
-    d.className = "foto"; d.dataset.st = f.st;
-    d.innerHTML = `<img alt="Foto ${i + 1}" loading="lazy"><span class="num">${i + 1}</span><button class="tirar" aria-label="Remover foto ${i + 1}">×</button>`;
-    d.querySelector("img").src = f.url;
+    const tipo = f.video ? "vídeo" : "foto";
+    d.className = "foto" + (f.video ? " video" : ""); d.dataset.st = f.st;
+    d.innerHTML = `<img alt="${tipo} ${i + 1}" loading="lazy"><span class="num">${i + 1}</span><button class="tirar" aria-label="Remover ${tipo} ${i + 1}">×</button>`;
+    const img = d.querySelector("img");
+    if (f.video) {
+      if (f.capa) img.src = f.capa; else img.hidden = true;
+      d.insertAdjacentHTML("beforeend", `<span class="play" aria-hidden="true">▶</span>` + (f.dur ? `<span class="dur">${duracao(f.dur)}</span>` : ""));
+    } else img.src = f.url;
     d.querySelector(".tirar").onclick = () => remover(f.id);
     g.appendChild(d);
   });
   $("semfotos").hidden = fotos.length > 0;
 
-  const pend = fotos.filter(f => f.st !== "ok").length;
+  const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
-  b.disabled = enviando || !cliente || !pend;
+  b.disabled = enviando || !cliente || !pend.length;
   if (enviando) b.textContent = "Salvando…";
   else if (!cliente && fotos.length) b.textContent = "Escolha o cliente para salvar";
-  else if (!pend) b.textContent = "Salvar no cliente";
-  else b.textContent = `Salvar ${pend} foto${pend > 1 ? "s" : ""} no cliente`;
+  else if (!pend.length) b.textContent = "Salvar no cliente";
+  else b.textContent = `Salvar ${descrever(pend)} no cliente`;
   $("captura").style.display = enviando ? "none" : "";
 }
 
 async function reduzir(arquivo) {
-  if (!CONFIG.reduzirFotos) return { blob: arquivo, ext: null };
+  if (!CONFIG.reduzirFotos || ehVideo(arquivo)) return { blob: arquivo, ext: null };
   try {
     const bmp = await createImageBitmap(arquivo, { imageOrientation: "from-image" });
     const esc = Math.min(1, CONFIG.ladoMaximo / Math.max(bmp.width, bmp.height));
@@ -687,27 +748,39 @@ async function garantirPasta(caminho) {
   return item;
 }
 
-async function enviarArquivo(pastaId, nome, blob) {
+// avancou(n) informa quantos bytes já chegaram ao OneDrive (para a barra de progresso)
+async function enviarArquivo(pastaId, nome, blob, avancou = () => {}) {
   const alvo = `/drives/${CONFIG.driveId}/items/${pastaId}:/${encodeURIComponent(nome)}:`;
   if (blob.size < 4 * 1024 * 1024) {
-    return graph(`${alvo}/content?@microsoft.graph.conflictBehavior=rename`, {
+    await graph(`${alvo}/content?@microsoft.graph.conflictBehavior=rename`, {
       method: "PUT", headers: { "Content-Type": blob.type || "application/octet-stream" }, body: blob
     });
+    avancou(blob.size);
+    return;
   }
   const s = await graph(`${alvo}/createUploadSession`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ item: { "@microsoft.graph.conflictBehavior": "rename" } })
   });
   const PEDACO = 320 * 1024 * 10;
-  for (let ini = 0; ini < blob.size; ini += PEDACO) {
+  let ini = 0, falhas = 0;
+  while (ini < blob.size) {
     const fim = Math.min(ini + PEDACO, blob.size);
-    let ok = false;
-    for (let t = 0; t < 3 && !ok; t++) {
+    let status = 0;
+    try {
       const r = await fetch(s.uploadUrl, { method: "PUT", headers: { "Content-Range": `bytes ${ini}-${fim - 1}/${blob.size}` }, body: blob.slice(ini, fim) });
-      ok = r.ok;
-      if (!ok) await espera(2000 * (t + 1));
-    }
-    if (!ok) throw new Error("Falha no envio de foto grande");
+      status = r.status;
+      if (r.ok) { avancou(fim - ini); ini = fim; falhas = 0; continue; }
+    } catch {}                                          // internet caiu no meio do pedaço
+    if (status === 404) throw new Error("A sessão de envio expirou");
+    if (++falhas > 6) throw new Error("Falha no envio de arquivo grande");
+    await espera(2000 * falhas);
+    // pergunta ao OneDrive de onde continuar, em vez de recomeçar o arquivo
+    try {
+      const st = await (await fetch(s.uploadUrl)).json();
+      const prox = parseInt(st.nextExpectedRanges?.[0], 10);
+      if (prox >= 0 && prox <= blob.size) { avancou(prox - ini); ini = prox; }
+    } catch {}
   }
 }
 
@@ -720,9 +793,10 @@ async function salvar() {
   try { trava = await navigator.wakeLock?.request("screen"); } catch {}
   $("progresso").hidden = false;
   const total = fila.length; let feitos = 0;
+  const bytesTotal = fila.reduce((s, f) => s + f.arquivo.size, 0) || 1; let bytes = 0;
   const prog = () => {
-    $("cheio").style.width = (feitos / total * 100) + "%";
-    $("txtprog").textContent = `${feitos} de ${total} enviadas`;
+    $("cheio").style.width = Math.min(100, bytes / bytesTotal * 100) + "%";
+    $("txtprog").textContent = `${feitos} de ${total} enviados` + (bytesTotal > 20 * 1048576 ? ` · ${mb(bytes)} de ${mb(bytesTotal)}` : "");
   };
   prog(); atualizar();
 
@@ -741,14 +815,18 @@ async function salvar() {
       const f = fila.shift();
       const n = fotos.indexOf(f) + 1;
       f.st = "enviando"; atualizar();
+      let deste = 0;                                    // bytes deste arquivo já contados na barra
       try {
         const { blob, ext } = await reduzir(f.arquivo);
         const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
         const quando = new Date(f.arquivo.lastModified || Date.now());
         const nome = `${data}_${horaArq(quando)}_${pad(n)}.${extensao}`;
-        await enviarArquivo(pasta.id, nome, blob);
+        // se a foto foi reduzida, converte o progresso para o tamanho original
+        const fator = f.arquivo.size / (blob.size || 1);
+        await enviarArquivo(pasta.id, nome, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
         f.st = "ok";
       } catch (e) { f.st = "erro"; console.error(e); }
+      bytes += f.arquivo.size - deste;
       feitos++; prog(); atualizar();
     }
   };
@@ -757,20 +835,21 @@ async function salvar() {
   enviando = false;
   try { trava?.release(); } catch {}
   $("progresso").hidden = true;
-  const erros = fotos.filter(f => f.st === "erro").length;
+  const erros = fotos.filter(f => f.st === "erro");
   atualizar();
-  if (erros) {
-    aviso(`${erros} foto${erros > 1 ? "s não foram enviadas" : " não foi enviada"}. Verifique a internet e toque em Salvar de novo.`, true);
+  if (erros.length) {
+    aviso(`Não foi possível enviar ${descrever(erros)}. Verifique a internet e toque em Salvar de novo.`, true);
     return;
   }
-  $("ok-titulo").textContent = `${fotos.length} foto${fotos.length > 1 ? "s salvas" : " salva"}`;
+  const temVideo = fotos.some(f => f.video);
+  $("ok-titulo").textContent = `${descrever(fotos)} ${temVideo ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
   $("ok-texto").textContent = `Em ${cliente} › ${CONFIG.subpasta.replace("{data}", data).replace(/\//g, " › ")}`;
   $("ok-link").href = pasta.webUrl || "#";
   mostrar("tela-ok");
 }
 
 function novaVisita() {
-  fotos.forEach(f => URL.revokeObjectURL(f.url));
+  fotos.forEach(liberar);
   fotos = []; cliente = null;
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
@@ -798,7 +877,8 @@ $("busca").onkeydown = e => {
   if (e.key === "Enter") { const b = $("lista").querySelector(".item"); if (b) b.click(); }
 };
 $("in-cam").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
-$("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
+$("in-vid").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
+$("in-gal").onchange =e => { adicionar(e.target.files); e.target.value = ""; };
 $("btn-seq").onclick = abrirCamera;
 $("cam-disparo").onclick = fotografar;
 $("cam-ok").onclick = () => fecharCamera();
