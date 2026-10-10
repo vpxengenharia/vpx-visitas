@@ -214,14 +214,9 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <footer class="barra" id="barra" hidden>
   <div class="barra-in">
     <div class="captura" id="captura">
-      <label class="btn sec">
+      <button class="btn sec" id="btn-seq">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
         Câmera
-        <input class="oculto" type="file" accept="image/*" capture="environment" id="in-cam">
-      </label>
-      <button class="btn sec" id="btn-seq">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h12"/><circle cx="14" cy="10" r="3"/></svg>
-        Sequência
       </button>
       <label class="btn sec" id="btn-vid">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10.5 6-3.5v10l-6-3.5z"/></svg>
@@ -250,7 +245,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <ul class="lista" id="lista"></ul>
 </dialog>
 
-<div class="cam" id="cam" hidden role="dialog" aria-label="Câmera em sequência">
+<div class="cam" id="cam" hidden role="dialog" aria-label="Câmera">
   <div class="cam-topo">
     <button class="cam-luz" id="cam-luz" hidden aria-label="Lanterna" aria-pressed="false">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 2 5 13.5h6L10 22l9-12h-6.2z"/></svg>
@@ -601,7 +596,7 @@ let cam = null;
 
 function abrirCamera() {
   if (enviando || cam) return;
-  if (!navigator.mediaDevices?.getUserMedia) { aviso("Este navegador não abre a câmera em sequência. Use o botão Câmera.", true); return; }
+  if (!navigator.mediaDevices?.getUserMedia) { aviso("Este navegador não abre a câmera do app. Fotografe pela câmera do celular e use o botão Galeria.", true); return; }
   cam = { fotos: [], ocupado: false, luz: false, zoom: 1 };
   $("cam-miniatura").hidden = true;
   $("cam-zoom").hidden = true;
@@ -640,7 +635,7 @@ async function ligarCamera() {
     const negado = e.name === "NotAllowedError" || e.name === "SecurityError";
     $("cam-msg").textContent = negado
       ? "O app não tem permissão para usar a câmera. Libere a câmera nas configurações do navegador e tente de novo."
-      : "Não foi possível abrir a câmera. Feche e tente de novo, ou use o botão Câmera.";
+      : "Não foi possível abrir a câmera. Feche e tente de novo, ou use o botão Galeria.";
   }
 }
 
@@ -1046,7 +1041,6 @@ $("busca").oninput = desenharLista;
 $("busca").onkeydown = e => {
   if (e.key === "Enter") { const b = $("lista").querySelector(".item"); if (b) b.click(); }
 };
-$("in-cam").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("in-vid").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("aba-visita").onclick = () => trocarModo("visita");
