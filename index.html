@@ -104,9 +104,16 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 
 .cam{position:fixed;inset:0;z-index:30;background:#000;display:flex;flex-direction:column}
 .cam[hidden]{display:none}
-.cam video{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}
+.cam-visor{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none}
+.cam-visor video{width:100%;height:100%;object-fit:contain;display:block;background:#000;transform-origin:center}
+.cam-zoom{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:10px}
+.cam-zoom[hidden]{display:none}
+.cam-zoom button{min-width:52px;height:48px;border-radius:999px;border:0;background:rgba(0,0,0,.55);color:#fff;font-family:var(--titulo-fonte);font-weight:700;font-size:17px;padding:0 10px;cursor:pointer}
+.cam-zoom button[aria-pressed="true"]{background:var(--laranja);color:var(--marinho)}
+.cam-zoom button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .cam-topo{position:absolute;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#fff;background:linear-gradient(rgba(0,0,0,.6),transparent);font-weight:600}
 .cam-luz{width:48px;height:48px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(0,0,0,.35);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.cam-luz[hidden]{display:none}
 .cam-luz svg{width:24px;height:24px}
 .cam-luz[aria-pressed="true"]{background:var(--laranja);border-color:var(--laranja);color:var(--marinho)}
 .cam-msg{position:absolute;left:24px;right:24px;top:42%;margin:0 auto;text-align:center;color:#fff}
@@ -201,7 +208,10 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </dialog>
 
 <div class="cam" id="cam" hidden role="dialog" aria-label="Câmera em sequência">
-  <video id="cam-video" playsinline muted autoplay></video>
+  <div class="cam-visor" id="cam-visor">
+    <video id="cam-video" playsinline muted autoplay></video>
+    <div class="cam-zoom" id="cam-zoom" hidden></div>
+  </div>
   <div class="cam-flash" id="cam-flash"></div>
   <p class="cam-msg" id="cam-msg"></p>
   <div class="cam-topo">
@@ -398,8 +408,10 @@ let cam = null;
 function abrirCamera() {
   if (enviando || cam) return;
   if (!navigator.mediaDevices?.getUserMedia) { aviso("Este navegador não abre a câmera em sequência. Use o botão Câmera.", true); return; }
-  cam = { fotos: [], ocupado: false, luz: false };
+  cam = { fotos: [], ocupado: false, luz: false, zoom: 1 };
   $("cam-mini").hidden = true;
+  $("cam-zoom").hidden = true;
+  $("cam-video").style.transform = "";
   $("cam").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ cam: true }, "");        // o "voltar" do Android fecha a câmera sem perder as fotos
@@ -412,7 +424,8 @@ async function ligarCamera() {
   if (!c) return;
   $("cam-msg").textContent = "Abrindo a câmera…"; $("cam-msg").hidden = false;
   $("cam-disparo").disabled = true; $("cam-luz").hidden = true;
-  const alta = "ImageCapture" in window ? { width: { ideal: 1920 }, height: { ideal: 1440 } } : { width: { ideal: 4096 }, height: { ideal: 3072 } };
+  // no Chrome, "zoom: true" libera o zoom da própria câmera
+  const alta = "ImageCapture" in window ? { width: { ideal: 1920 }, height: { ideal: 1440 }, zoom: true } : { width: { ideal: 4096 }, height: { ideal: 3072 } };
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, ...alta } });
     if (cam !== c) { stream.getTracks().forEach(t => t.stop()); return; }
@@ -427,6 +440,7 @@ async function ligarCamera() {
     $("cam-disparo").disabled = false;
     $("cam-luz").hidden = !c.track.getCapabilities?.().torch;
     $("cam-luz").setAttribute("aria-pressed", "false");
+    prepararZoom(c);
   } catch (e) {
     if (cam !== c) return;
     const negado = e.name === "NotAllowedError" || e.name === "SecurityError";
@@ -448,13 +462,98 @@ function contadorCam() {
   $("cam-ok").textContent = n ? `Usar ${n} foto${n > 1 ? "s" : ""}` : "Fechar";
 }
 
-function quadroVideo() {
+/* zoom: no Android usa o zoom da câmera; onde não há (iPhone), zoom digital = recorte do centro da imagem */
+const ZOOM_DIGITAL_MAX = 4;
+
+function prepararZoom(c) {
+  const z = c.track.getCapabilities?.().zoom;
+  c.zoomHw = z && z.max > z.min ? z : null;
+  c.zoomMin = c.zoomHw ? Math.max(1, z.min) : 1;
+  c.zoomMax = c.zoomHw ? Math.min(z.max, 10) : ZOOM_DIGITAL_MAX;
+  $("cam-zoom").hidden = c.zoomMax <= c.zoomMin;
+  definirZoom(c.zoom);
+}
+
+function definirZoom(z) {
+  const c = cam;
+  if (!c?.track) return;
+  z = Math.min(c.zoomMax, Math.max(c.zoomMin, z));
+  if (c.zoomHw?.step) z = c.zoomMin + Math.round((z - c.zoomMin) / c.zoomHw.step) * c.zoomHw.step;
+  c.zoom = Math.round(z * 100) / 100;
+  if (c.zoomHw) aplicarZoomHw(c);
+  else $("cam-video").style.transform = c.zoom > 1 ? `scale(${c.zoom})` : "";
+  desenharZoom();
+}
+
+async function aplicarZoomHw(c) {
+  if (c.aplicandoZoom) { c.zoomPendente = true; return; }   // durante o gesto de pinça, aplica só o valor mais recente
+  c.aplicandoZoom = true;
+  do {
+    c.zoomPendente = false;
+    try { await c.track?.applyConstraints({ advanced: [{ zoom: c.zoom }] }); } catch {}
+  } while (c.zoomPendente && c.track);
+  c.aplicandoZoom = false;
+}
+
+function desenharZoom() {
+  const c = cam, caixa = $("cam-zoom");
+  if (!c) return;
+  const niveis = [1, 2, 3, 5, 10].filter(n => n >= c.zoomMin && n <= c.zoomMax + 0.01);
+  const ativo = niveis.filter(n => n <= c.zoom + 0.05).pop() ?? niveis[0];
+  const txt = n => String(Math.round(n * 10) / 10).replace(".", ",") + "x";
+  caixa.innerHTML = "";
+  niveis.forEach(n => {
+    const b = document.createElement("button");
+    const eh = n === ativo;
+    b.textContent = eh ? txt(c.zoom) : txt(n);
+    b.setAttribute("aria-pressed", String(eh));
+    b.setAttribute("aria-label", "Zoom " + txt(n));
+    b.onclick = () => definirZoom(n);
+    caixa.appendChild(b);
+  });
+}
+
+// pinça com dois dedos no visor
+const dedos = new Map();
+let pinca = null;
+function distDedos() { const [a, b] = [...dedos.values()]; return Math.hypot(a.x - b.x, a.y - b.y); }
+$("cam-visor").addEventListener("pointerdown", e => {
+  dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (dedos.size === 2 && cam?.track) pinca = { d: distDedos(), z: cam.zoom };
+});
+$("cam-visor").addEventListener("pointermove", e => {
+  if (!dedos.has(e.pointerId)) return;
+  dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinca && dedos.size === 2) definirZoom(pinca.z * distDedos() / pinca.d);
+});
+["pointerup", "pointercancel", "pointerleave"].forEach(ev => $("cam-visor").addEventListener(ev, e => {
+  dedos.delete(e.pointerId);
+  if (dedos.size < 2) pinca = null;
+}));
+
+function recorteCentro(largura, altura, z) {
+  const w = Math.round(largura / z), h = Math.round(altura / z);
+  return { x: Math.round((largura - w) / 2), y: Math.round((altura - h) / 2), w, h };
+}
+
+function quadroVideo(z = 1) {
   const v = $("cam-video");
   if (!v.videoWidth) return Promise.resolve(null);
+  const r = recorteCentro(v.videoWidth, v.videoHeight, z);
   const cv = document.createElement("canvas");
-  cv.width = v.videoWidth; cv.height = v.videoHeight;
-  cv.getContext("2d").drawImage(v, 0, 0);
-  return new Promise(r => cv.toBlob(r, "image/jpeg", 0.92));
+  cv.width = r.w; cv.height = r.h;
+  cv.getContext("2d").drawImage(v, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+  return new Promise(res => cv.toBlob(res, "image/jpeg", 0.92));
+}
+
+async function recortarFoto(blob, z) {
+  const bmp = await createImageBitmap(blob, { imageOrientation: "from-image" });
+  const r = recorteCentro(bmp.width, bmp.height, z);
+  const cv = document.createElement("canvas");
+  cv.width = r.w; cv.height = r.h;
+  cv.getContext("2d").drawImage(bmp, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+  bmp.close();
+  return new Promise(res => cv.toBlob(b => res(b || blob), "image/jpeg", 0.92));
 }
 
 async function fotografar() {
@@ -465,6 +564,7 @@ async function fotografar() {
   const fl = $("cam-flash");
   fl.classList.add("ver"); setTimeout(() => fl.classList.remove("ver"), 60);
   navigator.vibrate?.(30);
+  const zDigital = c.zoomHw ? 1 : c.zoom;          // zoom da câmera já vem na foto; o digital é recortado aqui
   try {
     let blob = null;
     if (c.captura) {
@@ -473,8 +573,9 @@ async function fotografar() {
       }
       try { blob = await c.captura.takePhoto(c.larguraMax ? { imageWidth: c.larguraMax } : undefined); }
       catch { try { blob = await c.captura.takePhoto(); } catch {} }
+      if (blob && zDigital > 1) blob = await recortarFoto(blob, zDigital);
     }
-    if (!blob) blob = await quadroVideo();
+    if (!blob) blob = await quadroVideo(zDigital);
     if (!blob) throw new Error("sem imagem");
     const agora = Date.now();
     c.fotos.push(new File([blob], `camera_${agora}.jpg`, { type: blob.type || "image/jpeg", lastModified: agora }));
