@@ -110,12 +110,12 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .cam-luz svg{width:24px;height:24px}
 .cam-luz[aria-pressed="true"]{background:var(--laranja);border-color:var(--laranja);color:var(--marinho)}
 .cam-msg{position:absolute;left:24px;right:24px;top:42%;margin:0 auto;text-align:center;color:#fff}
-.cam-base{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:16px 18px calc(16px + env(safe-area-inset-bottom,0px));background:#000}
-.cam-mini{width:60px;height:60px;border-radius:8px;border:2px solid #fff;object-fit:cover;justify-self:start}
-.cam-disparo{width:80px;height:80px;border-radius:50%;border:5px solid #fff;background:var(--laranja);cursor:pointer;padding:0}
+.cam-base{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;padding:16px 18px calc(16px + env(safe-area-inset-bottom,0px));background:#000}
+.cam-mini{grid-column:1;width:60px;height:60px;border-radius:8px;border:2px solid #fff;object-fit:cover;justify-self:start}
+.cam-disparo{grid-column:2;width:80px;height:80px;border-radius:50%;border:5px solid #fff;background:var(--laranja);cursor:pointer;padding:0}
 .cam-disparo:active{transform:scale(.92)}
 .cam-disparo:disabled{opacity:.45;cursor:default}
-.cam-ok{justify-self:end;background:var(--laranja);color:var(--marinho);border:0;border-radius:10px;min-height:54px;padding:0 12px;font-family:var(--titulo-fonte);font-weight:700;font-size:18px;white-space:nowrap;cursor:pointer}
+.cam-ok{grid-column:3;justify-self:end;max-width:100%;background:var(--laranja);color:var(--marinho);border:0;border-radius:10px;min-height:54px;padding:4px 12px;font-family:var(--titulo-fonte);font-weight:700;font-size:18px;line-height:1.1;cursor:pointer}
 .cam-ok:disabled{opacity:.6}
 .cam-disparo:focus-visible,.cam-ok:focus-visible,.cam-luz:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
