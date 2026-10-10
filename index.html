@@ -64,6 +64,22 @@ p{margin:0 0 14px;max-width:60ch}
 .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
 .foto{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--linha)}
 .foto img{width:100%;height:100%;object-fit:cover;display:block}
+.abas{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
+.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:17px;line-height:1.1;cursor:pointer}
+.abas button[aria-selected="true"]{background:var(--marinho);color:#fff}
+@media (prefers-color-scheme:dark){.abas button[aria-selected="true"]{background:var(--laranja);color:var(--marinho)}}
+.tipos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.tipos button{min-height:58px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-weight:600;font-size:17px;line-height:1.15;padding:6px;cursor:pointer}
+.tipos button small{display:block;font-size:13px;font-weight:500;opacity:.8}
+.tipos button[aria-pressed="true"]{border-color:var(--laranja);background:var(--laranja);color:var(--marinho);font-weight:700}
+.campo{display:block;margin-bottom:12px}
+.campo span{display:block;font-size:14px;color:var(--suave);margin:0 2px 4px}
+.campo input{width:100%;min-height:52px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 14px;font-size:18px}
+.abas button:focus-visible,.tipos button:focus-visible,.campo input:focus{outline:3px solid var(--laranja);outline-offset:1px}
+.captura [hidden]{display:none}
+.foto.pdf{display:grid;place-items:center;background:var(--papel);border:1.5px solid var(--linha);text-align:center}
+.foto .pdf-txt{font-family:var(--titulo-fonte);font-weight:700;font-size:22px;color:var(--erro);line-height:1}
+.foto .pdf-txt small{display:block;font-family:var(--texto-fonte);font-weight:500;font-size:11px;color:var(--suave);margin-top:4px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .foto.video{background:#13253B}
 .foto .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:rgba(19,37,59,.8);color:#fff;display:grid;place-items:center;font-size:15px;padding-left:3px;pointer-events:none}
 .foto .dur{position:absolute;left:6px;bottom:6px;background:rgba(19,37,59,.82);color:#fff;font-size:13px;font-weight:600;border-radius:5px;padding:0 6px}
@@ -157,8 +173,19 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   </section>
 
   <section id="tela-app" hidden>
+    <div class="abas" role="tablist">
+      <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
+      <button role="tab" id="aba-comp" aria-selected="false">Notas e reembolsos</button>
+    </div>
+    <div id="form-comp" hidden>
+      <div class="tipos">
+        <button id="tipo-compra" aria-pressed="false">Compra<small>nota fiscal</small></button>
+        <button id="tipo-reembolso" aria-pressed="false">Reembolso<small>gasto pago por você</small></button>
+      </div>
+      <label class="campo"><span>Descrição</span><input id="descricao" type="text" maxlength="80" placeholder="Ex.: Combustível, material elétrico" autocomplete="off" enterkeyhint="done"></label>
+    </div>
     <button class="cliente vazio" id="btn-cliente">
-      <small>Cliente</small>
+      <small id="rot-cliente">Cliente</small>
       <strong id="nome-cliente">Escolher cliente</strong>
     </button>
     <p class="destino" id="destino"></p>
@@ -189,7 +216,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h12"/><circle cx="14" cy="10" r="3"/></svg>
         Sequência
       </button>
-      <label class="btn sec">
+      <label class="btn sec" id="btn-vid">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10.5 6-3.5v10l-6-3.5z"/></svg>
         Filmar
         <input class="oculto" type="file" accept="video/*" capture="environment" id="in-vid">
@@ -210,7 +237,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 
 <dialog id="dlg">
   <div class="dlg-topo">
-    <div><h2>Escolher cliente</h2><button class="fechar" id="dlg-fechar" aria-label="Fechar">×</button></div>
+    <div><h2 id="dlg-titulo">Escolher cliente</h2><button class="fechar" id="dlg-fechar" aria-label="Fechar">×</button></div>
     <input class="busca" id="busca" type="search" placeholder="Buscar ou digitar novo cliente" autocomplete="off">
   </div>
   <ul class="lista" id="lista"></ul>
@@ -249,6 +276,10 @@ const CONFIG = {
   pastaClientesNome: "02 - Clientes",
   subpasta: "06 - Fotos e Visitas Técnicas",                          // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
   ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i],
+  // Notas e reembolsos: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
+  comprovantesCaminho: "VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes",
+  comprovantesNome: "01 - Comprovantes",
+  pastasComprovante: { compra: "Compras", reembolso: "Reembolsos" },   // dentro delas, uma pasta por colaborador
   reduzirFotos: false,                        // false = envia a foto original; true = reduz para até 2560 px
   ladoMaximo: 2560,
   qualidade: 0.85
@@ -261,6 +292,10 @@ const GRAPH = "https://graph.microsoft.com/v1.0";
 const $ = id => document.getElementById(id);
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
+// modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
+let modo = lerLS("vpx_modo", "visita") === "comp" ? "comp" : "visita", tipo = null;
+const guardado = { visita: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null } };
+const ehComp = () => modo === "comp";
 
 /* ---------- utilidades ---------- */
 function aviso(msg, erro = false) {
@@ -347,9 +382,12 @@ function desenharLista() {
 
   const achados = clientes.filter(c => semAcento(c).includes(nq));
   const nome = limparNome(q);
+  // nos comprovantes o cliente só entra no nome do arquivo: não cria pasta, e pode ficar sem cliente
   if (nome && !clientes.some(c => semAcento(c) === semAcento(nome))) {
-    add(`+ Criar cliente "${nome}"`, "novo", () => criarCliente(nome));
+    if (ehComp()) add(`Usar "${nome}"`, "novo", () => escolher(nome));
+    else add(`+ Criar cliente "${nome}"`, "novo", () => criarCliente(nome));
   }
+  if (ehComp() && !q) add("Sem cliente/obra", "novo", () => escolher(null));
   if (!q) {
     const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c));
     if (rec.length) { grupo("Recentes"); rec.forEach(c => add(c, "", () => escolher(c))); grupo("Todos"); }
@@ -364,6 +402,7 @@ function desenharLista() {
 function abrirDialogo() {
   if (enviando) return;
   $("busca").value = "";
+  $("dlg-titulo").textContent = ehComp() ? "Cliente/obra" : "Escolher cliente";
   desenharLista();
   $("dlg").showModal();
   carregarClientes().then(desenharLista);
@@ -385,10 +424,94 @@ async function criarCliente(nome) {
 
 function escolher(nome) {
   cliente = nome;
-  const rec = [nome, ...lerLS("vpx_recentes", []).filter(c => c !== nome)].slice(0, 4);
-  gravarLS("vpx_recentes", rec);
+  if (nome && clientes.includes(nome)) {
+    const rec = [nome, ...lerLS("vpx_recentes", []).filter(c => c !== nome)].slice(0, 4);
+    gravarLS("vpx_recentes", rec);
+  }
   $("dlg").close();
   atualizar();
+}
+
+/* ---------- abas: visita técnica / notas e reembolsos ---------- */
+function trocarModo(novo) {
+  if (novo === modo || enviando) return;
+  guardado[modo] = { fotos, cliente };
+  ({ fotos, cliente } = guardado[novo]);
+  modo = novo;
+  gravarLS("vpx_modo", modo);
+  aplicarModo();
+  window.scrollTo(0, 0);
+}
+
+function aplicarModo() {
+  const comp = ehComp();
+  $("aba-visita").setAttribute("aria-selected", String(!comp));
+  $("aba-comp").setAttribute("aria-selected", String(comp));
+  $("form-comp").hidden = !comp;
+  $("rot-cliente").textContent = comp ? "Cliente/obra (opcional)" : "Cliente";
+  $("btn-vid").hidden = comp;
+  $("in-gal").accept = comp ? "image/*,application/pdf" : "image/*,video/*";
+  $("btn-nova").textContent = comp ? "Novo comprovante" : "Nova visita";
+  $("semfotos").textContent = comp
+    ? "Nenhum comprovante ainda. Fotografe a nota ou o recibo, ou escolha da galeria (aceita PDF)."
+    : "Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.";
+  atualizar();
+}
+
+function escolherTipo(t) {
+  if (enviando) return;
+  tipo = t;
+  $("tipo-compra").setAttribute("aria-pressed", String(t === "compra"));
+  $("tipo-reembolso").setAttribute("aria-pressed", String(t === "reembolso"));
+  atualizar();
+}
+
+const nomeColaborador = () => limparNome(conta?.name || (conta?.username || "").split("@")[0]) || "Sem nome";
+const descricao = () => limparNome($("descricao").value).slice(0, 80);
+const caminhoComp = () => `${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[tipo]} › ${nomeColaborador()}`;
+
+// acha a pasta "01 - Comprovantes": pelo caminho no OneDrive do Gustavo ou, se não der, pela lista "Compartilhados comigo"
+async function baseComprovantes() {
+  if (baseComprovantes.id) return baseComprovantes.id;
+  let id = null;
+  try { id = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(CONFIG.comprovantesCaminho)}`)).id; }
+  catch (e) { if (e.status !== 403 && e.status !== 404) throw e; }
+  if (!id) {
+    try {
+      const r = await graph("/me/drive/sharedWithMe");
+      const it = r.value.find(i => i.name === CONFIG.comprovantesNome && i.remoteItem?.parentReference?.driveId === CONFIG.driveId);
+      id = it?.remoteItem?.id || null;
+    } catch {}
+  }
+  if (!id) { const e = new Error("sem acesso"); e.semAcesso = true; throw e; }
+  return baseComprovantes.id = id;
+}
+
+// cria (se faltar) cada subpasta dentro de paiId e devolve a última
+async function garantirFilhas(paiId, nomes) {
+  let item = null, id = paiId;
+  for (const nome of nomes) {
+    const base = `/drives/${CONFIG.driveId}/items/${id}`;
+    try { item = await graph(`${base}:/${encodeURIComponent(nome)}`); }
+    catch (e) {
+      if (e.status !== 404) throw e;
+      try {
+        item = await graph(`${base}/children`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: nome, folder: {}, "@microsoft.graph.conflictBehavior": "fail" })
+        });
+      } catch (e2) {
+        if (e2.status !== 409) throw e2;
+        item = await graph(`${base}:/${encodeURIComponent(nome)}`);
+      }
+    }
+    id = item.id;
+  }
+  return item;
+}
+
+async function pastaComprovante() {
+  return garantirFilhas(await baseComprovantes(), [CONFIG.pastasComprovante[tipo], nomeColaborador()]);
 }
 
 /* ---------- fotos ---------- */
@@ -396,9 +519,10 @@ const ehVideo = f => f.type.startsWith("video/") || /\.(mov|mp4|m4v|3gp|webm)$/i
 
 function adicionar(lista) {
   for (const f of lista) {
-    const video = ehVideo(f);
-    if (!video && !f.type.startsWith("image/") && !/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name)) continue;
-    const item = { id: ++seq, arquivo: f, url: URL.createObjectURL(f), st: "nova", video };
+    const video = !ehComp() && ehVideo(f);                       // vídeo só na visita; PDF só nos comprovantes
+    const pdf = ehComp() && (f.type === "application/pdf" || /\.pdf$/i.test(f.name));
+    if (!video && !pdf && !f.type.startsWith("image/") && !/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name)) continue;
+    const item = { id: ++seq, arquivo: f, url: URL.createObjectURL(f), st: "nova", video, pdf };
     fotos.push(item);
     if (video) gerarCapa(item);
   }
@@ -447,6 +571,7 @@ function remover(id) {
 
 // "3 fotos e 1 vídeo"
 function descrever(lista) {
+  if (ehComp()) return `${lista.length} comprovante${lista.length > 1 ? "s" : ""}`;
   const v = lista.filter(f => f.video).length, p = lista.length - v;
   const partes = [];
   if (p) partes.push(`${p} foto${p > 1 ? "s" : ""}`);
@@ -682,36 +807,57 @@ function caminhoVisita() {
 }
 
 function atualizar() {
-  const nc = $("nome-cliente");
-  nc.textContent = cliente || "Escolher cliente";
+  const comp = ehComp();
+  $("nome-cliente").textContent = cliente || (comp ? "Nenhum" : "Escolher cliente");
   $("btn-cliente").classList.toggle("vazio", !cliente);
-  $("destino").textContent = cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + caminhoVisita().replace(/\//g, " › ") : "";
+  $("destino").textContent = comp
+    ? (tipo ? "Salvar em: " + caminhoComp() : "")
+    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + caminhoVisita().replace(/\//g, " › ") : "");
 
   const g = $("grade");
   g.innerHTML = "";
   fotos.forEach((f, i) => {
     const d = document.createElement("div");
-    const tipo = f.video ? "vídeo" : "foto";
-    d.className = "foto" + (f.video ? " video" : ""); d.dataset.st = f.st;
-    d.innerHTML = `<img alt="${tipo} ${i + 1}" loading="lazy"><span class="num">${i + 1}</span><button class="tirar" aria-label="Remover ${tipo} ${i + 1}">×</button>`;
+    const rotulo = f.video ? "vídeo" : f.pdf ? "PDF" : "foto";
+    d.className = "foto" + (f.video ? " video" : "") + (f.pdf ? " pdf" : ""); d.dataset.st = f.st;
+    d.innerHTML = `<img alt="${rotulo} ${i + 1}" loading="lazy"><span class="num">${i + 1}</span><button class="tirar" aria-label="Remover ${rotulo} ${i + 1}">×</button>`;
     const img = d.querySelector("img");
     if (f.video) {
       if (f.capa) img.src = f.capa; else img.hidden = true;
       d.insertAdjacentHTML("beforeend", `<span class="play" aria-hidden="true">▶</span>` + (f.dur ? `<span class="dur">${duracao(f.dur)}</span>` : ""));
+    } else if (f.pdf) {
+      img.remove();
+      const t = document.createElement("span");
+      t.className = "pdf-txt"; t.textContent = "PDF";
+      const s = document.createElement("small"); s.textContent = f.arquivo.name; t.appendChild(s);
+      d.prepend(t);
     } else img.src = f.url;
     d.querySelector(".tirar").onclick = () => remover(f.id);
     g.appendChild(d);
   });
   $("semfotos").hidden = fotos.length > 0;
+  atualizarBotao();
+}
 
+function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
-  b.disabled = enviando || !cliente || !pend.length;
-  if (enviando) b.textContent = "Salvando…";
-  else if (!cliente && fotos.length) b.textContent = "Escolha o cliente para salvar";
-  else if (!pend.length) b.textContent = "Salvar no cliente";
-  else b.textContent = `Salvar ${descrever(pend)} no cliente`;
+  if (ehComp()) {
+    b.disabled = enviando || !tipo || !descricao() || !pend.length;
+    if (enviando) b.textContent = "Salvando…";
+    else if (!pend.length) b.textContent = "Salvar comprovante";
+    else if (!tipo) b.textContent = "Escolha Compra ou Reembolso";
+    else if (!descricao()) b.textContent = "Preencha a descrição";
+    else b.textContent = `Salvar ${descrever(pend)}`;
+  } else {
+    b.disabled = enviando || !cliente || !pend.length;
+    if (enviando) b.textContent = "Salvando…";
+    else if (!cliente && fotos.length) b.textContent = "Escolha o cliente para salvar";
+    else if (!pend.length) b.textContent = "Salvar no cliente";
+    else b.textContent = `Salvar ${descrever(pend)} no cliente`;
+  }
   $("captura").style.display = enviando ? "none" : "";
+  ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "descricao"].forEach(id => $(id).disabled = enviando);
 }
 
 async function reduzir(arquivo) {
@@ -785,7 +931,8 @@ async function enviarArquivo(pastaId, nome, blob, avancou = () => {}) {
 }
 
 async function salvar() {
-  if (enviando || !cliente) return;
+  const comp = ehComp();
+  if (enviando || (comp ? !tipo || !descricao() : !cliente)) return;
   const fila = fotos.filter(f => f.st !== "ok");
   if (!fila.length) return;
   enviando = true;
@@ -801,11 +948,13 @@ async function salvar() {
   prog(); atualizar();
 
   let pasta;
-  try { pasta = await garantirPasta(caminhoVisita()); }
+  const desc = comp ? descricao() : "", cli = comp && cliente ? "_" + limparNome(cliente) : "";
+  try { pasta = comp ? await pastaComprovante() : await garantirPasta(caminhoVisita()); }
   catch (e) {
     enviando = false; $("progresso").hidden = true; atualizar();
     try { trava?.release(); } catch {}
-    aviso("Não foi possível acessar a pasta do cliente: " + e.message, true);
+    if (e.semAcesso) aviso(`Sem acesso à pasta "${CONFIG.comprovantesNome}". Peça para ela ser compartilhada com você com permissão de edição.`, true);
+    else aviso(`Não foi possível acessar a pasta ${comp ? "de comprovantes" : "do cliente"}: ` + e.message, true);
     return;
   }
 
@@ -820,7 +969,10 @@ async function salvar() {
         const { blob, ext } = await reduzir(f.arquivo);
         const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
         const quando = new Date(f.arquivo.lastModified || Date.now());
-        const nome = `${data}_${horaArq(quando)}_${pad(n)}.${extensao}`;
+        // visita: AAAA-MM-DD_HH-MM-SS_NN · comprovante: AAAA-MM-DD_HH-MM-SS_Descrição_Cliente_NN (data da própria foto)
+        const nome = comp
+          ? `${dataISO(quando)}_${horaArq(quando)}_${desc}${cli}_${pad(n)}.${extensao}`
+          : `${data}_${horaArq(quando)}_${pad(n)}.${extensao}`;
         // se a foto foi reduzida, converte o progresso para o tamanho original
         const fator = f.arquivo.size / (blob.size || 1);
         await enviarArquivo(pasta.id, nome, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
@@ -841,9 +993,11 @@ async function salvar() {
     aviso(`Não foi possível enviar ${descrever(erros)}. Verifique a internet e toque em Salvar de novo.`, true);
     return;
   }
-  const temVideo = fotos.some(f => f.video);
-  $("ok-titulo").textContent = `${descrever(fotos)} ${temVideo ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
-  $("ok-texto").textContent = `Em ${cliente} › ${CONFIG.subpasta.replace("{data}", data).replace(/\//g, " › ")}`;
+  const masc = comp || fotos.some(f => f.video);
+  $("ok-titulo").textContent = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
+  $("ok-texto").textContent = comp
+    ? `Em ${caminhoComp()}`
+    : `Em ${cliente} › ${CONFIG.subpasta.replace("{data}", data).replace(/\//g, " › ")}`;
   $("ok-link").href = pasta.webUrl || "#";
   mostrar("tela-ok");
 }
@@ -851,6 +1005,7 @@ async function salvar() {
 function novaVisita() {
   fotos.forEach(liberar);
   fotos = []; cliente = null;
+  if (ehComp()) { $("descricao").value = ""; escolherTipo(null); }
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
 }
@@ -861,7 +1016,7 @@ async function iniciarApp() {
   const ini = nome.split(/\s+/).filter(Boolean).map(p => p[0]).slice(0, 2).join("").toUpperCase();
   $("btn-conta").textContent = ini || "?";
   $("btn-conta").hidden = false;
-  mostrar("tela-app"); atualizar();
+  mostrar("tela-app"); aplicarModo();
   carregarClientes();
 }
 
@@ -878,7 +1033,13 @@ $("busca").onkeydown = e => {
 };
 $("in-cam").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("in-vid").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
-$("in-gal").onchange =e => { adicionar(e.target.files); e.target.value = ""; };
+$("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
+$("aba-visita").onclick = () => trocarModo("visita");
+$("aba-comp").onclick = () => trocarModo("comp");
+$("tipo-compra").onclick = () => escolherTipo("compra");
+$("tipo-reembolso").onclick = () => escolherTipo("reembolso");
+$("descricao").oninput = () => { atualizarBotao(); };
+$("descricao").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
 $("btn-seq").onclick = abrirCamera;
 $("cam-disparo").onclick = fotografar;
 $("cam-ok").onclick = () => fecharCamera();
@@ -892,7 +1053,8 @@ document.addEventListener("visibilitychange", () => {
 $("btn-salvar").onclick = salvar;
 $("btn-nova").onclick = novaVisita;
 window.addEventListener("beforeunload", e => {
-  if (enviando || fotos.some(f => f.st !== "ok")) { e.preventDefault(); e.returnValue = ""; }
+  const outra = guardado[ehComp() ? "visita" : "comp"].fotos;
+  if (enviando || [...fotos, ...outra].some(f => f.st !== "ok")) { e.preventDefault(); e.returnValue = ""; }
 });
 
 (async () => {

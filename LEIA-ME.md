@@ -13,6 +13,8 @@ As Partes 1 a 4 são feitas **uma única vez, por você, no computador** (uns 15
 
 Você não precisa se compartilhar consigo mesmo.
 
+Para a aba **Notas e reembolsos**, faça o mesmo com a pasta *VPX Engenharia - AVCB › 02 - Financeiro* › **01 - Comprovantes** (botão direito → Compartilhar → e-mail de cada pessoa → **Pode editar**). Quem tiver acesso a ela consegue ver os comprovantes de todos.
+
 ## Parte 2 — Colocar o site no ar (GitHub Pages, grátis)
 
 1. Crie uma conta gratuita em **github.com**.
@@ -73,9 +75,18 @@ Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se 
 
 Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de novo.
 
+### Notas e reembolsos
+
+1. Toque na aba **Notas e reembolsos**, no topo.
+2. Escolha **Compra** (nota fiscal) ou **Reembolso** (gasto pago do próprio bolso).
+3. Escreva a **descrição** (ex.: "Combustível") e, se for de um cliente ou obra, escolha em **Cliente/obra**.
+4. Fotografe a nota ou o recibo (**Câmera** ou **Sequência**), ou escolha pela **Galeria**, que também aceita PDF.
+5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [nome da pessoa]*, com nomes do tipo `2026-10-08_14-32-05_Combustível_Diamond_01.jpg`.
+
 ## Problemas comuns
 
 - **Erro AADSTS50011 no login:** o endereço da Parte 3 está diferente do site. Confira a barra no final.
 - **"Sem acesso à pasta 02 - Clientes":** a pasta não foi compartilhada com essa pessoa com permissão de edição (Parte 1).
+- **"Sem acesso à pasta 01 - Comprovantes":** a pasta de comprovantes não foi compartilhada com essa pessoa (Parte 1).
 - **Tela "Falta configurar o app":** os IDs da Parte 4 não foram preenchidos.
 - **Envio lento no 4G:** fotos originais são grandes. Se quiser mais velocidade, troque `reduzirFotos: false` por `true` no CONFIG.
