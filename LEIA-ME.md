@@ -52,7 +52,7 @@ Envie o endereço da Parte 2 por WhatsApp ou e-mail.
 1. Abra o link no **Safari** (precisa ser o Safari; pelo WhatsApp, toque em "Abrir no Safari").
 2. Toque no botão **Compartilhar** (quadrado com seta) → **Adicionar à Tela de Início** → **Adicionar**.
 3. Abra pelo ícone **VPX Visitas** e toque em **Entrar com a conta da VPX** usando o e-mail @vpxengenharia.com.br da pessoa.
-4. Para o app não pedir permissão da câmera toda vez que é aberto: **Ajustes › Apps › Safari › Câmera › Permitir** (em iOS mais antigos: **Ajustes › Safari › Câmera**).
+4. Para o app não pedir permissão toda vez que é aberto: **Ajustes › Apps › Safari › Câmera › Permitir** e **Ajustes › Apps › Safari › Microfone › Permitir** (o microfone é para o som dos vídeos; em iOS mais antigos: **Ajustes › Safari**).
 
 **Android**
 1. Abra o link no **Chrome**.
@@ -64,9 +64,8 @@ O login fica salvo. Nas próximas vezes é só abrir e usar.
 ## Como usar
 
 1. **Cliente** → escolha da lista ou digite um nome novo para criar a pasta.
-2. Fotos e vídeos, de três jeitos:
-   - **Foto**: câmera do próprio app, para tirar várias fotos seguidas, com zoom (1×, 2×, 3× ou pinça) e lanterna. No iPhone a qualidade é um pouco menor que a da câmera do iPhone e o zoom é digital.
-   - **Vídeo**: abre a câmera do celular já no modo vídeo, com som e qualidade máxima.
+2. Fotos e vídeos, de dois jeitos:
+   - **Câmera**: câmera do próprio app. Embaixo do botão, escolha **FOTO** (várias fotos seguidas, com zoom 1×, 2×, 3× ou pinça, e lanterna) ou **VÍDEO** (toque para começar e de novo para parar; Full HD, com som, até 5 minutos por vídeo). No iPhone a qualidade é um pouco menor que a da câmera do iPhone, o zoom é digital e não funciona no vídeo.
    - **Galeria**: marque várias fotos e vídeos de uma vez. No iPhone, para muitas fotos com qualidade máxima, tire pelo app Câmera do iPhone (sem rajada) e depois escolha todas pela Galeria.
 3. **Salvar no cliente** → todas sobem juntas, com nomes do tipo `2026-10-09_14-32-05_01.jpg`.
 
@@ -79,7 +78,7 @@ Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de no
 1. Toque na aba **Notas e reembolsos**, no topo.
 2. Escolha **Compra** (nota fiscal) ou **Reembolso** (gasto pago do próprio bolso).
 3. Escreva a **descrição** (ex.: "Combustível") e, se for de um cliente ou obra, escolha em **Cliente/obra**.
-4. Fotografe a nota ou o recibo (**Foto**), ou escolha pela **Galeria**, que também aceita PDF.
+4. Fotografe a nota ou o recibo (**Câmera**), ou escolha pela **Galeria**, que também aceita PDF.
 5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [nome da pessoa]*, com nomes do tipo `2026-10-08_14-32-05_Combustível_Diamond_01.jpg`.
 
 ## Problemas comuns

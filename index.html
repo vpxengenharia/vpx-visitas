@@ -124,7 +124,9 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 /* câmera em sequência: visual inspirado na câmera do iPhone (amarelo #FFD60A nos itens ativos) */
 .cam{position:fixed;inset:0;z-index:30;background:#000;color:#fff;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
 .cam[hidden]{display:none}
-.cam-topo{flex:none;height:calc(env(safe-area-inset-top,0px) + 56px);padding:env(safe-area-inset-top,0px) 14px 0;display:flex;align-items:center;justify-content:space-between}
+.cam-topo{flex:none;position:relative;height:calc(env(safe-area-inset-top,0px) + 56px);padding:env(safe-area-inset-top,0px) 14px 0;display:flex;align-items:center;justify-content:space-between}
+.cam-tempo{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 28px);transform:translate(-50%,-50%);background:#FF3B30;color:#fff;font-size:17px;font-weight:500;font-variant-numeric:tabular-nums;padding:2px 10px;border-radius:6px}
+.cam-tempo[hidden]{display:none}
 .cam-luz{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;padding:0}
 .cam-luz[hidden]{display:none}
 .cam-luz svg{width:22px;height:22px}
@@ -139,14 +141,20 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .cam-flash{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .18s}
 .cam-flash.ver{opacity:.85;transition:none}
 .cam-base{flex:none;padding:10px 22px calc(18px + env(safe-area-inset-bottom,0px))}
-.cam-modo{margin:0 0 12px;text-align:center;color:#FFD60A;font-size:14px;font-weight:600;letter-spacing:.08em}
+.cam-modos{display:flex;justify-content:center;gap:26px;margin:0 0 8px}
+.cam-modos[hidden]{display:flex;visibility:hidden}
+.cam-modos button{background:none;border:0;color:#fff;font:600 14px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;letter-spacing:.08em;padding:8px 4px;min-height:34px;cursor:pointer}
+.cam-modos button[aria-pressed="true"]{color:#FFD60A}
+.cam-modos button:focus-visible{outline:2px solid #FFD60A;outline-offset:2px}
 .cam-linha{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px}
 .cam-miniatura{grid-column:1;justify-self:start;position:relative;width:54px;height:54px}
 .cam-miniatura[hidden]{display:none}
 .cam-mini{width:100%;height:100%;border-radius:8px;object-fit:cover;display:block}
 .cam-qtd{position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;border-radius:11px;background:#FFD60A;color:#000;font-size:13px;font-weight:700;display:grid;place-items:center;padding:0 5px}
 .cam-disparo{grid-column:2;position:relative;width:78px;height:78px;border-radius:50%;border:0;background:transparent;box-shadow:inset 0 0 0 4px #fff;cursor:pointer;padding:0}
-.cam-disparo::after{content:"";position:absolute;inset:9px;border-radius:50%;background:#fff;transition:transform .1s}
+.cam-disparo::after{content:"";position:absolute;inset:9px;border-radius:50%;background:#fff;transition:transform .1s,inset .2s,border-radius .2s,background .2s}
+.cam-disparo.video::after{background:#FF3B30}
+.cam-disparo.gravando::after{inset:25px;border-radius:7px}
 .cam-disparo:active::after{transform:scale(.86)}
 .cam-disparo:disabled{opacity:.4;cursor:default}
 .cam-ok{grid-column:3;justify-self:end;max-width:100%;min-height:48px;border:0;background:none;color:#fff;font-size:17px;font-weight:400;line-height:1.15;text-align:right;padding:4px 0;cursor:pointer}
@@ -215,13 +223,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <div class="captura" id="captura">
       <button class="btn sec" id="btn-seq">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-        Foto
+        Câmera
       </button>
-      <label class="btn sec" id="btn-vid">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10.5 6-3.5v10l-6-3.5z"/></svg>
-        Vídeo
-        <input class="oculto" type="file" accept="video/*" capture="environment" id="in-vid">
-      </label>
       <label class="btn sec">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg>
         Galeria
@@ -249,6 +252,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <button class="cam-luz" id="cam-luz" hidden aria-label="Lanterna" aria-pressed="false">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 2 5 13.5h6L10 22l9-12h-6.2z"/></svg>
     </button>
+    <span class="cam-tempo" id="cam-tempo" hidden>00:00</span>
     <span class="oculto" id="cam-cont" aria-live="polite"></span>
   </div>
   <div class="cam-visor" id="cam-visor">
@@ -258,7 +262,10 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <div class="cam-zoom" id="cam-zoom" hidden></div>
   </div>
   <div class="cam-base">
-    <p class="cam-modo" aria-hidden="true">FOTO</p>
+    <div class="cam-modos" id="cam-modos">
+      <button data-modo="video" aria-pressed="false">VÍDEO</button>
+      <button data-modo="foto" aria-pressed="true">FOTO</button>
+    </div>
     <div class="cam-linha">
       <div class="cam-miniatura" id="cam-miniatura" hidden>
         <img class="cam-mini" id="cam-mini" alt="Última foto">
@@ -456,7 +463,6 @@ function aplicarModo() {
   $("aba-comp").setAttribute("aria-selected", String(comp));
   $("form-comp").hidden = !comp;
   $("rot-cliente").textContent = comp ? "Cliente/obra (opcional)" : "Cliente";
-  $("btn-vid").hidden = comp;
   $("in-gal").accept = comp ? "image/*,application/pdf" : "image/*,video/*";
   $("btn-nova").textContent = comp ? "Novo comprovante" : "Nova visita";
   $("semfotos").textContent = comp
@@ -588,18 +594,24 @@ function descrever(lista) {
 const duracao = s => { const t = Math.round(s); return `${Math.floor(t / 60)}:${pad(t % 60)}`; };
 const mb = b => (b / 1048576).toLocaleString("pt-BR", { maximumFractionDigits: b < 10485760 ? 1 : 0 }) + " MB";
 
-/* ---------- câmera em sequência ---------- */
-// Android (Chrome): ImageCapture tira a foto em resolução cheia.
-// iPhone (Safari): não há ImageCapture; a foto é o quadro do vídeo na maior resolução disponível.
+/* ---------- câmera do app (foto e vídeo) ---------- */
+// Foto — Android (Chrome): ImageCapture tira a foto em resolução cheia.
+//        iPhone (Safari): não há ImageCapture; a foto é o quadro do vídeo na maior resolução disponível.
+// Vídeo — MediaRecorder grava o que a câmera mostra (Full HD), com som se o microfone for liberado.
 let cam = null;
+const VIDEO_MAX_SEG = 5 * 60;                     // o vídeo fica na memória do celular até terminar: limite de 5 min
+const RES_FOTO = "ImageCapture" in window ? { width: { ideal: 1920 }, height: { ideal: 1440 } } : { width: { ideal: 4096 }, height: { ideal: 3072 } };
+const RES_VIDEO = { width: { ideal: 1920 }, height: { ideal: 1080 } };
 
 function abrirCamera() {
   if (enviando || cam) return;
   if (!navigator.mediaDevices?.getUserMedia) { aviso("Este navegador não abre a câmera do app. Fotografe pela câmera do celular e use o botão Galeria.", true); return; }
-  cam = { fotos: [], ocupado: false, luz: false, zoom: 1 };
+  cam = { fotos: [], ocupado: false, luz: false, zoom: 1, modo: "foto" };
   $("cam-miniatura").hidden = true;
   $("cam-zoom").hidden = true;
   $("cam-video").style.transform = "";
+  $("cam-modos").hidden = ehComp() || !window.MediaRecorder;     // comprovantes: só foto
+  desenharModo();
   $("cam").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ cam: true }, "");        // o "voltar" do Android fecha a câmera sem perder as fotos
@@ -613,9 +625,9 @@ async function ligarCamera() {
   $("cam-msg").textContent = "Abrindo a câmera…"; $("cam-msg").hidden = false;
   $("cam-disparo").disabled = true; $("cam-luz").hidden = true;
   // no Chrome, "zoom: true" libera o zoom da própria câmera
-  const alta = "ImageCapture" in window ? { width: { ideal: 1920 }, height: { ideal: 1440 }, zoom: true } : { width: { ideal: 4096 }, height: { ideal: 3072 } };
+  const res = { ...(c.modo === "video" ? RES_VIDEO : RES_FOTO), ...("ImageCapture" in window ? { zoom: true } : {}) };
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, ...alta } });
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, ...res } });
     if (cam !== c) { stream.getTracks().forEach(t => t.stop()); return; }
     c.stream = stream;
     c.track = stream.getVideoTracks()[0];
@@ -640,16 +652,132 @@ async function ligarCamera() {
 
 function desligarCamera(c) {
   c.stream?.getTracks().forEach(t => t.stop());
-  c.stream = c.track = c.captura = null;
+  c.audio?.getTracks().forEach(t => t.stop());
+  c.stream = c.track = c.captura = c.audio = null;
   $("cam-video").srcObject = null;
 }
 
 function contadorCam() {
-  const n = cam ? cam.fotos.length : 0;
-  $("cam-cont").textContent = n ? `${n} foto${n > 1 ? "s" : ""}` : "";
-  $("cam-ok").textContent = n ? `Usar ${n} foto${n > 1 ? "s" : ""}` : "Cancelar";
+  const lista = cam ? cam.fotos : [];
+  const n = lista.length, v = lista.filter(f => f.type.startsWith("video/")).length;
+  const txt = !v ? `${n} foto${n > 1 ? "s" : ""}` : v === n ? `${n} vídeo${n > 1 ? "s" : ""}` : `${n} itens`;
+  $("cam-cont").textContent = n ? txt : "";
+  $("cam-ok").textContent = n ? `Usar ${txt}` : "Cancelar";
   $("cam-ok").classList.toggle("usar", n > 0);
   $("cam-qtd").textContent = n;
+}
+
+/* FOTO / VÍDEO */
+function desenharModo() {
+  const c = cam;
+  if (!c) return;
+  document.querySelectorAll("#cam-modos button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.modo === c.modo)));
+  const d = $("cam-disparo");
+  d.classList.toggle("video", c.modo === "video");
+  d.classList.toggle("gravando", !!c.gravando);
+  d.setAttribute("aria-label", c.modo === "foto" ? "Tirar foto" : c.gravando ? "Parar gravação" : "Gravar vídeo");
+}
+
+async function definirModo(m) {
+  const c = cam;
+  if (!c || c.gravando || c.ocupado || c.modo === m) return;
+  c.modo = m;
+  desenharModo();
+  if (m === "video") obterAudio(c);              // pede o microfone já na troca, não no meio da gravação
+  if (!c.track) return;
+  // o zoom digital (iPhone) não entra na gravação: em vídeo ele fica em 1×
+  if (!c.zoomHw) { if (m === "video") definirZoom(1); $("cam-zoom").hidden = m === "video" || c.zoomMax <= c.zoomMin; }
+  try { await c.track.applyConstraints(m === "video" ? RES_VIDEO : RES_FOTO); } catch {}
+  if (c.zoomHw) aplicarZoomHw(c);
+  if (c.luz) try { await c.track.applyConstraints({ advanced: [{ torch: true }] }); } catch {}
+}
+
+async function obterAudio(c) {
+  if (c.audio || c.semSom) return;
+  try {
+    const a = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    if (cam !== c) { a.getTracks().forEach(t => t.stop()); return; }
+    c.audio = a;
+  } catch {
+    c.semSom = true;
+    aviso("Sem permissão do microfone: os vídeos serão gravados sem som.", true);
+  }
+}
+
+function disparar() {
+  const c = cam;
+  if (!c) return;
+  if (c.modo === "foto") fotografar();
+  else if (c.gravando) pararGravacao();
+  else gravar();
+}
+
+const TIPOS_VIDEO = ["video/mp4;codecs=avc1.640028,mp4a.40.2", "video/mp4;codecs=avc1,mp4a", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+
+async function gravar() {
+  const c = cam;
+  if (!c?.track || c.gravando || c.ocupado) return;
+  c.ocupado = true;                               // enquanto prepara
+  await obterAudio(c);
+  if (cam !== c || !c.track) { c.ocupado = false; return; }
+  const faixas = [c.track, ...(c.audio?.getAudioTracks() || [])];
+  const tipo = TIPOS_VIDEO.find(t => MediaRecorder.isTypeSupported(t)) || "";
+  let rec;
+  try { rec = new MediaRecorder(new MediaStream(faixas), { ...(tipo ? { mimeType: tipo } : {}), videoBitsPerSecond: 5_000_000, audioBitsPerSecond: 128_000 }); }
+  catch (e) { c.ocupado = false; console.error(e); aviso("Não foi possível gravar vídeo neste celular.", true); return; }
+  const partes = [];
+  rec.ondataavailable = e => { if (e.data.size) partes.push(e.data); };
+  rec.onstop = () => finalizarGravacao(c, rec, partes);
+  c.rec = rec;
+  c.inicio = Date.now();
+  rec.start(1000);
+  c.gravando = true; c.ocupado = false;
+  navigator.vibrate?.(30);
+  try { c.trava = await navigator.wakeLock?.request("screen"); } catch {}
+  // miniatura: um quadro do começo do vídeo
+  quadroVideo().then(b => {
+    if (!b || cam !== c) return;
+    if (c.miniUrl) URL.revokeObjectURL(c.miniUrl);
+    c.miniUrl = URL.createObjectURL(b);
+  });
+  $("cam-modos").hidden = true;
+  $("cam-ok").disabled = true;
+  $("cam-tempo").hidden = false;
+  const tique = () => {
+    const s = Math.floor((Date.now() - c.inicio) / 1000);
+    $("cam-tempo").textContent = `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+    if (s >= VIDEO_MAX_SEG) { pararGravacao(); aviso("Vídeo encerrado no limite de 5 minutos. Toque de novo para gravar outro.", true); }
+  };
+  tique(); c.relogio = setInterval(tique, 250);
+  desenharModo();
+}
+
+function pararGravacao() {
+  const c = cam;
+  if (!c?.rec || c.rec.state === "inactive") return;
+  clearInterval(c.relogio);
+  try { c.rec.stop(); } catch {}
+}
+
+function finalizarGravacao(c, rec, partes) {
+  clearInterval(c.relogio);
+  try { c.trava?.release(); } catch {}
+  c.gravando = false; c.rec = null;
+  const tipo = (rec.mimeType || partes[0]?.type || "video/mp4").split(";")[0];
+  const blob = new Blob(partes, { type: tipo });
+  if (blob.size) {
+    c.fotos.push(new File([blob], `video_${c.inicio}.${tipo.includes("webm") ? "webm" : "mp4"}`, { type: tipo, lastModified: c.inicio }));
+    navigator.vibrate?.(30);
+  } else aviso("O vídeo não foi gravado. Tente de novo.", true);
+  if (cam === c) {
+    $("cam-tempo").hidden = true;
+    $("cam-modos").hidden = ehComp() || !window.MediaRecorder;
+    $("cam-ok").disabled = false;
+    if (c.miniUrl) { $("cam-mini").src = c.miniUrl; $("cam-miniatura").hidden = false; }
+    contadorCam();
+    desenharModo();
+  }
+  if (c.fecharDepois) fecharCamera(c.voltarDepois);
 }
 
 /* zoom: no Android usa o zoom da câmera; onde não há (iPhone), zoom digital = recorte do centro da imagem */
@@ -660,13 +788,14 @@ function prepararZoom(c) {
   c.zoomHw = z && z.max > z.min ? z : null;
   c.zoomMin = c.zoomHw ? Math.max(1, z.min) : 1;
   c.zoomMax = c.zoomHw ? Math.min(z.max, 10) : ZOOM_DIGITAL_MAX;
-  $("cam-zoom").hidden = c.zoomMax <= c.zoomMin;
+  $("cam-zoom").hidden = c.zoomMax <= c.zoomMin || (c.modo === "video" && !c.zoomHw);
   definirZoom(c.zoom);
 }
 
 function definirZoom(z) {
   const c = cam;
   if (!c?.track) return;
+  if (c.modo === "video" && !c.zoomHw) z = 1;
   z = Math.min(c.zoomMax, Math.max(c.zoomMin, z));
   if (c.zoomHw?.step) z = c.zoomMin + Math.round((z - c.zoomMin) / c.zoomHw.step) * c.zoomHw.step;
   c.zoom = Math.round(z * 100) / 100;
@@ -748,7 +877,7 @@ async function recortarFoto(blob, z) {
 
 async function fotografar() {
   const c = cam;
-  if (!c?.track || c.ocupado) return;
+  if (!c?.track || c.ocupado || c.modo !== "foto") return;
   c.ocupado = true;
   $("cam-disparo").disabled = true; $("cam-ok").disabled = true;
   const fl = $("cam-flash");
@@ -788,7 +917,11 @@ async function fotografar() {
 function fecharCamera(voltar = true) {
   const c = cam;
   if (!c) return;
-  if (c.ocupado) { c.fecharDepois = true; c.voltarDepois = voltar; return; }   // espera a foto em andamento
+  if (c.ocupado || c.gravando) {                // espera a foto em andamento ou termina a gravação antes de fechar
+    c.fecharDepois = true; c.voltarDepois = voltar;
+    if (c.gravando) pararGravacao();
+    return;
+  }
   cam = null;
   desligarCamera(c);
   if (c.miniUrl) URL.revokeObjectURL(c.miniUrl);
@@ -796,9 +929,10 @@ function fecharCamera(voltar = true) {
   $("cam-ok").disabled = false;
   document.body.style.overflow = "";
   if (voltar && history.state?.cam) history.back();
-  if (c.fotos.length) {
+  const n = c.fotos.length, soFotos = c.fotos.every(f => !f.type.startsWith("video/"));
+  if (n) {
     adicionar(c.fotos);
-    aviso(`${c.fotos.length} foto${c.fotos.length > 1 ? "s adicionadas" : " adicionada"}.`);
+    aviso(soFotos ? `${n} foto${n > 1 ? "s adicionadas" : " adicionada"}.` : `${n} ${n > 1 ? "itens adicionados" : "vídeo adicionado"}.`);
   }
 }
 
@@ -1040,7 +1174,6 @@ $("busca").oninput = desenharLista;
 $("busca").onkeydown = e => {
   if (e.key === "Enter") { const b = $("lista").querySelector(".item"); if (b) b.click(); }
 };
-$("in-vid").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("aba-visita").onclick = () => trocarModo("visita");
 $("aba-comp").onclick = () => trocarModo("comp");
@@ -1049,14 +1182,15 @@ $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
 $("descricao").oninput = () => { atualizarBotao(); };
 $("descricao").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
 $("btn-seq").onclick = abrirCamera;
-$("cam-disparo").onclick = fotografar;
+$("cam-disparo").onclick = disparar;
+document.querySelectorAll("#cam-modos button").forEach(b => b.onclick = () => definirModo(b.dataset.modo));
 $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
 window.addEventListener("popstate", () => { if (cam) fecharCamera(false); });
 document.addEventListener("visibilitychange", () => {
   if (!cam || cam.ocupado) return;
-  if (document.hidden) desligarCamera(cam);          // libera a câmera quando o app sai da tela
-  else if (!cam.track) ligarCamera();
+  if (document.hidden) { pararGravacao(); desligarCamera(cam); }   // salva o vídeo em andamento e libera a câmera quando o app sai da tela
+  else if (!cam.track || cam.track.readyState === "ended") ligarCamera();
 });
 $("btn-salvar").onclick = salvar;
 $("btn-nova").onclick = novaVisita;
