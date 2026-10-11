@@ -13,7 +13,7 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 - Acesso ao OneDrive pela **Microsoft Graph** com a permissão delegada `Files.ReadWrite.All`.
 - Destino das fotos: `VPX Engenharia - AVCB › 06 - Comercial › 02 - Clientes › [Cliente] › 06 - Fotos e Visitas Técnicas`, no OneDrive do Gustavo, compartilhado com a equipe. O app cria a subpasta se ela não existir.
 - Fotos enviadas no original (`reduzirFotos: false`); arquivos acima de 4 MB usam upload session, que retoma de onde parou (`nextExpectedRanges`) se a conexão cair.
-- Vídeos: botão **Filmar** (`<input accept="video/*" capture>`, câmera nativa) e Galeria aceitam vídeo. Vão para a mesma pasta, com o mesmo padrão de nome e a extensão original (`.mov`/`.mp4`). A miniatura é um quadro gerado uma vez em `gerarCapa`.
+- Vídeos: botão **Vídeo** (`<input accept="video/*" capture>`, câmera nativa) e Galeria aceitam vídeo. Vão para a mesma pasta, com o mesmo padrão de nome e a extensão original (`.mov`/`.mp4`). A miniatura é um quadro gerado uma vez em `gerarCapa`.
 
 ## Regras
 
@@ -32,5 +32,5 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 - Pastas ignoradas na lista de clientes: `01 - Arquivado` e cópias de conflito com `-DESKTOP-` no nome.
 - Alguns clientes antigos ainda têm uma pasta `Fotos` (padrão anterior). No cliente Franz Schubert existe `06 - Fotos e Visitas Técnicas/Registros`. O padrão atual é salvar direto em `06 - Fotos e Visitas Técnicas`.
 - iPhone: o app instalado na tela inicial pede permissão da câmera a cada abertura (regra do iOS, não dá para resolver no código). Resolve em **Ajustes › Apps › Safari › Câmera › Permitir** — testado e confirmado pelo Gustavo.
-- iPhone não permite tirar várias fotos seguidas com a câmera nativa a partir de um site; por isso o botão **Câmera** abre a câmera do próprio app (getUserMedia, visual inspirado na câmera do iPhone). O botão de câmera nativa para fotos foi removido a pedido do Gustavo; **Filmar** continua usando a câmera nativa (vídeo).
+- iPhone não permite tirar várias fotos seguidas com a câmera nativa a partir de um site; por isso o botão **Foto** abre a câmera do próprio app (getUserMedia, visual inspirado na câmera do iPhone). O botão de câmera nativa para fotos foi removido a pedido do Gustavo; **Vídeo** continua usando a câmera nativa (vídeo).
 - Nome dos arquivos: `AAAA-MM-DD_HH-MM-SS_NN.ext` (data/hora da foto + número de ordem).

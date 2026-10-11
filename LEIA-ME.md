@@ -65,8 +65,8 @@ O login fica salvo. Nas próximas vezes é só abrir e usar.
 
 1. **Cliente** → escolha da lista ou digite um nome novo para criar a pasta.
 2. Fotos e vídeos, de três jeitos:
-   - **Câmera**: câmera do próprio app, para tirar várias fotos seguidas, com zoom (1×, 2×, 3× ou pinça) e lanterna. No iPhone a qualidade é um pouco menor que a da câmera do iPhone e o zoom é digital.
-   - **Filmar**: abre a câmera do celular já no modo vídeo, com som e qualidade máxima.
+   - **Foto**: câmera do próprio app, para tirar várias fotos seguidas, com zoom (1×, 2×, 3× ou pinça) e lanterna. No iPhone a qualidade é um pouco menor que a da câmera do iPhone e o zoom é digital.
+   - **Vídeo**: abre a câmera do celular já no modo vídeo, com som e qualidade máxima.
    - **Galeria**: marque várias fotos e vídeos de uma vez. No iPhone, para muitas fotos com qualidade máxima, tire pelo app Câmera do iPhone (sem rajada) e depois escolha todas pela Galeria.
 3. **Salvar no cliente** → todas sobem juntas, com nomes do tipo `2026-10-09_14-32-05_01.jpg`.
 
@@ -79,7 +79,7 @@ Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de no
 1. Toque na aba **Notas e reembolsos**, no topo.
 2. Escolha **Compra** (nota fiscal) ou **Reembolso** (gasto pago do próprio bolso).
 3. Escreva a **descrição** (ex.: "Combustível") e, se for de um cliente ou obra, escolha em **Cliente/obra**.
-4. Fotografe a nota ou o recibo (**Câmera**), ou escolha pela **Galeria**, que também aceita PDF.
+4. Fotografe a nota ou o recibo (**Foto**), ou escolha pela **Galeria**, que também aceita PDF.
 5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [nome da pessoa]*, com nomes do tipo `2026-10-08_14-32-05_Combustível_Diamond_01.jpg`.
 
 ## Problemas comuns
