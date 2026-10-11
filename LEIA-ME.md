@@ -13,7 +13,7 @@ As Partes 1 a 4 são feitas **uma única vez, por você, no computador** (uns 15
 
 Você não precisa se compartilhar consigo mesmo.
 
-Para a aba **Notas e reembolsos**, faça o mesmo com a pasta *VPX Engenharia - AVCB › 02 - Financeiro* › **01 - Comprovantes** (botão direito → Compartilhar → e-mail de cada pessoa → **Pode editar**). Quem tiver acesso a ela consegue ver os comprovantes de todos.
+Para a aba **Comprovantes**, faça o mesmo com a pasta *VPX Engenharia - AVCB › 02 - Financeiro* › **01 - Comprovantes** (botão direito → Compartilhar → e-mail de cada pessoa → **Pode editar**). Quem tiver acesso a ela consegue ver os comprovantes de todos.
 
 ## Parte 2 — Colocar o site no ar (GitHub Pages, grátis)
 
@@ -73,9 +73,9 @@ Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se 
 
 Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de novo.
 
-### Notas e reembolsos
+### Comprovantes
 
-1. Toque na aba **Notas e reembolsos**, no topo.
+1. Toque na aba **Comprovantes**, no topo.
 2. Escolha **Compra** (nota fiscal) ou **Reembolso** (gasto pago do próprio bolso). Na compra, informe também **como foi pago**: **Cartão de crédito corporativo** ou **Conta corrente corporativa**.
 3. Escreva a **descrição** (ex.: "Combustível") e, se houver, o **centro de custo** (ex.: "Obra Diamond", "Administrativo").
 4. Fotografe a nota ou o recibo (**Câmera**), ou escolha pela **Galeria**, que também aceita PDF.

@@ -207,7 +207,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <section id="tela-app" hidden>
     <div class="abas" role="tablist">
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
-      <button role="tab" id="aba-comp" aria-selected="false">Notas e reembolsos</button>
+      <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
     <div id="form-comp" hidden>
       <div class="tipos">
@@ -321,7 +321,7 @@ const CONFIG = {
   pastaClientesNome: "02 - Clientes",
   subpasta: "06 - Fotos e Visitas Técnicas",                          // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
   ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i],
-  // Notas e reembolsos: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
+  // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
   comprovantesCaminho: "VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes",
   comprovantesNome: "01 - Comprovantes",
   pastasComprovante: { compra: "Compras", reembolso: "Reembolsos" },   // dentro delas, uma pasta por colaborador
