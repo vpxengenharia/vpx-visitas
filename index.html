@@ -1092,6 +1092,7 @@ async function salvar() {
   let pasta;
   const desc = comp ? descricao() : "", cli = comp && centroCusto() ? "_" + centroCusto() : "";
   const rotuloTipo = tipo === "reembolso" ? "Reembolso" : "Compra";      // o tipo vai no nome: o arquivo continua identificável se for movido
+  const autor = nomeColaborador();                                     // quem enviou, pelo login Microsoft
   try { pasta = comp ? await pastaComprovante() : await garantirPasta(caminhoVisita()); }
   catch (e) {
     enviando = false; $("progresso").hidden = true; atualizar();
@@ -1112,10 +1113,10 @@ async function salvar() {
         const { blob, ext } = await reduzir(f.arquivo);
         const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
         const quando = new Date(f.arquivo.lastModified || Date.now());
-        // visita: AAAA-MM-DD_HH-MM_NN · comprovante: AAAA-MM-DD_HH-MM_Tipo_Descrição_CentroDeCusto_NN (data da própria foto)
+        // visita: AAAA-MM-DD_HH-MM_Colaborador_NN · comprovante: AAAA-MM-DD_HH-MM_Colaborador_Tipo_Descrição_CentroDeCusto_NN (data da própria foto)
         const nome = comp
-          ? `${dataISO(quando)}_${horaArq(quando)}_${rotuloTipo}_${desc}${cli}_${pad(n)}.${extensao}`
-          : `${data}_${horaArq(quando)}_${pad(n)}.${extensao}`;
+          ? `${dataISO(quando)}_${horaArq(quando)}_${autor}_${rotuloTipo}_${desc}${cli}_${pad(n)}.${extensao}`
+          : `${data}_${horaArq(quando)}_${autor}_${pad(n)}.${extensao}`;
         // se a foto foi reduzida, converte o progresso para o tamanho original
         const fator = f.arquivo.size / (blob.size || 1);
         await enviarArquivo(pasta.id, nome, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });

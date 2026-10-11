@@ -27,10 +27,10 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 
 ## Contexto útil
 
-- **Aba "Notas e reembolsos"** (modo `comp`): salva em `VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes/{Compras|Reembolsos}/{Nome do colaborador}` (nome vem do login). Campos: tipo (obrigatório), descrição (obrigatória), centro de custo (texto livre, opcional, só entra no nome do arquivo). Nome: `AAAA-MM-DD_HH-MM_{Compra|Reembolso}_Descrição_CentroDeCusto_NN.ext` (data da própria foto). Aceita PDF; não aceita vídeo. A pasta `01 - Comprovantes` precisa estar compartilhada com a equipe; o app a acha pelo caminho a partir da raiz do drive e, se der 403/404, por `/me/drive/sharedWithMe`.
+- **Aba "Notas e reembolsos"** (modo `comp`): salva em `VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes/{Compras|Reembolsos}/{Nome do colaborador}` (nome vem do login). Campos: tipo (obrigatório), descrição (obrigatória), centro de custo (texto livre, opcional, só entra no nome do arquivo). Nome: `AAAA-MM-DD_HH-MM_Colaborador_{Compra|Reembolso}_Descrição_CentroDeCusto_NN.ext` (data da própria foto). Aceita PDF; não aceita vídeo. A pasta `01 - Comprovantes` precisa estar compartilhada com a equipe; o app a acha pelo caminho a partir da raiz do drive e, se der 403/404, por `/me/drive/sharedWithMe`.
 
 - Pastas ignoradas na lista de clientes: `01 - Arquivado` e cópias de conflito com `-DESKTOP-` no nome.
 - Alguns clientes antigos ainda têm uma pasta `Fotos` (padrão anterior). No cliente Franz Schubert existe `06 - Fotos e Visitas Técnicas/Registros`. O padrão atual é salvar direto em `06 - Fotos e Visitas Técnicas`.
 - iPhone: o app instalado na tela inicial pede permissão da câmera a cada abertura (regra do iOS, não dá para resolver no código). Resolve em **Ajustes › Apps › Safari › Câmera › Permitir** — testado e confirmado pelo Gustavo.
 - iPhone não permite tirar várias fotos seguidas com a câmera nativa a partir de um site; por isso o único botão **Câmera** abre a câmera do próprio app (getUserMedia, visual inspirado na câmera do iPhone), com modos FOTO e VÍDEO (VÍDEO some na aba de comprovantes). Os botões de câmera nativa (foto e vídeo) foram removidos a pedido do Gustavo. O microfone só é pedido ao trocar para VÍDEO; sem permissão, grava sem som.
-- Nome dos arquivos: `AAAA-MM-DD_HH-MM_NN.ext` (data/hora da foto + número de ordem).
+- Nome dos arquivos (visita): `AAAA-MM-DD_HH-MM_Colaborador_NN.ext` (data do envio, hora da foto, nome de quem enviou pelo login, número de ordem).
