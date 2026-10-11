@@ -569,10 +569,10 @@ function montarCentros() {
   s.innerHTML = "";
   const opc = (valor, texto) => { const o = document.createElement("option"); o.value = valor; o.textContent = texto; s.appendChild(o); };
   opc("", "Nenhum");
-  // com descrição primeiro, em ordem alfabética (obra/cliente), e o número no fim; os sem descrição vão por último
+  // "código · descrição", em ordem alfabética da descrição (agrupa por obra/cliente); os sem descrição vão por último
   const com = CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
   const sem = CONFIG.centrosCusto.filter(([, d]) => !d);
-  com.forEach(([n, d]) => opc(n, `${d} · ${n}`));
+  com.forEach(([n, d]) => opc(n, `${n} · ${d}`));
   sem.forEach(([n]) => opc(n, n));
   opc(OUTRO, "Outro (digitar)");
 }
