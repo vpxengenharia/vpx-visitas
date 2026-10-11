@@ -6,7 +6,8 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 
 - Site estático publicado pelo **GitHub Pages** a partir da branch `main`, pasta raiz:
   `https://vpxengenharia.github.io/vpx-visitas/`
-- Arquivos: `index.html` (app inteiro: HTML, CSS e JS num arquivo só), `manifest.webmanifest`, `icone-180.png`, `icone-192.png`, `icone-512.png`, `logo.png` (logo colorida, fundo transparente) e `logo-branco.png` (letras brancas, para fundo azul ou modo escuro).
+- Arquivos: `index.html` (app inteiro: HTML, CSS e JS num arquivo só), `manifest.webmanifest`, `icone-180.png`, `icone-192.png`, `icone-512.png`, `logo.png` (logo colorida, fundo transparente), `logo-branco.png` (letras brancas, para fundo azul ou modo escuro) e `sw.js` (service worker: cópia do app no celular para abrir sem internet).
+- **Funciona sem internet (fila):** cada foto/vídeo/PDF é guardado no celular (IndexedDB `vpx-visitas`, stores `itens` e `arquivos`) assim que entra na lista e só é apagado depois de chegar ao OneDrive. Ao tocar em Salvar, o destino e o nome de cada item são congelados (`destinoAtual`, `nomeBaseDe`, campos `dest`/`nomeBase`), então um item que fica na fila vai para o lugar certo mesmo que a pessoa troque de cliente/aba. Itens sem internet ficam `pendente` (⏳); a fila é reenviada sozinha (`tentarPendentes`) ao abrir o app, no evento `online`, ao voltar para a tela e a cada 60 s — só com o app aberto (iPhone não permite envio em segundo plano). O envio automático nunca redireciona para o login da Microsoft. `sw.js`: página com rede primeiro (5 s) e cópia como reserva; logos, ícones, fontes e MSAL da cópia; Microsoft nunca passa pelo cache. Se trocar logo/ícone, mude `CACHE` em `sw.js`.
 - Login com conta Microsoft 365 da VPX via **MSAL.js 2.38.3**, carregado do jsDelivr:
   `https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js`
   (o CDN `alcdn.msauth.net` não funcionou — não volte para ele).
@@ -18,7 +19,7 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 ## Regras
 
 1. **Bloco `CONFIG`** no início do script: não altere `clientId`, `tenantId`, `driveId` nem `pastaClientesId` sem o Gustavo pedir. Esses valores vêm do registro no Microsoft Entra e da estrutura real do OneDrive.
-2. Mantenha o app em **um único `index.html`** autocontido. Bibliotecas externas só por `<script>` com versão fixa (nunca `@latest`).
+2. Mantenha o app em **um único `index.html`** autocontido (exceção: `sw.js`, que o navegador exige em arquivo separado para o app abrir sem internet). Bibliotecas externas só por `<script>` com versão fixa (nunca `@latest`).
 3. Se uma mudança exigir **nova permissão da Microsoft** (calendário, e-mail, SharePoint etc.) ou mudar o endereço do site, **avise o Gustavo antes**: ele precisará ajustar o registro no portal Entra. Diga exatamente o que adicionar.
 4. Antes de publicar, confira a sintaxe do JavaScript (por exemplo, extraindo o `<script>` e rodando `node --check`, se o Node estiver disponível) e revise o diff.
 5. Publicar = `git add`, `git commit` com mensagem curta em português descrevendo a melhoria, e `git push` para `main`. O GitHub Pages atualiza em 1 a 2 minutos; os celulares pegam a versão nova ao fechar e abrir o app.

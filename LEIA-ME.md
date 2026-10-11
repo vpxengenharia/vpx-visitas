@@ -71,7 +71,7 @@ O login fica salvo. Nas próximas vezes é só abrir e usar.
 
 Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se der, envie vídeos no Wi-Fi. Se a internet oscilar durante um vídeo, o envio continua de onde parou.
 
-Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de novo.
+**Sem internet (obra, subsolo):** o app abre e funciona normalmente. As fotos ficam guardadas no celular assim que são tiradas — se o app fechar ou a bateria acabar, elas voltam ao abrir de novo. Se tocar em Salvar sem sinal, as fotos ficam com **⏳** e aparece o aviso "aguardando internet"; quando o sinal voltar, o app envia sozinho, cada uma para o cliente/pasta certo, mesmo que você já tenha trocado de cliente. O envio automático acontece com o app aberto (ou na próxima vez que ele for aberto). Itens com **!** tiveram outro problema (ex.: sem acesso à pasta) e o app também tenta de novo.
 
 ### Comprovantes
 

@@ -90,10 +90,13 @@ p{margin:0 0 14px;max-width:60ch}
 .foto .num{position:absolute;left:6px;top:6px;background:rgba(19,37,59,.82);color:#fff;font-size:13px;font-weight:600;border-radius:5px;padding:0 6px}
 .foto .tirar{position:absolute;right:4px;top:4px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(19,37,59,.82);color:#fff;font-size:20px;line-height:1;cursor:pointer}
 .foto[data-st="enviando"] img{opacity:.45}
-.foto[data-st="ok"]::after,.foto[data-st="erro"]::after{position:absolute;right:6px;bottom:6px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
+.foto[data-st="ok"]::after,.foto[data-st="erro"]::after,.foto[data-st="pendente"]::after{position:absolute;right:6px;bottom:6px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
 .foto[data-st="ok"]::after{content:"✓";background:var(--ok)}
 .foto[data-st="erro"]::after{content:"!";background:var(--erro)}
-.foto[data-st]:not([data-st="nova"]) .tirar{display:none}
+.foto[data-st="pendente"]::after{content:"⏳";background:#FFF4DC;font-size:14px}
+.foto[data-st="enviando"] .tirar,.foto[data-st="ok"] .tirar{display:none}
+.fila{margin:0 2px 14px;padding:10px 12px;border-radius:10px;background:#FFF4DC;color:#6B4200;font-size:15px;line-height:1.35}
+@media (prefers-color-scheme:dark){.fila{background:#3A2C10;color:#FFD58A}}
 .semfotos{border:2px dashed var(--linha);border-radius:10px;padding:28px 18px;text-align:center;color:var(--suave)}
 
 .barra{position:fixed;left:0;right:0;bottom:0;background:var(--papel);border-top:1px solid var(--linha);padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));z-index:5}
@@ -233,6 +236,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <strong id="nome-cliente">Escolher cliente</strong>
     </button>
     <p class="destino" id="destino"></p>
+    <p class="fila" id="fila" role="status" hidden></p>
     <div class="grade" id="grade"></div>
     <div class="semfotos" id="semfotos">Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.</div>
   </section>
@@ -378,6 +382,9 @@ let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false,
 let modo = lerLS("vpx_modo", "visita") === "comp" ? "comp" : "visita", tipo = null;
 const guardado = { visita: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null } };
 const ehComp = () => modo === "comp";
+const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
+const todosItens = () => [...listaDe("visita"), ...listaDe("comp")];
+let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
 function aviso(msg, erro = false) {
@@ -401,13 +408,54 @@ function lerLS(k, padrao) { try { const v = localStorage.getItem(k); return v ? 
 function gravarLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 const espera = ms => new Promise(r => setTimeout(r, ms));
 
+/* ---------- fotos guardadas no celular (IndexedDB) ----------
+   Cada foto/vídeo/PDF fica guardado assim que entra na lista, e só é apagado depois de chegar ao OneDrive.
+   "itens" guarda os dados (aba, destino, nome); "arquivos" guarda o arquivo em si (separado, para não regravar
+   vídeos grandes a cada mudança de status). */
+const bd = () => bd.p ||= new Promise((ok, falha) => {
+  const r = indexedDB.open("vpx-visitas", 1);
+  r.onupgradeneeded = () => { r.result.createObjectStore("itens", { keyPath: "id" }); r.result.createObjectStore("arquivos"); };
+  r.onsuccess = () => ok(r.result);
+  r.onerror = () => falha(r.error);
+});
+function bdTx(modoTx, fn) {
+  return bd().then(db => new Promise((ok, falha) => {
+    const t = db.transaction(["itens", "arquivos"], modoTx);
+    const req = fn(t.objectStore("itens"), t.objectStore("arquivos"));
+    t.oncomplete = () => ok(req?.result);
+    t.onerror = t.onabort = () => falha(t.error);
+  }));
+}
+function guardarItem(f, comArquivo = false) {
+  const meta = {
+    id: f.id, modo: f.modo, nome: f.arquivo.name, tipo: f.arquivo.type, lm: f.arquivo.lastModified,
+    video: !!f.video, pdf: !!f.pdf, st: f.st === "enviando" ? "pendente" : f.st, dest: f.dest || null, nomeBase: f.nomeBase || null
+  };
+  return bdTx("readwrite", (itens, arqs) => { itens.put(meta); if (comArquivo) arqs.put(f.arquivo, f.id); }).catch(e => {
+    console.error(e);
+    if (!guardarItem.avisou) { guardarItem.avisou = true; aviso("Não foi possível guardar as fotos no celular (falta de espaço?). Salve antes de fechar o app.", true); }
+  });
+}
+const apagarItem = id => bdTx("readwrite", (itens, arqs) => { itens.delete(id); arqs.delete(id); }).catch(console.error);
+async function bdTodos() {
+  const metas = await bdTx("readonly", itens => itens.getAll());
+  const lista = [];
+  for (const m of metas || []) {
+    const blob = await bdTx("readonly", (itens, arqs) => arqs.get(m.id));
+    if (blob) lista.push({ ...m, blob }); else apagarItem(m.id);
+  }
+  return lista;
+}
+
 /* ---------- login ---------- */
 async function token() {
+  if (!navigator.onLine) throw new TypeError("Sem internet");   // offline: nunca tentar o login por redirecionamento
   try {
     const r = await msalApp.acquireTokenSilent({ scopes: ESCOPOS, account: conta });
     return r.accessToken;
   } catch (e) {
-    if (e instanceof msal.InteractionRequiredAuthError) {
+    // login vencido: só vai para a tela da Microsoft quando a pessoa toca em Salvar, nunca no envio automático da fila
+    if (e instanceof msal.InteractionRequiredAuthError && !enviandoFundo) {
       await msalApp.acquireTokenRedirect({ scopes: ESCOPOS, account: conta });
     }
     throw e;
@@ -433,6 +481,7 @@ async function graph(caminho, opcoes = {}, tentativa = 0) {
 /* ---------- clientes ---------- */
 async function carregarClientes() {
   clientes = lerLS("vpx_clientes", []);
+  if (!navigator.onLine) return;                   // sem internet: usa a última lista salva no celular
   try {
     let url = `${BASE()}/children?$select=id,name,folder&$top=999`;
     const lista = [];
@@ -623,8 +672,42 @@ async function garantirFilhas(paiId, nomes) {
   return item;
 }
 
-async function pastaComprovante() {
-  return garantirFilhas(await baseComprovantes(), [CONFIG.pastasComprovante[tipo]]);
+/* ---------- destino de cada item (congelado no momento do "Salvar") ----------
+   Assim um item que ficou na fila sem internet vai para o lugar certo mesmo que, enquanto isso,
+   a pessoa troque de cliente, de aba ou de tipo de comprovante. */
+function destinoAtual() {
+  const autor = nomeColaborador();                                  // quem enviou, pelo login Microsoft
+  if (ehComp()) return {
+    modo: "comp", autor, tipo,
+    rotuloTipo: tipo === "reembolso" ? "Reembolso" : "Compra",       // o tipo vai no nome: o arquivo continua identificável se for movido
+    pag: tipo === "compra" && pagamento ? "_" + PAGAMENTOS[pagamento] : "",
+    desc: descricao(), cli: centroCusto() ? "_" + centroCusto() : ""
+  };
+  return { modo: "visita", autor, cliente, caminho: caminhoVisita(), data: dataISO() };
+}
+
+// nome do arquivo sem a extensão (a extensão é decidida na hora do envio)
+// visita: AAAA-MM-DD_HH-MM_Colaborador_NN
+// comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_CentroDeCusto_NN (data da própria foto; nome na frente agrupa por pessoa)
+function nomeBaseDe(f, d, n) {
+  const quando = new Date(f.arquivo.lastModified || Date.now());
+  return d.modo === "comp"
+    ? `${d.autor}_${dataISO(quando)}_${d.rotuloTipo}${d.pag}_${d.desc}${d.cli}_${pad(n)}`
+    : `${d.data}_${horaArq(quando)}_${d.autor}_${pad(n)}`;
+}
+
+// pasta do OneDrive de um destino; criada (se faltar) uma vez só por envio
+const pastasCache = new Map();
+function pastaDe(d) {
+  const chave = d.modo === "comp" ? "c:" + d.tipo : "v:" + d.caminho;
+  if (!pastasCache.has(chave)) {
+    const p = d.modo === "comp"
+      ? baseComprovantes().then(b => garantirFilhas(b, [CONFIG.pastasComprovante[d.tipo]]))
+      : garantirPasta(d.caminho);
+    p.catch(() => pastasCache.delete(chave));                     // falhou (ex.: sem internet): tenta de novo da próxima vez
+    pastasCache.set(chave, p);
+  }
+  return pastasCache.get(chave);
 }
 
 /* ---------- fotos ---------- */
@@ -635,8 +718,9 @@ function adicionar(lista) {
     const video = !ehComp() && ehVideo(f);                       // vídeo só na visita; PDF só nos comprovantes
     const pdf = ehComp() && (f.type === "application/pdf" || /\.pdf$/i.test(f.name));
     if (!video && !pdf && !f.type.startsWith("image/") && !/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name)) continue;
-    const item = { id: ++seq, arquivo: f, url: URL.createObjectURL(f), st: "nova", video, pdf };
+    const item = { id: ++seq, modo, arquivo: f, url: URL.createObjectURL(f), st: "nova", video, pdf };
     fotos.push(item);
+    guardarItem(item, true);                       // guardado no celular: não se perde se o app fechar
     if (video) gerarCapa(item);
   }
   atualizar();
@@ -661,7 +745,7 @@ function gerarCapa(item) {
     cv.width = Math.round(v.videoWidth * esc); cv.height = Math.round(v.videoHeight * esc);
     cv.getContext("2d").drawImage(v, 0, 0, cv.width, cv.height);
     cv.toBlob(b => {
-      if (b && fotos.includes(item)) { item.capa = URL.createObjectURL(b); atualizar(); }
+      if (b && listaDe(item.modo).includes(item)) { item.capa = URL.createObjectURL(b); atualizar(); }
       fim();
     }, "image/jpeg", 0.8);
   };
@@ -678,6 +762,7 @@ function remover(id) {
   const i = fotos.findIndex(f => f.id === id);
   if (i < 0) return;
   liberar(fotos[i]);
+  apagarItem(id);
   fotos.splice(i, 1);
   atualizar();
 }
@@ -1091,26 +1176,37 @@ function atualizar() {
     g.appendChild(d);
   });
   $("semfotos").hidden = fotos.length > 0;
+
+  // aviso da fila: itens já salvos que ainda não chegaram ao OneDrive (das duas abas)
+  const k = todosItens().filter(f => f.dest && f.st !== "ok").length;
+  const qtd = `${k} ${k > 1 ? "itens" : "item"}`;
+  $("fila").hidden = !k;
+  if (k) $("fila").textContent = enviandoFundo ? `⏳ Enviando ${qtd} da fila…`
+    : !navigator.onLine ? `⏳ ${qtd} aguardando internet. ${k > 1 ? "Serão enviados" : "Será enviado"} sozinho${k > 1 ? "s" : ""} quando o sinal voltar, com o app aberto.`
+    : `⏳ ${qtd} na fila de envio. O app tenta de novo sozinho.`;
   atualizarBotao();
 }
 
 function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
-  if (ehComp()) {
+  if (pend.length && pend.every(f => f.dest)) {   // só sobraram itens da fila (destino já definido)
+    b.disabled = enviando;
+    b.textContent = enviando ? "Salvando…" : "Tentar enviar agora";
+  } else if (ehComp()) {
     b.disabled = enviando || !tipo || faltaPagamento() || !descricao() || !pend.length;
     if (enviando) b.textContent = "Salvando…";
     else if (!pend.length) b.textContent = "Salvar comprovante";
     else if (!tipo) b.textContent = "Escolha Compra ou Reembolso";
     else if (faltaPagamento()) b.textContent = "Informe como foi pago";
     else if (!descricao()) b.textContent = "Preencha a descrição";
-    else b.textContent = `Salvar ${descrever(pend)}`;
+    else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))}`;
   } else {
     b.disabled = enviando || !cliente || !pend.length;
     if (enviando) b.textContent = "Salvando…";
     else if (!cliente && fotos.length) b.textContent = "Escolha o cliente para salvar";
     else if (!pend.length) b.textContent = "Salvar no cliente";
-    else b.textContent = `Salvar ${descrever(pend)} no cliente`;
+    else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
   ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
@@ -1186,85 +1282,132 @@ async function enviarArquivo(pastaId, nome, blob, avancou = () => {}) {
   }
 }
 
-async function salvar() {
-  const comp = ehComp();
-  if (enviando || (comp ? !tipo || faltaPagamento() || !descricao() : !cliente)) return;
-  const fila = fotos.filter(f => f.st !== "ok");
-  if (!fila.length) return;
-  enviando = true;
+// envia uma lista de itens (cada um com seu destino). visivel = toque em "Salvar" (trava a tela e mostra a barra);
+// senão é o envio automático da fila, que roda por trás sem atrapalhar quem está fotografando.
+async function enviarFila(lista, visivel) {
+  if (visivel) enviando = true; else enviandoFundo = true;
   let trava = null;
   try { trava = await navigator.wakeLock?.request("screen"); } catch {}
-  $("progresso").hidden = false;
+  const fila = lista.slice();
+  const r = { ok: 0, pendentes: 0, erros: 0, semAcesso: false, pasta: null };
   const total = fila.length; let feitos = 0;
   const bytesTotal = fila.reduce((s, f) => s + f.arquivo.size, 0) || 1; let bytes = 0;
   const prog = () => {
+    if (!visivel) return;
     $("cheio").style.width = Math.min(100, bytes / bytesTotal * 100) + "%";
     $("txtprog").textContent = `${feitos} de ${total} enviados` + (bytesTotal > 20 * 1048576 ? ` · ${mb(bytes)} de ${mb(bytesTotal)}` : "");
   };
+  if (visivel) $("progresso").hidden = false;
   prog(); atualizar();
 
-  let pasta;
-  const desc = comp ? descricao() : "", cli = comp && centroCusto() ? "_" + centroCusto() : "";
-  const rotuloTipo = tipo === "reembolso" ? "Reembolso" : "Compra";      // o tipo vai no nome: o arquivo continua identificável se for movido
-  const pag = tipo === "compra" && pagamento ? "_" + PAGAMENTOS[pagamento] : "";
-  const autor = nomeColaborador();                                     // quem enviou, pelo login Microsoft
-  try { pasta = comp ? await pastaComprovante() : await garantirPasta(caminhoVisita()); }
-  catch (e) {
-    enviando = false; $("progresso").hidden = true; atualizar();
-    try { trava?.release(); } catch {}
-    if (e.semAcesso) aviso(`Sem acesso à pasta "${CONFIG.comprovantesNome}". Peça para ela ser compartilhada com você com permissão de edição.`, true);
-    else aviso(`Não foi possível acessar a pasta ${comp ? "de comprovantes" : "do cliente"}: ` + e.message, true);
-    return;
-  }
-
-  const data = dataISO();
   const trabalhar = async () => {
     while (fila.length) {
       const f = fila.shift();
-      const n = fotos.indexOf(f) + 1;
       f.st = "enviando"; atualizar();
       let deste = 0;                                    // bytes deste arquivo já contados na barra
       try {
+        const pasta = await pastaDe(f.dest);
+        r.pasta ||= pasta;
         const { blob, ext } = await reduzir(f.arquivo);
         const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
-        const quando = new Date(f.arquivo.lastModified || Date.now());
-        // visita: AAAA-MM-DD_HH-MM_Colaborador_NN
-        // comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_CentroDeCusto_NN (data da própria foto; nome na frente agrupa por pessoa)
-        const nome = comp
-          ? `${autor}_${dataISO(quando)}_${rotuloTipo}${pag}_${desc}${cli}_${pad(n)}.${extensao}`
-          : `${data}_${horaArq(quando)}_${autor}_${pad(n)}.${extensao}`;
         // se a foto foi reduzida, converte o progresso para o tamanho original
         const fator = f.arquivo.size / (blob.size || 1);
-        await enviarArquivo(pasta.id, nome, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
-        f.st = "ok";
-      } catch (e) { f.st = "erro"; console.error(e); }
+        await enviarArquivo(pasta.id, `${f.nomeBase}.${extensao}`, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
+        f.st = "ok"; r.ok++;
+        apagarItem(f.id);                               // chegou ao OneDrive: pode sair do celular
+      } catch (e) {
+        console.error(e);
+        if (e.semAcesso) r.semAcesso = true;
+        // sem internet (ou caiu no meio) fica "pendente"; outros problemas ficam como "erro". Os dois continuam na fila.
+        const rede = !navigator.onLine || e instanceof TypeError || /network|fetch|conex/i.test(`${e.message} ${e.errorCode || ""}`);
+        f.st = rede ? "pendente" : "erro";
+        if (rede) r.pendentes++; else r.erros++;
+        guardarItem(f);
+      }
       bytes += f.arquivo.size - deste;
       feitos++; prog(); atualizar();
     }
   };
   await Promise.all([trabalhar(), trabalhar(), trabalhar()]);
 
-  enviando = false;
+  if (visivel) enviando = false; else enviandoFundo = false;
   try { trava?.release(); } catch {}
-  $("progresso").hidden = true;
-  const erros = fotos.filter(f => f.st === "erro");
+  if (visivel) $("progresso").hidden = true;
   atualizar();
-  if (erros.length) {
-    aviso(`Não foi possível enviar ${descrever(erros)}. Verifique a internet e toque em Salvar de novo.`, true);
+  return r;
+}
+
+async function salvar() {
+  if (enviando) return;
+  if (enviandoFundo) { aviso("Aguarde um instante: o app está enviando os itens da fila."); return; }
+  const comp = ehComp();
+  const novos = fotos.filter(f => f.st !== "ok" && !f.dest);
+  if (novos.length && (comp ? !tipo || faltaPagamento() || !descricao() : !cliente)) return;
+  // congela o destino e o nome de cada item novo: se não der para enviar agora, ele vai depois para o lugar certo
+  if (novos.length) {
+    const d = destinoAtual();
+    novos.forEach(f => { f.dest = d; f.nomeBase = nomeBaseDe(f, d, fotos.indexOf(f) + 1); guardarItem(f); });
+  }
+  const fila = fotos.filter(f => f.st !== "ok");
+  if (!fila.length) return;
+  const r = await enviarFila(fila, true);
+
+  if (r.pendentes || r.erros) {
+    const falhas = fila.filter(f => f.st !== "ok");
+    if (r.semAcesso) aviso(`Sem acesso à pasta "${CONFIG.comprovantesNome}". Peça para ela ser compartilhada com você com permissão de edição. Os comprovantes ficam guardados no celular.`, true);
+    else if (!r.erros) aviso(`Sem internet. Está tudo guardado no celular (${descrever(falhas)}) e o envio será feito sozinho quando o sinal voltar.`, true);
+    else aviso(`Não foi possível enviar agora (${descrever(falhas)}). Está tudo guardado no celular e o app tenta de novo sozinho.`, true);
     return;
   }
-  const masc = comp || fotos.some(f => f.video);
+  const d = fila[0].dest;
+  const masc = d.modo === "comp" || fotos.some(f => f.video);
   $("ok-titulo").textContent = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
-  $("ok-texto").textContent = comp
-    ? `Em ${caminhoComp()}`
-    : `Em ${cliente} › ${CONFIG.subpasta.replace("{data}", data).replace(/\//g, " › ")}`;
-  $("ok-link").href = pasta.webUrl || "#";
+  $("ok-texto").textContent = d.modo === "comp"
+    ? `Em ${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[d.tipo]}`
+    : `Em ${d.cliente} › ${d.caminho.split("/").slice(1).join(" › ")}`;
+  $("ok-link").href = r.pasta?.webUrl || "#";
   mostrar("tela-ok");
 }
 
+// fila: tenta enviar sozinho o que ficou pendente (ao abrir o app, quando a internet volta e a cada minuto)
+async function tentarPendentes() {
+  if (enviando || enviandoFundo || !conta || !navigator.onLine) return;
+  const fila = todosItens().filter(f => f.dest && (f.st === "pendente" || f.st === "erro"));
+  if (!fila.length) return;
+  const r = await enviarFila(fila, false);
+  // o que chegou ao OneDrive sai da lista
+  for (const m of ["visita", "comp"]) {
+    const l = listaDe(m);
+    for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
+  }
+  atualizar();
+  if (r.ok) aviso(`${r.ok} ${r.ok > 1 ? "itens da fila foram enviados" : "item da fila foi enviado"} para o OneDrive.`);
+}
+
+// ao abrir o app: devolve à lista o que estava guardado no celular
+async function restaurarItens() {
+  let recs = [];
+  try { recs = await bdTodos(); } catch (e) { console.error(e); return; }
+  if (!recs.length) return;
+  for (const r of recs.sort((a, b) => a.id - b.id)) {
+    const arquivo = new File([r.blob], r.nome, { type: r.tipo, lastModified: r.lm });
+    const item = {
+      id: r.id, modo: r.modo, arquivo, url: URL.createObjectURL(arquivo), video: r.video, pdf: r.pdf,
+      dest: r.dest, nomeBase: r.nomeBase, st: r.dest ? (r.st === "erro" ? "erro" : "pendente") : "nova"
+    };
+    listaDe(r.modo).push(item);
+    if (item.video) gerarCapa(item);
+    seq = Math.max(seq, r.id);
+  }
+  const rascunhos = recs.filter(r => !r.dest).length;
+  if (rascunhos) aviso(`${rascunhos} ${rascunhos > 1 ? "itens recuperados" : "item recuperado"} da última vez que o app foi usado.`);
+  atualizar();
+}
+
 function novaVisita() {
-  fotos.forEach(liberar);
-  fotos = []; cliente = null;
+  fotos.filter(f => f.st === "ok").forEach(liberar);
+  fotos = fotos.filter(f => f.st !== "ok");        // o que ainda está na fila continua na lista
+  cliente = null;
   if (ehComp()) { $("descricao").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo(null); }
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
@@ -1278,6 +1421,8 @@ async function iniciarApp() {
   $("btn-conta").hidden = false;
   mostrar("tela-app"); aplicarModo();
   carregarClientes();
+  await restaurarItens();                         // fotos guardadas no celular da última vez
+  tentarPendentes();
 }
 
 $("btn-entrar").onclick = () => msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "select_account" });
@@ -1316,10 +1461,18 @@ document.addEventListener("visibilitychange", () => {
 });
 $("btn-salvar").onclick = salvar;
 $("btn-nova").onclick = novaVisita;
+// as fotos ficam guardadas no celular: só avisa ao fechar se houver envio em andamento
 window.addEventListener("beforeunload", e => {
-  const outra = guardado[ehComp() ? "visita" : "comp"].fotos;
-  if (enviando || [...fotos, ...outra].some(f => f.st !== "ok")) { e.preventDefault(); e.returnValue = ""; }
+  if (enviando || enviandoFundo) { e.preventDefault(); e.returnValue = ""; }
 });
+// fila: tenta de novo quando a internet volta, quando o app volta para a tela e a cada minuto
+window.addEventListener("online", () => { atualizar(); tentarPendentes(); });
+window.addEventListener("offline", atualizar);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) tentarPendentes(); });
+setInterval(tentarPendentes, 60000);
+try { navigator.storage?.persist?.(); } catch {}   // pede ao navegador para não apagar as fotos guardadas
+// cópia do app no celular, para abrir mesmo sem internet (sw.js)
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(e => console.error(e));
 
 travarVertical(true);
 
