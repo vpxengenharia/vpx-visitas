@@ -72,6 +72,7 @@ p{margin:0 0 14px;max-width:60ch}
 .tipos button{min-height:58px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-weight:600;font-size:17px;line-height:1.15;padding:6px;cursor:pointer}
 .tipos button small{display:block;font-size:13px;font-weight:500;opacity:.8}
 .tipos button[aria-pressed="true"]{border-color:var(--laranja);background:var(--laranja);color:var(--marinho);font-weight:700}
+.rotulo{font-size:14px;color:var(--suave);margin:0 2px 4px}
 .campo{display:block;margin-bottom:12px}
 .campo span{display:block;font-size:14px;color:var(--suave);margin:0 2px 4px}
 .campo input{width:100%;min-height:52px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 14px;font-size:18px}
@@ -212,6 +213,13 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <div class="tipos">
         <button id="tipo-compra" aria-pressed="false">Compra<small>nota fiscal</small></button>
         <button id="tipo-reembolso" aria-pressed="false">Reembolso<small>gasto pago por você</small></button>
+      </div>
+      <div id="bloco-pag" hidden>
+        <p class="rotulo">Como foi pago?</p>
+        <div class="tipos">
+          <button id="pag-cartao" aria-pressed="false">Cartão de crédito<small>corporativo</small></button>
+          <button id="pag-conta" aria-pressed="false">Conta corrente<small>corporativa</small></button>
+        </div>
       </div>
       <label class="campo"><span>Descrição</span><input id="descricao" type="text" maxlength="80" placeholder="Ex.: Combustível, material elétrico" autocomplete="off" enterkeyhint="next"></label>
       <label class="campo"><span>Centro de custo (opcional)</span><input id="centro" type="text" maxlength="60" placeholder="Ex.: Obra Diamond, Administrativo" autocomplete="off" enterkeyhint="done"></label>
@@ -495,8 +503,21 @@ function escolherTipo(t) {
   tipo = t;
   $("tipo-compra").setAttribute("aria-pressed", String(t === "compra"));
   $("tipo-reembolso").setAttribute("aria-pressed", String(t === "reembolso"));
+  $("bloco-pag").hidden = t !== "compra";          // forma de pagamento: só nas compras
   atualizar();
 }
+
+// compra: como foi paga (obrigatório); vai no nome do arquivo
+const PAGAMENTOS = { cartao: "Cartão Corporativo", conta: "Conta Corrente Corporativa" };
+let pagamento = null;
+function escolherPagamento(p) {
+  if (enviando) return;
+  pagamento = p;
+  $("pag-cartao").setAttribute("aria-pressed", String(p === "cartao"));
+  $("pag-conta").setAttribute("aria-pressed", String(p === "conta"));
+  atualizarBotao();
+}
+const faltaPagamento = () => tipo === "compra" && !pagamento;
 
 const nomeColaborador = () => limparNome(conta?.name || (conta?.username || "").split("@")[0]) || "Sem nome";
 const descricao = () => limparNome($("descricao").value).slice(0, 80);
@@ -1018,10 +1039,11 @@ function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
   if (ehComp()) {
-    b.disabled = enviando || !tipo || !descricao() || !pend.length;
+    b.disabled = enviando || !tipo || faltaPagamento() || !descricao() || !pend.length;
     if (enviando) b.textContent = "Salvando…";
     else if (!pend.length) b.textContent = "Salvar comprovante";
     else if (!tipo) b.textContent = "Escolha Compra ou Reembolso";
+    else if (faltaPagamento()) b.textContent = "Informe como foi pago";
     else if (!descricao()) b.textContent = "Preencha a descrição";
     else b.textContent = `Salvar ${descrever(pend)}`;
   } else {
@@ -1032,7 +1054,7 @@ function atualizarBotao() {
     else b.textContent = `Salvar ${descrever(pend)} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
-  ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "descricao", "centro"].forEach(id => $(id).disabled = enviando);
+  ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro"].forEach(id => $(id).disabled = enviando);
 }
 
 async function reduzir(arquivo) {
@@ -1107,7 +1129,7 @@ async function enviarArquivo(pastaId, nome, blob, avancou = () => {}) {
 
 async function salvar() {
   const comp = ehComp();
-  if (enviando || (comp ? !tipo || !descricao() : !cliente)) return;
+  if (enviando || (comp ? !tipo || faltaPagamento() || !descricao() : !cliente)) return;
   const fila = fotos.filter(f => f.st !== "ok");
   if (!fila.length) return;
   enviando = true;
@@ -1125,6 +1147,7 @@ async function salvar() {
   let pasta;
   const desc = comp ? descricao() : "", cli = comp && centroCusto() ? "_" + centroCusto() : "";
   const rotuloTipo = tipo === "reembolso" ? "Reembolso" : "Compra";      // o tipo vai no nome: o arquivo continua identificável se for movido
+  const pag = tipo === "compra" && pagamento ? "_" + PAGAMENTOS[pagamento] : "";
   const autor = nomeColaborador();                                     // quem enviou, pelo login Microsoft
   try { pasta = comp ? await pastaComprovante() : await garantirPasta(caminhoVisita()); }
   catch (e) {
@@ -1147,9 +1170,9 @@ async function salvar() {
         const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
         const quando = new Date(f.arquivo.lastModified || Date.now());
         // visita: AAAA-MM-DD_HH-MM_Colaborador_NN
-        // comprovante: Colaborador_AAAA-MM-DD_Tipo_Descrição_CentroDeCusto_NN (data da própria foto; nome na frente agrupa por pessoa)
+        // comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_CentroDeCusto_NN (data da própria foto; nome na frente agrupa por pessoa)
         const nome = comp
-          ? `${autor}_${dataISO(quando)}_${rotuloTipo}_${desc}${cli}_${pad(n)}.${extensao}`
+          ? `${autor}_${dataISO(quando)}_${rotuloTipo}${pag}_${desc}${cli}_${pad(n)}.${extensao}`
           : `${data}_${horaArq(quando)}_${autor}_${pad(n)}.${extensao}`;
         // se a foto foi reduzida, converte o progresso para o tamanho original
         const fator = f.arquivo.size / (blob.size || 1);
@@ -1183,7 +1206,7 @@ async function salvar() {
 function novaVisita() {
   fotos.forEach(liberar);
   fotos = []; cliente = null;
-  if (ehComp()) { $("descricao").value = ""; $("centro").value = ""; escolherTipo(null); }
+  if (ehComp()) { $("descricao").value = ""; $("centro").value = ""; escolherPagamento(null); escolherTipo(null); }
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
 }
@@ -1214,6 +1237,8 @@ $("aba-visita").onclick = () => trocarModo("visita");
 $("aba-comp").onclick = () => trocarModo("comp");
 $("tipo-compra").onclick = () => escolherTipo("compra");
 $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
+$("pag-cartao").onclick = () => escolherPagamento("cartao");
+$("pag-conta").onclick = () => escolherPagamento("conta");
 $("descricao").oninput = () => { atualizarBotao(); };
 $("descricao").onkeydown = e => { if (e.key === "Enter") $("centro").focus(); };
 $("centro").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
