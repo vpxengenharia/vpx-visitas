@@ -77,7 +77,7 @@ Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de no
 
 1. Toque na aba **Comprovantes**, no topo.
 2. Escolha **Compra** (nota fiscal) ou **Reembolso** (gasto pago do próprio bolso). Na compra, informe também **como foi pago**: **Cartão de crédito corporativo** ou **Conta corrente corporativa**.
-3. Escreva a **descrição** (ex.: "Combustível") e, se houver, o **centro de custo** (ex.: "Obra Diamond", "Administrativo").
+3. Escreva a **descrição** (ex.: "Combustível") e, se houver, escolha o **centro de custo** na lista (a mesma do Fin365). Se não estiver na lista, escolha **Outro (digitar)** e escreva.
 4. Fotografe a nota ou o recibo (**Câmera**), ou escolha pela **Galeria**, que também aceita PDF.
 5. **Salvar** → vai direto para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*), numa pasta única para todas as pessoas, com nomes do tipo `João da Silva_2026-10-08_Compra_Cartão Corporativo_Combustível_Obra Diamond_01.jpg` (no reembolso não há forma de pagamento: `João da Silva_2026-10-08_Reembolso_Almoço_01.jpg`). Como o nome da pessoa vem primeiro, a pasta fica agrupada por colaborador e, dentro dele, por data.
 

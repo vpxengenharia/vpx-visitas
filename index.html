@@ -75,7 +75,10 @@ p{margin:0 0 14px;max-width:60ch}
 .rotulo{font-size:14px;color:var(--suave);margin:0 2px 4px}
 .campo{display:block;margin-bottom:12px}
 .campo span{display:block;font-size:14px;color:var(--suave);margin:0 2px 4px}
-.campo input{width:100%;min-height:52px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 14px;font-size:18px}
+.campo input,.campo select{width:100%;min-height:52px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 14px;font-size:18px}
+.campo select{-webkit-appearance:none;appearance:none;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235B6B80' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:20px}
+.campo[hidden]{display:none}
+.campo select:focus{outline:3px solid var(--laranja);outline-offset:1px}
 .abas button:focus-visible,.tipos button:focus-visible,.campo input:focus{outline:3px solid var(--laranja);outline-offset:1px}
 .captura [hidden]{display:none}
 .foto.pdf{display:grid;place-items:center;background:var(--papel);border:1.5px solid var(--linha);text-align:center}
@@ -222,7 +225,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
         </div>
       </div>
       <label class="campo"><span>Descrição</span><input id="descricao" type="text" maxlength="80" placeholder="Ex.: Combustível, material elétrico" autocomplete="off" enterkeyhint="next"></label>
-      <label class="campo"><span>Centro de custo (opcional)</span><input id="centro" type="text" maxlength="60" placeholder="Ex.: Obra Diamond, Administrativo" autocomplete="off" enterkeyhint="done"></label>
+      <label class="campo"><span>Centro de custo (opcional)</span><select id="centro-sel"></select></label>
+      <label class="campo" id="campo-outro" hidden><span>Qual centro de custo?</span><input id="centro" type="text" maxlength="60" placeholder="Digite o centro de custo" autocomplete="off" enterkeyhint="done"></label>
     </div>
     <button class="cliente vazio" id="btn-cliente">
       <small id="rot-cliente">Cliente</small>
@@ -324,7 +328,15 @@ const CONFIG = {
   // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
   comprovantesCaminho: "VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes",
   comprovantesNome: "01 - Comprovantes",
-  pastasComprovante: { compra: "Compras", reembolso: "Reembolsos" },   // dentro delas, uma pasta por colaborador
+  pastasComprovante: { compra: "Compras", reembolso: "Reembolsos" },   // os arquivos vão direto nelas
+  // Centros de custo ativos no Fin365 (app.fin365.com.br › Cadastros › Centros de Custos), copiados em 11/10/2026.
+  // Quando o Fin365 mudar, atualize esta lista. No arquivo, "/" vira "-" (o OneDrive não aceita "/").
+  centrosCusto: [
+    "1019/2025", "1021/2026", "1023/2025", "1027/2026", "1033/2026", "1034/2026", "1037/2026", "1039/2026",
+    "1046/2026", "1052/2026", "1054/2026", "1056/2026", "1059/2026", "1067/2026", "1068/2026", "1070/2026",
+    "1081/2026", "1086/2026", "1087/2026", "1091/2026", "1097/2026", "1100/2026", "1139/2026",
+    "584/2025", "717/2025", "718/2026", "Divisão de lucro", "Empresa - AVCB"
+  ],
   reduzirFotos: false,                        // false = envia a foto original; true = reduz para até 2560 px
   ladoMaximo: 2560,
   qualidade: 0.85
@@ -521,7 +533,25 @@ const faltaPagamento = () => tipo === "compra" && !pagamento;
 
 const nomeColaborador = () => limparNome(conta?.name || (conta?.username || "").split("@")[0]) || "Sem nome";
 const descricao = () => limparNome($("descricao").value).slice(0, 80);
-const centroCusto = () => limparNome($("centro").value).slice(0, 60);
+// centro de custo: escolhido da lista do Fin365 ou, em "Outro", digitado. "/" vira "-" para caber no nome do arquivo
+const OUTRO = "__outro";
+const centroCusto = () => {
+  const sel = $("centro-sel").value;
+  return limparNome((sel === OUTRO ? $("centro").value : sel).replace(/\//g, "-")).slice(0, 60);
+};
+function montarCentros() {
+  const s = $("centro-sel");
+  s.innerHTML = "";
+  const opc = (valor, texto) => { const o = document.createElement("option"); o.value = valor; o.textContent = texto; s.appendChild(o); };
+  opc("", "Nenhum");
+  CONFIG.centrosCusto.forEach(c => opc(c, c));
+  opc(OUTRO, "Outro (digitar)");
+}
+function aoEscolherCentro() {
+  const outro = $("centro-sel").value === OUTRO;
+  $("campo-outro").hidden = !outro;
+  if (outro) $("centro").focus(); else $("centro").value = "";
+}
 const caminhoComp = () => `${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[tipo]}`;
 
 // acha a pasta "01 - Comprovantes": pelo caminho no OneDrive do Gustavo ou, se não der, pela lista "Compartilhados comigo"
@@ -1054,7 +1084,7 @@ function atualizarBotao() {
     else b.textContent = `Salvar ${descrever(pend)} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
-  ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro"].forEach(id => $(id).disabled = enviando);
+  ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
 }
 
 async function reduzir(arquivo) {
@@ -1206,7 +1236,7 @@ async function salvar() {
 function novaVisita() {
   fotos.forEach(liberar);
   fotos = []; cliente = null;
-  if (ehComp()) { $("descricao").value = ""; $("centro").value = ""; escolherPagamento(null); escolherTipo(null); }
+  if (ehComp()) { $("descricao").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo(null); }
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
 }
@@ -1240,7 +1270,9 @@ $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
 $("pag-cartao").onclick = () => escolherPagamento("cartao");
 $("pag-conta").onclick = () => escolherPagamento("conta");
 $("descricao").oninput = () => { atualizarBotao(); };
-$("descricao").onkeydown = e => { if (e.key === "Enter") $("centro").focus(); };
+$("descricao").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
+$("centro-sel").onchange = aoEscolherCentro;
+montarCentros();
 $("centro").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
 $("btn-seq").onclick = abrirCamera;
 $("cam-disparo").onclick = disparar;
