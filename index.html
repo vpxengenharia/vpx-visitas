@@ -569,8 +569,8 @@ function montarCentros() {
   s.innerHTML = "";
   const opc = (valor, texto) => { const o = document.createElement("option"); o.value = valor; o.textContent = texto; s.appendChild(o); };
   opc("", "Nenhum");
-  // "código · descrição", em ordem alfabética da descrição (agrupa por obra/cliente); os sem descrição vão por último
-  const com = CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  // "código · descrição", em ordem crescente de código (0584, 0717, …, 1139); os sem descrição vão por último
+  const com = CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true }));
   const sem = CONFIG.centrosCusto.filter(([, d]) => !d);
   com.forEach(([n, d]) => opc(n, `${n} · ${d}`));
   sem.forEach(([n]) => opc(n, n));
