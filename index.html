@@ -330,12 +330,37 @@ const CONFIG = {
   comprovantesNome: "01 - Comprovantes",
   pastasComprovante: { compra: "Compras", reembolso: "Reembolsos" },   // os arquivos vão direto nelas
   // Centros de custo ativos no Fin365 (app.fin365.com.br › Cadastros › Centros de Custos), copiados em 11/10/2026.
-  // Quando o Fin365 mudar, atualize esta lista. No arquivo, "/" vira "-" (o OneDrive não aceita "/").
+  // Quando o Fin365 mudar, atualize esta lista. [nome, descrição]: o app mostra a descrição; o arquivo leva só o nome,
+  // com "/" virando "-" (o OneDrive não aceita "/").
   centrosCusto: [
-    "1019/2025", "1021/2026", "1023/2025", "1027/2026", "1033/2026", "1034/2026", "1037/2026", "1039/2026",
-    "1046/2026", "1052/2026", "1054/2026", "1056/2026", "1059/2026", "1067/2026", "1068/2026", "1070/2026",
-    "1081/2026", "1086/2026", "1087/2026", "1091/2026", "1097/2026", "1100/2026", "1139/2026",
-    "584/2025", "717/2025", "718/2026", "Divisão de lucro", "Empresa - AVCB"
+    ["1019/2025", "Conve Corp - PSCIP"],
+    ["1021/2026", "Verbo da Vida - AVCB Temporário"],
+    ["1023/2025", "Costa España - AVCB"],
+    ["1027/2026", "Tribeca - Selagem Shafts"],
+    ["1033/2026", "Costa España - Fornecimento e instalação de componentes"],
+    ["1034/2026", "Condomínio Nau - LAUDOS/TREINAMENTOS/INSPEÇÕES VISUAIS E DOCUMENTAÇÃO AVCB"],
+    ["1037/2026", "Condomínio Nau - CORRETIVAS"],
+    ["1039/2026", "Alpha Medical - Substituição 76 spk e laudo"],
+    ["1046/2026", "Wilson Teles - AVCB"],
+    ["1052/2026", "Vista Patamares - Revisão de Projeto"],
+    ["1054/2026", "VISTA PATAMARES - Emissão de laudos de instalações Treinamento Inspeções Documentação"],
+    ["1056/2026", "Alpha Medical - Laudo de Hidrante"],
+    ["1059/2026", "Alpha Medical - Substituição de Válvula 4\""],
+    ["1067/2026", "Alpha Medical - Substituição 10"],
+    ["1068/2026", "Costa España - Sinalização de emergência"],
+    ["1070/2026", "Alpha Medical - Fornecimento e instalação tampão"],
+    ["1081/2026", "Instituto Kerber - CLCB"],
+    ["1086/2026", "Villaggio Panamby - Laudos Técnicos"],
+    ["1087/2026", "Jardim di Napoli - PSCIP, ANALISE DE CARGA E SAVE"],
+    ["1091/2026", "Salvador Prime - Estudo de Carga"],
+    ["1097/2026", "Reserva Tropical - Laudo SPDA e Estudo de Carga"],
+    ["1100/2026", "Alpha Medical - Manutenção de hidrantes e splinklers"],
+    ["1139/2026", "Beach Class - Análise Técnica do Sistema de Medição de Estações de Recarga de Veículos Elétricos"],
+    ["584/2025", "GI - Renovação CLCB"],
+    ["717/2025", "Esplanada Avenida - Mangueira"],
+    ["718/2026", "Esplanada Avenida - Adequações Elétricas"],
+    ["Divisão de lucro", ""],
+    ["Empresa - AVCB", ""]
   ],
   reduzirFotos: false,                        // false = envia a foto original; true = reduz para até 2560 px
   ladoMaximo: 2560,
@@ -544,7 +569,11 @@ function montarCentros() {
   s.innerHTML = "";
   const opc = (valor, texto) => { const o = document.createElement("option"); o.value = valor; o.textContent = texto; s.appendChild(o); };
   opc("", "Nenhum");
-  CONFIG.centrosCusto.forEach(c => opc(c, c));
+  // com descrição primeiro, em ordem alfabética (obra/cliente), e o número no fim; os sem descrição vão por último
+  const com = CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  const sem = CONFIG.centrosCusto.filter(([, d]) => !d);
+  com.forEach(([n, d]) => opc(n, `${d} · ${n}`));
+  sem.forEach(([n]) => opc(n, n));
   opc(OUTRO, "Outro (digitar)");
 }
 function aoEscolherCentro() {
