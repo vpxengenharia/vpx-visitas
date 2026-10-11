@@ -162,6 +162,22 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .cam-ok.usar{color:#FFD60A;font-weight:600}
 .cam-ok:disabled{opacity:.5}
 .cam-disparo:focus-visible,.cam-ok:focus-visible,.cam-luz:focus-visible,.cam-zoom button:focus-visible{outline:2px solid #FFD60A;outline-offset:3px}
+
+/* celular deitado: o app é usado na vertical (só a câmera gira) */
+.girar{display:none;position:fixed;inset:0;z-index:40;background:var(--marinho);color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;font-family:var(--titulo-fonte);font-size:22px;font-weight:700}
+.girar svg{width:64px;height:64px}
+@media (orientation:landscape) and (max-height:500px){
+  body:not(.com-camera) .girar{display:flex}
+  /* câmera deitada: imagem ocupa a tela e os botões vão para a direita, como no iPhone */
+  .cam{flex-direction:row}
+  .cam-topo{position:absolute;top:0;left:0;right:150px;z-index:2;height:auto;padding:12px calc(env(safe-area-inset-left,0px) + 12px)}
+  .cam-base{width:150px;display:flex;flex-direction:column;justify-content:center;padding:12px calc(env(safe-area-inset-right,0px) + 12px) 12px 12px}
+  .cam-modos{flex-direction:column;align-items:center;gap:2px;margin:0 0 10px}
+  .cam-linha{grid-template-columns:auto;justify-items:center;gap:16px}
+  .cam-ok{grid-column:1;grid-row:1;justify-self:center;text-align:center}
+  .cam-disparo{grid-column:1;grid-row:2}
+  .cam-miniatura{grid-column:1;grid-row:3;justify-self:center}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -277,6 +293,11 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <button class="cam-ok" id="cam-ok">Cancelar</button>
     </div>
   </div>
+</div>
+
+<div class="girar" aria-live="polite">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+  Gire o celular para a vertical
 </div>
 
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
@@ -602,6 +623,16 @@ const VIDEO_MAX_SEG = 5 * 60;                     // o vídeo fica na memória d
 const RES_FOTO = "ImageCapture" in window ? { width: { ideal: 1920 }, height: { ideal: 1440 } } : { width: { ideal: 4096 }, height: { ideal: 3072 } };
 const RES_VIDEO = { width: { ideal: 1920 }, height: { ideal: 1080 } };
 
+// vertical: no Android (app instalado) a tela é travada; a câmera destrava para fotos deitadas saírem certas.
+// No iPhone não dá para travar: o CSS mostra "Gire o celular" fora da câmera.
+function travarVertical(travar) {
+  try {
+    if (travar) screen.orientation?.lock?.("portrait").catch(() => {});
+    else screen.orientation?.unlock?.();
+  } catch {}
+  document.body.classList.toggle("com-camera", !travar);
+}
+
 function abrirCamera() {
   if (enviando || cam) return;
   if (!navigator.mediaDevices?.getUserMedia) { aviso("Este navegador não abre a câmera do app. Fotografe pela câmera do celular e use o botão Galeria.", true); return; }
@@ -613,6 +644,7 @@ function abrirCamera() {
   desenharModo();
   $("cam").hidden = false;
   document.body.style.overflow = "hidden";
+  travarVertical(false);
   history.pushState({ cam: true }, "");        // o "voltar" do Android fecha a câmera sem perder as fotos
   contadorCam();
   ligarCamera();
@@ -927,6 +959,7 @@ function fecharCamera(voltar = true) {
   $("cam").hidden = true;
   $("cam-ok").disabled = false;
   document.body.style.overflow = "";
+  travarVertical(true);
   if (voltar && history.state?.cam) history.back();
   const n = c.fotos.length, soFotos = c.fotos.every(f => !f.type.startsWith("video/"));
   if (n) {
@@ -1201,6 +1234,8 @@ window.addEventListener("beforeunload", e => {
   const outra = guardado[ehComp() ? "visita" : "comp"].fotos;
   if (enviando || [...fotos, ...outra].some(f => f.st !== "ok")) { e.preventDefault(); e.returnValue = ""; }
 });
+
+travarVertical(true);
 
 (async () => {
   if (CONFIG.clientId.startsWith("COLE_") || CONFIG.tenantId.startsWith("COLE_")) { mostrar("tela-config"); return; }
