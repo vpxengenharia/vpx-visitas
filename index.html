@@ -480,7 +480,7 @@ function escolherTipo(t) {
 const nomeColaborador = () => limparNome(conta?.name || (conta?.username || "").split("@")[0]) || "Sem nome";
 const descricao = () => limparNome($("descricao").value).slice(0, 80);
 const centroCusto = () => limparNome($("centro").value).slice(0, 60);
-const caminhoComp = (mes = dataISO().slice(0, 7)) => `${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[tipo]} › ${mes}`;
+const caminhoComp = () => `${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[tipo]}`;
 
 // acha a pasta "01 - Comprovantes": pelo caminho no OneDrive do Gustavo ou, se não der, pela lista "Compartilhados comigo"
 async function baseComprovantes() {
@@ -523,7 +523,7 @@ async function garantirFilhas(paiId, nomes) {
 }
 
 async function pastaComprovante() {
-  return garantirFilhas(await baseComprovantes(), [CONFIG.pastasComprovante[tipo]]);     // o mês é criado na hora de enviar
+  return garantirFilhas(await baseComprovantes(), [CONFIG.pastasComprovante[tipo]]);
 }
 
 /* ---------- fotos ---------- */
@@ -1093,9 +1093,6 @@ async function salvar() {
   const desc = comp ? descricao() : "", cli = comp && centroCusto() ? "_" + centroCusto() : "";
   const rotuloTipo = tipo === "reembolso" ? "Reembolso" : "Compra";      // o tipo vai no nome: o arquivo continua identificável se for movido
   const autor = nomeColaborador();                                     // quem enviou, pelo login Microsoft
-  // comprovantes: uma subpasta por mês (AAAA-MM, pela data da foto) dentro de Compras/Reembolsos, criada uma vez só
-  const meses = new Map();
-  const pastaDoMes = m => { if (!meses.has(m)) meses.set(m, garantirFilhas(pasta.id, [m])); return meses.get(m); };
   try { pasta = comp ? await pastaComprovante() : await garantirPasta(caminhoVisita()); }
   catch (e) {
     enviando = false; $("progresso").hidden = true; atualizar();
@@ -1121,10 +1118,9 @@ async function salvar() {
         const nome = comp
           ? `${autor}_${dataISO(quando)}_${rotuloTipo}_${desc}${cli}_${pad(n)}.${extensao}`
           : `${data}_${horaArq(quando)}_${autor}_${pad(n)}.${extensao}`;
-        const destino = comp ? await pastaDoMes(dataISO(quando).slice(0, 7)) : pasta;
         // se a foto foi reduzida, converte o progresso para o tamanho original
         const fator = f.arquivo.size / (blob.size || 1);
-        await enviarArquivo(destino.id, nome, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
+        await enviarArquivo(pasta.id, nome, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
         f.st = "ok";
       } catch (e) { f.st = "erro"; console.error(e); }
       bytes += f.arquivo.size - deste;
@@ -1144,13 +1140,10 @@ async function salvar() {
   }
   const masc = comp || fotos.some(f => f.video);
   $("ok-titulo").textContent = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
-  const usados = [...meses.keys()].sort();
   $("ok-texto").textContent = comp
-    ? `Em ${caminhoComp(usados.join(", "))}`
+    ? `Em ${caminhoComp()}`
     : `Em ${cliente} › ${CONFIG.subpasta.replace("{data}", data).replace(/\//g, " › ")}`;
-  // um mês só: o link abre a pasta do mês; vários: abre Compras/Reembolsos
-  const pastaLink = comp && usados.length === 1 ? await meses.get(usados[0]) : pasta;
-  $("ok-link").href = pastaLink.webUrl || "#";
+  $("ok-link").href = pasta.webUrl || "#";
   mostrar("tela-ok");
 }
 
