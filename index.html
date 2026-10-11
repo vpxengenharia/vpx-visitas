@@ -55,6 +55,7 @@ p{margin:0 0 14px;max-width:60ch}
 @media (prefers-color-scheme:dark){.link{color:var(--laranja)}}
 
 .cliente{width:100%;text-align:left;background:var(--papel);border:1.5px solid var(--linha);border-left:6px solid var(--laranja);border-radius:10px;padding:12px 16px;cursor:pointer;color:var(--tinta);display:block}
+.cliente[hidden]{display:none}
 .cliente small{display:block;color:var(--suave);font-size:14px}
 .cliente strong{font-family:var(--titulo-fonte);font-size:23px;font-weight:700;line-height:1.2}
 .cliente.vazio strong{color:var(--suave)}
@@ -196,7 +197,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
         <button id="tipo-compra" aria-pressed="false">Compra<small>nota fiscal</small></button>
         <button id="tipo-reembolso" aria-pressed="false">Reembolso<small>gasto pago por você</small></button>
       </div>
-      <label class="campo"><span>Descrição</span><input id="descricao" type="text" maxlength="80" placeholder="Ex.: Combustível, material elétrico" autocomplete="off" enterkeyhint="done"></label>
+      <label class="campo"><span>Descrição</span><input id="descricao" type="text" maxlength="80" placeholder="Ex.: Combustível, material elétrico" autocomplete="off" enterkeyhint="next"></label>
+      <label class="campo"><span>Centro de custo (opcional)</span><input id="centro" type="text" maxlength="60" placeholder="Ex.: Obra Diamond, Administrativo" autocomplete="off" enterkeyhint="done"></label>
     </div>
     <button class="cliente vazio" id="btn-cliente">
       <small id="rot-cliente">Cliente</small>
@@ -396,12 +398,9 @@ function desenharLista() {
 
   const achados = clientes.filter(c => semAcento(c).includes(nq));
   const nome = limparNome(q);
-  // nos comprovantes o cliente só entra no nome do arquivo: não cria pasta, e pode ficar sem cliente
   if (nome && !clientes.some(c => semAcento(c) === semAcento(nome))) {
-    if (ehComp()) add(`Usar "${nome}"`, "novo", () => escolher(nome));
-    else add(`+ Criar cliente "${nome}"`, "novo", () => criarCliente(nome));
+    add(`+ Criar cliente "${nome}"`, "novo", () => criarCliente(nome));
   }
-  if (ehComp() && !q) add("Sem cliente/obra", "novo", () => escolher(null));
   if (!q) {
     const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c));
     if (rec.length) { grupo("Recentes"); rec.forEach(c => add(c, "", () => escolher(c))); grupo("Todos"); }
@@ -416,7 +415,6 @@ function desenharLista() {
 function abrirDialogo() {
   if (enviando) return;
   $("busca").value = "";
-  $("dlg-titulo").textContent = ehComp() ? "Cliente/obra" : "Escolher cliente";
   desenharLista();
   $("dlg").showModal();
   carregarClientes().then(desenharLista);
@@ -462,7 +460,7 @@ function aplicarModo() {
   $("aba-visita").setAttribute("aria-selected", String(!comp));
   $("aba-comp").setAttribute("aria-selected", String(comp));
   $("form-comp").hidden = !comp;
-  $("rot-cliente").textContent = comp ? "Cliente/obra (opcional)" : "Cliente";
+  $("btn-cliente").hidden = comp;                 // nos comprovantes, no lugar do cliente vai o centro de custo (digitado)
   $("in-gal").accept = comp ? "image/*,application/pdf" : "image/*,video/*";
   $("btn-nova").textContent = comp ? "Novo comprovante" : "Nova visita";
   $("semfotos").textContent = comp
@@ -481,6 +479,7 @@ function escolherTipo(t) {
 
 const nomeColaborador = () => limparNome(conta?.name || (conta?.username || "").split("@")[0]) || "Sem nome";
 const descricao = () => limparNome($("descricao").value).slice(0, 80);
+const centroCusto = () => limparNome($("centro").value).slice(0, 60);
 const caminhoComp = () => `${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[tipo]} › ${nomeColaborador()}`;
 
 // acha a pasta "01 - Comprovantes": pelo caminho no OneDrive do Gustavo ou, se não der, pela lista "Compartilhados comigo"
@@ -1000,7 +999,7 @@ function atualizarBotao() {
     else b.textContent = `Salvar ${descrever(pend)} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
-  ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "descricao"].forEach(id => $(id).disabled = enviando);
+  ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "descricao", "centro"].forEach(id => $(id).disabled = enviando);
 }
 
 async function reduzir(arquivo) {
@@ -1091,7 +1090,7 @@ async function salvar() {
   prog(); atualizar();
 
   let pasta;
-  const desc = comp ? descricao() : "", cli = comp && cliente ? "_" + limparNome(cliente) : "";
+  const desc = comp ? descricao() : "", cli = comp && centroCusto() ? "_" + centroCusto() : "";
   try { pasta = comp ? await pastaComprovante() : await garantirPasta(caminhoVisita()); }
   catch (e) {
     enviando = false; $("progresso").hidden = true; atualizar();
@@ -1148,7 +1147,7 @@ async function salvar() {
 function novaVisita() {
   fotos.forEach(liberar);
   fotos = []; cliente = null;
-  if (ehComp()) { $("descricao").value = ""; escolherTipo(null); }
+  if (ehComp()) { $("descricao").value = ""; $("centro").value = ""; escolherTipo(null); }
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
 }
@@ -1180,7 +1179,8 @@ $("aba-comp").onclick = () => trocarModo("comp");
 $("tipo-compra").onclick = () => escolherTipo("compra");
 $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
 $("descricao").oninput = () => { atualizarBotao(); };
-$("descricao").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
+$("descricao").onkeydown = e => { if (e.key === "Enter") $("centro").focus(); };
+$("centro").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
 $("btn-seq").onclick = abrirCamera;
 $("cam-disparo").onclick = disparar;
 document.querySelectorAll("#cam-modos button").forEach(b => b.onclick = () => definirModo(b.dataset.modo));

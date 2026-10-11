@@ -77,9 +77,9 @@ Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de no
 
 1. Toque na aba **Notas e reembolsos**, no topo.
 2. Escolha **Compra** (nota fiscal) ou **Reembolso** (gasto pago do próprio bolso).
-3. Escreva a **descrição** (ex.: "Combustível") e, se for de um cliente ou obra, escolha em **Cliente/obra**.
+3. Escreva a **descrição** (ex.: "Combustível") e, se houver, o **centro de custo** (ex.: "Obra Diamond", "Administrativo").
 4. Fotografe a nota ou o recibo (**Câmera**), ou escolha pela **Galeria**, que também aceita PDF.
-5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [nome da pessoa]*, com nomes do tipo `2026-10-08_14-32-05_Combustível_Diamond_01.jpg`.
+5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [nome da pessoa]*, com nomes do tipo `2026-10-08_14-32-05_Combustível_Obra Diamond_01.jpg`.
 
 ## Problemas comuns
 

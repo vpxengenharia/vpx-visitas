@@ -27,7 +27,7 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 
 ## Contexto útil
 
-- **Aba "Notas e reembolsos"** (modo `comp`): salva em `VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes/{Compras|Reembolsos}/{Nome do colaborador}` (nome vem do login). Campos: tipo (obrigatório), descrição (obrigatória), cliente/obra (opcional, só entra no nome do arquivo, não cria pasta). Nome: `AAAA-MM-DD_HH-MM-SS_Descrição_Cliente_NN.ext` (data da própria foto). Aceita PDF; não aceita vídeo. A pasta `01 - Comprovantes` precisa estar compartilhada com a equipe; o app a acha pelo caminho a partir da raiz do drive e, se der 403/404, por `/me/drive/sharedWithMe`.
+- **Aba "Notas e reembolsos"** (modo `comp`): salva em `VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes/{Compras|Reembolsos}/{Nome do colaborador}` (nome vem do login). Campos: tipo (obrigatório), descrição (obrigatória), centro de custo (texto livre, opcional, só entra no nome do arquivo). Nome: `AAAA-MM-DD_HH-MM-SS_Descrição_CentroDeCusto_NN.ext` (data da própria foto). Aceita PDF; não aceita vídeo. A pasta `01 - Comprovantes` precisa estar compartilhada com a equipe; o app a acha pelo caminho a partir da raiz do drive e, se der 403/404, por `/me/drive/sharedWithMe`.
 
 - Pastas ignoradas na lista de clientes: `01 - Arquivado` e cópias de conflito com `-DESKTOP-` no nome.
 - Alguns clientes antigos ainda têm uma pasta `Fotos` (padrão anterior). No cliente Franz Schubert existe `06 - Fotos e Visitas Técnicas/Registros`. O padrão atual é salvar direto em `06 - Fotos e Visitas Técnicas`.
