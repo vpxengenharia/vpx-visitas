@@ -327,7 +327,7 @@ function mostrar(tela) {
 }
 const pad = n => String(n).padStart(2, "0");
 function dataISO(d = new Date()) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
-function horaArq(d) { return `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`; }
+function horaArq(d) { return `${pad(d.getHours())}-${pad(d.getMinutes())}`; }
 function semAcento(s) { return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
 function limparNome(s) { return s.replace(/[\\/:*?"<>|#%]/g, "").replace(/\s+/g, " ").trim().replace(/\.+$/, ""); }
 function encPath(p) { return p.split("/").filter(Boolean).map(encodeURIComponent).join("/"); }
@@ -1111,7 +1111,7 @@ async function salvar() {
         const { blob, ext } = await reduzir(f.arquivo);
         const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
         const quando = new Date(f.arquivo.lastModified || Date.now());
-        // visita: AAAA-MM-DD_HH-MM-SS_NN · comprovante: AAAA-MM-DD_HH-MM-SS_Descrição_Cliente_NN (data da própria foto)
+        // visita: AAAA-MM-DD_HH-MM_NN · comprovante: AAAA-MM-DD_HH-MM_Descrição_CentroDeCusto_NN (data da própria foto)
         const nome = comp
           ? `${dataISO(quando)}_${horaArq(quando)}_${desc}${cli}_${pad(n)}.${extensao}`
           : `${data}_${horaArq(quando)}_${pad(n)}.${extensao}`;

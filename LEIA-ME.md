@@ -67,7 +67,7 @@ O login fica salvo. Nas próximas vezes é só abrir e usar.
 2. Fotos e vídeos, de dois jeitos:
    - **Câmera**: câmera do próprio app. Embaixo do botão, escolha **FOTO** (várias fotos seguidas, com zoom 1×, 2×, 3× ou pinça, e lanterna) ou **VÍDEO** (toque para começar e de novo para parar; Full HD, com som, até 5 minutos por vídeo). No iPhone a qualidade é um pouco menor que a da câmera do iPhone, o zoom é digital e não funciona no vídeo.
    - **Galeria**: marque várias fotos e vídeos de uma vez. No iPhone, para muitas fotos com qualidade máxima, tire pelo app Câmera do iPhone (sem rajada) e depois escolha todas pela Galeria.
-3. **Salvar no cliente** → todas sobem juntas, com nomes do tipo `2026-10-09_14-32-05_01.jpg`.
+3. **Salvar no cliente** → todas sobem juntas, com nomes do tipo `2026-10-09_14-32_01.jpg`.
 
 Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se der, envie vídeos no Wi-Fi. Se a internet oscilar durante um vídeo, o envio continua de onde parou.
 
@@ -79,7 +79,7 @@ Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de no
 2. Escolha **Compra** (nota fiscal) ou **Reembolso** (gasto pago do próprio bolso).
 3. Escreva a **descrição** (ex.: "Combustível") e, se houver, o **centro de custo** (ex.: "Obra Diamond", "Administrativo").
 4. Fotografe a nota ou o recibo (**Câmera**), ou escolha pela **Galeria**, que também aceita PDF.
-5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [nome da pessoa]*, com nomes do tipo `2026-10-08_14-32-05_Combustível_Obra Diamond_01.jpg`.
+5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [nome da pessoa]*, com nomes do tipo `2026-10-08_14-32_Combustível_Obra Diamond_01.jpg`.
 
 ## Problemas comuns
 
