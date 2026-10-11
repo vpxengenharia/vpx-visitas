@@ -79,7 +79,7 @@ Se a internet cair, as fotos que faltaram ficam com **!**. Toque em Salvar de no
 2. Escolha **Compra** (nota fiscal) ou **Reembolso** (gasto pago do próprio bolso).
 3. Escreva a **descrição** (ex.: "Combustível") e, se houver, o **centro de custo** (ex.: "Obra Diamond", "Administrativo").
 4. Fotografe a nota ou o recibo (**Câmera**), ou escolha pela **Galeria**, que também aceita PDF.
-5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [nome da pessoa]*, com nomes do tipo `2026-10-08_14-32_João da Silva_Compra_Combustível_Obra Diamond_01.jpg`.
+5. **Salvar** → vai para *02 - Financeiro › 01 - Comprovantes › Compras* (ou *Reembolsos*) *› [mês, ex.: 2026-10]*, numa pasta única para todas as pessoas, com nomes do tipo `João da Silva_2026-10-08_Compra_Combustível_Obra Diamond_01.jpg`. Como o nome da pessoa vem primeiro, a pasta do mês fica agrupada por colaborador e, dentro dele, por data.
 
 ## Problemas comuns
 
