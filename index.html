@@ -33,16 +33,15 @@ body{font-family:var(--texto-fonte);font-size:17px;line-height:1.45;color:var(--
 button,input,label{font:inherit}
 .oculto{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 
-.topo{background:var(--marinho);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 12px;height:calc(env(safe-area-inset-top,0px) + 66px);display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:5;border-bottom:4px solid var(--laranja)}
+.topo{background:var(--marinho);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 28px) 18px 12px;height:calc(env(safe-area-inset-top,0px) + 92px);display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:5;border-bottom:4px solid var(--laranja)}
 .marca{font-family:var(--titulo-fonte);font-weight:700;font-size:22px;letter-spacing:.01em;margin:0}
-.marca{display:flex;align-items:center;gap:12px}
-.marca img{height:36px;width:auto;display:block}
-.marca span{font-weight:600;opacity:.85;padding-left:12px;border-left:1.5px solid rgba(255,255,255,.35);line-height:1.1}
+.marca{display:flex;align-items:center;background:#fff;border-radius:10px;padding:5px 10px}
+.marca img{height:38px;width:auto;display:block}
 .logo-grande{display:block;margin:28px 0 4px}
 .logo-grande img{height:96px;width:auto;display:block}
 .conta{background:transparent;border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;width:38px;height:38px;font-weight:600;cursor:pointer}
 
-main{padding:calc(env(safe-area-inset-top,0px) + 66px + 18px) 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
+main{padding:calc(env(safe-area-inset-top,0px) + 92px + 18px) 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
 h1{font-family:var(--titulo-fonte);font-weight:700;font-size:30px;line-height:1.1;margin:24px 0 10px}
 p{margin:0 0 14px;max-width:60ch}
 
@@ -159,7 +158,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </head>
 <body>
 <header class="topo">
-  <p class="marca"><img src="logo-branco.png" alt="VPX Engenharia" width="64" height="36"><span>Visitas</span></p>
+  <p class="marca"><img src="logo.png" alt="VPX Engenharia" width="68" height="38"></p>
   <button class="conta" id="btn-conta" hidden aria-label="Conta"></button>
 </header>
 
