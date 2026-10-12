@@ -122,6 +122,18 @@ p{margin:0 0 14px;max-width:60ch}
 .sucesso{text-align:center;padding-top:30px}
 .selo{width:84px;height:84px;border-radius:50%;background:var(--ok);color:#fff;font-size:44px;display:grid;place-items:center;margin:0 auto 6px}
 .sucesso .acoes{display:grid;gap:12px;max-width:360px;margin:22px auto 0}
+.sucesso .acoes svg{width:22px;height:22px}
+.selo.pendente{background:var(--laranja);font-size:38px}
+/* visualizador do relatório (PDF desenhado dentro do app) */
+.visor-pdf{position:fixed;inset:0;z-index:35;background:#525659;display:flex;flex-direction:column}
+.visor-pdf[hidden]{display:none}
+.visor-topo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--marinho);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px}
+.visor-topo strong{flex:1;text-align:center;font-family:var(--titulo-fonte);font-size:16px;line-height:1.1}
+.visor-btn{min-height:44px;padding:0 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-weight:600;cursor:pointer}
+.visor-btn:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.visor-paginas{flex:1;overflow:auto;padding:8px 8px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-overflow-scrolling:touch}
+.visor-paginas canvas{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);max-width:100%;height:auto}
+.visor-msg{color:#fff;text-align:center;margin:40px 16px}
 
 dialog{border:0;padding:0;width:100%;max-width:720px;height:100%;max-height:100%;margin:0 auto;background:var(--fundo);color:var(--tinta)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
@@ -255,10 +267,18 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   </section>
 
   <section id="tela-ok" class="sucesso" hidden>
-    <div class="selo">✓</div>
+    <div class="selo" id="selo-ok">✓</div>
     <h1 id="ok-titulo"></h1>
     <p id="ok-texto" style="margin:0 auto"></p>
     <div class="acoes">
+      <button class="btn sec" id="ok-ver" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        Ver relatório
+      </button>
+      <button class="btn sec" id="ok-compartilhar" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+        Compartilhar relatório
+      </button>
       <a class="btn sec" id="ok-link" target="_blank" rel="noopener">Abrir pasta no OneDrive</a>
       <button class="btn prim" id="btn-nova">Nova visita</button>
     </div>
@@ -327,6 +347,15 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <div class="girar" aria-live="polite">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
   Gire o celular para a vertical
+</div>
+
+<div class="visor-pdf" id="visor-pdf" hidden role="dialog" aria-label="Relatório de Visita">
+  <div class="visor-topo">
+    <button class="visor-btn" id="visor-fechar">Fechar</button>
+    <strong>Relatório de Visita</strong>
+    <button class="visor-btn" id="visor-comp">Compartilhar</button>
+  </div>
+  <div class="visor-paginas" id="visor-paginas"></div>
 </div>
 
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
@@ -1616,6 +1645,7 @@ async function salvar() {
   const novos = fotos.filter(f => f.st !== "ok" && !f.dest);
   if (com && fichaPreenchida() && (!cliente || faltaFicha())) return;
   if (novos.length && (comp ? !tipo || faltaPagamento() || !descricao() : !cliente)) return;
+  relatorio = null;                                // só a tela final de quem gerou o relatório mostra "Ver"/"Compartilhar"
   // ficha comercial: vira um PDF (com as fotos novas) que entra na fila junto com as fotos
   if (com && fichaPreenchida()) {
     const d = destinoAtual();
@@ -1628,6 +1658,7 @@ async function salvar() {
     fotos.unshift(item);
     await guardarItem(item, true);
     limparFicha();                                // o PDF já está guardado no celular: a ficha pode ser zerada
+    relatorio = { item, cliente };                // fica disponível para ver/compartilhar na tela final
   }
   // congela o destino e o nome de cada item novo: se não der para enviar agora, ele vai depois para o lugar certo
   if (novos.length) {
@@ -1638,6 +1669,14 @@ async function salvar() {
   if (!fila.length) return;
   const r = await enviarFila(fila, true);
 
+  if ((r.pendentes || r.erros) && relatorio && fila.includes(relatorio.item)) {
+    // relatório pronto, mas sem internet: mostra a tela final mesmo assim, para ver e compartilhar na hora
+    telaFinal(true);
+    $("ok-titulo").textContent = "Relatório pronto";
+    $("ok-texto").textContent = "Sem internet agora: o relatório e as fotos ficam guardados no celular e vão para o OneDrive sozinhos quando o sinal voltar. Você já pode ver e compartilhar o relatório.";
+    mostrar("tela-ok");
+    return;
+  }
   if (r.pendentes || r.erros) {
     const falhas = fila.filter(f => f.st !== "ok");
     if (r.semAcesso) aviso(`Sem acesso à pasta "${CONFIG.comprovantesNome}". Peça para ela ser compartilhada com você com permissão de edição. Os comprovantes ficam guardados no celular.`, true);
@@ -1653,7 +1692,87 @@ async function salvar() {
     ? `Em ${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[d.tipo]}`
     : `Em ${d.cliente} › ${d.caminho.split("/").slice(1).join(" › ")}`;
   $("ok-link").href = r.pasta?.webUrl || "#";
+  telaFinal(false);
   mostrar("tela-ok");
+}
+
+/* ---------- tela final: ver e compartilhar o relatório da ficha comercial ---------- */
+let relatorio = null;                              // { item (PDF da fila), cliente } do último relatório salvo
+
+function telaFinal(pendente) {
+  $("selo-ok").textContent = pendente ? "⏳" : "✓";
+  $("selo-ok").classList.toggle("pendente", pendente);
+  $("ok-link").hidden = pendente;                 // sem internet ainda não há pasta para abrir
+  $("ok-ver").hidden = $("ok-compartilhar").hidden = !relatorio;
+}
+
+// o PDF com o nome final (ex.: João da Silva_2026-10-12_Diamond_Relatório de Visita_01.pdf)
+function arquivoRelatorio() {
+  const { item, cliente: cli } = relatorio;
+  const nome = item.nomeBase ? `${item.nomeBase}.pdf` : `Relatório de Visita - ${cli}.pdf`;
+  return new File([item.arquivo], nome, { type: "application/pdf", lastModified: item.arquivo.lastModified });
+}
+
+// menu de compartilhar do celular (WhatsApp, e-mail, Teams, Arquivos…); sem ele (computador), baixa o PDF
+async function compartilharRelatorio() {
+  if (!relatorio) return;
+  const arquivo = arquivoRelatorio();
+  const dados = { files: [arquivo], title: "Relatório de Visita", text: `Relatório de Visita - ${relatorio.cliente}` };
+  if (navigator.canShare?.(dados)) {
+    try { await navigator.share(dados); }
+    catch (e) { if (e.name !== "AbortError") aviso("Não foi possível compartilhar: " + e.message, true); }
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(arquivo); a.download = arquivo.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 15000);
+  aviso("Este aparelho não compartilha arquivos direto. O PDF foi baixado: anexe-o no e-mail ou no WhatsApp.");
+}
+
+// visualizador: desenha as páginas do PDF dentro do app (pdf.js, carregado só quando precisa; funciona sem internet)
+const PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/";
+const carregarScript = src => new Promise((ok, falha) => {
+  const s = document.createElement("script");
+  s.src = src; s.onload = ok; s.onerror = () => falha(new Error("não carregou " + src));
+  document.head.appendChild(s);
+});
+async function verRelatorio() {
+  if (!relatorio) return;
+  const pags = $("visor-paginas");
+  pags.innerHTML = '<p class="visor-msg">Abrindo o relatório…</p>';
+  $("visor-pdf").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ visor: true }, "");          // o "voltar" do Android fecha o visualizador
+  try {
+    if (!window.pdfjsLib) {
+      await carregarScript(PDFJS + "pdf.min.js");
+      await carregarScript(PDFJS + "pdf.worker.min.js");   // carregado na página: o pdf.js roda sem worker separado
+      pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js";
+    }
+    const pdf = await pdfjsLib.getDocument({ data: await relatorio.item.arquivo.arrayBuffer() }).promise;
+    pags.innerHTML = "";
+    const largura = Math.min(pags.clientWidth - 16, 900);
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const pg = await pdf.getPage(p);
+      const esc = largura / pg.getViewport({ scale: 1 }).width * (window.devicePixelRatio || 1);
+      const vp = pg.getViewport({ scale: esc });
+      const cv = document.createElement("canvas");
+      cv.width = vp.width; cv.height = vp.height; cv.style.width = largura + "px";
+      await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+      pags.appendChild(cv);
+    }
+  } catch (e) {
+    console.error(e);
+    pags.innerHTML = '<p class="visor-msg">Não foi possível mostrar o relatório aqui. Toque em "Compartilhar" para abrir em outro app.</p>';
+  }
+}
+function fecharVisor(voltar = true) {
+  if ($("visor-pdf").hidden) return;
+  $("visor-pdf").hidden = true;
+  $("visor-paginas").innerHTML = "";
+  document.body.style.overflow = "";
+  if (voltar && history.state?.visor) history.back();
 }
 
 // fila: tenta enviar sozinho o que ficou pendente (ao abrir o app, quando a internet volta e a cada minuto)
@@ -1695,6 +1814,7 @@ function novaVisita() {
   fotos.filter(f => f.st === "ok").forEach(liberar);
   fotos = fotos.filter(f => f.st !== "ok");        // o que ainda está na fila continua na lista
   cliente = null;
+  relatorio = null;
   if (ehComp()) { $("descricao").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo(null); }
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
@@ -1742,7 +1862,7 @@ $("cam-disparo").onclick = disparar;
 document.querySelectorAll("#cam-modos button").forEach(b => b.onclick = () => definirModo(b.dataset.modo));
 $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
-window.addEventListener("popstate", () => { if (cam) fecharCamera(false); });
+window.addEventListener("popstate", () => { if (cam) fecharCamera(false); fecharVisor(false); });
 document.addEventListener("visibilitychange", () => {
   if (!cam || cam.ocupado) return;
   if (document.hidden) { pararGravacao(); desligarCamera(cam); }   // salva o vídeo em andamento e libera a câmera quando o app sai da tela
@@ -1750,6 +1870,10 @@ document.addEventListener("visibilitychange", () => {
 });
 $("btn-salvar").onclick = salvar;
 $("btn-nova").onclick = novaVisita;
+$("ok-ver").onclick = verRelatorio;
+$("ok-compartilhar").onclick = compartilharRelatorio;
+$("visor-fechar").onclick = () => fecharVisor();
+$("visor-comp").onclick = compartilharRelatorio;
 // as fotos ficam guardadas no celular: só avisa ao fechar se houver envio em andamento
 window.addEventListener("beforeunload", e => {
   if (enviando || enviandoFundo) { e.preventDefault(); e.returnValue = ""; }

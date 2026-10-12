@@ -1,14 +1,16 @@
 // VPX Visitas — cópia do app no celular, para abrir mesmo sem internet (obra, subsolo, casa de máquinas).
 // A página (index.html) vem sempre da internet quando há sinal, e da cópia quando não há.
-// Logos, ícones, fontes e as bibliotecas de login e de PDF vêm da cópia. Se trocar logo/ícone, mude o número de CACHE.
+// Logos, ícones, fontes e as bibliotecas de login, de PDF e do visualizador de PDF vêm da cópia. Se trocar logo/ícone, mude o número de CACHE.
 // Login e envio para a Microsoft (login.microsoftonline.com, graph.microsoft.com, upload) nunca passam por aqui.
-const CACHE = "vpx-visitas-v2";
+const CACHE = "vpx-visitas-v3";
 const ESCOPO = self.registration.scope;               // ex.: https://vpxengenharia.github.io/vpx-visitas/
 const PRE = [
   ESCOPO, "manifest.webmanifest", "logo.png", "logo-branco.png",
   "icone-180.png?v=3", "icone-192.png?v=3", "icone-512.png?v=3",
   "https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js",
-  "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"
+  "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js",
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"
 ];
 
 self.addEventListener("install", e => {

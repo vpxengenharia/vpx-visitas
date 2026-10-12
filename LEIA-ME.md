@@ -80,7 +80,9 @@ Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se 
 3. Se quiser, tire fotos (fachada, casa de bombas, hidrantes…) — só foto, sem vídeo.
 4. **Salvar ficha** → gera um PDF com as respostas e as fotos e salva tudo em *02 - Clientes › [Cliente] › 06 - Fotos e Visitas Técnicas*, junto com as fotos de visita. O PDF se chama, por exemplo, `João da Silva_2026-10-12_Diamond_Relatório de Visita_01.pdf`.
 
-O que for preenchido fica guardado no celular até salvar (se o app fechar, a ficha volta). Funciona sem internet: o PDF é gerado no celular e enviado quando o sinal voltar.
+5. Na tela final: **Ver relatório** abre o PDF no próprio app e **Compartilhar relatório** abre o menu do celular (WhatsApp, e-mail, Teams, Arquivos…) com o PDF anexado. No computador, o PDF é baixado para anexar.
+
+O que for preenchido fica guardado no celular até salvar (se o app fechar, a ficha volta). Funciona sem internet: o PDF é gerado no celular, já pode ser visto e compartilhado, e vai para o OneDrive quando o sinal voltar.
 
 ### Comprovantes
 
