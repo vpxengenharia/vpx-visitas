@@ -686,13 +686,13 @@ function destinoAtual() {
 }
 
 // início do nome do arquivo (sem o número e sem a extensão, que são decididos na hora do envio)
-// visita: Colaborador_AAAA-MM-DD  → arquivo Colaborador_AAAA-MM-DD_NN (nome na frente, como nos comprovantes; sem hora)
+// visita: Colaborador_AAAA-MM-DD_Cliente  → arquivo Colaborador_AAAA-MM-DD_Cliente_NN (nome na frente; cliente para identificar a foto fora da pasta)
 // comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_CentroDeCusto → ..._NN (data da própria foto)
 function prefixoDe(f, d) {
   const quando = new Date(f.arquivo.lastModified || Date.now());
   return d.modo === "comp"
     ? `${d.autor}_${dataISO(quando)}_${d.rotuloTipo}${d.pag}_${d.desc}${d.cli}`
-    : `${d.autor}_${d.data}`;
+    : `${d.autor}_${d.data}_${limparNome(d.cliente)}`;
 }
 
 // numeração contínua: o NN continua do maior número já existente na pasta para o mesmo início de nome
