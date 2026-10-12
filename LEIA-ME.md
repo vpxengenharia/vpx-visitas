@@ -73,6 +73,10 @@ Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se 
 
 **Sem internet (obra, subsolo):** o app abre e funciona normalmente. As fotos ficam guardadas no celular assim que são tiradas — se o app fechar ou a bateria acabar, elas voltam ao abrir de novo. Se tocar em Salvar sem sinal, as fotos ficam com **⏳** e aparece o aviso "aguardando internet"; quando o sinal voltar, o app envia sozinho, cada uma para o cliente/pasta certo, mesmo que você já tenha trocado de cliente. O envio automático acontece com o app aberto (ou na próxima vez que ele for aberto). Itens com **!** tiveram outro problema (ex.: sem acesso à pasta) e o app também tenta de novo.
 
+### Validade AVCB/CLCB
+
+O botão **AVCB**, no topo, abre a lista de clientes com a validade do AVCB/CLCB: vencidos, que vencem em até 3 meses e em dia (o número vermelho no botão é vencidos + vencendo). Ao escolher um cliente que está na lista (Visita técnica ou Comercial), aparece um aviso colorido, por exemplo "AVCB vence em 10 dias". A lista é copiada do painel "Validade AVCB/CLCB" do Claude e precisa ser atualizada quando o painel mudar.
+
 ### Comercial (ficha de levantamento)
 
 1. Toque na aba **Comercial** e escolha o **cliente**.

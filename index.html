@@ -41,6 +41,37 @@ button,input,label{font:inherit}
 .logo-grande{display:block;margin:28px 0 4px}
 .logo-grande img{height:96px;width:auto;display:block}
 .conta{background:transparent;border:1.5px solid rgba(28,60,97,.45);color:var(--marinho);border-radius:999px;width:38px;height:38px;font-weight:600;cursor:pointer}
+.topo-dir{display:flex;align-items:center;gap:10px}
+/* validade AVCB/CLCB (cores do painel do Claude) */
+:root{--crit-bg:#F8E4E2;--crit-tx:#9A2E23;--warn-bg:#FBEFD8;--warn-tx:#8A5A0E;--okv-bg:#E4F3EA;--okv-tx:#1F6B41}
+@media (prefers-color-scheme:dark){:root{--crit-bg:#3A1E1A;--crit-tx:#EB8A80;--warn-bg:#3A2C10;--warn-tx:#E8B85A;--okv-bg:#163524;--okv-tx:#6FCE97}}
+.avcb-btn{position:relative;min-height:38px;padding:0 12px;border-radius:999px;border:1.5px solid rgba(28,60,97,.45);background:transparent;color:var(--marinho);font-family:var(--titulo-fonte);font-weight:700;font-size:15px;cursor:pointer}
+.avcb-btn[hidden]{display:none}
+.avcb-qtd{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;border-radius:10px;background:var(--erro);color:#fff;font-family:var(--texto-fonte);font-size:12px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+.avcb-qtd[hidden]{display:none}
+.avcb-btn:focus-visible,.avcb-voltar:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.avcb-aviso{margin:8px 2px 0;padding:8px 12px;border-radius:10px;font-size:15px;font-weight:600;line-height:1.3}
+.avcb-aviso.crit,.avcb-card.crit,.avcb-resumo .crit{background:var(--crit-bg);color:var(--crit-tx)}
+.avcb-aviso.warn,.avcb-card.warn,.avcb-resumo .warn{background:var(--warn-bg);color:var(--warn-tx)}
+.avcb-aviso.ok,.avcb-card.ok,.avcb-resumo .ok{background:var(--okv-bg);color:var(--okv-tx)}
+.tela-avcb{position:fixed;inset:0;z-index:34;background:var(--fundo);display:flex;flex-direction:column}
+.tela-avcb[hidden]{display:none}
+.avcb-topo{flex:none;display:flex;align-items:center;gap:10px;background:#fff;color:var(--marinho);padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;border-bottom:4px solid var(--laranja)}
+.avcb-topo strong{font-family:var(--titulo-fonte);font-size:20px}
+.avcb-voltar{min-height:44px;padding:0 12px;border-radius:10px;border:1.5px solid var(--linha);background:transparent;color:var(--marinho);font-weight:600;font-size:16px;cursor:pointer}
+.avcb-corpo{flex:1;overflow:auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0px));max-width:720px;width:100%;margin:0 auto}
+.avcb-resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.avcb-resumo div{border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:600;line-height:1.2}
+.avcb-resumo b{display:block;font-family:var(--titulo-fonte);font-size:26px}
+.avcb-busca{width:100%;min-height:48px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 14px;font-size:17px;margin-bottom:12px}
+.avcb-grupo{font-family:var(--titulo-fonte);font-weight:700;font-size:17px;color:var(--tinta);margin:16px 2px 8px}
+.avcb-card{border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.avcb-card .l1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.avcb-card strong{font-size:17px}
+.avcb-card .tag{font-size:12px;font-weight:700;border:1.5px solid currentColor;border-radius:6px;padding:0 6px;flex:none}
+.avcb-card .l2{font-weight:600;font-size:15px;margin-top:2px}
+.avcb-card .l3{font-size:13px;opacity:.85;margin-top:2px}
+.avcb-nota{font-size:13px;color:var(--suave);margin-top:16px}
 
 main{padding:calc(env(safe-area-inset-top,0px) + 96px + 18px) 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
 h1{font-family:var(--titulo-fonte);font-weight:700;font-size:30px;line-height:1.1;margin:24px 0 10px}
@@ -214,7 +245,10 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <body>
 <header class="topo">
   <p class="marca"><img src="logo.png" alt="VPX Engenharia" width="100" height="56"></p>
-  <button class="conta" id="btn-conta" hidden aria-label="Conta"></button>
+  <div class="topo-dir">
+    <button class="avcb-btn" id="btn-avcb" hidden aria-label="Validade AVCB/CLCB">AVCB<span class="avcb-qtd" id="avcb-qtd" hidden></span></button>
+    <button class="conta" id="btn-conta" hidden aria-label="Conta"></button>
+  </div>
 </header>
 
 <main>
@@ -259,6 +293,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <small id="rot-cliente">Cliente</small>
       <strong id="nome-cliente">Escolher cliente</strong>
     </button>
+    <p class="avcb-aviso" id="avcb-aviso" hidden></p>
     <p class="destino" id="destino"></p>
     <p class="fila" id="fila" role="status" hidden></p>
     <div id="form-com" hidden></div>
@@ -358,6 +393,19 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <div class="visor-paginas" id="visor-paginas"></div>
 </div>
 
+<div class="tela-avcb" id="tela-avcb" hidden role="dialog" aria-label="Validade AVCB/CLCB">
+  <div class="avcb-topo">
+    <button class="avcb-voltar" id="avcb-voltar" aria-label="Voltar">‹ Voltar</button>
+    <strong>Validade AVCB/CLCB</strong>
+  </div>
+  <div class="avcb-corpo">
+    <div class="avcb-resumo" id="avcb-resumo"></div>
+    <input class="avcb-busca" id="avcb-busca" type="search" placeholder="Buscar cliente" autocomplete="off">
+    <div id="avcb-lista"></div>
+    <p class="avcb-nota" id="avcb-nota"></p>
+  </div>
+</div>
+
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
 <script>
@@ -375,6 +423,26 @@ const CONFIG = {
   comprovantesCaminho: "VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes",
   comprovantesNome: "01 - Comprovantes",
   pastasComprovante: { compra: "Compras", reembolso: "Reembolsos" },   // os arquivos vão direto nelas
+  // Validade AVCB/CLCB: copiada do painel "Validade AVCB/CLCB" (artefato do Claude), em 12/10/2026.
+  // Quando o painel mudar, atualize esta lista. vencimento = AAAA-MM-DD. O nome é comparado com o nome da pasta
+  // do cliente (sem acento/maiúsculas); se for diferente, coloque o nome da pasta em "pasta".
+  validadeAvcb: [
+    { cliente: "Costa España", tipo: "AVCB", vencimento: "2027-09-02", cnpj: "22.400.377/0001-70", endereco: "Av. Oceânica, nº 1454, Ondina, Salvador/BA" },
+    { cliente: "Centro Médico Cristhian Barnard", tipo: "AVCB", vencimento: "2026-06-03", cnpj: "03.580.697/0001-05", endereco: "Rua Leonor Calmon, 256, Candeal, Salvador/BA" },
+    { cliente: "CSI Nordeste", tipo: "CLCB", vencimento: "2025-09-26", cnpj: "06.146.986/0001-99", endereco: "Rua do Polo, 89, Polo de Serviços, Dias d'Ávila/BA" },
+    { cliente: "GE Materiais de Construção", tipo: "CLCB", vencimento: "2025-11-25", cnpj: "30.935.601/0001-57", endereco: "Av. Antônio Carlos Magalhães, 1215, Santo Antônio de Jesus/BA" },
+    { cliente: "Lumina", tipo: "AVCB", vencimento: "2023-03-28", cnpj: "33.676.530/0001-03", endereco: "Av. Aliomar Baleeiro, 10151, Fazenda Grande IV, Salvador/BA" },
+    { cliente: "Tribeca", tipo: "AVCB", vencimento: "2025-07-18", cnpj: "20.737.528/0001-55", endereco: "Av. Luís Viana Filho, 6312, Patamares, Salvador/BA" },
+    { cliente: "NAU Barra", tipo: "AVCB", vencimento: "2023-11-17", cnpj: "25.303.465/0001-42", endereco: "Rua Alfredo Magalhães, 115, Barra, Salvador/BA" },
+    { cliente: "Monte Pascoal", tipo: "AVCB", vencimento: "2025-05-30", cnpj: "", endereco: "" },
+    { cliente: "Bauen Residence", tipo: "AVCB", vencimento: "2025-09-14", cnpj: "", endereco: "" },
+    { cliente: "ITC", tipo: "AVCB", vencimento: "2027-02-03", cnpj: "", endereco: "" },
+    { cliente: "Art Studio", tipo: "AVCB", vencimento: "2027-03-23", cnpj: "38.707.724/0001-42", endereco: "Av. Octávio Mangabeira, Armação, Salvador/BA" },
+    { cliente: "Esplanada Avenida", tipo: "AVCB", vencimento: "2027-04-01", cnpj: "01.533.565/0001-05", endereco: "Rua Pernambuco, nº 153, Pituba, Salvador/BA" },
+    { cliente: "Beach Class Salvador", tipo: "AVCB", vencimento: "2026-10-22", cnpj: "56.099.090/0001-74", endereco: "Av. Oceânica, nº 2023, Ondina, Salvador/BA" },
+    { cliente: "Instituto Kerber", tipo: "CLCB", vencimento: "2027-09-13", cnpj: "639.142.201-04", endereco: "Rua Praia Funda, nº 42, Vilas do Atlântico, Lauro de Freitas/BA" }
+  ],
+  validadeAvcbData: "12/10/2026",
   // Centros de custo ativos no Fin365 (app.fin365.com.br › Cadastros › Centros de Custos), copiados em 11/10/2026.
   // Quando o Fin365 mudar, atualize esta lista. [código, descrição]: o app mostra "código · descrição"; o arquivo leva
   // só o código (se tiver "/", vira "-", porque o OneDrive não aceita "/").
@@ -1416,6 +1484,10 @@ function atualizar() {
   const comp = ehComp();
   $("nome-cliente").textContent = cliente || (comp ? "Nenhum" : "Escolher cliente");
   $("btn-cliente").classList.toggle("vazio", !cliente);
+  // aviso da validade do AVCB/CLCB do cliente escolhido (visita e comercial)
+  const av = modo !== "comp" ? avcbDoCliente(cliente) : null;
+  $("avcb-aviso").hidden = !av;
+  if (av) { const s = situacaoAvcb(av); $("avcb-aviso").className = "avcb-aviso " + s.cls; $("avcb-aviso").textContent = (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto; }
   $("destino").textContent = comp
     ? (tipo ? "Salvar em: " + caminhoComp() : "")
     : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + caminhoVisita().replace(/\//g, " › ") : "");
@@ -1767,6 +1839,83 @@ async function verRelatorio() {
     pags.innerHTML = '<p class="visor-msg">Não foi possível mostrar o relatório aqui. Toque em "Compartilhar" para abrir em outro app.</p>';
   }
 }
+/* ---------- validade AVCB/CLCB (lista em CONFIG.validadeAvcb) ---------- */
+const diasAte = iso => { const hoje = new Date(); hoje.setHours(0, 0, 0, 0); return Math.round((new Date(iso + "T00:00:00") - hoje) / 86400000); };
+const dataBRde = iso => { const [a, m, d] = iso.split("-"); return `${d}/${m}/${a}`; };
+// mesmas faixas do painel: vencido / vence em até 3 meses (90 dias) / em dia
+function situacaoAvcb(v) {
+  const dias = diasAte(v.vencimento), data = dataBRde(v.vencimento);
+  if (dias < 0) return { cls: "crit", dias, texto: `${v.tipo} vencido há ${(-dias).toLocaleString("pt-BR")} dia${dias === -1 ? "" : "s"} (venceu em ${data})` };
+  if (dias === 0) return { cls: "warn", dias, texto: `${v.tipo} vence hoje (${data})` };
+  if (dias <= 90) return { cls: "warn", dias, texto: `${v.tipo} vence em ${dias} dia${dias === 1 ? "" : "s"} (${data})` };
+  return { cls: "ok", dias, texto: `${v.tipo} em dia, válido até ${data}` };
+}
+// acha o cliente da lista pelo nome da pasta (sem acento/maiúsculas; aceita um nome começar com o outro)
+function avcbDoCliente(nome) {
+  if (!nome) return null;
+  const n = semAcento(nome);
+  return CONFIG.validadeAvcb.find(v => { const a = semAcento(v.pasta || v.cliente); return a === n || n.startsWith(a) || a.startsWith(n); }) || null;
+}
+
+function desenharAvcb() {
+  const q = semAcento($("avcb-busca").value.trim());
+  const todos = CONFIG.validadeAvcb.map(v => ({ v, s: situacaoAvcb(v) })).sort((a, b) => a.s.dias - b.s.dias);
+  const GRUPOS = [["crit", "Vencidos"], ["warn", "Vencem em até 3 meses"], ["ok", "Em dia"]];
+  const resumo = $("avcb-resumo");
+  resumo.innerHTML = "";
+  for (const [cls, rotulo] of GRUPOS) {
+    const d = document.createElement("div");
+    d.className = cls;
+    const b = document.createElement("b"); b.textContent = todos.filter(x => x.s.cls === cls).length;
+    d.append(b, rotulo);
+    resumo.appendChild(d);
+  }
+  const lista = $("avcb-lista");
+  lista.innerHTML = "";
+  const filtrados = todos.filter(x => !q || semAcento(`${x.v.cliente} ${x.v.endereco} ${x.v.cnpj}`).includes(q));
+  for (const [cls, rotulo] of GRUPOS) {
+    const doGrupo = filtrados.filter(x => x.s.cls === cls);
+    if (!doGrupo.length) continue;
+    const h = document.createElement("h3"); h.className = "avcb-grupo"; h.textContent = `${rotulo} (${doGrupo.length})`;
+    lista.appendChild(h);
+    for (const { v, s } of doGrupo) {
+      const c = document.createElement("div");
+      c.className = "avcb-card " + cls;
+      const l1 = document.createElement("div"); l1.className = "l1";
+      const nome = document.createElement("strong"); nome.textContent = v.cliente;
+      const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = v.tipo;
+      l1.append(nome, tag);
+      const l2 = document.createElement("div"); l2.className = "l2"; l2.textContent = s.texto.replace(/^(AVCB|CLCB) /, "").replace(/^./, m => m.toUpperCase());
+      c.append(l1, l2);
+      const extra = [v.endereco, v.cnpj && `CNPJ/CPF ${v.cnpj}`].filter(Boolean).join(" · ");
+      if (extra) { const l3 = document.createElement("div"); l3.className = "l3"; l3.textContent = extra; c.appendChild(l3); }
+      lista.appendChild(c);
+    }
+  }
+  if (!filtrados.length) { const p = document.createElement("p"); p.className = "avcb-nota"; p.textContent = "Nenhum cliente encontrado."; lista.appendChild(p); }
+  $("avcb-nota").textContent = `Lista copiada do painel "Validade AVCB/CLCB" em ${CONFIG.validadeAvcbData}. Para atualizar, peça a revisão da lista no app.`;
+}
+
+// contador no botão AVCB: vencidos + vencendo em até 3 meses
+function atualizarBadgeAvcb() {
+  const n = CONFIG.validadeAvcb.filter(v => situacaoAvcb(v).cls !== "ok").length;
+  $("avcb-qtd").hidden = !n;
+  $("avcb-qtd").textContent = n;
+}
+function abrirAvcb() {
+  $("avcb-busca").value = "";
+  desenharAvcb();
+  $("tela-avcb").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ avcb: true }, "");           // o "voltar" do Android fecha a tela
+}
+function fecharAvcb(voltar = true) {
+  if ($("tela-avcb").hidden) return;
+  $("tela-avcb").hidden = true;
+  document.body.style.overflow = "";
+  if (voltar && history.state?.avcb) history.back();
+}
+
 function fecharVisor(voltar = true) {
   if ($("visor-pdf").hidden) return;
   $("visor-pdf").hidden = true;
@@ -1826,6 +1975,8 @@ async function iniciarApp() {
   const ini = nome.split(/\s+/).filter(Boolean).map(p => p[0]).slice(0, 2).join("").toUpperCase();
   $("btn-conta").textContent = ini || "?";
   $("btn-conta").hidden = false;
+  $("btn-avcb").hidden = false;
+  atualizarBadgeAvcb();
   mostrar("tela-app"); aplicarModo();
   carregarClientes();
   await restaurarItens();                         // fotos guardadas no celular da última vez
@@ -1862,7 +2013,10 @@ $("cam-disparo").onclick = disparar;
 document.querySelectorAll("#cam-modos button").forEach(b => b.onclick = () => definirModo(b.dataset.modo));
 $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
-window.addEventListener("popstate", () => { if (cam) fecharCamera(false); fecharVisor(false); });
+window.addEventListener("popstate", () => { if (cam) fecharCamera(false); fecharVisor(false); fecharAvcb(false); });
+$("btn-avcb").onclick = abrirAvcb;
+$("avcb-voltar").onclick = () => fecharAvcb();
+$("avcb-busca").oninput = desenharAvcb;
 document.addEventListener("visibilitychange", () => {
   if (!cam || cam.ocupado) return;
   if (document.hidden) { pararGravacao(); desligarCamera(cam); }   // salva o vídeo em andamento e libera a câmera quando o app sai da tela
