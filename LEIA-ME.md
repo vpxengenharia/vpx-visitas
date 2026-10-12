@@ -67,7 +67,7 @@ O login fica salvo. Nas próximas vezes é só abrir e usar.
 2. Fotos e vídeos, de dois jeitos:
    - **Câmera**: câmera do próprio app. Embaixo do botão, escolha **FOTO** (várias fotos seguidas, com zoom 1×, 2×, 3× ou pinça, e lanterna) ou **VÍDEO** (toque para começar e de novo para parar; Full HD, com som, até 5 minutos por vídeo). No iPhone a qualidade é um pouco menor que a da câmera do iPhone, o zoom é digital e não funciona no vídeo.
    - **Galeria**: marque várias fotos e vídeos de uma vez. No iPhone, para muitas fotos com qualidade máxima, tire pelo app Câmera do iPhone (sem rajada) e depois escolha todas pela Galeria.
-3. **Salvar no cliente** → todas sobem juntas, com nomes do tipo `2026-10-09_14-32_João da Silva_01.jpg`.
+3. **Salvar no cliente** → todas sobem juntas, com nomes do tipo `João da Silva_2026-10-09_14-32_01.jpg`.
 
 Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se der, envie vídeos no Wi-Fi. Se a internet oscilar durante um vídeo, o envio continua de onde parou.
 

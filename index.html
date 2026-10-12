@@ -687,13 +687,13 @@ function destinoAtual() {
 }
 
 // nome do arquivo sem a extensão (a extensão é decidida na hora do envio)
-// visita: AAAA-MM-DD_HH-MM_Colaborador_NN
+// visita: Colaborador_AAAA-MM-DD_HH-MM_NN (nome na frente, como nos comprovantes)
 // comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_CentroDeCusto_NN (data da própria foto; nome na frente agrupa por pessoa)
 function nomeBaseDe(f, d, n) {
   const quando = new Date(f.arquivo.lastModified || Date.now());
   return d.modo === "comp"
     ? `${d.autor}_${dataISO(quando)}_${d.rotuloTipo}${d.pag}_${d.desc}${d.cli}_${pad(n)}`
-    : `${d.data}_${horaArq(quando)}_${d.autor}_${pad(n)}`;
+    : `${d.autor}_${d.data}_${horaArq(quando)}_${pad(n)}`;
 }
 
 // pasta do OneDrive de um destino; criada (se faltar) uma vez só por envio
