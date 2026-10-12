@@ -33,7 +33,7 @@ Para a aba **Comprovantes**, faça o mesmo com a pasta *VPX Engenharia - AVCB �
    - **Tipos de conta:** Somente contas neste diretório organizacional
    - **URI de redirecionamento:** plataforma **Aplicativo de página única (SPA)** + o endereço da Parte 2
 3. Clique em **Registrar** e copie o **ID do aplicativo (cliente)** e o **ID do diretório (locatário)**.
-4. **Permissões de API → Adicionar uma permissão → Microsoft Graph → Permissões delegadas**. Marque **Files.ReadWrite.All** e clique em **Adicionar permissões**.
+4. **Permissões de API → Adicionar uma permissão → Microsoft Graph → Permissões delegadas**. Marque **Files.ReadWrite.All** e **Calendars.Read** (esta é para a agenda) e clique em **Adicionar permissões**.
 5. Clique em **Conceder consentimento do administrador para VPX** e confirme. Assim ninguém da equipe precisa aprovar nada no primeiro login.
 
 ## Parte 4 — Ligar o site ao registro
@@ -72,6 +72,10 @@ O login fica salvo. Nas próximas vezes é só abrir e usar.
 Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se der, envie vídeos no Wi-Fi. Se a internet oscilar durante um vídeo, o envio continua de onde parou.
 
 **Sem internet (obra, subsolo):** o app abre e funciona normalmente. As fotos ficam guardadas no celular assim que são tiradas — se o app fechar ou a bateria acabar, elas voltam ao abrir de novo. Se tocar em Salvar sem sinal, as fotos ficam com **⏳** e aparece o aviso "aguardando internet"; quando o sinal voltar, o app envia sozinho, cada uma para o cliente/pasta certo, mesmo que você já tenha trocado de cliente. O envio automático acontece com o app aberto (ou na próxima vez que ele for aberto). Itens com **!** tiveram outro problema (ex.: sem acesso à pasta) e o app também tenta de novo.
+
+### Agenda
+
+O botão de **calendário**, no topo, mostra a sua agenda do Outlook de 30 dias atrás a 30 dias à frente, agrupada por dia e já posicionada em **hoje**. Toque num compromisso para ver horário, local (com link para o mapa), organizador, observações e os botões "Entrar na reunião" (Teams) e "Abrir no Outlook". Sem internet, aparece a última agenda carregada. Na primeira vez, toque em **Autorizar acesso à agenda** (precisa da permissão **Calendars.Read** liberada no Entra — Parte 3).
 
 ### Validade AVCB/CLCB
 
