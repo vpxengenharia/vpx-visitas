@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
    <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 :root{
   --marinho:#1C3C61; --laranja:#EB9D2B; --tinta:#13253B; --fundo:#F2F4F7;
@@ -64,8 +65,18 @@ p{margin:0 0 14px;max-width:60ch}
 .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
 .foto{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--linha)}
 .foto img{width:100%;height:100%;object-fit:cover;display:block}
-.abas{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
-.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:17px;line-height:1.1;cursor:pointer}
+.abas{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
+.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:15px;line-height:1.1;padding:0 4px;cursor:pointer}
+/* ficha comercial */
+.secao{font-family:var(--titulo-fonte);font-weight:700;font-size:19px;color:var(--marinho);margin:22px 2px 10px;padding-bottom:4px;border-bottom:2px solid var(--laranja)}
+@media (prefers-color-scheme:dark){.secao{color:var(--tinta)}}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{min-height:46px;padding:6px 14px;border-radius:999px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-size:16px;font-weight:500;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--laranja);border-color:var(--laranja);color:var(--marinho);font-weight:700}
+.chips button:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.campo textarea{width:100%;min-height:96px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:10px 14px;font:inherit;font-size:17px;resize:vertical}
+.campo textarea:focus{outline:3px solid var(--laranja);outline-offset:1px}
+#form-com{margin-bottom:18px}
 .abas button[aria-selected="true"]{background:var(--marinho);color:#fff}
 @media (prefers-color-scheme:dark){.abas button[aria-selected="true"]{background:var(--laranja);color:var(--marinho)}}
 .tipos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
@@ -213,6 +224,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <section id="tela-app" hidden>
     <div class="abas" role="tablist">
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
+      <button role="tab" id="aba-com" aria-selected="false">Comercial</button>
       <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
     <div id="form-comp" hidden>
@@ -237,6 +249,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     </button>
     <p class="destino" id="destino"></p>
     <p class="fila" id="fila" role="status" hidden></p>
+    <div id="form-com" hidden></div>
     <div class="grade" id="grade"></div>
     <div class="semfotos" id="semfotos">Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.</div>
   </section>
@@ -379,11 +392,11 @@ const $ = id => document.getElementById(id);
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
-let modo = lerLS("vpx_modo", "visita") === "comp" ? "comp" : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null } };
+let modo = ["visita", "com", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null } };
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("comp")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("comp")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -570,17 +583,224 @@ function trocarModo(novo) {
 }
 
 function aplicarModo() {
-  const comp = ehComp();
-  $("aba-visita").setAttribute("aria-selected", String(!comp));
+  const comp = ehComp(), com = modo === "com";
+  $("aba-visita").setAttribute("aria-selected", String(modo === "visita"));
+  $("aba-com").setAttribute("aria-selected", String(com));
   $("aba-comp").setAttribute("aria-selected", String(comp));
   $("form-comp").hidden = !comp;
+  $("form-com").hidden = !com;
   $("btn-cliente").hidden = comp;                 // nos comprovantes, no lugar do cliente vai o centro de custo (digitado)
-  $("in-gal").accept = comp ? "image/*,application/pdf" : "image/*,video/*";
-  $("btn-nova").textContent = comp ? "Novo comprovante" : "Nova visita";
-  $("semfotos").textContent = comp
-    ? "Nenhum comprovante ainda. Fotografe a nota ou o recibo, ou escolha da galeria (aceita PDF)."
+  $("in-gal").accept = comp ? "image/*,application/pdf" : com ? "image/*" : "image/*,video/*";
+  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : "Nova visita";
+  $("semfotos").textContent = comp ? "Nenhum comprovante ainda. Fotografe a nota ou o recibo, ou escolha da galeria (aceita PDF)."
+    : com ? "Fotos (opcional): fachada, casa de bombas, hidrantes, quadro de alarme… Elas entram no PDF da ficha."
     : "Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.";
   atualizar();
+}
+
+/* ---------- ficha comercial (aba "Comercial") ----------
+   Levantamento da edificação para a proposta. O preenchimento fica guardado no celular enquanto é feito;
+   ao salvar vira um PDF (com as fotos) na pasta do cliente, junto das fotos de visita. */
+const FICHA = [
+  { secao: "Edificação", campos: [
+    { id: "endereco", rotulo: "Endereço", tipo: "texto" },
+    { id: "tipoEd", rotulo: "Tipo da edificação", tipo: "opcoes", obrig: true,
+      opcoes: ["Residencial", "Comercial", "Misto", "Saúde (clínica/hospital)", "Educacional", "Hotel", "Industrial", "Galpão/depósito", "Outro"] },
+    { id: "ano", rotulo: "Ano de construção", tipo: "numero" },
+    { id: "andares", rotulo: "Quantidade de andares (sem contar o térreo)", pdf: "Andares (sem o térreo)", tipo: "numero", obrig: true },
+    { id: "garagem", rotulo: "Pavimentos de garagem/subsolo", tipo: "numero" },
+    { id: "torres", rotulo: "Torres/blocos", tipo: "numero" },
+    { id: "unidades", rotulo: "Unidades (aptos/salas)", tipo: "numero" },
+    { id: "area", rotulo: "Área construída aproximada (m²)", tipo: "numero" }
+  ] },
+  { secao: "Corpo de Bombeiros", campos: [
+    { id: "avcb", rotulo: "Já tem AVCB?", tipo: "opcoes", obrig: true, opcoes: ["Sim, válido", "Sim, vencido", "Nunca teve", "Não sabe"] },
+    { id: "validade", rotulo: "Validade do AVCB", tipo: "data", se: f => (f.avcb || "").startsWith("Sim") },
+    { id: "projeto", rotulo: "Tem projeto aprovado no CBMBA?", tipo: "opcoes", opcoes: ["Sim", "Não", "Não sabe"] },
+    { id: "notificacao", rotulo: "Recebeu notificação ou auto de infração do bombeiro?", pdf: "Notificação/auto de infração", tipo: "opcoes", opcoes: ["Sim", "Não"] }
+  ] },
+  { secao: "Sistemas existentes", campos: [
+    { id: "sistemas", rotulo: "Marque o que existe na edificação", pdf: "Existentes", tipo: "multi",
+      opcoes: ["Extintores", "Hidrantes", "Bomba de incêndio", "Chuveiros automáticos (sprinklers)", "Alarme", "Detecção de fumaça",
+        "Iluminação de emergência", "Sinalização de emergência", "SPDA (para-raios)", "Central de gás/GLP",
+        "Escada protegida/pressurizada", "Portas corta-fogo", "Brigada treinada", "Gerador"] }
+  ] },
+  { secao: "Contatos", campos: [
+    { id: "sindicoNome", rotulo: "Síndico - nome", tipo: "texto" },
+    { id: "sindicoTel", rotulo: "Síndico - telefone", tipo: "tel" },
+    { id: "sindicoEmail", rotulo: "Síndico - e-mail", tipo: "email" },
+    { id: "admEmpresa", rotulo: "Administradora - empresa", tipo: "texto" },
+    { id: "admContato", rotulo: "Administradora - contato", tipo: "texto" },
+    { id: "admTel", rotulo: "Administradora - telefone", tipo: "tel" },
+    { id: "admEmail", rotulo: "Administradora - e-mail", tipo: "email" },
+    { id: "zeladorNome", rotulo: "Zelador/gerente predial - nome", tipo: "texto" },
+    { id: "zeladorTel", rotulo: "Zelador/gerente predial - telefone", tipo: "tel" }
+  ] },
+  { secao: "Comercial", campos: [
+    { id: "servicos", rotulo: "Serviços de interesse", tipo: "multi",
+      opcoes: ["AVCB/renovação", "Projeto (PSCIP)", "Laudos", "Manutenção/adequações", "Treinamento de brigada", "Outro"] },
+    { id: "urgencia", rotulo: "Urgência", tipo: "opcoes", opcoes: ["Alta", "Média", "Baixa"] },
+    { id: "origem", rotulo: "Como conheceu a VPX", tipo: "opcoes", opcoes: ["Indicação", "Administradora", "Internet", "Outro"] },
+    { id: "proximo", rotulo: "Próximo passo", tipo: "texto", dica: "Ex.: enviar proposta até 20/10" },
+    { id: "obs", rotulo: "Observações", tipo: "texto-longo" }
+  ] }
+];
+const camposFicha = () => FICHA.flatMap(s => s.campos);
+let ficha = lerLS("vpx_ficha", {});
+
+const valorFicha = (c, f = ficha) => {
+  const v = f[c.id];
+  if (Array.isArray(v)) return v.join(", ");
+  if (c.tipo === "data" && v) { const [a, m, d] = v.split("-"); return `${d}/${m}/${a}`; }
+  return String(v || "").trim();
+};
+const fichaPreenchida = () => camposFicha().some(c => valorFicha(c));
+// o que falta para salvar (obrigatórios + pelo menos um telefone de contato)
+function faltaFicha() {
+  const c = camposFicha().find(c => c.obrig && !valorFicha(c));
+  if (c) { const r = c.rotulo.replace(/ \(.*\)$/, ""); return r.charAt(0).toLowerCase() + r.slice(1); }
+  if (!["sindicoTel", "admTel", "zeladorTel"].some(id => String(ficha[id] || "").trim())) return "um telefone de contato";
+  return "";
+}
+
+function montarFicha() {
+  const raiz = $("form-com");
+  raiz.innerHTML = "";
+  for (const s of FICHA) {
+    const h = document.createElement("h2");
+    h.className = "secao"; h.textContent = s.secao;
+    raiz.appendChild(h);
+    for (const c of s.campos) raiz.appendChild(campoFicha(c));
+  }
+  visibilidadeFicha();
+}
+
+function campoFicha(c) {
+  const escolha = c.tipo === "opcoes" || c.tipo === "multi";
+  const w = document.createElement(escolha ? "div" : "label");
+  w.className = "campo"; w.id = "fc-" + c.id;
+  const rot = document.createElement("span");
+  rot.textContent = c.rotulo + (c.obrig ? " *" : "");
+  w.appendChild(rot);
+  if (escolha) {
+    const caixa = document.createElement("div");
+    caixa.className = "chips";
+    const marcar = () => caixa.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed",
+      String(c.tipo === "multi" ? (ficha[c.id] || []).includes(b.textContent) : ficha[c.id] === b.textContent)));
+    for (const o of c.opcoes) {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = o;
+      b.onclick = () => {
+        if (enviando) return;
+        if (c.tipo === "multi") { const l = new Set(ficha[c.id] || []); l.has(o) ? l.delete(o) : l.add(o); ficha[c.id] = [...l]; }
+        else ficha[c.id] = ficha[c.id] === o ? "" : o;            // tocar de novo desmarca
+        marcar(); mudouFicha();
+      };
+      caixa.appendChild(b);
+    }
+    marcar();
+    w.appendChild(caixa);
+  } else {
+    const el = document.createElement(c.tipo === "texto-longo" ? "textarea" : "input");
+    if (el.tagName === "INPUT") {
+      el.type = { data: "date", tel: "tel", email: "email" }[c.tipo] || "text";
+      if (c.tipo === "numero") el.inputMode = "numeric";
+    }
+    el.value = ficha[c.id] || "";
+    el.placeholder = c.dica || "";
+    el.autocomplete = "off";
+    el.oninput = () => { ficha[c.id] = el.value; mudouFicha(); };
+    w.appendChild(el);
+  }
+  return w;
+}
+
+function visibilidadeFicha() {
+  for (const c of camposFicha()) if (c.se) $("fc-" + c.id).hidden = !c.se(ficha);
+}
+function mudouFicha() { gravarLS("vpx_ficha", ficha); visibilidadeFicha(); atualizarBotao(); }
+function limparFicha() { ficha = {}; gravarLS("vpx_ficha", ficha); montarFicha(); }
+
+// imagem do app (ex.: logo) ou foto reduzida, como dataURL para o PDF
+const paraDataURL = blob => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = falha; r.readAsDataURL(blob); });
+async function fotoParaPdf(arquivo) {
+  const bmp = await createImageBitmap(arquivo, { imageOrientation: "from-image" });
+  const esc = Math.min(1, 1400 / Math.max(bmp.width, bmp.height));
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(bmp.width * esc); cv.height = Math.round(bmp.height * esc);
+  cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+  bmp.close();
+  return { url: cv.toDataURL("image/jpeg", 0.72), w: cv.width, h: cv.height };
+}
+
+// monta o PDF da ficha (A4, no formato da VPX) com as respostas e as fotos
+async function gerarFichaPDF(dados, cli, autor, arquivos) {
+  const jsPDF = window.jspdf?.jsPDF;
+  if (!jsPDF) throw new Error("a ferramenta de PDF não carregou (abra o app uma vez com internet)");
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const M = 15, L = 210 - 2 * M, AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59];
+  let y = 15;
+  const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; } };
+  const hoje = new Date(), dataBR = `${pad(hoje.getDate())}/${pad(hoje.getMonth() + 1)}/${hoje.getFullYear()}`;
+
+  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18); } catch {}
+  doc.setFont("helvetica", "bold"); doc.setFontSize(17); doc.setTextColor(...AZUL);
+  doc.text("Levantamento Comercial", 210 - M, y + 7, { align: "right" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
+  doc.text(`Cliente: ${cli}`, 210 - M, y + 13, { align: "right" });
+  doc.text(`Data: ${dataBR}   -   Responsável: ${autor}`, 210 - M, y + 18, { align: "right" });
+  y += 23;
+  doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y);
+  y += 8;
+
+  const secao = titulo => {
+    cabe(18);
+    doc.setFillColor(...AZUL); doc.rect(M, y, L, 8, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text(titulo.toUpperCase(), M + 3, y + 5.6);
+    y += 13;
+  };
+  for (const s of FICHA) {
+    const linhas = s.campos.filter(c => !c.se || c.se(dados)).map(c => [c.pdf || c.rotulo, valorFicha(c, dados)]).filter(([, v]) => v);
+    if (!linhas.length) continue;
+    secao(s.secao);
+    for (const [r, v] of linhas) {
+      doc.setFontSize(10);
+      const tr = doc.splitTextToSize(r, 60), tv = doc.splitTextToSize(v, L - 64);
+      const h = Math.max(tr.length, tv.length) * 4.6 + 2.4;
+      cabe(h);
+      doc.setFont("helvetica", "bold"); doc.setTextColor(...CINZA); doc.text(tr, M, y);
+      doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tv, M + 64, y);
+      y += h;
+    }
+    y += 3;
+  }
+
+  if (arquivos.length) {
+    secao(`Fotos (${arquivos.length})`);
+    const lw = (L - 6) / 2, maxH = 68;
+    for (let i = 0; i < arquivos.length; i += 2) {
+      const par = [];
+      for (const a of arquivos.slice(i, i + 2)) { try { par.push(await fotoParaPdf(a)); } catch { par.push(null); } }
+      const alturas = par.map(p => p ? Math.min(maxH, lw * p.h / p.w) : 0);
+      const h = Math.max(...alturas, 10);
+      cabe(h + 6);
+      par.forEach((p, k) => {
+        if (!p) return;
+        const w = alturas[k] * p.w / p.h;
+        doc.addImage(p.url, "JPEG", M + k * (lw + 6) + (lw - w) / 2, y, w, alturas[k]);
+      });
+      y += h + 6;
+    }
+  }
+
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...CINZA);
+    doc.text(`VPX Engenharia  -  Levantamento comercial  -  ${cli}  -  página ${p} de ${total}`, 105, 290, { align: "center" });
+  }
+  return doc.output("blob");
 }
 
 function escolherTipo(t) {
@@ -728,7 +948,7 @@ const ehVideo = f => f.type.startsWith("video/") || /\.(mov|mp4|m4v|3gp|webm)$/i
 
 function adicionar(lista) {
   for (const f of lista) {
-    const video = !ehComp() && ehVideo(f);                       // vídeo só na visita; PDF só nos comprovantes
+    const video = modo === "visita" && ehVideo(f);                // vídeo só na visita; PDF só nos comprovantes
     const pdf = ehComp() && (f.type === "application/pdf" || /\.pdf$/i.test(f.name));
     if (!video && !pdf && !f.type.startsWith("image/") && !/\.(jpe?g|png|heic|heif|webp)$/i.test(f.name)) continue;
     const item = { id: ++seq, modo, arquivo: f, url: URL.createObjectURL(f), st: "nova", video, pdf };
@@ -783,6 +1003,10 @@ function remover(id) {
 // "3 fotos e 1 vídeo"
 function descrever(lista) {
   if (ehComp()) return `${lista.length} comprovante${lista.length > 1 ? "s" : ""}`;
+  if (modo === "com") {                            // "ficha comercial e 3 fotos"
+    const fichas = lista.filter(f => f.pdf).length, p = lista.length - fichas;
+    return [fichas ? (fichas > 1 ? `${fichas} fichas comerciais` : "ficha comercial") : "", p ? `${p} foto${p > 1 ? "s" : ""}` : ""].filter(Boolean).join(" e ");
+  }
   const v = lista.filter(f => f.video).length, p = lista.length - v;
   const partes = [];
   if (p) partes.push(`${p} foto${p > 1 ? "s" : ""}`);
@@ -818,7 +1042,7 @@ function abrirCamera() {
   $("cam-miniatura").hidden = true;
   $("cam-zoom").hidden = true;
   $("cam-video").style.transform = "";
-  $("cam-modos").hidden = ehComp() || !window.MediaRecorder;     // comprovantes: só foto
+  $("cam-modos").hidden = modo !== "visita" || !window.MediaRecorder;   // comercial e comprovantes: só foto
   desenharModo();
   $("cam").hidden = false;
   document.body.style.overflow = "hidden";
@@ -980,7 +1204,7 @@ function finalizarGravacao(c, rec, partes) {
   } else aviso("O vídeo não foi gravado. Tente de novo.", true);
   if (cam === c) {
     $("cam-tempo").hidden = true;
-    $("cam-modos").hidden = ehComp() || !window.MediaRecorder;
+    $("cam-modos").hidden = modo !== "visita" || !window.MediaRecorder;
     $("cam-ok").disabled = false;
     if (c.miniUrl) { $("cam-mini").src = c.miniUrl; $("cam-miniatura").hidden = false; }
     contadorCam();
@@ -1203,9 +1427,17 @@ function atualizar() {
 function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
-  if (pend.length && pend.every(f => f.dest)) {   // só sobraram itens da fila (destino já definido)
+  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida())) {   // só sobraram itens da fila
     b.disabled = enviando;
     b.textContent = enviando ? "Salvando…" : "Tentar enviar agora";
+  } else if (modo === "com") {
+    const falta = faltaFicha();
+    b.disabled = enviando || !cliente || !!falta;
+    const novas = pend.filter(f => !f.dest);
+    if (enviando) b.textContent = "Salvando…";
+    else if (!cliente) b.textContent = "Escolha o cliente";
+    else if (falta) b.textContent = `Preencha: ${falta}`;
+    else b.textContent = novas.length ? `Salvar ficha e ${descrever(novas)}` : "Salvar ficha";
   } else if (ehComp()) {
     b.disabled = enviando || !tipo || faltaPagamento() || !descricao() || !pend.length;
     if (enviando) b.textContent = "Salvando…";
@@ -1222,7 +1454,7 @@ function atualizarBotao() {
     else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
-  ["aba-visita", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
+  ["aba-visita", "aba-com", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
 }
 
 async function reduzir(arquivo) {
@@ -1380,9 +1612,23 @@ async function enviarFila(lista, visivel) {
 async function salvar() {
   if (enviando) return;
   if (enviandoFundo) { aviso("Aguarde um instante: o app está enviando os itens da fila."); return; }
-  const comp = ehComp();
+  const comp = ehComp(), com = modo === "com";
   const novos = fotos.filter(f => f.st !== "ok" && !f.dest);
+  if (com && fichaPreenchida() && (!cliente || faltaFicha())) return;
   if (novos.length && (comp ? !tipo || faltaPagamento() || !descricao() : !cliente)) return;
+  // ficha comercial: vira um PDF (com as fotos novas) que entra na fila junto com as fotos
+  if (com && fichaPreenchida()) {
+    const d = destinoAtual();
+    let pdf;
+    try { pdf = await gerarFichaPDF({ ...ficha }, cliente, d.autor, novos.filter(f => !f.pdf).map(f => f.arquivo)); }
+    catch (e) { console.error(e); aviso("Não foi possível gerar o PDF da ficha: " + e.message, true); return; }
+    const arquivo = new File([pdf], "Levantamento Comercial.pdf", { type: "application/pdf", lastModified: Date.now() });
+    const item = { id: ++seq, modo: "com", arquivo, url: URL.createObjectURL(arquivo), st: "nova", pdf: true, dest: d,
+      prefixo: `${prefixoDe({ arquivo }, d)}_Levantamento Comercial` };   // ex.: João da Silva_2026-10-12_Diamond_Levantamento Comercial_01.pdf
+    fotos.unshift(item);
+    await guardarItem(item, true);
+    limparFicha();                                // o PDF já está guardado no celular: a ficha pode ser zerada
+  }
   // congela o destino e o nome de cada item novo: se não der para enviar agora, ele vai depois para o lugar certo
   if (novos.length) {
     const d = destinoAtual();
@@ -1401,7 +1647,8 @@ async function salvar() {
   }
   const d = fila[0].dest;
   const masc = d.modo === "comp" || fotos.some(f => f.video);
-  $("ok-titulo").textContent = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
+  const titulo = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
+  $("ok-titulo").textContent = titulo.charAt(0).toUpperCase() + titulo.slice(1);
   $("ok-texto").textContent = d.modo === "comp"
     ? `Em ${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[d.tipo]}`
     : `Em ${d.cliente} › ${d.caminho.split("/").slice(1).join(" › ")}`;
@@ -1416,7 +1663,7 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "comp"]) {
+  for (const m of ["visita", "com", "comp"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
@@ -1478,7 +1725,9 @@ $("busca").onkeydown = e => {
 };
 $("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("aba-visita").onclick = () => trocarModo("visita");
+$("aba-com").onclick = () => trocarModo("com");
 $("aba-comp").onclick = () => trocarModo("comp");
+montarFicha();
 $("tipo-compra").onclick = () => escolherTipo("compra");
 $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
 $("pag-cartao").onclick = () => escolherPagamento("cartao");
