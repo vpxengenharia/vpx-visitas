@@ -72,6 +72,16 @@ button,input,label{font:inherit}
 .avcb-card .l2{font-weight:600;font-size:15px;margin-top:2px}
 .avcb-card .l3{font-size:13px;opacity:.85;margin-top:2px}
 .avcb-nota{font-size:13px;color:var(--suave);margin-top:16px}
+#avcb-sinc{margin:0 2px 8px}
+.avcb-acoes{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:12px}
+.avcb-acoes .btn{width:auto;font-size:17px}
+.avcb-acoes svg{width:22px;height:22px}
+.avcb-filtro{margin-bottom:12px}
+.avcb-card .cat{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8;margin-left:6px}
+.avcb-card .l4{font-size:12.5px;opacity:.8;margin-top:4px}
+.avcb-card .l4 a{color:inherit;font-weight:700}
+.an-foto{display:block;width:100%;max-height:260px;object-fit:contain;background:#000;border-radius:10px;margin-bottom:10px}
+.an-status{font-size:15px;font-weight:600;margin:0 2px 12px;padding:8px 12px;border-radius:10px;background:var(--papel);border:1.5px solid var(--linha)}
 /* agenda (Outlook) */
 .agenda-btn{width:42px;height:38px;border-radius:999px;border:1.5px solid rgba(28,60,97,.45);background:transparent;color:var(--marinho);display:grid;place-items:center;cursor:pointer;padding:0}
 .agenda-btn[hidden]{display:none}
@@ -437,10 +447,54 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <strong>Validade AVCB/CLCB</strong>
   </div>
   <div class="avcb-corpo">
+    <div class="avcb-acoes">
+      <label class="btn prim">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Fotografar AVCB
+        <input class="oculto" type="file" accept="image/*" capture="environment" id="in-avcb-cam">
+      </label>
+      <label class="btn sec">
+        Galeria
+        <input class="oculto" type="file" accept="image/*" id="in-avcb-gal">
+      </label>
+    </div>
+    <div class="chips avcb-filtro" id="avcb-filtro">
+      <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+      <button type="button" data-f="cliente" aria-pressed="false">Clientes</button>
+      <button type="button" data-f="prospeccao" aria-pressed="false">Prospecção</button>
+    </div>
     <div class="avcb-resumo" id="avcb-resumo"></div>
     <input class="avcb-busca" id="avcb-busca" type="search" placeholder="Buscar cliente" autocomplete="off">
+    <p class="avcb-nota" id="avcb-sinc"></p>
     <div id="avcb-lista"></div>
     <p class="avcb-nota" id="avcb-nota"></p>
+  </div>
+</div>
+
+<div class="tela-avcb" id="tela-avcb-novo" hidden role="dialog" aria-label="Novo AVCB">
+  <div class="avcb-topo">
+    <button class="avcb-voltar" id="an-cancelar">‹ Cancelar</button>
+    <strong>Novo AVCB/CLCB</strong>
+  </div>
+  <div class="avcb-corpo">
+    <img class="an-foto" id="an-foto" alt="Foto do documento">
+    <p class="an-status" id="an-status"></p>
+    <div class="campo"><span>Categoria *</span><div class="chips" id="an-cat">
+      <button type="button" data-v="cliente" aria-pressed="false">Cliente</button>
+      <button type="button" data-v="prospeccao" aria-pressed="false">Prospecção</button>
+    </div></div>
+    <label class="campo"><span>Estabelecimento *</span><input id="an-nome" type="text" maxlength="90" autocomplete="off"></label>
+    <div class="campo"><span>Tipo *</span><div class="chips" id="an-tipo">
+      <button type="button" data-v="AVCB" aria-pressed="false">AVCB</button>
+      <button type="button" data-v="CLCB" aria-pressed="false">CLCB</button>
+    </div></div>
+    <label class="campo"><span>Válido até *</span><input id="an-validade" type="date"></label>
+    <label class="campo"><span>Número do documento</span><input id="an-numero" type="text" maxlength="20" autocomplete="off" placeholder="Ex.: 08407/2025"></label>
+    <label class="campo"><span>CNPJ/CPF</span><input id="an-cnpj" type="text" inputmode="numeric" maxlength="20" autocomplete="off"></label>
+    <label class="campo"><span>Endereço</span><input id="an-endereco" type="text" maxlength="160" autocomplete="off"></label>
+    <label class="campo"><span>Razão social</span><input id="an-razao" type="text" maxlength="120" autocomplete="off"></label>
+    <label class="campo"><span>Observação</span><textarea id="an-obs" maxlength="400" placeholder="Ex.: falar com o síndico, telefone na portaria…"></textarea></label>
+    <button class="btn prim" id="an-salvar" disabled>Salvar AVCB</button>
   </div>
 </div>
 
@@ -456,7 +510,8 @@ const CONFIG = {
   pastaClientesId: "01VYL4Q5YGDBCBT3E7CRDLSKCI3476CXTS",
   pastaClientesNome: "02 - Clientes",
   subpasta: "06 - Fotos e Visitas Técnicas",                          // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
-  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i],
+  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i],
+  pastaAvcb: "00 - Validade AVCB",            // dentro de 02 - Clientes: fotos e dados dos AVCBs fotografados pela equipe
   // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
   comprovantesCaminho: "VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes",
   comprovantesNome: "01 - Comprovantes",
@@ -528,10 +583,10 @@ const $ = id => document.getElementById(id);
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
 let modo = ["visita", "com", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null } };
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("comp")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("comp"), ...listaDe("avcb")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -1067,10 +1122,10 @@ const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // pasta do OneDrive de um destino; criada (se faltar) uma vez só por envio
 const pastasCache = new Map();
 function pastaDe(d) {
-  const chave = d.modo === "comp" ? "c:" + d.tipo : "v:" + d.caminho;
+  const chave = d.modo === "comp" ? "c:" + d.tipo : d.modo === "avcb" ? "avcb" : "v:" + d.caminho;
   if (!pastasCache.has(chave)) {
-    const p = d.modo === "comp"
-      ? baseComprovantes().then(b => garantirFilhas(b, [CONFIG.pastasComprovante[d.tipo]]))
+    const p = d.modo === "comp" ? baseComprovantes().then(b => garantirFilhas(b, [CONFIG.pastasComprovante[d.tipo]]))
+      : d.modo === "avcb" ? garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaAvcb])
       : garantirPasta(d.caminho);
     p.catch(() => pastasCache.delete(chave));                     // falhou (ex.: sem internet): tenta de novo da próxima vez
     pastasCache.set(chave, p);
@@ -1888,16 +1943,43 @@ function situacaoAvcb(v) {
   if (dias <= 90) return { cls: "warn", dias, texto: `${v.tipo} vence em ${dias} dia${dias === 1 ? "" : "s"} (${data})` };
   return { cls: "ok", dias, texto: `${v.tipo} em dia, válido até ${data}` };
 }
-// acha o cliente da lista pelo nome da pasta (sem acento/maiúsculas; aceita um nome começar com o outro)
+/* AVCBs fotografados pela equipe: cada um vira 2 arquivos em 02 - Clientes › 00 - Validade AVCB
+   (a foto e um .json com os dados conferidos). Ficam guardados no celular em localStorage (vpx_avcb_reg),
+   chave = nome do arquivo sem extensão; "pendente" = ainda na fila deste celular. */
+let regsAvcb = lerLS("vpx_avcb_reg", {});
+let filtroAvcb = "todos";
+const digitos = s => (s || "").replace(/\D/g, "");
+
+// lista única: painel (sempre "cliente") + fotografados. Mesmo CNPJ ou mesmo nome = mesmo estabelecimento (fica a validade mais nova)
+function listaAvcb() {
+  const lista = CONFIG.validadeAvcb.map(v => ({ ...v, categoria: "cliente" }));
+  const regs = Object.values(regsAvcb).filter(r => r.nome && r.validade).sort((a, b) => (a.fotografadoEm || "").localeCompare(b.fotografadoEm || ""));
+  for (const r of regs) {
+    const item = { cliente: r.nome, tipo: r.tipo || "AVCB", vencimento: r.validade, cnpj: r.cnpj || "", endereco: r.endereco || "",
+      categoria: r.categoria === "prospeccao" ? "prospeccao" : "cliente", reg: r };
+    const dig = digitos(item.cnpj), n = semAcento(item.cliente);
+    const i = lista.findIndex(x => (dig && digitos(x.cnpj) === dig) || semAcento(x.cliente) === n || (x.pasta && semAcento(x.pasta) === n));
+    if (i < 0) { lista.push(item); continue; }
+    const x = lista[i];
+    const categoria = x.categoria === "cliente" || item.categoria === "cliente" ? "cliente" : "prospeccao";
+    lista[i] = item.vencimento >= x.vencimento
+      ? { ...item, cliente: x.cliente, pasta: x.pasta, cnpj: item.cnpj || x.cnpj, endereco: item.endereco || x.endereco, categoria }
+      : { ...x, categoria };
+  }
+  return lista;
+}
+
+// acha o cliente da lista pelo nome da pasta (sem acento/maiúsculas; aceita um nome começar com o outro). Prospecção não entra.
 function avcbDoCliente(nome) {
   if (!nome) return null;
   const n = semAcento(nome);
-  return CONFIG.validadeAvcb.find(v => { const a = semAcento(v.pasta || v.cliente); return a === n || n.startsWith(a) || a.startsWith(n); }) || null;
+  return listaAvcb().find(v => { if (v.categoria !== "cliente") return false; const a = semAcento(v.pasta || v.cliente); return a === n || n.startsWith(a) || a.startsWith(n); }) || null;
 }
 
 function desenharAvcb() {
   const q = semAcento($("avcb-busca").value.trim());
-  const todos = CONFIG.validadeAvcb.map(v => ({ v, s: situacaoAvcb(v) })).sort((a, b) => a.s.dias - b.s.dias);
+  const todos = listaAvcb().filter(v => filtroAvcb === "todos" || v.categoria === filtroAvcb)
+    .map(v => ({ v, s: situacaoAvcb(v) })).sort((a, b) => a.s.dias - b.s.dias);
   const GRUPOS = [["crit", "Vencidos"], ["warn", "Vencem em até 3 meses"], ["ok", "Em dia"]];
   const resumo = $("avcb-resumo");
   resumo.innerHTML = "";
@@ -1910,7 +1992,7 @@ function desenharAvcb() {
   }
   const lista = $("avcb-lista");
   lista.innerHTML = "";
-  const filtrados = todos.filter(x => !q || semAcento(`${x.v.cliente} ${x.v.endereco} ${x.v.cnpj}`).includes(q));
+  const filtrados = todos.filter(x => !q || semAcento(`${x.v.cliente} ${x.v.endereco} ${x.v.cnpj} ${x.v.reg?.razao || ""}`).includes(q));
   for (const [cls, rotulo] of GRUPOS) {
     const doGrupo = filtrados.filter(x => x.s.cls === cls);
     if (!doGrupo.length) continue;
@@ -1921,22 +2003,38 @@ function desenharAvcb() {
       c.className = "avcb-card " + cls;
       const l1 = document.createElement("div"); l1.className = "l1";
       const nome = document.createElement("strong"); nome.textContent = v.cliente;
+      if (v.categoria === "prospeccao") { const cat = document.createElement("span"); cat.className = "cat"; cat.textContent = "Prospecção"; nome.appendChild(cat); }
       const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = v.tipo;
       l1.append(nome, tag);
       const l2 = document.createElement("div"); l2.className = "l2"; l2.textContent = s.texto.replace(/^(AVCB|CLCB) /, "").replace(/^./, m => m.toUpperCase());
       c.append(l1, l2);
       const extra = [v.endereco, v.cnpj && `CNPJ/CPF ${v.cnpj}`].filter(Boolean).join(" · ");
       if (extra) { const l3 = document.createElement("div"); l3.className = "l3"; l3.textContent = extra; c.appendChild(l3); }
+      if (v.reg?.obs) { const l3 = document.createElement("div"); l3.className = "l3"; l3.textContent = "Obs.: " + v.reg.obs; c.appendChild(l3); }
+      if (v.reg) {
+        const l4 = document.createElement("div"); l4.className = "l4";
+        const quando = v.reg.fotografadoEm ? dataBRde(dataISO(new Date(v.reg.fotografadoEm))) : "";
+        l4.textContent = `📷 ${v.reg.fotografadoPor || ""}${quando ? " · " + quando : ""}`;
+        if (v.reg.pendente) l4.append(" · ⏳ aguardando envio");
+        else if (v.reg.foto) {
+          const a = document.createElement("a"); a.href = v.reg.foto; a.target = "_blank"; a.rel = "noopener"; a.textContent = "ver foto";
+          l4.append(" · ", a);
+        }
+        c.appendChild(l4);
+      }
       lista.appendChild(c);
     }
   }
-  if (!filtrados.length) { const p = document.createElement("p"); p.className = "avcb-nota"; p.textContent = "Nenhum cliente encontrado."; lista.appendChild(p); }
-  $("avcb-nota").textContent = `Lista copiada do painel "Validade AVCB/CLCB" em ${CONFIG.validadeAvcbData}. Para atualizar, peça a revisão da lista no app.`;
+  if (!filtrados.length) { const p = document.createElement("p"); p.className = "avcb-nota"; p.textContent = "Nenhum estabelecimento encontrado."; lista.appendChild(p); }
+  const n = Object.keys(regsAvcb).length;
+  $("avcb-nota").textContent = `Lista do painel "Validade AVCB/CLCB" copiada em ${CONFIG.validadeAvcbData}` +
+    (n ? ` + ${n} AVCB${n > 1 ? "s" : ""} fotografado${n > 1 ? "s" : ""} pela equipe.` : ".") +
+    ` As fotos ficam em ${CONFIG.pastaClientesNome} › ${CONFIG.pastaAvcb}.`;
 }
 
-// contador no botão AVCB: vencidos + vencendo em até 3 meses
+// contador no botão AVCB: clientes vencidos + vencendo em até 3 meses (prospecção não conta)
 function atualizarBadgeAvcb() {
-  const n = CONFIG.validadeAvcb.filter(v => situacaoAvcb(v).cls !== "ok").length;
+  const n = listaAvcb().filter(v => v.categoria === "cliente" && situacaoAvcb(v).cls !== "ok").length;
   $("avcb-qtd").hidden = !n;
   $("avcb-qtd").textContent = n;
 }
@@ -1946,12 +2044,204 @@ function abrirAvcb() {
   $("tela-avcb").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ avcb: true }, "");           // o "voltar" do Android fecha a tela
+  sincronizarAvcb();
 }
 function fecharAvcb(voltar = true) {
   if ($("tela-avcb").hidden) return;
   $("tela-avcb").hidden = true;
   document.body.style.overflow = "";
   if (voltar && history.state?.avcb) history.back();
+}
+function filtrarAvcb(f) {
+  filtroAvcb = f;
+  $("avcb-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === f)));
+  desenharAvcb();
+}
+
+// lê a pasta 00 - Validade AVCB: baixa só os .json novos ou alterados; a foto vira o link "ver foto"
+async function sincronizarAvcb() {
+  if (!conta || !navigator.onLine || sincronizarAvcb.rodando) return;
+  sincronizarAvcb.rodando = true;
+  try {
+    const pasta = await pastaDe({ modo: "avcb" });
+    let url = `/drives/${CONFIG.driveId}/items/${pasta.id}/children?$top=999`;
+    const itens = [];
+    while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
+    const semExt = n => n.replace(/\.[^.]+$/, "");
+    const fotosAvcb = new Map(itens.filter(i => i.file && !/\.json$/i.test(i.name)).map(i => [semExt(i.name), i.webUrl]));
+    const novo = {};
+    for (const i of itens.filter(i => i.file && /\.json$/i.test(i.name))) {
+      const chave = semExt(i.name), velho = regsAvcb[chave];
+      let r = velho && !velho.pendente && velho.etag === i.eTag ? velho : null;
+      if (!r) {
+        try { r = await (await fetch(i["@microsoft.graph.downloadUrl"])).json(); }
+        catch (e) { console.error(e); if (velho) r = velho; else continue; }
+      }
+      novo[chave] = { ...r, etag: i.eTag, foto: fotosAvcb.get(chave) || null, pendente: false };
+    }
+    for (const [k, r] of Object.entries(regsAvcb)) if (r.pendente && !novo[k]) novo[k] = r;   // ainda na fila deste celular
+    regsAvcb = novo;
+    gravarLS("vpx_avcb_reg", regsAvcb);
+    $("avcb-sinc").textContent = "";
+  } catch (e) {
+    console.error(e);
+    $("avcb-sinc").textContent = e.status === 403 || e.status === 404
+      ? `Sem acesso à pasta "${CONFIG.pastaAvcb}". Mostrando a última lista guardada.`
+      : "Não foi possível atualizar os AVCBs fotografados. Mostrando a última lista guardada.";
+  } finally { sincronizarAvcb.rodando = false; }
+  if (!$("tela-avcb").hidden) desenharAvcb();
+  atualizarBadgeAvcb();
+  atualizar();
+}
+
+/* ---------- fotografar AVCB: leitura automática (Tesseract.js, no próprio celular) + conferência ---------- */
+const TESSERACT = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+let novoAvcb = null;                               // { arquivo, url } da foto que está sendo conferida
+
+// um leitor só, criado na primeira vez (baixa ~5 MB: o programa e o dicionário de português; depois fica no celular)
+function obterOcr() {
+  return obterOcr.p ||= (async () => {
+    if (!window.Tesseract) await carregarScript(TESSERACT);
+    return Tesseract.createWorker("por");
+  })().catch(e => { obterOcr.p = null; throw e; });
+}
+
+// tira os campos do texto lido. Formato do Corpo de Bombeiros da Bahia: "AVCB Nº 08407/2025", "RAZÃO SOCIAL:",
+// "NOME FANTASIA:", "CNPJ:", "LOGRADOURO: …, Nº: …", "BAIRRO:", "MUNICÍPIO:", "Válido até dd/mm/aaaa" (CLCB: "VALIDADE:")
+function lerCamposAvcb(texto) {
+  const t = texto.replace(/[|]/g, " ").replace(/\s+/g, " ");
+  const pega = (re, i = 1) => { const m = t.match(re); return m ? m[i].trim().replace(/[\s,;:*\-—–]+$/, "") : ""; };
+  const ate = "(?=[\\s.,;]+(?:NOME FANTASIA|RAZ[ÃA]O SOCIAL|CNPJ|CPF|CEP|ENDERE[ÇC]O|LOGRADOURO|BAIRRO|MUNIC[ÍI]PIO|COMPLEMENTO|OCUPA[ÇC][ÃA]O|ATIVIDADE|PROPRIET|RESPONS|[ÁA]REA|RISCO|ALTURA)\\b|$)";
+  const tipo = (t.match(/\b(AVCB|CLCB)\b/) || [])[1] || "";
+  const numero = pega(/\b(?:AVCB|CLCB)\s*N\s*[º°o.]?\s*[:.]?\s*(\d[\d.]*\s*\/\s*\d{4})/i).replace(/\s/g, "");
+  const val = t.match(/(?:V[áa]lid[oa]\s*at[ée]|VALIDADE)\s*[:\-]?\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{4})/i);
+  const validade = val ? `${val[3]}-${val[2].padStart(2, "0")}-${val[1].padStart(2, "0")}` : "";
+  const razao = pega(new RegExp("RAZ[ÃA]O SOCIAL\\s*:?\\s*(.+?)" + ate, "i"));
+  const fantasia = pega(new RegExp("NOME FANTASIA\\s*:?\\s*(.+?)" + ate, "i"));
+  const doc = digitos((t.match(/(?:CNPJ|CPF)\s*:?\s*([\d.\/\-\s]{11,22})/i) || [])[1]);
+  const logr = pega(new RegExp("LOGRADOURO\\s*:?\\s*(.+?)(?=\\s*,?\\s*N\\s*[º°o]\\s*:|" + ate.slice(3), "i"));
+  const num = pega(/LOGRADOURO.+?\bN\s*[º°o]\s*:?\s*([\w\/-]+)/i);
+  const bairro = pega(new RegExp("BAIRRO\\s*:?\\s*(.+?)" + ate, "i"));
+  const munic = pega(new RegExp("MUNIC[ÍI]PIO\\s*:?\\s*(.+?)" + ate, "i"));
+  const endereco = [tit(logr), num, tit(bairro), tit(munic)].filter(Boolean).join(", ");
+  return { tipo, numero, validade, nome: tit(fantasia || razao), razao: tit(razao), cnpj: formatarDoc(doc), endereco };
+}
+// "EDIFICIO BEACH CLASS IV" → "Edificio Beach Class IV" (de/da/do minúsculos; LTDA, SPE e números romanos maiúsculos)
+function tit(s) {
+  return (s || "").toLowerCase().replace(/(^|[\s(\/-])(\S)/g, (m, a, b) => a + b.toUpperCase())
+    .replace(/(?<!\p{L})(De|Da|Do|Das|Dos|E|Em)(?!\p{L})/gu, w => w.toLowerCase())
+    .replace(/(?<!\p{L})(Ltda|Spe|Me|Epp|Ii|Iii|Iv|Vi|Vii|Viii|Ix|Xi|Xii)(?!\p{L})/gu, w => w.toUpperCase())
+    .replace(/^./, m => m.toUpperCase());
+}
+function formatarDoc(d) {
+  return d.length === 14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5")
+    : d.length === 11 ? d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4") : "";
+}
+
+// foto grande demais deixa a leitura lenta: reduz para no máximo 2400 px, já na posição certa
+async function imagemParaOcr(arquivo) {
+  const bmp = await createImageBitmap(arquivo, { imageOrientation: "from-image" });
+  const esc = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width * esc); c.height = Math.round(bmp.height * esc);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  bmp.close();
+  return c;
+}
+
+const CAMPOS_AN = ["an-nome", "an-validade", "an-numero", "an-cnpj", "an-endereco", "an-razao", "an-obs"];
+const chipDe = id => $(id).querySelector('[aria-pressed="true"]')?.dataset.v || "";
+const marcarChip = (id, v) => $(id).querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
+
+function aoEscolherFotoAvcb(e) {
+  const arquivo = e.target.files?.[0];
+  e.target.value = "";
+  if (arquivo) abrirNovoAvcb(arquivo);
+}
+function abrirNovoAvcb(arquivo) {
+  novoAvcb = { arquivo, url: URL.createObjectURL(arquivo) };
+  $("an-foto").src = novoAvcb.url;
+  CAMPOS_AN.forEach(id => $(id).value = "");
+  marcarChip("an-cat", ""); marcarChip("an-tipo", "");
+  $("tela-avcb-novo").hidden = false;
+  $("tela-avcb-novo").querySelector(".avcb-corpo").scrollTop = 0;
+  history.pushState({ avcbNovo: true }, "");
+  conferirAvcb();
+  lerFotoAvcb(novoAvcb);
+}
+function fecharNovoAvcb(voltar = true) {
+  if ($("tela-avcb-novo").hidden) return;
+  $("tela-avcb-novo").hidden = true;
+  if (novoAvcb) URL.revokeObjectURL(novoAvcb.url);
+  novoAvcb = null;
+  $("an-foto").removeAttribute("src");
+  if (voltar && history.state?.avcbNovo) history.back();
+}
+
+async function lerFotoAvcb(este) {
+  const st = $("an-status");
+  st.textContent = "🔎 Lendo o documento… (alguns segundos)";
+  try {
+    const [ocr, img] = await Promise.all([obterOcr(), imagemParaOcr(este.arquivo)]);
+    const { data } = await ocr.recognize(img, { rotateAuto: true });
+    if (novoAvcb !== este) return;                 // a pessoa cancelou ou tirou outra foto
+    const c = lerCamposAvcb(data.text || "");
+    const preencher = (id, v) => { if (v && !$(id).value) $(id).value = v; };   // não apaga o que a pessoa já digitou
+    preencher("an-nome", c.nome); preencher("an-validade", c.validade); preencher("an-numero", c.numero);
+    preencher("an-cnpj", c.cnpj); preencher("an-endereco", c.endereco);
+    if (c.razao && c.razao !== c.nome) preencher("an-razao", c.razao);
+    if (c.tipo && !chipDe("an-tipo")) marcarChip("an-tipo", c.tipo);
+    const achou = [c.nome, c.validade, c.tipo].filter(Boolean).length;
+    st.textContent = achou === 3 ? "✓ Documento lido. Confira cada campo com a foto antes de salvar."
+      : achou ? "⚠ Parte do documento foi lida. Confira e complete os campos vazios."
+      : "⚠ Não deu para ler este documento. Preencha os campos olhando a foto (ou tire outra foto mais de perto, sem reflexo).";
+  } catch (e) {
+    console.error(e);
+    if (novoAvcb !== este) return;
+    st.textContent = navigator.onLine ? "⚠ Não deu para ler automaticamente. Preencha os campos olhando a foto."
+      : "Sem internet para a leitura automática (só funciona offline depois do primeiro uso). Preencha os campos olhando a foto.";
+  }
+  conferirAvcb();
+}
+
+function dadosNovoAvcb() {
+  const v = id => $(id).value.trim();
+  return { nome: v("an-nome"), tipo: chipDe("an-tipo"), validade: v("an-validade"), categoria: chipDe("an-cat"),
+    numero: v("an-numero"), cnpj: formatarDoc(digitos(v("an-cnpj"))) || v("an-cnpj"), endereco: v("an-endereco"), razao: v("an-razao"), obs: v("an-obs") };
+}
+function faltaAvcb(d) {
+  if (!d.categoria) return "Escolha Cliente ou Prospecção";
+  if (!d.nome) return "Preencha o estabelecimento";
+  if (!d.tipo) return "Escolha AVCB ou CLCB";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d.validade)) return "Preencha a validade";
+  return "";
+}
+function conferirAvcb() {
+  const falta = faltaAvcb(dadosNovoAvcb());
+  $("an-salvar").disabled = !!falta;
+  $("an-salvar").textContent = falta || "Salvar AVCB";
+}
+
+// salva a foto + os dados (.json) na fila: chegam ao OneDrive agora ou quando a internet voltar
+async function salvarAvcb() {
+  const d = dadosNovoAvcb();
+  if (faltaAvcb(d) || !novoAvcb) return;
+  const agora = new Date();
+  const nomeBase = `AVCB_${limparNome(d.nome).slice(0, 60)}_${dataISO(agora)}_${pad(agora.getHours())}${pad(agora.getMinutes())}${pad(agora.getSeconds())}`;
+  const reg = { versao: 1, ...d, fotografadoPor: nomeColaborador(), fotografadoEm: agora.toISOString() };
+  const json = new File([JSON.stringify(reg, null, 2)], nomeBase + ".json", { type: "application/json", lastModified: agora.getTime() });
+  const itens = [novoAvcb.arquivo, json].map(arquivo => ({
+    id: ++seq, modo: "avcb", arquivo, url: "", st: "pendente", dest: { modo: "avcb" }, prefixo: nomeBase, nomeBase
+  }));
+  for (const f of itens) { listaDe("avcb").push(f); await guardarItem(f, true); }
+  regsAvcb[nomeBase] = { ...reg, pendente: true, foto: null };
+  gravarLS("vpx_avcb_reg", regsAvcb);
+  fecharNovoAvcb();
+  if (d.categoria !== filtroAvcb && filtroAvcb !== "todos") filtrarAvcb("todos"); else desenharAvcb();
+  atualizarBadgeAvcb();
+  atualizar();
+  aviso(navigator.onLine ? `${d.tipo} de ${d.nome} salvo. Enviando para o OneDrive…` : `${d.tipo} de ${d.nome} guardado no celular. Será enviado quando a internet voltar.`);
+  await tentarPendentes();
 }
 
 /* ---------- agenda do Outlook (de cada pessoa) ----------
@@ -2131,12 +2421,13 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "com", "comp"]) {
+  for (const m of ["visita", "com", "comp", "avcb"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
   atualizar();
   if (r.ok) aviso(`${r.ok} ${r.ok > 1 ? "itens da fila foram enviados" : "item da fila foi enviado"} para o OneDrive.`);
+  if (fila.some(f => f.modo === "avcb" && f.st === "ok")) sincronizarAvcb();   // AVCB fotografado chegou: atualiza a lista
 }
 
 // ao abrir o app: devolve à lista o que estava guardado no celular
@@ -2180,6 +2471,7 @@ async function iniciarApp() {
   atualizarBadgeAvcb();
   mostrar("tela-app"); aplicarModo();
   carregarClientes();
+  sincronizarAvcb();                              // AVCBs fotografados pela equipe (contador do botão AVCB)
   await restaurarItens();                         // fotos guardadas no celular da última vez
   tentarPendentes();
   if (lerLS("vpx_abrir_agenda", false)) { gravarLS("vpx_abrir_agenda", false); abrirAgenda(); }   // voltou da autorização da agenda
@@ -2215,13 +2507,23 @@ $("cam-disparo").onclick = disparar;
 document.querySelectorAll("#cam-modos button").forEach(b => b.onclick = () => definirModo(b.dataset.modo));
 $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
-window.addEventListener("popstate", () => { if (cam) fecharCamera(false); fecharVisor(false); fecharAvcb(false); fecharAgenda(false); });
+window.addEventListener("popstate", () => {
+  if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
+  if (cam) fecharCamera(false); fecharVisor(false); fecharAvcb(false); fecharAgenda(false);
+});
 $("btn-agenda").onclick = abrirAgenda;
 $("agenda-voltar").onclick = () => fecharAgenda();
 $("agenda-hoje").onclick = irParaHoje;
 $("btn-avcb").onclick = abrirAvcb;
 $("avcb-voltar").onclick = () => fecharAvcb();
 $("avcb-busca").oninput = desenharAvcb;
+$("avcb-filtro").querySelectorAll("button").forEach(b => b.onclick = () => filtrarAvcb(b.dataset.f));
+$("in-avcb-cam").onchange = aoEscolherFotoAvcb;
+$("in-avcb-gal").onchange = aoEscolherFotoAvcb;
+$("an-cancelar").onclick = () => fecharNovoAvcb();
+["an-cat", "an-tipo"].forEach(id => $(id).querySelectorAll("button").forEach(b => b.onclick = () => { marcarChip(id, b.dataset.v); conferirAvcb(); }));
+CAMPOS_AN.forEach(id => $(id).oninput = conferirAvcb);
+$("an-salvar").onclick = salvarAvcb;
 document.addEventListener("visibilitychange", () => {
   if (!cam || cam.ocupado) return;
   if (document.hidden) { pararGravacao(); desligarCamera(cam); }   // salva o vídeo em andamento e libera a câmera quando o app sai da tela

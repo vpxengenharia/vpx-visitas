@@ -81,6 +81,8 @@ O botão de **calendário**, no topo, mostra a sua agenda do Outlook de 30 dias 
 
 O botão **AVCB**, no topo, abre a lista de clientes com a validade do AVCB/CLCB: vencidos, que vencem em até 3 meses e em dia (o número vermelho no botão é vencidos + vencendo). Ao escolher um cliente que está na lista (Visita técnica ou Comercial), aparece um aviso colorido, por exemplo "AVCB vence em 10 dias". A lista é copiada do painel "Validade AVCB/CLCB" do Claude e precisa ser atualizada quando o painel mudar.
 
+**Fotografar AVCB:** na tela AVCB, toque em **Fotografar AVCB** (ou **Galeria**) e fotografe o documento de perto, reto e sem reflexo. O app lê sozinho o nome, o tipo (AVCB/CLCB), o número, a validade, o CNPJ e o endereço. **Confira cada campo com a foto**, corrija se precisar, escolha **Cliente** ou **Prospecção** e toque em **Salvar AVCB**. A foto e os dados vão para *02 - Clientes › 00 - Validade AVCB* e o estabelecimento passa a aparecer na lista de todos (use os botões Todos / Clientes / Prospecção para filtrar). Sem internet, fica guardado com ⏳ e é enviado quando o sinal voltar. A leitura automática precisa de internet na primeira vez que é usada no celular; sem ela, é só preencher os campos à mão.
+
 ### Comercial (ficha de levantamento)
 
 1. Toque na aba **Comercial** e escolha o **cliente**.
