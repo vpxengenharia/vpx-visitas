@@ -428,7 +428,7 @@ function bdTx(modoTx, fn) {
 function guardarItem(f, comArquivo = false) {
   const meta = {
     id: f.id, modo: f.modo, nome: f.arquivo.name, tipo: f.arquivo.type, lm: f.arquivo.lastModified,
-    video: !!f.video, pdf: !!f.pdf, st: f.st === "enviando" ? "pendente" : f.st, dest: f.dest || null, nomeBase: f.nomeBase || null
+    video: !!f.video, pdf: !!f.pdf, st: f.st === "enviando" ? "pendente" : f.st, dest: f.dest || null, prefixo: f.prefixo || null, nomeBase: f.nomeBase || null
   };
   return bdTx("readwrite", (itens, arqs) => { itens.put(meta); if (comArquivo) arqs.put(f.arquivo, f.id); }).catch(e => {
     console.error(e);
@@ -685,15 +685,29 @@ function destinoAtual() {
   return { modo: "visita", autor, cliente, caminho: caminhoVisita(), data: dataISO() };
 }
 
-// nome do arquivo sem a extensão (a extensão é decidida na hora do envio)
-// visita: Colaborador_AAAA-MM-DD_NN (nome na frente, como nos comprovantes; sem hora)
-// comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_CentroDeCusto_NN (data da própria foto; nome na frente agrupa por pessoa)
-function nomeBaseDe(f, d, n) {
+// início do nome do arquivo (sem o número e sem a extensão, que são decididos na hora do envio)
+// visita: Colaborador_AAAA-MM-DD  → arquivo Colaborador_AAAA-MM-DD_NN (nome na frente, como nos comprovantes; sem hora)
+// comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_CentroDeCusto → ..._NN (data da própria foto)
+function prefixoDe(f, d) {
   const quando = new Date(f.arquivo.lastModified || Date.now());
   return d.modo === "comp"
-    ? `${d.autor}_${dataISO(quando)}_${d.rotuloTipo}${d.pag}_${d.desc}${d.cli}_${pad(n)}`
-    : `${d.autor}_${d.data}_${pad(n)}`;
+    ? `${d.autor}_${dataISO(quando)}_${d.rotuloTipo}${d.pag}_${d.desc}${d.cli}`
+    : `${d.autor}_${d.data}`;
 }
+
+// numeração contínua: o NN continua do maior número já existente na pasta para o mesmo início de nome
+// (ex.: se já há João da Silva_2026-10-12_01 e _02, o próximo envio do dia começa em _03)
+async function listarNomes(pastaId) {
+  const nomes = [];
+  let url = `/drives/${CONFIG.driveId}/items/${pastaId}/children?$select=name&$top=999`;
+  while (url) {
+    const r = await graph(url);
+    r.value.forEach(i => nomes.push(i.name));
+    url = r["@odata.nextLink"];
+  }
+  return nomes;
+}
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // pasta do OneDrive de um destino; criada (se faltar) uma vez só por envio
 const pastasCache = new Map();
@@ -1299,6 +1313,32 @@ async function enviarFila(lista, visivel) {
   if (visivel) $("progresso").hidden = false;
   prog(); atualizar();
 
+  // numeração: lê os nomes da pasta uma vez por envio e continua do maior número usado
+  const nomesPasta = new Map(), contadores = new Map();
+  const numerar = async f => {
+    if (f.nomeBase) return f.nomeBase;              // já numerado (ou item salvo por versão anterior do app)
+    const pasta = await pastaDe(f.dest);
+    if (!nomesPasta.has(pasta.id)) {
+      const p = listarNomes(pasta.id);
+      p.catch(() => nomesPasta.delete(pasta.id));
+      nomesPasta.set(pasta.id, p);
+    }
+    const nomes = await nomesPasta.get(pasta.id);
+    const chave = pasta.id + "|" + f.prefixo.toLowerCase();
+    if (!contadores.has(chave)) {
+      // "Prefixo_07.jpg" ou "Prefixo_07 1.jpg" (cópia renomeada pelo OneDrive)
+      const re = new RegExp(`^${escRe(f.prefixo)}_(\\d+)(?: \\d+)?\\.[^.]+$`, "i");
+      contadores.set(chave, nomes.reduce((mx, n) => { const m = n.match(re); return m ? Math.max(mx, +m[1]) : mx; }, 0));
+    }
+    const n = contadores.get(chave) + 1;
+    contadores.set(chave, n);
+    f.nomeBase = `${f.prefixo}_${pad(n)}`;
+    guardarItem(f);                                 // o número fica reservado mesmo se o envio falhar agora
+    return f.nomeBase;
+  };
+  // numera na ordem da lista antes de enviar (os envios rodam em paralelo); se falhar (ex.: sem internet), tenta no envio
+  for (const f of fila) { try { await numerar(f); } catch {} }
+
   const trabalhar = async () => {
     while (fila.length) {
       const f = fila.shift();
@@ -1307,11 +1347,12 @@ async function enviarFila(lista, visivel) {
       try {
         const pasta = await pastaDe(f.dest);
         r.pasta ||= pasta;
+        const nomeBase = await numerar(f);
         const { blob, ext } = await reduzir(f.arquivo);
         const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
         // se a foto foi reduzida, converte o progresso para o tamanho original
         const fator = f.arquivo.size / (blob.size || 1);
-        await enviarArquivo(pasta.id, `${f.nomeBase}.${extensao}`, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
+        await enviarArquivo(pasta.id, `${nomeBase}.${extensao}`, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
         f.st = "ok"; r.ok++;
         apagarItem(f.id);                               // chegou ao OneDrive: pode sair do celular
       } catch (e) {
@@ -1345,7 +1386,7 @@ async function salvar() {
   // congela o destino e o nome de cada item novo: se não der para enviar agora, ele vai depois para o lugar certo
   if (novos.length) {
     const d = destinoAtual();
-    novos.forEach(f => { f.dest = d; f.nomeBase = nomeBaseDe(f, d, fotos.indexOf(f) + 1); guardarItem(f); });
+    novos.forEach(f => { f.dest = d; f.prefixo = prefixoDe(f, d); guardarItem(f); });
   }
   const fila = fotos.filter(f => f.st !== "ok");
   if (!fila.length) return;
@@ -1392,7 +1433,7 @@ async function restaurarItens() {
     const arquivo = new File([r.blob], r.nome, { type: r.tipo, lastModified: r.lm });
     const item = {
       id: r.id, modo: r.modo, arquivo, url: URL.createObjectURL(arquivo), video: r.video, pdf: r.pdf,
-      dest: r.dest, nomeBase: r.nomeBase, st: r.dest ? (r.st === "erro" ? "erro" : "pendente") : "nova"
+      dest: r.dest, prefixo: r.prefixo, nomeBase: r.nomeBase, st: r.dest ? (r.st === "erro" ? "erro" : "pendente") : "nova"
     };
     listaDe(r.modo).push(item);
     if (item.video) gerarCapa(item);
