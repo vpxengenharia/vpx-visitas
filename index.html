@@ -745,7 +745,7 @@ async function gerarFichaPDF(dados, cli, autor, arquivos) {
 
   try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18); } catch {}
   doc.setFont("helvetica", "bold"); doc.setFontSize(17); doc.setTextColor(...AZUL);
-  doc.text("Levantamento Comercial", 210 - M, y + 7, { align: "right" });
+  doc.text("Relatório de Visita", 210 - M, y + 7, { align: "right" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
   doc.text(`Cliente: ${cli}`, 210 - M, y + 13, { align: "right" });
   doc.text(`Data: ${dataBR}   -   Responsável: ${autor}`, 210 - M, y + 18, { align: "right" });
@@ -798,7 +798,7 @@ async function gerarFichaPDF(dados, cli, autor, arquivos) {
   for (let p = 1; p <= total; p++) {
     doc.setPage(p);
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...CINZA);
-    doc.text(`VPX Engenharia  -  Levantamento comercial  -  ${cli}  -  página ${p} de ${total}`, 105, 290, { align: "center" });
+    doc.text(`VPX Engenharia  -  Relatório de visita  -  ${cli}  -  página ${p} de ${total}`, 105, 290, { align: "center" });
   }
   return doc.output("blob");
 }
@@ -1622,9 +1622,9 @@ async function salvar() {
     let pdf;
     try { pdf = await gerarFichaPDF({ ...ficha }, cliente, d.autor, novos.filter(f => !f.pdf).map(f => f.arquivo)); }
     catch (e) { console.error(e); aviso("Não foi possível gerar o PDF da ficha: " + e.message, true); return; }
-    const arquivo = new File([pdf], "Levantamento Comercial.pdf", { type: "application/pdf", lastModified: Date.now() });
+    const arquivo = new File([pdf], "Relatório de Visita.pdf", { type: "application/pdf", lastModified: Date.now() });
     const item = { id: ++seq, modo: "com", arquivo, url: URL.createObjectURL(arquivo), st: "nova", pdf: true, dest: d,
-      prefixo: `${prefixoDe({ arquivo }, d)}_Levantamento Comercial` };   // ex.: João da Silva_2026-10-12_Diamond_Levantamento Comercial_01.pdf
+      prefixo: `${prefixoDe({ arquivo }, d)}_Relatório de Visita` };   // ex.: João da Silva_2026-10-12_Diamond_Relatório de Visita_01.pdf
     fotos.unshift(item);
     await guardarItem(item, true);
     limparFicha();                                // o PDF já está guardado no celular: a ficha pode ser zerada

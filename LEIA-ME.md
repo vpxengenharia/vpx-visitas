@@ -78,7 +78,7 @@ Vídeos são grandes (1 minuto pode passar de 100 MB): no 4G o envio demora. Se 
 1. Toque na aba **Comercial** e escolha o **cliente**.
 2. Preencha a ficha: edificação (tipo, ano, andares, garagem, torres, unidades, área), situação no Corpo de Bombeiros (AVCB, validade, projeto aprovado, notificação), sistemas existentes (inclui gerador), contatos (síndico, administradora, zelador) e dados comerciais (serviços de interesse, urgência, como conheceu a VPX, próximo passo, observações). Obrigatórios: tipo da edificação, andares, se já tem AVCB e pelo menos um telefone de contato.
 3. Se quiser, tire fotos (fachada, casa de bombas, hidrantes…) — só foto, sem vídeo.
-4. **Salvar ficha** → gera um PDF com as respostas e as fotos e salva tudo em *02 - Clientes › [Cliente] › 06 - Fotos e Visitas Técnicas*, junto com as fotos de visita. O PDF se chama, por exemplo, `João da Silva_2026-10-12_Diamond_Levantamento Comercial_01.pdf`.
+4. **Salvar ficha** → gera um PDF com as respostas e as fotos e salva tudo em *02 - Clientes › [Cliente] › 06 - Fotos e Visitas Técnicas*, junto com as fotos de visita. O PDF se chama, por exemplo, `João da Silva_2026-10-12_Diamond_Relatório de Visita_01.pdf`.
 
 O que for preenchido fica guardado no celular até salvar (se o app fechar, a ficha volta). Funciona sem internet: o PDF é gerado no celular e enviado quando o sinal voltar.
 
