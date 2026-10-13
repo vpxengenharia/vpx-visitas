@@ -50,6 +50,27 @@ button,input,label{font:inherit}
 .avcb-qtd{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;border-radius:10px;background:var(--erro);color:#fff;font-family:var(--texto-fonte);font-size:12px;font-weight:700;display:grid;place-items:center;padding:0 5px}
 .avcb-qtd[hidden]{display:none}
 .avcb-btn:focus-visible,.avcb-voltar:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.btn-arq{display:flex;align-items:baseline;gap:8px;width:100%;margin-top:8px;min-height:48px;padding:0 14px;border-radius:12px;border:1.5px solid var(--linha);background:var(--papel);color:var(--marinho);font-size:16px;font-weight:700;text-align:left;cursor:pointer}
+.btn-arq span{white-space:nowrap}
+.btn-arq small{font-weight:400;font-size:13px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.btn-arq[hidden]{display:none}
+@media (prefers-color-scheme:dark){.btn-arq{color:var(--tinta)}}
+.arq-trilha{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-bottom:6px;color:var(--suave);font-size:14px}
+.arq-trilha button{background:none;border:0;color:var(--marinho);font-weight:600;font-size:14px;text-decoration:underline;cursor:pointer;padding:6px 2px;min-height:36px}
+.arq-trilha button:disabled{color:var(--tinta);text-decoration:none;cursor:default}
+@media (prefers-color-scheme:dark){.arq-trilha button{color:var(--laranja)}}
+.arq-lista{list-style:none;margin:8px 0 0;padding:0}
+.arq-item{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:8px 12px;margin-bottom:6px;border-radius:12px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);text-align:left;cursor:pointer}
+.arq-ico{font-size:24px;flex:none}
+.arq-txt{flex:1;min-width:0}
+.arq-txt strong{display:block;font-size:15.5px;font-weight:600;overflow-wrap:anywhere}
+.arq-txt small{color:var(--suave);font-size:13px}
+.arq-ok{flex:none;font-size:12px;font-weight:700;color:#1F7A45}
+#arq-baixar{width:100%;margin:6px 0 4px}
+#arq-prog{margin:8px 0}
+#arq-prog .trilho{height:8px;border-radius:4px;background:var(--linha);overflow:hidden}
+#arq-cheio{height:100%;width:0;background:var(--laranja);transition:width .2s}
+#arq-prog p{display:flex;justify-content:space-between;align-items:center;margin:6px 2px 0;font-size:14px;color:var(--suave)}
 .avcb-aviso{margin:8px 2px 0;padding:8px 12px;border-radius:10px;font-size:15px;font-weight:600;line-height:1.3}
 .avcb-aviso.crit,.avcb-card.crit,.avcb-resumo .crit{background:var(--crit-bg);color:var(--crit-tx)}
 .avcb-aviso.warn,.avcb-card.warn,.avcb-resumo .warn{background:var(--warn-bg);color:var(--warn-tx)}
@@ -235,6 +256,13 @@ p{margin:0 0 14px;max-width:60ch}
 .visor-paginas{flex:1;overflow:auto;padding:8px 8px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-overflow-scrolling:touch}
 .visor-paginas canvas{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);max-width:100%;height:auto}
 .visor-msg{color:#fff;text-align:center;margin:40px 16px}
+.visor-paginas.zoom{align-items:flex-start}
+.visor-paginas.zoom canvas,.visor-paginas.zoom img{max-width:none}
+.visor-paginas img{max-width:100%;height:auto;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.visor-zoom{position:absolute;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:4px;background:rgba(19,37,59,.92);border-radius:999px;padding:4px;color:#fff}
+.visor-zoom[hidden]{display:none}
+.visor-zoom button{width:48px;height:48px;border-radius:50%;border:0;background:transparent;color:#fff;font-size:26px;cursor:pointer}
+.visor-zoom span{min-width:30px;text-align:center;font-weight:700}
 
 dialog{border:0;padding:0;width:100%;max-width:720px;height:100%;max-height:100%;margin:0 auto;background:var(--fundo);color:var(--tinta)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
@@ -368,6 +396,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <strong id="nome-cliente">Escolher cliente</strong>
     </button>
     <p class="avcb-aviso" id="avcb-aviso" hidden></p>
+    <button class="btn-arq" id="btn-arq" hidden><span>📁 Arquivos do cliente</span><small>plantas e projetos</small></button>
     <p class="destino" id="destino"></p>
     <p class="fila" id="fila" role="status" hidden></p>
     <div id="form-com" hidden></div>
@@ -459,6 +488,21 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   Gire o celular para a vertical
 </div>
 
+<div class="tela-avcb" id="tela-arq" hidden role="dialog" aria-label="Arquivos do cliente">
+  <div class="avcb-topo"><button class="avcb-voltar" id="arq-voltar">‹ Voltar</button><strong id="arq-titulo">Arquivos</strong></div>
+  <div class="avcb-corpo">
+    <div class="arq-trilha" id="arq-trilha"></div>
+    <p class="avcb-nota" id="arq-estado" style="margin-top:4px"></p>
+    <button class="btn sec" id="arq-baixar" hidden>⬇ Baixar esta pasta para usar sem internet</button>
+    <div id="arq-prog" hidden>
+      <div class="trilho"><div id="arq-cheio"></div></div>
+      <p><span id="arq-txtprog"></span><button class="laudo-link perigo" id="arq-cancelar">Cancelar</button></p>
+    </div>
+    <ul class="arq-lista" id="arq-lista"></ul>
+    <button class="laudo-link perigo" id="arq-limpar" hidden></button>
+  </div>
+</div>
+
 <div class="visor-pdf" id="visor-pdf" hidden role="dialog" aria-label="Relatório de Visita">
   <div class="visor-topo">
     <button class="visor-btn" id="visor-fechar">Fechar</button>
@@ -466,6 +510,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <button class="visor-btn" id="visor-comp">Compartilhar</button>
   </div>
   <div class="visor-paginas" id="visor-paginas"></div>
+  <div class="visor-zoom" id="visor-zoom" hidden><button id="visor-menos" aria-label="Diminuir zoom">−</button><span id="visor-zoom-n">1×</span><button id="visor-mais" aria-label="Aumentar zoom">+</button></div>
 </div>
 
 <div class="tela-avcb" id="tela-agenda" hidden role="dialog" aria-label="Agenda">
@@ -2251,6 +2296,7 @@ function atualizar() {
     ? (tipo ? "Salvar em: " + caminhoComp() : "")
     : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" ? caminhoLaudo() : caminhoVisita()).replace(/\//g, " › ") : "");
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
+  $("btn-arq").hidden = comp || !cliente;
 
   const g = $("grade");
   g.innerHTML = "";
@@ -2584,8 +2630,10 @@ function arquivoRelatorio() {
 // menu de compartilhar do celular (WhatsApp, e-mail, Teams, Arquivos…); sem ele (computador), baixa o PDF
 async function compartilharRelatorio() {
   if (!relatorio) return;
-  const arquivo = arquivoRelatorio();
-  const dados = { files: [arquivo], title: relatorio.titulo, text: `${relatorio.titulo} - ${relatorio.cliente}` };
+  compartilharArquivo(arquivoRelatorio(), relatorio.titulo, `${relatorio.titulo} - ${relatorio.cliente}`);
+}
+async function compartilharArquivo(arquivo, titulo, texto) {
+  const dados = { files: [arquivo], title: titulo, text: texto };
   if (navigator.canShare?.(dados)) {
     try { await navigator.share(dados); }
     catch (e) { if (e.name !== "AbortError") aviso("Não foi possível compartilhar: " + e.message, true); }
@@ -2595,7 +2643,7 @@ async function compartilharRelatorio() {
   a.href = URL.createObjectURL(arquivo); a.download = arquivo.name;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 15000);
-  aviso("Este aparelho não compartilha arquivos direto. O PDF foi baixado: anexe-o no e-mail ou no WhatsApp.");
+  aviso("Este aparelho não compartilha arquivos direto. O arquivo foi baixado: anexe-o no e-mail ou no WhatsApp.");
 }
 
 // visualizador: desenha as páginas do PDF dentro do app (pdf.js, carregado só quando precisa; funciona sem internet)
@@ -2605,36 +2653,311 @@ const carregarScript = src => new Promise((ok, falha) => {
   s.src = src; s.onload = ok; s.onerror = () => falha(new Error("não carregou " + src));
   document.head.appendChild(s);
 });
-async function verRelatorio() {
-  if (!relatorio) return;
+function verRelatorio() {
+  if (relatorio) abrirVisor(arquivoRelatorio(), relatorio.titulo, `${relatorio.titulo} - ${relatorio.cliente}`);
+}
+
+// visualizador genérico (relatórios, laudos e arquivos do cliente): PDF página por página ou imagem, com zoom (− / +)
+let visor = null;                                  // { arquivo, titulo, texto, zoom, pdf, img }
+async function abrirVisor(arquivo, titulo, texto) {
+  visor = { arquivo, titulo, texto, zoom: 1, pdf: null, img: null };
+  $("visor-titulo").textContent = titulo;
   const pags = $("visor-paginas");
-  pags.innerHTML = '<p class="visor-msg">Abrindo o relatório…</p>';
+  pags.innerHTML = '<p class="visor-msg">Abrindo…</p>';
+  pags.classList.remove("zoom");
+  $("visor-zoom").hidden = true;
   $("visor-pdf").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ visor: true }, "");          // o "voltar" do Android fecha o visualizador
+  travarVertical(false);                            // plantas: pode girar o celular para ver deitado
+  const este = visor;
   try {
-    if (!window.pdfjsLib) {
-      await carregarScript(PDFJS + "pdf.min.js");
-      await carregarScript(PDFJS + "pdf.worker.min.js");   // carregado na página: o pdf.js roda sem worker separado
-      pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js";
+    if (arquivo.type.startsWith("image/") || ehImgArq(arquivo.name)) {
+      este.img = URL.createObjectURL(arquivo);
+    } else {
+      if (!window.pdfjsLib) {
+        await carregarScript(PDFJS + "pdf.min.js");
+        await carregarScript(PDFJS + "pdf.worker.min.js");   // carregado na página: o pdf.js roda sem worker separado
+        pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js";
+      }
+      este.pdf = await pdfjsLib.getDocument({ data: await arquivo.arrayBuffer() }).promise;
     }
-    const pdf = await pdfjsLib.getDocument({ data: await relatorio.item.arquivo.arrayBuffer() }).promise;
-    pags.innerHTML = "";
-    const largura = Math.min(pags.clientWidth - 16, 900);
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const pg = await pdf.getPage(p);
-      const esc = largura / pg.getViewport({ scale: 1 }).width * (window.devicePixelRatio || 1);
-      const vp = pg.getViewport({ scale: esc });
-      const cv = document.createElement("canvas");
-      cv.width = vp.width; cv.height = vp.height; cv.style.width = largura + "px";
-      await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
-      pags.appendChild(cv);
-    }
+    if (visor !== este) return;
+    $("visor-zoom").hidden = false;
+    await desenharVisor();
   } catch (e) {
     console.error(e);
-    pags.innerHTML = '<p class="visor-msg">Não foi possível mostrar o relatório aqui. Toque em "Compartilhar" para abrir em outro app.</p>';
+    if (visor === este) pags.innerHTML = '<p class="visor-msg">Não foi possível mostrar o arquivo aqui. Toque em "Compartilhar" para abrir em outro app.</p>';
   }
 }
+async function desenharVisor() {
+  const este = visor, pags = $("visor-paginas");
+  const largura = Math.min(pags.clientWidth - 16, 900) * este.zoom;
+  pags.classList.toggle("zoom", este.zoom > 1);
+  $("visor-zoom-n").textContent = este.zoom + "×";
+  if (este.img) {
+    pags.innerHTML = "";
+    const im = document.createElement("img"); im.src = este.img; im.alt = este.titulo; im.style.width = largura + "px";
+    pags.appendChild(im);
+    return;
+  }
+  for (let p = 1; p <= este.pdf.numPages; p++) {
+    const pg = await este.pdf.getPage(p);
+    let esc = largura / pg.getViewport({ scale: 1 }).width * (window.devicePixelRatio || 1);
+    const v1 = pg.getViewport({ scale: esc });
+    const lim = 16e6;                              // limite de pixels do canvas no iPhone (plantas grandes)
+    if (v1.width * v1.height > lim) esc *= Math.sqrt(lim / (v1.width * v1.height));
+    const vp = pg.getViewport({ scale: esc });
+    const cv = document.createElement("canvas");
+    cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height); cv.style.width = largura + "px";
+    await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    if (visor !== este) return;
+    if (p === 1) pags.innerHTML = "";
+    pags.appendChild(cv);
+  }
+}
+function zoomVisor(d) {
+  if (!visor || (!visor.pdf && !visor.img)) return;
+  const z = Math.min(4, Math.max(1, visor.zoom + d));
+  if (z === visor.zoom) return;
+  const pags = $("visor-paginas");
+  const rx = (pags.scrollLeft + pags.clientWidth / 2) / (pags.scrollWidth || 1), ry = (pags.scrollTop + pags.clientHeight / 2) / (pags.scrollHeight || 1);
+  visor.zoom = z;
+  desenharVisor().then(() => {                     // mantém o mesmo ponto no centro da tela
+    pags.scrollLeft = rx * pags.scrollWidth - pags.clientWidth / 2;
+    pags.scrollTop = ry * pags.scrollHeight - pags.clientHeight / 2;
+  });
+}
+/* ---------- arquivos do cliente (projetos, plantas, material do cliente…) ----------
+   Navega pela pasta do cliente no OneDrive. PDF e imagem abrem no visualizador do app (com zoom);
+   o resto abre no OneDrive (com internet) ou em outro app do celular (sem internet, se estiver guardado).
+   "Baixar esta pasta" guarda no celular tudo o que há nela e nas subpastas (menos vídeos), para usar sem internet:
+   arquivos no Cache Storage "vpx-arquivos" (o sw.js não apaga este cache), listas das pastas em localStorage. */
+const CACHE_ARQ = "vpx-arquivos";
+const urlCacheArq = id => `https://vpx-arquivos.local/${id}`;
+let guardadosArq = lerLS("vpx_arq_guardados", {});      // id → { cliente, mod, size, nome }
+let arq = null;                                          // { cliente, pilha: [{ id, nome }] }
+let baixandoArq = null;                                  // { cancelar: false } durante "Baixar esta pasta"
+const extDe = n => (n.match(/\.([^.]+)$/) || [])[1]?.toLowerCase() || "";
+const ehPdfArq = n => extDe(n) === "pdf";
+const ehImgArq = n => ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(extDe(n));
+const ehVideoArq = n => ["mp4", "mov", "m4v", "avi", "webm", "3gp", "mkv", "wmv"].includes(extDe(n));
+const iconeArq = i => i.pasta ? "📁" : ehPdfArq(i.nome) ? "📄" : ehImgArq(i.nome) ? "🖼️" : ehVideoArq(i.nome) ? "🎬" : "📎";
+const guardadoAtual = i => guardadosArq[i.id] && guardadosArq[i.id].mod === i.mod;
+
+// lê a pasta no OneDrive (e guarda a lista para ver sem internet); sem internet, usa a última lista guardada
+async function listarPastaArq(id) {
+  if (navigator.onLine && conta) {
+    try {
+      const itens = [];
+      let url = `/drives/${CONFIG.driveId}/items/${id}/children?$top=999`;
+      while (url) {
+        const r = await graph(url);
+        r.value.forEach(i => itens.push({ id: i.id, nome: i.name, pasta: !!i.folder, qtd: i.folder?.childCount || 0, size: i.size || 0,
+          mod: i.lastModifiedDateTime, web: i.webUrl, dl: i["@microsoft.graph.downloadUrl"] || "" }));
+        url = r["@odata.nextLink"];
+      }
+      itens.sort((a, b) => (b.pasta - a.pasta) || a.nome.localeCompare(b.nome, "pt-BR", { numeric: true }));
+      gravarLS("vpx_arq_l_" + id, itens.map(({ dl, ...x }) => x));      // o link de download vence: não guarda
+      return { itens, online: true };
+    } catch (e) { if (!(e instanceof TypeError)) throw e; }
+  }
+  const c = lerLS("vpx_arq_l_" + id, null);
+  if (c) return { itens: c, online: false };
+  const e = new Error("sem internet"); e.offline = true; throw e;
+}
+
+async function pastaRaizArq(cli) {
+  const chave = "vpx_arq_raiz_" + cli;
+  if (navigator.onLine && conta) {
+    try { const r = await graph(`${BASE()}:/${encPath(cli)}`); gravarLS(chave, r.id); return r.id; }
+    catch (e) { if (!(e instanceof TypeError)) throw e; }
+  }
+  const id = lerLS(chave, null);
+  if (id) return id;
+  const e = new Error("sem internet"); e.offline = true; throw e;
+}
+
+function abrirArquivos() {
+  if (!cliente) return;
+  arq = { cliente, pilha: [] };
+  $("arq-titulo").textContent = cliente;
+  $("tela-arq").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ arq: true }, "");
+  carregarPastaArq();
+}
+function fecharArquivos(voltar = true) {
+  if ($("tela-arq").hidden) return;
+  if (baixandoArq) baixandoArq.cancelar = true;
+  $("tela-arq").hidden = true;
+  document.body.style.overflow = "";
+  if (voltar && history.state?.arq) history.back();
+}
+function voltarArq() {
+  if (arq && arq.pilha.length > 1) { arq.pilha.pop(); carregarPastaArq(); }
+  else fecharArquivos();
+}
+
+async function carregarPastaArq() {
+  const lista = $("arq-lista"), estado = $("arq-estado");
+  lista.innerHTML = ""; estado.textContent = "Carregando…";
+  $("arq-baixar").hidden = true;
+  try {
+    if (!arq.pilha.length) arq.pilha.push({ id: await pastaRaizArq(arq.cliente), nome: arq.cliente });
+    desenharTrilhaArq();
+    const atual = arq.pilha.at(-1);
+    const { itens, online } = await listarPastaArq(atual.id);
+    if (arq.pilha.at(-1) !== atual) return;        // a pessoa já mudou de pasta
+    arq.itens = itens; arq.online = online;
+    desenharListaArq();
+  } catch (e) {
+    console.error(e);
+    estado.textContent = e.offline ? "Sem internet, e esta pasta ainda não foi baixada para o celular."
+      : e.status === 404 ? `A pasta "${arq.cliente}" não foi encontrada no OneDrive.`
+      : e.status === 403 ? "Sem acesso à pasta deste cliente."
+      : "Não foi possível abrir a pasta: " + e.message;
+  }
+}
+
+function desenharTrilhaArq() {
+  const t = $("arq-trilha");
+  t.innerHTML = "";
+  arq.pilha.forEach((p, i) => {
+    if (i) t.append(" › ");
+    const b = el("button", "", i ? p.nome : "Início"); b.type = "button";
+    b.disabled = i === arq.pilha.length - 1;
+    b.onclick = () => { arq.pilha = arq.pilha.slice(0, i + 1); carregarPastaArq(); };
+    t.appendChild(b);
+  });
+}
+
+function desenharListaArq() {
+  const lista = $("arq-lista");
+  lista.innerHTML = "";
+  const arquivos = arq.itens.filter(i => !i.pasta), guardados = arquivos.filter(guardadoAtual).length;
+  $("arq-estado").textContent = (arq.online ? "" : "Sem internet: mostrando o que foi guardado no celular. ")
+    + (arq.itens.length ? `${arq.itens.length - arquivos.length} pasta(s), ${arquivos.length} arquivo(s)` + (guardados ? ` · ${guardados} no celular` : "") : "Pasta vazia.");
+  $("arq-baixar").hidden = !arq.online || !arq.itens.length || !!baixandoArq;
+  for (const i of arq.itens) {
+    const li = el("li");
+    const b = el("button", "arq-item"); b.type = "button";
+    b.appendChild(el("span", "arq-ico", iconeArq(i)));
+    const txt = el("span", "arq-txt");
+    txt.appendChild(el("strong", "", i.nome));
+    const info = i.pasta ? `${i.qtd} ${i.qtd === 1 ? "item" : "itens"}` : [mb(i.size), i.mod && new Date(i.mod).toLocaleDateString("pt-BR")].filter(Boolean).join(" · ");
+    txt.appendChild(el("small", "", info));
+    b.appendChild(txt);
+    if (!i.pasta && guardadoAtual(i)) b.appendChild(el("span", "arq-ok", "✓ no celular"));
+    b.onclick = () => abrirItemArq(i);
+    li.appendChild(b);
+    lista.appendChild(li);
+  }
+  const doCliente = Object.values(guardadosArq).filter(g => g.cliente === arq.cliente);
+  $("arq-limpar").hidden = !doCliente.length;
+  $("arq-limpar").textContent = `Apagar do celular os arquivos guardados deste cliente (${doCliente.length}, ${mb(doCliente.reduce((s, g) => s + g.size, 0))})`;
+}
+
+// baixa um arquivo e guarda no celular
+async function baixarArq(i, cli) {
+  let url = i.dl;
+  if (!url) url = (await graph(`/drives/${CONFIG.driveId}/items/${i.id}`))["@microsoft.graph.downloadUrl"];
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("Erro " + r.status);
+  const blob = await r.blob();
+  const cache = await caches.open(CACHE_ARQ);
+  await cache.put(urlCacheArq(i.id), new Response(blob, { headers: { "Content-Type": blob.type || "application/octet-stream" } }));
+  guardadosArq[i.id] = { cliente: cli, mod: i.mod, size: blob.size, nome: i.nome };
+  gravarLS("vpx_arq_guardados", guardadosArq);
+  return blob;
+}
+async function lerArqGuardado(id) {
+  const r = await (await caches.open(CACHE_ARQ)).match(urlCacheArq(id));
+  return r ? r.blob() : null;
+}
+
+async function abrirItemArq(i) {
+  if (i.pasta) { arq.pilha.push({ id: i.id, nome: i.nome }); carregarPastaArq(); $("tela-arq").querySelector(".avcb-corpo").scrollTop = 0; return; }
+  const visivel = ehPdfArq(i.nome) || ehImgArq(i.nome);
+  // com internet, o que o app não mostra abre no OneDrive (Word, Excel, DWG…)
+  if (!visivel && navigator.onLine && i.web) { window.open(i.web, "_blank", "noopener"); return; }
+  let blob = guardadoAtual(i) || !navigator.onLine ? await lerArqGuardado(i.id).catch(() => null) : null;
+  if (!blob) {
+    if (!navigator.onLine) { aviso("Este arquivo não foi guardado no celular. Com internet, use \"Baixar esta pasta\".", true); return; }
+    aviso("Abrindo " + i.nome + "…");
+    try { blob = await baixarArq(i, arq.cliente); desenharListaArq(); }
+    catch (e) { console.error(e); aviso("Não foi possível baixar o arquivo: " + e.message, true); return; }
+  }
+  const arquivo = new File([blob], i.nome, { type: blob.type || (ehPdfArq(i.nome) ? "application/pdf" : "") });
+  if (visivel) abrirVisor(arquivo, i.nome, `${i.nome} - ${arq.cliente}`);
+  else compartilharArquivo(arquivo, i.nome, i.nome);   // sem internet: abre em outro app do celular
+}
+
+// "Baixar esta pasta": percorre as subpastas, mostra o tamanho e guarda tudo (menos vídeos) no celular
+async function baixarPastaArq() {
+  if (baixandoArq || !arq?.online) return;
+  const cli = arq.cliente, base = arq.pilha.at(-1);
+  const estado = $("arq-estado");
+  baixandoArq = { cancelar: false };
+  $("arq-baixar").hidden = true;
+  estado.textContent = "Verificando as pastas…";
+  try {
+    const arquivos = [];
+    const fila = [base.id];
+    while (fila.length) {
+      if (baixandoArq.cancelar) throw new Error("cancelado");
+      const { itens } = await listarPastaArq(fila.shift());
+      for (const i of itens) {
+        if (i.pasta) fila.push(i.id);
+        else if (!ehVideoArq(i.nome)) arquivos.push(i);
+      }
+    }
+    const faltam = arquivos.filter(i => !guardadoAtual(i));
+    if (!faltam.length) { aviso("Tudo desta pasta já está no celular."); return; }
+    const total = faltam.reduce((s, i) => s + i.size, 0);
+    let livre = Infinity;
+    try { const est = await navigator.storage.estimate(); livre = est.quota - est.usage; } catch {}
+    if (total > livre) { aviso(`Não há espaço no celular: são ${mb(total)} e há ${mb(livre)} livres.`, true); return; }
+    if (!confirm(`Baixar ${faltam.length} arquivo(s) de "${base.nome}" (${mb(total)}) para usar sem internet?\nVídeos não são baixados.`)) return;
+    try { await navigator.storage?.persist?.(); } catch {}
+    $("arq-prog").hidden = false;
+    let feitos = 0, bytes = 0, erros = 0;
+    const prog = () => {
+      $("arq-cheio").style.width = Math.min(100, bytes / (total || 1) * 100) + "%";
+      $("arq-txtprog").textContent = `${feitos} de ${faltam.length} · ${mb(bytes)} de ${mb(total)}`;
+    };
+    prog();
+    const pend = faltam.slice();
+    const trabalhar = async () => {
+      while (pend.length && !baixandoArq.cancelar) {
+        const i = pend.shift();
+        try { await baixarArq(i, cli); } catch (e) { console.error(e); erros++; }
+        feitos++; bytes += i.size; prog();
+      }
+    };
+    await Promise.all([trabalhar(), trabalhar(), trabalhar()]);
+    if (baixandoArq.cancelar) aviso(`Download interrompido. ${feitos} arquivo(s) ficaram no celular.`);
+    else if (erros) aviso(`${feitos - erros} arquivo(s) guardados; ${erros} não baixaram (tente de novo).`, true);
+    else aviso(`Pronto: ${feitos} arquivo(s) guardados no celular. Já dá para abrir sem internet.`);
+  } catch (e) {
+    if (e.message !== "cancelado") { console.error(e); aviso("Não foi possível baixar a pasta: " + e.message, true); }
+  } finally {
+    baixandoArq = null;
+    $("arq-prog").hidden = true;
+    if (!$("tela-arq").hidden && arq) desenharListaArq();
+  }
+}
+
+async function limparArqCliente() {
+  const ids = Object.keys(guardadosArq).filter(id => guardadosArq[id].cliente === arq.cliente);
+  if (!ids.length || !confirm(`Apagar do celular os ${ids.length} arquivo(s) guardados de ${arq.cliente}? Eles continuam no OneDrive.`)) return;
+  const cache = await caches.open(CACHE_ARQ);
+  for (const id of ids) { await cache.delete(urlCacheArq(id)); delete guardadosArq[id]; }
+  gravarLS("vpx_arq_guardados", guardadosArq);
+  aviso("Arquivos apagados do celular.");
+  desenharListaArq();
+}
+
 /* ---------- validade AVCB/CLCB (lista em CONFIG.validadeAvcb) ---------- */
 const diasAte = iso => { const hoje = new Date(); hoje.setHours(0, 0, 0, 0); return Math.round((new Date(iso + "T00:00:00") - hoje) / 86400000); };
 const dataBRde = iso => { const [a, m, d] = iso.split("-"); return `${d}/${m}/${a}`; };
@@ -3113,7 +3436,10 @@ function fecharVisor(voltar = true) {
   if ($("visor-pdf").hidden) return;
   $("visor-pdf").hidden = true;
   $("visor-paginas").innerHTML = "";
-  document.body.style.overflow = "";
+  if (visor?.img) URL.revokeObjectURL(visor.img);
+  visor = null;
+  travarVertical(true);
+  document.body.style.overflow = $("tela-arq").hidden ? "" : "hidden";   // aberto a partir dos arquivos do cliente: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -3213,9 +3539,16 @@ document.querySelectorAll("#cam-modos button").forEach(b => b.onclick = () => de
 $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
 window.addEventListener("popstate", () => {
+  if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
-  if (cam) fecharCamera(false); fecharVisor(false); fecharAvcb(false); fecharAgenda(false);
+  if (history.state?.arq) return;                                    // voltou do visualizador para os arquivos do cliente
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false);
 });
+$("btn-arq").onclick = abrirArquivos;
+$("arq-voltar").onclick = voltarArq;
+$("arq-baixar").onclick = baixarPastaArq;
+$("arq-cancelar").onclick = () => { if (baixandoArq) baixandoArq.cancelar = true; };
+$("arq-limpar").onclick = limparArqCliente;
 $("btn-agenda").onclick = abrirAgenda;
 $("agenda-voltar").onclick = () => fecharAgenda();
 $("agenda-hoje").onclick = irParaHoje;
@@ -3239,7 +3572,11 @@ $("btn-nova").onclick = novaVisita;
 $("ok-ver").onclick = verRelatorio;
 $("ok-compartilhar").onclick = compartilharRelatorio;
 $("visor-fechar").onclick = () => fecharVisor();
-$("visor-comp").onclick = compartilharRelatorio;
+$("visor-comp").onclick = () => visor && compartilharArquivo(visor.arquivo, visor.titulo, visor.texto);
+$("visor-menos").onclick = () => zoomVisor(-1);
+// celular girado com o visualizador aberto: redesenha na nova largura
+window.addEventListener("resize", () => { clearTimeout(desenharVisor.t); desenharVisor.t = setTimeout(() => { if (visor && (visor.pdf || visor.img)) desenharVisor(); }, 300); });
+$("visor-mais").onclick = () => zoomVisor(1);
 // as fotos ficam guardadas no celular: só avisa ao fechar se houver envio em andamento
 window.addEventListener("beforeunload", e => {
   if (enviando || enviandoFundo) { e.preventDefault(); e.returnValue = ""; }

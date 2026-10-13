@@ -94,6 +94,12 @@ O botão **AVCB**, no topo, abre a lista de clientes com a validade do AVCB/CLCB
 
 O que for preenchido fica guardado no celular até salvar (se o app fechar, a ficha volta). Funciona sem internet: o PDF é gerado no celular, já pode ser visto e compartilhado, e vai para o OneDrive quando o sinal voltar.
 
+### Arquivos do cliente (plantas e projetos)
+
+Depois de escolher o cliente (Visita técnica, Comercial ou Laudos), toque em **📁 Arquivos do cliente** para ver tudo o que está na pasta dele no OneDrive. PDFs e fotos abrem no próprio app: use **−** e **+** para aproximar e gire o celular para ver plantas deitadas. Outros arquivos (Word, Excel, DWG) abrem no OneDrive.
+
+**Sem internet (subsolo, casa de bombas):** antes de ir, abra a pasta que vai precisar (por exemplo, a do projeto ou a do cliente inteiro) e toque em **Baixar esta pasta para usar sem internet**. O app mostra quantos arquivos e quantos MB são antes de baixar (vídeos não são baixados). Os arquivos guardados aparecem com **✓ no celular** e abrem mesmo sem sinal. Para liberar espaço, use o botão no fim da lista para apagar do celular os arquivos daquele cliente (eles continuam no OneDrive).
+
 ### Laudos técnicos
 
 1. Toque na aba **Laudos**, escolha o **cliente** e o tipo: **Hidrantes, Elétrica, Alarme, Gás, Gerador ou SPDA**.
