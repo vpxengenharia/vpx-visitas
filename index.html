@@ -3496,10 +3496,9 @@ function desenharAvcb() {
 }
 
 // contador no botão AVCB: clientes vencidos + vencendo em até 3 meses (prospecção não conta)
+// o número vermelho no botão AVCB foi retirado a pedido do Gustavo (13/10/2026); a contagem continua dentro da tela AVCB
 function atualizarBadgeAvcb() {
-  const n = listaAvcb().filter(v => v.categoria === "cliente" && situacaoAvcb(v).cls !== "ok").length;
-  $("avcb-qtd").hidden = !n;
-  $("avcb-qtd").textContent = n;
+  $("avcb-qtd").hidden = true;
 }
 function abrirAvcb() {
   $("avcb-busca").value = "";
