@@ -94,6 +94,14 @@ O botão **AVCB**, no topo, abre a lista de clientes com a validade do AVCB/CLCB
 
 O que for preenchido fica guardado no celular até salvar (se o app fechar, a ficha volta). Funciona sem internet: o PDF é gerado no celular, já pode ser visto e compartilhado, e vai para o OneDrive quando o sinal voltar.
 
+### Inspeções (relatório para o cliente)
+
+1. Toque na aba **Inspeções** e escolha o **cliente**.
+2. Marque os **sistemas que existem no prédio** (iluminação de emergência, sinalização, portas corta-fogo, corrimãos, extintores, rotas de fuga, hidrantes, bomba, sprinklers, alarme, gás, SPDA, pressurização, compartimentação, documentação).
+3. Escolha o responsável técnico e responda cada item (Conforme / Não conforme / N/A), com foto e observação quando precisar. Iluminação, sinalização, portas e extintores podem ter vários pavimentos/portas (**+ Adicionar**).
+4. Escreva as recomendações (o botão "Sugerir" lista o que precisa corrigir) e assine.
+5. **Gerar relatório em PDF** → vai para *02 - Clientes › [Cliente] › Relatórios de Inspeção*. O relatório não tem "Apto/Não apto": mostra o resumo, o que precisa corrigir e as recomendações — ótimo para virar proposta de serviço.
+
 ### Treinamento de brigada
 
 1. Toque na aba **Brigada**, escolha o **cliente** e o treinamento: **Brigada básico, Brigada intermediário, Primeiros socorros ou Uso de extintores**. Conteúdo programático e carga horária já vêm preenchidos (dá para mudar).

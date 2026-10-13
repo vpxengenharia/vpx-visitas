@@ -150,8 +150,8 @@ p{margin:0 0 14px;max-width:60ch}
 .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
 .foto{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--linha)}
 .foto img{width:100%;height:100%;object-fit:cover;display:block}
-.abas{display:grid;grid-template-columns:repeat(5,auto);gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
-.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:13.5px;line-height:1.1;padding:0 4px;cursor:pointer}
+.abas{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
+.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:15px;line-height:1.1;padding:0 4px;cursor:pointer}
 /* ficha comercial */
 .secao{font-family:var(--titulo-fonte);font-weight:700;font-size:19px;color:var(--marinho);margin:22px 2px 10px;padding-bottom:4px;border-bottom:2px solid var(--laranja)}
 @media (prefers-color-scheme:dark){.secao{color:var(--tinta)}}
@@ -390,6 +390,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
       <button role="tab" id="aba-com" aria-selected="false">Comercial</button>
       <button role="tab" id="aba-laudo" aria-selected="false">Laudos</button>
+      <button role="tab" id="aba-insp" aria-selected="false">Inspeções</button>
       <button role="tab" id="aba-trein" aria-selected="false">Brigada</button>
       <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
@@ -625,6 +626,7 @@ const CONFIG = {
   pastaClientesId: "01VYL4Q5YGDBCBT3E7CRDLSKCI3476CXTS",
   pastaClientesNome: "02 - Clientes",
   pastaTreinamentos: "Treinamentos de Brigada",                       // lista de presença e certificados dentro da pasta do cliente
+  pastaInspecoes: "Relatórios de Inspeção",                            // relatórios de inspeção dentro da pasta do cliente
   pastaLaudos: "Laudos Técnicos",                                      // laudos (PDF) dentro da pasta do cliente
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
@@ -701,11 +703,11 @@ const $ = id => document.getElementById(id);
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
-let modo = ["visita", "com", "laudo", "trein", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
+let modo = ["visita", "com", "laudo", "insp", "trein", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -899,14 +901,17 @@ function aplicarModo() {
   $("aba-comp").setAttribute("aria-selected", String(comp));
   $("form-comp").hidden = !comp;
   $("form-com").hidden = !com;
-  $("form-laudo").hidden = modo !== "laudo";
+  const lau = modo === "laudo" || modo === "insp";             // laudos e inspeções usam o mesmo formulário
+  $("form-laudo").hidden = !lau;
+  if (lau && laudo !== rascunhos[modo]) { laudo = rascunhos[modo]; montarLaudo(); }   // cada aba tem seu rascunho
   $("form-trein").hidden = modo !== "trein";
+  $("aba-insp").setAttribute("aria-selected", String(modo === "insp"));
   $("aba-trein").setAttribute("aria-selected", String(modo === "trein"));
-  document.body.classList.toggle("modo-laudo", modo === "laudo");   // laudos: fotos dentro de cada item (sem câmera/galeria embaixo)
+  document.body.classList.toggle("modo-laudo", lau);   // laudos e inspeções: fotos dentro de cada item (sem câmera/galeria embaixo)
   $("btn-cliente").hidden = comp;                 // nos comprovantes, no lugar do cliente vai o centro de custo (digitado)
   const trn = modo === "trein";
   $("in-gal").accept = comp ? "image/*,application/pdf" : com || trn ? "image/*" : "image/*,video/*";
-  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : modo === "laudo" ? "Novo laudo" : trn ? "Novo treinamento" : "Nova visita";
+  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : modo === "laudo" ? "Novo laudo" : modo === "insp" ? "Nova inspeção" : trn ? "Novo treinamento" : "Nova visita";
   $("semfotos").textContent = comp ? "Nenhum comprovante ainda. Fotografe a nota ou o recibo, ou escolha da galeria (aceita PDF)."
     : com ? "Fotos (opcional): fachada, casa de bombas, hidrantes, quadro de alarme… Elas entram no PDF da ficha."
     : trn ? "Fotos da prática (opcional). Elas entram no PDF da lista de presença."
@@ -1285,17 +1290,147 @@ const LAUDOS = {
     ] }
   ] }
 };
+/* inspeções (aba "Inspeções"): relatório para o cliente, sem ser laudo. Usa o mesmo formulário e PDF dos laudos;
+   o colaborador marca os sistemas que existem no prédio e o relatório junta todos. Itens propostos pelo Claude e
+   aprovados pelo Gustavo em 13/10/2026. Rascunho em localStorage vpx_insp (tipo "insp", lista "sist"). */
+const INSPECOES = [
+  { id: "ilum", titulo: "Iluminação de emergência", repetir: "Pavimento/área", itens: [
+    ["acende", "Luminárias acendem ao cortar a energia (teste)"],
+    ["autonomia", "Permanecem acesas durante o teste (autonomia)"],
+    ["indicador", "Indicador de carga/funcionamento aceso"],
+    ["fixacao", "Luminárias fixadas, sem danos e com lentes limpas"],
+    ["cobertura", "Rotas de fuga e escadas iluminadas, sem pontos escuros"]
+  ], medidas: [["qtd", "Quantidade de luminárias"], ["def", "Luminárias com defeito"]] },
+  { id: "sinal", titulo: "Sinalização de emergência", repetir: "Pavimento/área", itens: [
+    ["saida", "Placas de saída e rota de fuga instaladas e visíveis"],
+    ["equip", "Sinalização dos equipamentos (extintores, hidrantes, alarme)"],
+    ["fotolum", "Placas fotoluminescentes em bom estado"],
+    ["alerta", "Sinalização de alerta e proibição (proibido fumar, risco elétrico…)"],
+    ["piso", "Sinalização de piso nos extintores/hidrantes (quando exigida)"]
+  ] },
+  { id: "portas", titulo: "Portas corta-fogo", repetir: "Porta", itens: [
+    ["fecha", "Fecha sozinha e trava (mola/dobradiça funcionando)"],
+    ["livre", "Sem calço, trava ou objeto mantendo a porta aberta"],
+    ["macaneta", "Maçaneta e fechadura funcionando"],
+    ["barra", "Barra antipânico funcionando (quando houver)"],
+    ["estado", "Folha, batente e vedação sem danos"],
+    ["etiqueta", "Etiqueta/selo de identificação presente"]
+  ] },
+  { id: "corrimao", titulo: "Corrimãos e guarda-corpos", itens: [
+    ["continuo", "Corrimão contínuo nos dois lados da escada"],
+    ["fixo", "Corrimãos firmes, sem pontas soltas"],
+    ["altura", "Corrimãos e guarda-corpos em altura adequada"],
+    ["vaos", "Guarda-corpos sem vãos perigosos"],
+    ["estado", "Sem corrosão, quebras ou partes soltas"]
+  ] },
+  { id: "ext", titulo: "Extintores", repetir: "Pavimento/área", itens: [
+    ["local", "Extintores no local previsto, sinalizados e desobstruídos"],
+    ["tipo", "Tipo adequado ao risco (água, pó, CO2)"],
+    ["recarga", "Recarga dentro da validade"],
+    ["hidro", "Teste hidrostático dentro da validade"],
+    ["manometro", "Manômetro na faixa verde (quando houver)"],
+    ["lacre", "Lacre e pino de segurança intactos"],
+    ["estado", "Mangueira, difusor e cilindro sem danos"],
+    ["fixacao", "Fixados na altura correta ou em suporte de piso"]
+  ], medidas: [["qtd", "Quantidade de extintores"]] },
+  { id: "rotas", titulo: "Saídas e rotas de fuga", itens: [
+    ["desobs", "Corredores, escadas e saídas desobstruídos"],
+    ["portas", "Portas de saída abrem no sentido da fuga, sem trancas"],
+    ["piso", "Pisos e degraus em bom estado e antiderrapantes"],
+    ["deposito", "Escadas sem uso como depósito"]
+  ] },
+  { id: "hid", titulo: "Hidrantes e mangotinhos", itens: [
+    ["abrigo", "Abrigos sinalizados, desobstruídos e completos (mangueiras, esguicho, chave)"],
+    ["mangueiras", "Mangueiras sem danos e com teste hidrostático válido"],
+    ["valvula", "Válvulas sem vazamento"],
+    ["recalque", "Registro de recalque acessível e sinalizado"]
+  ] },
+  { id: "bomba", titulo: "Bomba de incêndio e reservatório", itens: [
+    ["auto", "Painel da bomba em automático, sem alarmes"],
+    ["partida", "Bomba parte no teste"],
+    ["vazam", "Sem vazamentos na casa de bombas"],
+    ["rti", "Reservatório com reserva de incêndio"]
+  ] },
+  { id: "spk", titulo: "Chuveiros automáticos (sprinklers)", itens: [
+    ["bicos", "Bicos sem pintura, obstrução ou danos"],
+    ["distancia", "Sem materiais encostados ou próximos aos bicos"],
+    ["vga", "Válvula de governo e alarme (VGA) aberta e sinalizada"],
+    ["manometros", "Manômetros com pressão normal"]
+  ] },
+  { id: "alarme", titulo: "Alarme e detecção de incêndio", itens: [
+    ["central", "Central sem falhas no painel"],
+    ["acion", "Acionadores manuais sinalizados e funcionando"],
+    ["detect", "Detectores sem pintura, danos ou obstrução"],
+    ["sirene", "Sirenes funcionando no teste"]
+  ] },
+  { id: "gas", titulo: "Central de GLP / gás", itens: [
+    ["abrigo", "Abrigo ventilado, sinalizado e sem materiais armazenados"],
+    ["extintor", "Extintor próximo à central"],
+    ["vazam", "Sem cheiro de gás ou vazamentos"],
+    ["tubul", "Tubulação identificada e sem corrosão"]
+  ] },
+  { id: "spda", titulo: "SPDA (para-raios)", itens: [
+    ["captores", "Captores e cabos da cobertura fixados e íntegros"],
+    ["descidas", "Descidas fixadas, sem rompimentos"],
+    ["caixas", "Caixas de inspeção acessíveis"],
+    ["laudo", "Laudo de SPDA dentro da validade"]
+  ] },
+  { id: "pressur", titulo: "Pressurização da escada", itens: [
+    ["partida", "Ventilador parte no teste/com o alarme"],
+    ["portas", "Portas da escada fecham corretamente"],
+    ["grelhas", "Grelhas e dampers desobstruídos"]
+  ] },
+  { id: "compart", titulo: "Compartimentação", itens: [
+    ["shafts", "Shafts e passagens de cabos/tubos vedados entre pavimentos"],
+    ["portas", "Portas de elevador e de áreas técnicas em bom estado"],
+    ["aberturas", "Paredes e forros sem aberturas que deixem passar fumaça"]
+  ] },
+  { id: "doc", titulo: "Documentação", itens: [
+    ["avcb", "AVCB/CLCB válido e afixado em local visível"],
+    ["plano", "Plano de emergência disponível"],
+    ["brigada", "Brigada de incêndio treinada (certificados válidos)"],
+    ["manut", "Registros de manutenção dos sistemas disponíveis"],
+    ["laudos", "Laudos técnicos em dia (elétrica, SPDA, gás…)"]
+  ] }
+];
+const INSPECAO = { nome: "Relatório de Inspeção", norma: "Inspeção visual e funcional - normas ABNT e Instruções Técnicas do CBMBA" };
+const inspVazio = () => ({ ...laudoVazio("insp"), sist: [] });
+// definição do laudo ou da inspeção (na inspeção, as seções são os sistemas marcados, na ordem da lista)
+const defDe = l => l.tipo === "insp" ? { ...INSPECAO, secoes: INSPECOES.filter(s => (l.sist || []).includes(s.id)) } : LAUDOS[l.tipo];
+const ehInsp = (l = laudo) => l.tipo === "insp";
+
+function alternarSistema(id) {
+  if (enviando) return;
+  const s = INSPECOES.find(x => x.id === id);
+  if (laudo.sist.includes(id)) {
+    const prefixos = s.repetir ? (laudo.rep[id] || []) : [id];
+    const chaves = Object.keys(laudo.r).filter(k => prefixos.some(p => k.startsWith(p + ".")));
+    if (chaves.length && !confirm(`Tirar "${s.titulo}" do relatório? O que foi preenchido nele será apagado.`)) return;
+    chaves.forEach(k => { (laudo.r[k].fotos || []).forEach(apagarFotoLaudo); delete laudo.r[k]; });
+    Object.keys(laudo.med).filter(k => prefixos.some(p => k.startsWith(p + "."))).forEach(k => delete laudo.med[k]);
+    delete laudo.rep[id];
+    laudo.sist = laudo.sist.filter(x => x !== id);
+  } else {
+    laudo.sist.push(id);
+    if (s.repetir) laudo.rep[id] = [id + "#1"];
+  }
+  gravarLaudo(); montarLaudo(); atualizarBotao();
+}
+
 const ST_LAUDO = { C: "Conforme", NC: "Não conforme", NA: "Não se aplica" };
 const CONCLUSOES = ["Apto", "Apto com ressalvas", "Não apto"];
 
 const laudoVazio = (t = "") => ({ tipo: t, resp: "", endereco: "", acompanhante: "", art: "", r: {}, med: {}, rep: {}, conclusao: "", recom: "", assin: "" });
-let laudo = lerLS("vpx_laudo", null) || laudoVazio();
-const gravarLaudo = () => gravarLS("vpx_laudo", laudo);
-const defLaudo = () => LAUDOS[laudo.tipo];
+// dois rascunhos independentes: o do laudo e o da inspeção. "laudo" aponta para o da aba aberta (trocado em aplicarModo)
+const rascunhos = { laudo: lerLS("vpx_laudo", null) || laudoVazio(), insp: lerLS("vpx_insp", null) || inspVazio() };
+let laudo = modo === "insp" ? rascunhos.insp : rascunhos.laudo;
+const chaveRasc = l => l.tipo === "insp" ? "insp" : "laudo";
+const gravarLaudo = () => { rascunhos[chaveRasc(laudo)] = laudo; gravarLS("vpx_" + chaveRasc(laudo), laudo); };
+const defLaudo = () => defDe(laudo);
 
 // blocos do laudo: cada seção comum é um bloco; seção repetida tem um bloco por equipamento ("hid#1", "hid#2"…)
 function blocosLaudo(l = laudo) {
-  const def = LAUDOS[l.tipo];
+  const def = defDe(l);
   if (!def) return [];
   return def.secoes.flatMap(s => s.repetir ? (l.rep[s.id] || []).map((uid, i) => ({ s, uid, n: i + 1 })) : [{ s, uid: s.id }]);
 }
@@ -1330,11 +1465,11 @@ function escolherTipoLaudo(t) {
 }
 function limparLaudo() {
   todasFotosLaudo().forEach(apagarFotoLaudo);
-  laudo = laudoVazio();
+  laudo = ehInsp() ? inspVazio() : laudoVazio();
   gravarLaudo(); montarLaudo();
 }
 function descartarLaudo() {
-  if (!confirm("Apagar tudo o que foi preenchido neste laudo?")) return;
+  if (!confirm(`Apagar tudo o que foi preenchido neste ${ehInsp() ? "relatório" : "laudo"}?`)) return;
   limparLaudo(); atualizarBotao(); window.scrollTo(0, 0);
 }
 
@@ -1343,18 +1478,31 @@ const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) 
 function montarLaudo() {
   const raiz = $("form-laudo");
   raiz.innerHTML = "";
-  raiz.appendChild(el("p", "rotulo", "Tipo de laudo"));
-  const tipos = el("div", "laudo-tipos");
-  for (const [t, d] of Object.entries(LAUDOS)) {
-    const b = el("button", "", d.curto);
-    b.type = "button"; b.setAttribute("aria-pressed", String(laudo.tipo === t));
-    b.onclick = () => escolherTipoLaudo(t);
-    tipos.appendChild(b);
+  const insp = ehInsp();
+  if (insp) {
+    // inspeção: marca os sistemas que existem no prédio (vários)
+    raiz.appendChild(el("p", "rotulo", "Sistemas inspecionados (marque os que existem no prédio)"));
+    const ch = el("div", "chips insp-sist"); ch.id = "ld-sist";
+    INSPECOES.forEach(s => {
+      const b = el("button", "", s.titulo); b.type = "button"; b.setAttribute("aria-pressed", String(laudo.sist.includes(s.id)));
+      b.onclick = () => alternarSistema(s.id);
+      ch.appendChild(b);
+    });
+    raiz.appendChild(ch);
+  } else {
+    raiz.appendChild(el("p", "rotulo", "Tipo de laudo"));
+    const tipos = el("div", "laudo-tipos");
+    for (const [t, d] of Object.entries(LAUDOS)) {
+      const b = el("button", "", d.curto);
+      b.type = "button"; b.setAttribute("aria-pressed", String(laudo.tipo === t));
+      b.onclick = () => escolherTipoLaudo(t);
+      tipos.appendChild(b);
+    }
+    raiz.appendChild(tipos);
   }
-  raiz.appendChild(tipos);
   const def = defLaudo();
-  if (!def) { raiz.appendChild(el("p", "laudo-dica", "Escolha o cliente e o tipo de laudo para começar.")); return; }
-  raiz.appendChild(el("p", "laudo-dica", `${def.nome} - referência: ${def.norma}. O preenchimento fica guardado no celular até gerar o PDF.`));
+  if (!def || (insp && !def.secoes.length)) { raiz.appendChild(el("p", "laudo-dica", insp ? "Escolha o cliente e marque os sistemas para começar." : "Escolha o cliente e o tipo de laudo para começar.")); return; }
+  raiz.appendChild(el("p", "laudo-dica", `${def.nome} - ${insp ? "" : "referência: "}${def.norma}. O preenchimento fica guardado no celular até gerar o PDF.`));
 
   // identificação
   raiz.appendChild(el("h2", "secao", "Identificação"));
@@ -1371,7 +1519,7 @@ function montarLaudo() {
   raiz.appendChild(resp);
   raiz.appendChild(campoLaudo("Endereço", "endereco", { id: "ld-end", dica: avcbDoCliente(cliente)?.endereco || "" }));
   raiz.appendChild(campoLaudo("Acompanhou a vistoria (nome/função)", "acompanhante"));
-  raiz.appendChild(campoLaudo("Nº da ART (opcional)", "art"));
+  if (!insp) raiz.appendChild(campoLaudo("Nº da ART (opcional)", "art"));
 
   for (const s of def.secoes) {
     const h = el("h2", "secao", s.titulo); h.id = "ld-sec-" + s.id;
@@ -1393,9 +1541,9 @@ function montarLaudo() {
     }
   }
 
-  // conclusão e assinatura
-  raiz.appendChild(el("h2", "secao", "Conclusão"));
-  const conc = el("div", "campo"); conc.id = "ld-conc";
+  // conclusão e assinatura (a inspeção não tem resultado Apto/Não apto: só recomendações)
+  raiz.appendChild(el("h2", "secao", insp ? "Recomendações" : "Conclusão"));
+  const conc = el("div", "campo"); conc.id = "ld-conc"; conc.hidden = insp;
   conc.appendChild(el("span", "", "Resultado da vistoria *"));
   const cc = el("div", "chips");
   CONCLUSOES.forEach(c => {
@@ -1416,7 +1564,7 @@ function montarLaudo() {
   raiz.appendChild(campoLaudo("Recomendações / adequações necessárias", "recom", { longo: true, id: "ld-recom" }));
   raiz.appendChild(sug);
   raiz.appendChild(padAssinatura());
-  const desc = el("button", "laudo-link perigo", "Descartar este laudo"); desc.type = "button"; desc.onclick = descartarLaudo;
+  const desc = el("button", "laudo-link perigo", insp ? "Descartar este relatório" : "Descartar este laudo"); desc.type = "button"; desc.onclick = descartarLaudo;
   raiz.appendChild(desc);
 }
 
@@ -1559,13 +1707,15 @@ function padAssinatura() {
 
 function mudouLaudo() { gravarLaudo(); atualizarBotao(); }
 
+// na inspeção, o bloco repetido leva o nome do sistema na frente (ex.: "Extintores - Pavimento/área 2 - Garagem")
 function naoConformes(l = laudo) {
   return blocosLaudo(l).flatMap(b => b.s.itens.filter(([id]) => l.r[chaveItem(b.uid, id)]?.st === "NC")
-    .map(([id, texto]) => ({ bloco: rotuloBloco(b, l), texto, obs: (l.r[chaveItem(b.uid, id)].obs || "").trim() })));
+    .map(([id, texto]) => ({ bloco: (ehInsp(l) && b.s.repetir ? b.s.titulo + " - " : "") + rotuloBloco(b, l), texto, obs: (l.r[chaveItem(b.uid, id)].obs || "").trim() })));
 }
 // o que falta para gerar o laudo; alvo = elemento para onde rolar a tela
 function faltaLaudo() {
   if (!laudo.tipo) return { texto: "Escolha o tipo de laudo" };
+  if (ehInsp() && !laudo.sist.length) return { texto: "Marque os sistemas inspecionados", alvo: "ld-sist" };
   if (!laudo.resp) return { texto: "Escolha o responsável técnico", alvo: "ld-resp" };
   const pend = [], semObs = [];
   for (const b of blocosLaudo()) for (const [id] of b.s.itens) {
@@ -1575,8 +1725,8 @@ function faltaLaudo() {
   }
   if (pend.length) return { texto: `Responda ${pend.length} ${pend.length > 1 ? "itens" : "item"}`, alvo: "li-" + pend[0] };
   if (semObs.length) return { texto: "Escreva a observação do não conforme", alvo: "li-" + semObs[0] };
-  if (!laudo.conclusao) return { texto: "Escolha o resultado da vistoria", alvo: "ld-conc" };
-  if (!laudo.assin) return { texto: "Assine o laudo", alvo: "ld-assin" };
+  if (!ehInsp() && !laudo.conclusao) return { texto: "Escolha o resultado da vistoria", alvo: "ld-conc" };
+  if (!laudo.assin) return { texto: ehInsp() ? "Assine o relatório" : "Assine o laudo", alvo: "ld-assin" };
   return null;
 }
 
@@ -1584,7 +1734,7 @@ function faltaLaudo() {
 async function gerarLaudoPDF(l, cli, autor) {
   const jsPDF = window.jspdf?.jsPDF;
   if (!jsPDF) throw new Error("a ferramenta de PDF não carregou (abra o app uma vez com internet)");
-  const def = LAUDOS[l.tipo];
+  const def = defDe(l), insp = ehInsp(l);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const M = 15, L = 210 - 2 * M, AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59];
   const COR = { C: [31, 122, 69], NC: [178, 34, 34], NA: [91, 107, 128] };
@@ -1624,7 +1774,8 @@ async function gerarLaudoPDF(l, cli, autor) {
   secao("Identificação");
   [["Cliente", cli], ["Endereço", endereco], ["Data da vistoria", dataBR], ["Vistoria realizada por", autor],
    ["Acompanhou a vistoria", l.acompanhante], ["Responsável técnico", `${l.resp}${crea ? " - " + crea : ""}`],
-   ["ART", l.art], ["Referência normativa", def.norma]].filter(([, v]) => (v || "").trim()).forEach(([r, v]) => linha(r, v));
+   ["ART", insp ? "" : l.art], [insp ? "Referência" : "Referência normativa", def.norma],
+   ["Sistemas inspecionados", insp ? def.secoes.map(s => s.titulo).join(", ") : ""]].filter(([, v]) => (v || "").trim()).forEach(([r, v]) => linha(r, v));
   y += 3;
 
   // resumo
@@ -1633,12 +1784,14 @@ async function gerarLaudoPDF(l, cli, autor) {
   const qtd = v => sts.filter(s => s === v).length;
   secao("Resumo");
   linha("Itens verificados", `${sts.length}  (conformes: ${qtd("C")}  |  não conformes: ${qtd("NC")}  |  não se aplica: ${qtd("NA")})`);
-  cabe(14);
-  const corC = l.conclusao === "Apto" ? COR.C : l.conclusao === "Não apto" ? COR.NC : [176, 110, 0];
-  doc.setFillColor(...corC); doc.roundedRect(M, y - 1, L, 10, 2, 2, "F");
-  doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(255, 255, 255);
-  doc.text(`Resultado: ${l.conclusao.toUpperCase()}`, 105, y + 5.6, { align: "center" });
-  y += 15;
+  if (!insp) {                                     // inspeção: sem resultado Apto/Não apto
+    cabe(14);
+    const corC = l.conclusao === "Apto" ? COR.C : l.conclusao === "Não apto" ? COR.NC : [176, 110, 0];
+    doc.setFillColor(...corC); doc.roundedRect(M, y - 1, L, 10, 2, 2, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(255, 255, 255);
+    doc.text(`Resultado: ${l.conclusao.toUpperCase()}`, 105, y + 5.6, { align: "center" });
+    y += 15;
+  } else y += 3;
   const nc = naoConformes(l);
   if (nc.length) {
     cabe(12);
@@ -1703,11 +1856,16 @@ async function gerarLaudoPDF(l, cli, autor) {
     y += 2;
   }
 
-  secao("Conclusão");
-  linha("Resultado", l.conclusao);
-  if ((l.recom || "").trim()) linha("Recomendações", l.recom.trim());
+  if (insp) {
+    secao("Recomendações");
+    linha("Recomendações", (l.recom || "").trim() || (nc.length ? "Corrigir as não conformidades listadas no resumo." : "Nenhuma não conformidade encontrada. Manter as manutenções periódicas."));
+  } else {
+    secao("Conclusão");
+    linha("Resultado", l.conclusao);
+    if ((l.recom || "").trim()) linha("Recomendações", l.recom.trim());
+  }
   doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); doc.setTextColor(...CINZA);
-  const aviso1 = doc.splitTextToSize("Este laudo retrata as condições observadas na data da vistoria, por inspeção visual e testes funcionais dos itens listados.", L);
+  const aviso1 = doc.splitTextToSize(`Este ${insp ? "relatório" : "laudo"} retrata as condições observadas na data da vistoria, por inspeção visual e testes funcionais dos itens listados.${insp ? " Não substitui os laudos técnicos exigidos pelo Corpo de Bombeiros." : ""}`, L);
   cabe(aviso1.length * 4 + 4); doc.text(aviso1, M, y); y += aviso1.length * 4 + 4;
 
   // assinaturas
@@ -1939,6 +2097,7 @@ function remover(id) {
 function descrever(lista) {
   if (ehComp()) return `${lista.length} comprovante${lista.length > 1 ? "s" : ""}`;
   if (modo === "laudo") return `${lista.length} laudo${lista.length > 1 ? "s" : ""}`;
+  if (modo === "insp") return lista.length > 1 ? `${lista.length} relatórios de inspeção` : "relatório de inspeção";
   if (modo === "trein") {                          // "lista e certificados e 3 fotos"
     const pdfs = lista.filter(f => f.pdf).length, p = lista.length - pdfs;
     return [pdfs ? "lista e certificados" : "", p ? `${p} foto${p > 1 ? "s" : ""}` : ""].filter(Boolean).join(" e ");
@@ -2322,7 +2481,7 @@ async function alternarLuz() {
 function caminhoVisita() {
   return `${cliente}/${CONFIG.subpasta.replace("{data}", dataISO())}`;
 }
-const caminhoLaudo = () => `${cliente}/${CONFIG.pastaLaudos}`;
+const caminhoLaudo = () => `${cliente}/${modo === "insp" ? CONFIG.pastaInspecoes : CONFIG.pastaLaudos}`;
 
 function atualizar() {
   const comp = ehComp();
@@ -2334,7 +2493,7 @@ function atualizar() {
   if (av) { const s = situacaoAvcb(av); $("avcb-aviso").className = "avcb-aviso " + s.cls; $("avcb-aviso").textContent = (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto; }
   $("destino").textContent = comp
     ? (tipo ? "Salvar em: " + caminhoComp() : "")
-    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" ? caminhoLaudo() : modo === "trein" ? caminhoTrein() : caminhoVisita()).replace(/\//g, " › ") : "");
+    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" || modo === "insp" ? caminhoLaudo() : modo === "trein" ? caminhoTrein() : caminhoVisita()).replace(/\//g, " › ") : "");
   if ($("tr-local")) $("tr-local").placeholder = avcbDoCliente(cliente)?.endereco || "";
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
   $("btn-arq").hidden = comp || !cliente;
@@ -2375,18 +2534,18 @@ function atualizar() {
 function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
-  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida()) && !(modo === "laudo" && laudo.tipo) && !(modo === "trein" && trein.modelo)) {   // só sobraram itens da fila
+  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida()) && !((modo === "laudo" || modo === "insp") && laudo.tipo) && !(modo === "trein" && trein.modelo)) {   // só sobraram itens da fila
     b.disabled = enviando;
     b.textContent = enviando ? "Salvando…" : "Tentar enviar agora";
   } else if (modo === "trein") {
     const falta = cliente ? faltaTrein() : { texto: "Escolha o cliente" };
     b.disabled = enviando || !trein.modelo;
     b.textContent = enviando ? "Salvando…" : falta ? falta.texto : "Gerar lista e certificados";
-  } else if (modo === "laudo") {
+  } else if (modo === "laudo" || modo === "insp") {
     // fica habilitado mesmo faltando algo: o toque leva até o que falta
     const falta = cliente ? faltaLaudo() : { texto: "Escolha o cliente" };
     b.disabled = enviando || !laudo.tipo;
-    b.textContent = enviando ? "Salvando…" : falta ? falta.texto : "Gerar laudo em PDF";
+    b.textContent = enviando ? "Salvando…" : falta ? falta.texto : modo === "insp" ? "Gerar relatório em PDF" : "Gerar laudo em PDF";
   } else if (modo === "com") {
     const falta = faltaFicha();
     b.disabled = enviando || !cliente || !!falta;
@@ -2411,7 +2570,7 @@ function atualizarBotao() {
     else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
-  ["aba-visita", "aba-com", "aba-laudo", "aba-trein", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
+  ["aba-visita", "aba-com", "aba-laudo", "aba-insp", "aba-trein", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
 }
 
 async function reduzir(arquivo) {
@@ -2575,7 +2734,7 @@ async function salvar() {
   if (novos.length && (comp ? !tipo || faltaPagamento() || !descricao() : !cliente)) return;
   relatorio = null;                                // só a tela final de quem gerou o relatório mostra "Ver"/"Compartilhar"
   // laudo: confere o que falta (e leva até lá), gera o PDF e coloca na fila para a pasta Laudos Técnicos do cliente
-  if (modo === "laudo" && laudo.tipo) {
+  if ((modo === "laudo" || modo === "insp") && laudo.tipo) {
     if (!cliente) { abrirDialogo(); return; }
     const falta = faltaLaudo();
     if (falta) {
@@ -2585,13 +2744,13 @@ async function salvar() {
       return;
     }
     const d = { modo: "visita", autor: nomeColaborador(), cliente, caminho: caminhoLaudo(), data: dataISO() };
-    const nomeLaudo = LAUDOS[laudo.tipo].nome;
+    const nomeLaudo = defLaudo().nome;
     $("btn-salvar").disabled = true; $("btn-salvar").textContent = "Gerando o PDF…";
     let pdf;
     try { pdf = await gerarLaudoPDF(laudo, cliente, d.autor); }
     catch (e) { console.error(e); aviso("Não foi possível gerar o PDF do laudo: " + e.message, true); atualizarBotao(); return; }
     const arquivo = new File([pdf], nomeLaudo + ".pdf", { type: "application/pdf", lastModified: Date.now() });
-    const item = { id: ++seq, modo: "laudo", arquivo, url: URL.createObjectURL(arquivo), st: "nova", pdf: true, dest: d,
+    const item = { id: ++seq, modo, arquivo, url: URL.createObjectURL(arquivo), st: "nova", pdf: true, dest: d,
       prefixo: `${prefixoDe({ arquivo }, d)}_${nomeLaudo}` };     // ex.: João da Silva_2026-10-12_Diamond_Laudo de Hidrantes_01.pdf
     fotos.unshift(item);
     await guardarItem(item, true);
@@ -2664,7 +2823,7 @@ async function salvar() {
     return;
   }
   const d = fila[0].dest;
-  const masc = d.modo === "comp" || modo === "laudo" || fotos.some(f => f.video);
+  const masc = d.modo === "comp" || modo === "laudo" || modo === "insp" || fotos.some(f => f.video);
   const titulo = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
   $("ok-titulo").textContent = modo === "trein" && relatorio ? "Treinamento salvo" : titulo.charAt(0).toUpperCase() + titulo.slice(1);
   $("ok-texto").textContent = d.modo === "comp"
@@ -3886,7 +4045,7 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "com", "laudo", "trein", "comp", "avcb"]) {
+  for (const m of ["visita", "com", "laudo", "insp", "trein", "comp", "avcb"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
@@ -3957,6 +4116,7 @@ $("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("aba-visita").onclick = () => trocarModo("visita");
 $("aba-com").onclick = () => trocarModo("com");
 $("aba-laudo").onclick = () => trocarModo("laudo");
+$("aba-insp").onclick = () => trocarModo("insp");
 $("aba-trein").onclick = () => trocarModo("trein");
 $("as-cancelar").onclick = () => fecharAssinar();
 $("as-limpar").onclick = () => assinando?.zerar();
