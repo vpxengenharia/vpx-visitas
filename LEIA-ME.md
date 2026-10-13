@@ -94,6 +94,17 @@ O botão **AVCB**, no topo, abre a lista de clientes com a validade do AVCB/CLCB
 
 O que for preenchido fica guardado no celular até salvar (se o app fechar, a ficha volta). Funciona sem internet: o PDF é gerado no celular, já pode ser visto e compartilhado, e vai para o OneDrive quando o sinal voltar.
 
+### Laudos técnicos
+
+1. Toque na aba **Laudos**, escolha o **cliente** e o tipo: **Hidrantes, Elétrica, Alarme, Gás, Gerador ou SPDA**.
+2. Escolha o **responsável técnico** (Eng. Gustavo Ponchio ou Eng. William Reis). Endereço, acompanhante e ART são opcionais.
+3. Em cada item, toque em **Conforme**, **Não conforme** ou **N/A**. No não conforme, escreva a observação. Em qualquer item dá para tirar **📷 Foto** (vão para dentro do laudo).
+4. Hidrantes, quadros elétricos, pavimentos do alarme e pontos de gás: use **+ Adicionar** para cada um e informe o local.
+5. Preencha as medições (pressão, resistência, tensão…), escolha o **resultado** (Apto / Apto com ressalvas / Não apto), escreva as recomendações (o botão "Sugerir" lista as não conformidades) e **assine com o dedo**.
+6. O botão de baixo mostra o que falta; tocando nele, o app leva até o item. Quando estiver tudo certo: **Gerar laudo em PDF**. O PDF vai para *02 - Clientes › [Cliente] › Laudos Técnicos*, por exemplo `João da Silva_2026-10-12_Diamond_Laudo de Hidrantes_01.pdf`, e pode ser visto e compartilhado na hora.
+
+O laudo fica guardado no celular enquanto é preenchido (pode fechar o app e continuar depois) e funciona sem internet.
+
 ### Comprovantes
 
 1. Toque na aba **Comprovantes**, no topo.

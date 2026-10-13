@@ -129,8 +129,8 @@ p{margin:0 0 14px;max-width:60ch}
 .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
 .foto{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--linha)}
 .foto img{width:100%;height:100%;object-fit:cover;display:block}
-.abas{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
-.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:15px;line-height:1.1;padding:0 4px;cursor:pointer}
+.abas{display:grid;grid-template-columns:repeat(4,auto);gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
+.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:14.5px;line-height:1.1;padding:0 6px;cursor:pointer}
 /* ficha comercial */
 .secao{font-family:var(--titulo-fonte);font-weight:700;font-size:19px;color:var(--marinho);margin:22px 2px 10px;padding-bottom:4px;border-bottom:2px solid var(--laranja)}
 @media (prefers-color-scheme:dark){.secao{color:var(--tinta)}}
@@ -140,7 +140,44 @@ p{margin:0 0 14px;max-width:60ch}
 .chips button:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
 .campo textarea{width:100%;min-height:96px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:10px 14px;font:inherit;font-size:17px;resize:vertical}
 .campo textarea:focus{outline:3px solid var(--laranja);outline-offset:1px}
-#form-com{margin-bottom:18px}
+#form-com,#form-laudo{margin-bottom:18px}
+.laudo-tipos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.laudo-tipos button{min-height:54px;border-radius:12px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-family:var(--titulo-fonte);font-weight:700;font-size:16px;cursor:pointer;padding:4px}
+.laudo-tipos button[aria-pressed="true"]{background:var(--marinho);border-color:var(--marinho);color:#fff}
+@media (prefers-color-scheme:dark){.laudo-tipos button[aria-pressed="true"]{background:var(--laranja);border-color:var(--laranja);color:var(--marinho)}}
+.laudo-dica{font-size:14px;color:var(--suave);margin:4px 2px 8px}
+.laudo-item{background:var(--papel);border:1.5px solid var(--linha);border-left-width:6px;border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.laudo-item[data-st="C"]{border-left-color:#1F7A45}
+.laudo-item[data-st="NC"]{border-left-color:#B22222}
+.laudo-item[data-st="NA"]{border-left-color:#8A97A8}
+.li-txt{margin:0 0 8px;font-size:16px;line-height:1.3}
+.li-st{display:grid;grid-template-columns:1fr 1.25fr .7fr;gap:6px}
+.li-st button{min-height:44px;border-radius:9px;border:1.5px solid var(--linha);background:transparent;color:var(--tinta);font-size:15px;font-weight:600;cursor:pointer;padding:0 4px}
+.li-st .st-C[aria-pressed="true"]{background:#1F7A45;border-color:#1F7A45;color:#fff}
+.li-st .st-NC[aria-pressed="true"]{background:#B22222;border-color:#B22222;color:#fff}
+.li-st .st-NA[aria-pressed="true"]{background:#8A97A8;border-color:#8A97A8;color:#fff}
+.li-acoes{display:flex;gap:8px;margin-top:8px}
+.li-foto,.li-obs-btn{display:inline-flex;align-items:center;min-height:38px;padding:0 12px;border-radius:999px;border:1.5px solid var(--linha);background:transparent;color:var(--suave);font-size:14px;font-weight:600;cursor:pointer;position:relative}
+.laudo-item.com-obs .li-obs-btn{display:none}
+.li-obs{display:none;width:100%;min-height:64px;margin-top:8px;border-radius:9px;border:1.5px solid var(--linha);background:var(--fundo,transparent);color:var(--tinta);padding:8px 10px;font:inherit;font-size:16px;resize:vertical}
+.laudo-item.com-obs .li-obs{display:block}
+.laudo-item[data-st="NC"] .li-obs:placeholder-shown{border-color:#B22222}
+.li-fotos{display:flex;flex-wrap:wrap;gap:6px}
+.li-fotos:not(:empty){margin-top:8px}
+.li-mini{position:relative;width:72px;height:72px}
+.li-mini img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.li-mini button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;background:#13253B;color:#fff;font-size:16px;line-height:1;cursor:pointer}
+.laudo-bloco{border:1.5px dashed var(--linha);border-radius:14px;padding:10px;margin-bottom:12px}
+.laudo-bloco-topo{display:flex;justify-content:space-between;align-items:center;margin:0 2px 8px;font-family:var(--titulo-fonte);font-size:18px;color:var(--marinho)}
+@media (prefers-color-scheme:dark){.laudo-bloco-topo{color:var(--tinta)}}
+.laudo-add{width:100%;margin-bottom:8px}
+.laudo-link{background:none;border:0;color:var(--marinho);font-size:14px;font-weight:600;text-decoration:underline;cursor:pointer;padding:6px 2px;min-height:36px}
+@media (prefers-color-scheme:dark){.laudo-link{color:var(--laranja)}}
+.laudo-link.perigo{color:#B22222}
+.piscar{animation:piscar .8s 2}
+@keyframes piscar{50%{box-shadow:0 0 0 4px var(--laranja)}}
+.modo-laudo #captura,.modo-laudo #semfotos{display:none!important}
+.assin{display:block;width:100%;height:160px;border-radius:10px;border:1.5px solid var(--linha);background:#fff;touch-action:none}
 .abas button[aria-selected="true"]{background:var(--marinho);color:#fff}
 @media (prefers-color-scheme:dark){.abas button[aria-selected="true"]{background:var(--laranja);color:var(--marinho)}}
 .tipos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
@@ -307,6 +344,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <div class="abas" role="tablist">
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
       <button role="tab" id="aba-com" aria-selected="false">Comercial</button>
+      <button role="tab" id="aba-laudo" aria-selected="false">Laudos</button>
       <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
     <div id="form-comp" hidden>
@@ -333,6 +371,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <p class="destino" id="destino"></p>
     <p class="fila" id="fila" role="status" hidden></p>
     <div id="form-com" hidden></div>
+    <div id="form-laudo" hidden></div>
     <div class="grade" id="grade"></div>
     <div class="semfotos" id="semfotos">Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.</div>
   </section>
@@ -344,11 +383,11 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <div class="acoes">
       <button class="btn sec" id="ok-ver" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-        Ver relatório
+        <span id="ok-ver-txt">Ver relatório</span>
       </button>
       <button class="btn sec" id="ok-compartilhar" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
-        Compartilhar relatório
+        <span id="ok-comp-txt">Compartilhar relatório</span>
       </button>
       <a class="btn sec" id="ok-link" target="_blank" rel="noopener">Abrir pasta no OneDrive</a>
       <button class="btn prim" id="btn-nova">Nova visita</button>
@@ -423,7 +462,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <div class="visor-pdf" id="visor-pdf" hidden role="dialog" aria-label="Relatório de Visita">
   <div class="visor-topo">
     <button class="visor-btn" id="visor-fechar">Fechar</button>
-    <strong>Relatório de Visita</strong>
+    <strong id="visor-titulo">Relatório de Visita</strong>
     <button class="visor-btn" id="visor-comp">Compartilhar</button>
   </div>
   <div class="visor-paginas" id="visor-paginas"></div>
@@ -509,7 +548,10 @@ const CONFIG = {
   driveId: "b!LWXbA_WnV0qdA93Eaa3V-E6Mee41gUxAmG8VyG43VRhmTKaEcLjtQ64K4k75--MP",
   pastaClientesId: "01VYL4Q5YGDBCBT3E7CRDLSKCI3476CXTS",
   pastaClientesNome: "02 - Clientes",
-  subpasta: "06 - Fotos e Visitas Técnicas",                          // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
+  pastaLaudos: "Laudos Técnicos",                                      // laudos (PDF) dentro da pasta do cliente
+  // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
+  responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
+  subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
   ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i],
   pastaAvcb: "00 - Validade AVCB",            // dentro de 02 - Clientes: fotos e dados dos AVCBs fotografados pela equipe
   // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
@@ -582,11 +624,11 @@ const $ = id => document.getElementById(id);
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
-let modo = ["visita", "com", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
+let modo = ["visita", "com", "laudo", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("comp"), ...listaDe("avcb")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("comp"), ...listaDe("avcb")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -776,12 +818,15 @@ function aplicarModo() {
   const comp = ehComp(), com = modo === "com";
   $("aba-visita").setAttribute("aria-selected", String(modo === "visita"));
   $("aba-com").setAttribute("aria-selected", String(com));
+  $("aba-laudo").setAttribute("aria-selected", String(modo === "laudo"));
   $("aba-comp").setAttribute("aria-selected", String(comp));
   $("form-comp").hidden = !comp;
   $("form-com").hidden = !com;
+  $("form-laudo").hidden = modo !== "laudo";
+  document.body.classList.toggle("modo-laudo", modo === "laudo");   // laudos: fotos dentro de cada item (sem câmera/galeria embaixo)
   $("btn-cliente").hidden = comp;                 // nos comprovantes, no lugar do cliente vai o centro de custo (digitado)
   $("in-gal").accept = comp ? "image/*,application/pdf" : com ? "image/*" : "image/*,video/*";
-  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : "Nova visita";
+  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : modo === "laudo" ? "Novo laudo" : "Nova visita";
   $("semfotos").textContent = comp ? "Nenhum comprovante ainda. Fotografe a nota ou o recibo, ou escolha da galeria (aceita PDF)."
     : com ? "Fotos (opcional): fachada, casa de bombas, hidrantes, quadro de alarme… Elas entram no PDF da ficha."
     : "Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.";
@@ -933,7 +978,7 @@ async function gerarFichaPDF(dados, cli, autor, arquivos) {
   const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; } };
   const hoje = new Date(), dataBR = `${pad(hoje.getDate())}/${pad(hoje.getMonth() + 1)}/${hoje.getFullYear()}`;
 
-  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18); } catch {}
+  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18, "logo", "FAST"); } catch {}
   doc.setFont("helvetica", "bold"); doc.setFontSize(17); doc.setTextColor(...AZUL);
   doc.text("Relatório de Visita", 210 - M, y + 7, { align: "right" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
@@ -989,6 +1034,625 @@ async function gerarFichaPDF(dados, cli, autor, arquivos) {
     doc.setPage(p);
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...CINZA);
     doc.text(`VPX Engenharia  -  Relatório de visita  -  ${cli}  -  página ${p} de ${total}`, 105, 290, { align: "center" });
+  }
+  return doc.output("blob");
+}
+
+/* ---------- laudos técnicos (aba "Laudos") ----------
+   Checklist por tipo de laudo (itens propostos com base nas normas e aprovados pelo Gustavo em 12/10/2026).
+   Cada item: Conforme / Não conforme / Não se aplica, com observação (obrigatória no não conforme) e fotos.
+   Seções com "repetir" (ex.: cada hidrante, cada quadro) podem ter vários equipamentos.
+   O rascunho fica no celular (localStorage vpx_laudo; fotos reduzidas no IndexedDB, chave "laudo:…")
+   até virar PDF, que vai para 02 - Clientes › [Cliente] › Laudos Técnicos. */
+const LAUDOS = {
+  hidrantes: { curto: "Hidrantes", nome: "Laudo de Hidrantes", norma: "ABNT NBR 13714 e Instruções Técnicas do CBMBA", secoes: [
+    { id: "res", titulo: "Reservatório", itens: [
+      ["rti", "Reserva técnica de incêndio (RTI) garantida, conforme projeto"],
+      ["estado", "Reservatório em bom estado, sem vazamentos e com tampa"],
+      ["registros", "Registros da saída de incêndio abertos e em bom estado"]
+    ], medidas: [["volume", "Volume da RTI (m³)"]] },
+    { id: "bombas", titulo: "Bombas de incêndio", itens: [
+      ["auto", "Bomba principal parte automaticamente (pressostato/chave de fluxo)"],
+      ["jockey", "Bomba jockey mantém a pressão da rede (se houver)"],
+      ["painel", "Painel de comando em automático, sinalizado e sem alarmes"],
+      ["manual", "Acionamento manual/botoeiras funcionando"],
+      ["manometro", "Manômetro instalado e funcionando"],
+      ["vazam", "Bombas e conexões sem vazamentos ou ruídos anormais"],
+      ["alim", "Alimentação elétrica independente da instalação geral"]
+    ], medidas: [["prepouso", "Pressão da rede em repouso (kgf/cm²)"], ["pdesf", "Pressão no hidrante mais desfavorável (kgf/cm²)"]] },
+    { id: "hid", titulo: "Hidrantes", repetir: "Hidrante", itens: [
+      ["abrigo", "Abrigo sinalizado, desobstruído e em bom estado"],
+      ["mangueiras", "Mangueiras em quantidade e comprimento conforme projeto, em bom estado"],
+      ["teste", "Teste hidrostático das mangueiras dentro da validade"],
+      ["esguicho", "Esguicho e chave de mangueira presentes"],
+      ["valvula", "Válvula angular abre e fecha sem vazamento"],
+      ["engates", "Engates storz e vedações em bom estado"]
+    ], medidas: [["qtd", "Quantidade de mangueiras"], ["comp", "Comprimento total (m)"]] },
+    { id: "recalque", titulo: "Registro de recalque", itens: [
+      ["tampa", "Tampa identificada e acesso livre"],
+      ["adaptador", "Adaptador storz e tampão presentes"],
+      ["registro", "Registro em bom estado e sinalizado"]
+    ] },
+    { id: "tub", titulo: "Tubulação", itens: [
+      ["pintura", "Tubulação aparente pintada em vermelho/identificada"],
+      ["vazam", "Sem vazamentos ou corrosão"],
+      ["suportes", "Suportes e fixações adequados"]
+    ] }
+  ] },
+  eletrica: { curto: "Elétrica", nome: "Laudo de Instalações Elétricas", norma: "ABNT NBR 5410", secoes: [
+    { id: "qd", titulo: "Quadros elétricos", repetir: "Quadro", itens: [
+      ["ident", "Circuitos identificados no quadro"],
+      ["disj", "Disjuntores compatíveis com os condutores"],
+      ["dr", "Dispositivo DR instalado onde exigido"],
+      ["dps", "DPS instalado e sem sinal de atuação/queima"],
+      ["barra", "Barramentos de terra (PE) e neutro separados e conectados"],
+      ["aquec", "Sem aquecimento anormal, cheiro de queimado ou marcas de arco"],
+      ["contato", "Proteção contra contato direto (tampa/espelho) e porta em bom estado"],
+      ["condut", "Condutores em bom estado, sem emendas soltas e com isolação íntegra"],
+      ["sinal", "Sinalização de risco elétrico"]
+    ], medidas: [["temp", "Temperatura máxima medida (°C)"]] },
+    { id: "aterr", titulo: "Aterramento", itens: [
+      ["existe", "Aterramento existente e acessível (caixa de inspeção)"],
+      ["pe", "Condutor de proteção (terra) presente nos circuitos"],
+      ["equip", "Equipotencialização das massas metálicas"]
+    ], medidas: [["res", "Resistência de aterramento (ohms)"]] },
+    { id: "geral", titulo: "Instalações gerais", itens: [
+      ["tomadas", "Tomadas no padrão NBR 14136, com terra"],
+      ["eletrod", "Eletrodutos e eletrocalhas fixados, fechados e sem danos"],
+      ["improv", "Sem emendas expostas ou instalações improvisadas"],
+      ["ilum", "Iluminação das áreas comuns funcionando"],
+      ["deposito", "Quadros e casas de máquinas sem uso como depósito"]
+    ] }
+  ] },
+  alarme: { curto: "Alarme", nome: "Laudo do Sistema de Alarme", norma: "ABNT NBR 17240", secoes: [
+    { id: "central", titulo: "Central de alarme", itens: [
+      ["local", "Central em local com vigilância permanente e acessível"],
+      ["normal", "Central em funcionamento normal, sem falhas no painel"],
+      ["bateria", "Baterias em bom estado e dentro da validade"],
+      ["fonte", "Alimentação principal funcionando"],
+      ["comuta", "Passa para a bateria ao desligar a alimentação principal"],
+      ["zonas", "Painel identifica corretamente as zonas/laços"]
+    ], medidas: [["vbat", "Tensão da bateria (V)"], ["lacos", "Quantidade de laços/zonas"]] },
+    { id: "disp", titulo: "Dispositivos", repetir: "Pavimento/área", itens: [
+      ["acion", "Acionadores manuais instalados, sinalizados e funcionando"],
+      ["fumaca", "Detectores de fumaça funcionando no teste"],
+      ["temp", "Detectores de temperatura funcionando no teste"],
+      ["aviso", "Avisadores sonoros/visuais funcionando"],
+      ["danos", "Dispositivos sem danos, pintura ou obstrução"]
+    ] },
+    { id: "teste", titulo: "Teste geral", itens: [
+      ["audivel", "Alarme audível em todos os ambientes"],
+      ["superv", "Supervisão do cabeamento: a central indica falha ao abrir o laço"],
+      ["cabo", "Cabeamento em eletroduto próprio e sem danos"],
+      ["manut", "Registro de manutenção periódica disponível"]
+    ] }
+  ] },
+  gas: { curto: "Gás", nome: "Laudo de Instalações de Gás", norma: "ABNT NBR 15526 e ABNT NBR 13523", secoes: [
+    { id: "central", titulo: "Central de gás", itens: [
+      ["vent", "Abrigo/central ventilado, com portas em bom estado"],
+      ["sinal", "Sinalização (perigo, inflamável, proibido fumar)"],
+      ["extintor", "Extintor próximo à central"],
+      ["afast", "Afastamentos de ralos, aberturas e fontes de ignição"],
+      ["cilindros", "Recipientes em bom estado e fixados"],
+      ["deposito", "Sem materiais armazenados no abrigo"]
+    ] },
+    { id: "reg", titulo: "Regulagem e válvulas", itens: [
+      ["regulador", "Reguladores de pressão em bom estado e dentro da validade"],
+      ["manometro", "Manômetros funcionando"],
+      ["bloqueio", "Válvulas de bloqueio acessíveis e operando"]
+    ] },
+    { id: "tub", titulo: "Tubulação e estanqueidade", itens: [
+      ["pintura", "Tubulação aparente pintada em amarelo/identificada"],
+      ["danos", "Sem corrosão, amassados ou danos"],
+      ["fix", "Fixações e suportes adequados"],
+      ["locais", "Não passa por locais proibidos (poço de elevador, dutos, dormitórios)"],
+      ["estanq", "Teste de estanqueidade aprovado (sem queda de pressão)"]
+    ], medidas: [["pini", "Pressão inicial do teste (kPa)"], ["pfim", "Pressão final do teste (kPa)"], ["tempo", "Duração do teste (min)"]] },
+    { id: "pontos", titulo: "Pontos de consumo e medidores", repetir: "Ponto/medidor", itens: [
+      ["medidor", "Medidor em bom estado e identificado"],
+      ["valvula", "Válvula de bloqueio do ponto operando"],
+      ["vent", "Ambiente com ventilação adequada"],
+      ["flexivel", "Mangueira/flexível dentro da validade"]
+    ] }
+  ] },
+  gerador: { curto: "Gerador", nome: "Laudo do Grupo Gerador", norma: "ABNT NBR 5410 e recomendações do fabricante", secoes: [
+    { id: "ident", titulo: "Identificação do gerador", itens: [], medidas: [["marca", "Marca/modelo"], ["kva", "Potência (kVA)"], ["horas", "Horímetro (h)"]] },
+    { id: "insp", titulo: "Inspeção", itens: [
+      ["oleo", "Nível de óleo do motor adequado"],
+      ["arref", "Sistema de arrefecimento (água/radiador) adequado"],
+      ["comb", "Combustível suficiente e tanque sem vazamentos"],
+      ["bateria", "Bateria de partida carregada, terminais limpos"],
+      ["vazam", "Sem vazamentos de óleo, combustível ou água"],
+      ["correias", "Correias, mangueiras e filtros em bom estado"]
+    ] },
+    { id: "teste", titulo: "Teste de funcionamento", itens: [
+      ["partida", "Partida automática na falta de energia"],
+      ["qta", "QTA (transferência) funcionando nos dois sentidos"],
+      ["cargas", "Alimenta as cargas de emergência previstas"],
+      ["ruido", "Funcionamento sem ruídos ou vibrações anormais"]
+    ], medidas: [["transf", "Tempo de transferência (s)"], ["tensao", "Tensão de saída (V)"], ["freq", "Frequência (Hz)"]] },
+    { id: "sala", titulo: "Sala do gerador", itens: [
+      ["vent", "Ventilação adequada"],
+      ["escape", "Escapamento dos gases direcionado para área externa"],
+      ["extintor", "Extintor adequado próximo"],
+      ["sinal", "Sinalização e iluminação de emergência"],
+      ["acesso", "Acesso livre e sem materiais armazenados"],
+      ["manut", "Registro de manutenção periódica disponível"]
+    ] }
+  ] },
+  spda: { curto: "SPDA", nome: "Laudo de SPDA (Para-raios)", norma: "ABNT NBR 5419", secoes: [
+    { id: "capt", titulo: "Captação", itens: [
+      ["captores", "Captores/terminais aéreos instalados e fixados"],
+      ["condut", "Condutores de captação contínuos, sem rompimento"],
+      ["metais", "Estruturas metálicas da cobertura interligadas"]
+    ] },
+    { id: "desc", titulo: "Descidas", itens: [
+      ["qtd", "Descidas em quantidade conforme projeto"],
+      ["fix", "Condutores de descida fixados e sem danos"],
+      ["conex", "Conexões sem corrosão"],
+      ["protecao", "Proteção mecânica nas descidas até 2,5 m do piso"]
+    ], medidas: [["n", "Quantidade de descidas"]] },
+    { id: "aterr", titulo: "Aterramento", itens: [
+      ["caixas", "Caixas de inspeção acessíveis"],
+      ["malha", "Malha de aterramento contínua"],
+      ["bep", "Equipotencialização (BEP) com as demais instalações"]
+    ], medidas: [["res", "Resistência de aterramento (ohms)"], ["cont", "Continuidade elétrica (ohms)"]] },
+    { id: "geral", titulo: "Geral", itens: [
+      ["dps", "DPS instalados no quadro geral"],
+      ["doc", "Sinalização/documentação do SPDA disponível"],
+      ["danos", "Sem danos causados por descargas"]
+    ] }
+  ] }
+};
+const ST_LAUDO = { C: "Conforme", NC: "Não conforme", NA: "Não se aplica" };
+const CONCLUSOES = ["Apto", "Apto com ressalvas", "Não apto"];
+
+const laudoVazio = (t = "") => ({ tipo: t, resp: "", endereco: "", acompanhante: "", art: "", r: {}, med: {}, rep: {}, conclusao: "", recom: "", assin: "" });
+let laudo = lerLS("vpx_laudo", null) || laudoVazio();
+const gravarLaudo = () => gravarLS("vpx_laudo", laudo);
+const defLaudo = () => LAUDOS[laudo.tipo];
+
+// blocos do laudo: cada seção comum é um bloco; seção repetida tem um bloco por equipamento ("hid#1", "hid#2"…)
+function blocosLaudo(l = laudo) {
+  const def = LAUDOS[l.tipo];
+  if (!def) return [];
+  return def.secoes.flatMap(s => s.repetir ? (l.rep[s.id] || []).map((uid, i) => ({ s, uid, n: i + 1 })) : [{ s, uid: s.id }]);
+}
+const chaveItem = (uid, item) => `${uid}.${item}`;
+const rotuloBloco = (b, l = laudo) => b.s.repetir ? `${b.s.repetir} ${b.n}${l.med[b.uid + ".local"] ? " - " + l.med[b.uid + ".local"] : ""}` : b.s.titulo;
+const laudoIniciado = () => Object.keys(laudo.r).length || Object.values(laudo.med).some(Boolean) || laudo.assin;
+
+// fotos dos itens: reduzidas (1400 px) e guardadas no IndexedDB enquanto o laudo não é salvo
+const urlsFotoLaudo = new Map();
+const novaChaveFoto = () => "laudo:" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const gravarFotoLaudo = (k, blob) => bdTx("readwrite", (i, a) => a.put(blob, k));
+const lerFotoLaudo = k => bdTx("readonly", (i, a) => a.get(k));
+const apagarFotoLaudo = k => { bdTx("readwrite", (i, a) => a.delete(k)).catch(() => {}); const u = urlsFotoLaudo.get(k); if (u) URL.revokeObjectURL(u); urlsFotoLaudo.delete(k); };
+async function reduzirFotoLaudo(arquivo) {
+  const bmp = await createImageBitmap(arquivo, { imageOrientation: "from-image" });
+  const esc = Math.min(1, 1400 / Math.max(bmp.width, bmp.height));
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(bmp.width * esc); cv.height = Math.round(bmp.height * esc);
+  cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+  bmp.close();
+  return new Promise(r => cv.toBlob(r, "image/jpeg", 0.8));
+}
+const todasFotosLaudo = (l = laudo) => Object.values(l.r).flatMap(x => x.fotos || []);
+
+function escolherTipoLaudo(t) {
+  if (enviando || t === laudo.tipo) return;
+  if (laudo.tipo && laudoIniciado() && !confirm(`Trocar para ${LAUDOS[t].nome}? O que foi preenchido no ${defLaudo().nome} será apagado.`)) return;
+  todasFotosLaudo().forEach(apagarFotoLaudo);
+  laudo = laudoVazio(t);
+  for (const s of LAUDOS[t].secoes) if (s.repetir) laudo.rep[s.id] = [s.id + "#1"];
+  gravarLaudo(); montarLaudo(); atualizarBotao();
+}
+function limparLaudo() {
+  todasFotosLaudo().forEach(apagarFotoLaudo);
+  laudo = laudoVazio();
+  gravarLaudo(); montarLaudo();
+}
+function descartarLaudo() {
+  if (!confirm("Apagar tudo o que foi preenchido neste laudo?")) return;
+  limparLaudo(); atualizarBotao(); window.scrollTo(0, 0);
+}
+
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+
+function montarLaudo() {
+  const raiz = $("form-laudo");
+  raiz.innerHTML = "";
+  raiz.appendChild(el("p", "rotulo", "Tipo de laudo"));
+  const tipos = el("div", "laudo-tipos");
+  for (const [t, d] of Object.entries(LAUDOS)) {
+    const b = el("button", "", d.curto);
+    b.type = "button"; b.setAttribute("aria-pressed", String(laudo.tipo === t));
+    b.onclick = () => escolherTipoLaudo(t);
+    tipos.appendChild(b);
+  }
+  raiz.appendChild(tipos);
+  const def = defLaudo();
+  if (!def) { raiz.appendChild(el("p", "laudo-dica", "Escolha o cliente e o tipo de laudo para começar.")); return; }
+  raiz.appendChild(el("p", "laudo-dica", `${def.nome} - referência: ${def.norma}. O preenchimento fica guardado no celular até gerar o PDF.`));
+
+  // identificação
+  raiz.appendChild(el("h2", "secao", "Identificação"));
+  const resp = el("div", "campo"); resp.id = "ld-resp";
+  resp.appendChild(el("span", "", "Responsável técnico *"));
+  const chips = el("div", "chips");
+  CONFIG.responsaveis.forEach(([nome, crea]) => {
+    const b = el("button", "", nome); b.type = "button"; b.title = crea;
+    b.setAttribute("aria-pressed", String(laudo.resp === nome));
+    b.onclick = () => { laudo.resp = laudo.resp === nome ? "" : nome; chips.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.textContent === laudo.resp))); mudouLaudo(); };
+    chips.appendChild(b);
+  });
+  resp.appendChild(chips);
+  raiz.appendChild(resp);
+  raiz.appendChild(campoLaudo("Endereço", "endereco", { id: "ld-end", dica: avcbDoCliente(cliente)?.endereco || "" }));
+  raiz.appendChild(campoLaudo("Acompanhou a vistoria (nome/função)", "acompanhante"));
+  raiz.appendChild(campoLaudo("Nº da ART (opcional)", "art"));
+
+  for (const s of def.secoes) {
+    const h = el("h2", "secao", s.titulo); h.id = "ld-sec-" + s.id;
+    raiz.appendChild(h);
+    if (s.repetir) {
+      (laudo.rep[s.id] || []).forEach((uid, i) => raiz.appendChild(blocoRepetido(s, uid, i + 1)));
+      const add = el("button", "btn sec laudo-add", `+ Adicionar ${s.repetir.toLowerCase()}`); add.type = "button";
+      add.onclick = () => {
+        const lista = laudo.rep[s.id] ||= [];
+        const n = Math.max(0, ...lista.map(u => +u.split("#")[1])) + 1;
+        lista.push(`${s.id}#${n}`);
+        gravarLaudo(); montarLaudo(); atualizarBotao();
+        $("ld-bl-" + `${s.id}#${n}`)?.scrollIntoView({ block: "start" });
+      };
+      raiz.appendChild(add);
+    } else {
+      s.itens.forEach(([id, txt]) => raiz.appendChild(itemLaudo(s.id, id, txt)));
+      (s.medidas || []).forEach(([id, r]) => raiz.appendChild(campoMedida(`${s.id}.${id}`, r)));
+    }
+  }
+
+  // conclusão e assinatura
+  raiz.appendChild(el("h2", "secao", "Conclusão"));
+  const conc = el("div", "campo"); conc.id = "ld-conc";
+  conc.appendChild(el("span", "", "Resultado da vistoria *"));
+  const cc = el("div", "chips");
+  CONCLUSOES.forEach(c => {
+    const b = el("button", "", c); b.type = "button"; b.setAttribute("aria-pressed", String(laudo.conclusao === c));
+    b.onclick = () => { laudo.conclusao = laudo.conclusao === c ? "" : c; cc.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.textContent === laudo.conclusao))); mudouLaudo(); };
+    cc.appendChild(b);
+  });
+  conc.appendChild(cc);
+  raiz.appendChild(conc);
+  const sug = el("button", "laudo-link", "Sugerir: listar as não conformidades nas recomendações"); sug.type = "button";
+  sug.onclick = () => {
+    const nc = naoConformes();
+    if (!nc.length) { aviso("Não há itens não conformes."); return; }
+    const t = nc.map(x => `- ${x.bloco}: ${x.texto}${x.obs ? " (" + x.obs + ")" : ""}`).join("\n");
+    laudo.recom = (laudo.recom ? laudo.recom + "\n" : "") + t;
+    $("ld-recom").value = laudo.recom; mudouLaudo();
+  };
+  raiz.appendChild(campoLaudo("Recomendações / adequações necessárias", "recom", { longo: true, id: "ld-recom" }));
+  raiz.appendChild(sug);
+  raiz.appendChild(padAssinatura());
+  const desc = el("button", "laudo-link perigo", "Descartar este laudo"); desc.type = "button"; desc.onclick = descartarLaudo;
+  raiz.appendChild(desc);
+}
+
+function campoLaudo(rotulo, chave, op = {}) {
+  const w = el("label", "campo");
+  w.appendChild(el("span", "", rotulo));
+  const e = document.createElement(op.longo ? "textarea" : "input");
+  if (op.id) e.id = op.id;
+  e.value = laudo[chave] || ""; e.placeholder = op.dica || ""; e.autocomplete = "off";
+  e.oninput = () => { laudo[chave] = e.value; mudouLaudo(); };
+  w.appendChild(e);
+  return w;
+}
+function campoMedida(chave, rotulo) {
+  const w = el("label", "campo laudo-med");
+  w.appendChild(el("span", "", rotulo));
+  const e = document.createElement("input");
+  e.value = laudo.med[chave] || ""; e.autocomplete = "off";
+  if (/\((m³|kgf\/cm²|°C|ohms|V|kPa|min|s|Hz|kVA|h|m)\)$|^Quantidade/.test(rotulo)) e.inputMode = "decimal";
+  e.oninput = () => { laudo.med[chave] = e.value.trim(); mudouLaudo(); };
+  w.appendChild(e);
+  return w;
+}
+
+function blocoRepetido(s, uid, n) {
+  const card = el("div", "laudo-bloco"); card.id = "ld-bl-" + uid;
+  const topo = el("div", "laudo-bloco-topo");
+  topo.appendChild(el("strong", "", `${s.repetir} ${n}`));
+  const rm = el("button", "laudo-link perigo", "Remover"); rm.type = "button";
+  rm.onclick = () => {
+    if (!confirm(`Remover ${s.repetir.toLowerCase()} ${n} e o que foi preenchido nele?`)) return;
+    s.itens.forEach(([id]) => { const k = chaveItem(uid, id); (laudo.r[k]?.fotos || []).forEach(apagarFotoLaudo); delete laudo.r[k]; });
+    Object.keys(laudo.med).filter(k => k.startsWith(uid + ".")).forEach(k => delete laudo.med[k]);
+    laudo.rep[s.id] = laudo.rep[s.id].filter(u => u !== uid);
+    gravarLaudo(); montarLaudo(); atualizarBotao();
+  };
+  topo.appendChild(rm);
+  card.appendChild(topo);
+  card.appendChild(campoMedida(uid + ".local", "Local / pavimento"));
+  s.itens.forEach(([id, txt]) => card.appendChild(itemLaudo(uid, id, txt)));
+  (s.medidas || []).forEach(([id, r]) => card.appendChild(campoMedida(`${uid}.${id}`, r)));
+  return card;
+}
+
+function itemLaudo(uid, id, texto) {
+  const k = chaveItem(uid, id);
+  const w = el("div", "laudo-item"); w.id = "li-" + k;
+  w.appendChild(el("p", "li-txt", texto));
+  const sts = el("div", "li-st");
+  for (const [v, r] of Object.entries(ST_LAUDO)) {
+    const b = el("button", "st-" + v, v === "NA" ? "N/A" : r); b.type = "button"; b.dataset.v = v;
+    b.onclick = () => {
+      if (enviando) return;
+      const x = laudo.r[k] ||= {};
+      x.st = x.st === v ? "" : v;
+      pintarItem(w, k); mudouLaudo();
+      if (x.st === "NC" && !x.obs) w.querySelector("textarea").focus();
+    };
+    sts.appendChild(b);
+  }
+  w.appendChild(sts);
+  const acoes = el("div", "li-acoes");
+  const foto = el("label", "li-foto", "📷 Foto");
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = "image/*"; inp.multiple = true; inp.className = "oculto";
+  inp.onchange = async () => {
+    const arqs = [...inp.files]; inp.value = "";
+    for (const a of arqs) {
+      try {
+        const blob = await reduzirFotoLaudo(a), chave = novaChaveFoto();
+        await gravarFotoLaudo(chave, blob);
+        urlsFotoLaudo.set(chave, URL.createObjectURL(blob));
+        ((laudo.r[k] ||= {}).fotos ||= []).push(chave);
+      } catch (e) { console.error(e); aviso("Não foi possível usar esta foto.", true); }
+    }
+    pintarItem(w, k); mudouLaudo();
+  };
+  foto.appendChild(inp);
+  const bObs = el("button", "li-obs-btn", "Obs."); bObs.type = "button";
+  bObs.onclick = () => { w.classList.add("com-obs"); w.querySelector("textarea").focus(); };
+  acoes.append(foto, bObs);
+  w.appendChild(acoes);
+  w.appendChild(el("div", "li-fotos"));
+  const obs = document.createElement("textarea");
+  obs.className = "li-obs"; obs.placeholder = "Observação (obrigatória quando não conforme)";
+  obs.value = laudo.r[k]?.obs || "";
+  obs.oninput = () => { (laudo.r[k] ||= {}).obs = obs.value; mudouLaudo(); };
+  w.appendChild(obs);
+  pintarItem(w, k);
+  return w;
+}
+
+function pintarItem(w, k) {
+  const x = laudo.r[k] || {};
+  w.dataset.st = x.st || "";
+  w.querySelectorAll(".li-st button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === x.st)));
+  w.classList.toggle("com-obs", x.st === "NC" || !!x.obs);
+  const caixa = w.querySelector(".li-fotos");
+  caixa.innerHTML = "";
+  for (const chave of x.fotos || []) {
+    const t = el("div", "li-mini");
+    const img = document.createElement("img"); img.alt = "foto do item";
+    const u = urlsFotoLaudo.get(chave);
+    if (u) img.src = u;
+    else lerFotoLaudo(chave).then(b => { if (b) { const nu = URL.createObjectURL(b); urlsFotoLaudo.set(chave, nu); img.src = nu; } }).catch(() => {});
+    const rm = el("button", "", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Remover foto");
+    rm.onclick = () => { x.fotos = x.fotos.filter(c => c !== chave); apagarFotoLaudo(chave); pintarItem(w, k); mudouLaudo(); };
+    t.append(img, rm);
+    caixa.appendChild(t);
+  }
+}
+
+// assinatura do colaborador (com o dedo), guardada como imagem no rascunho
+function padAssinatura() {
+  const w = el("div", "campo"); w.id = "ld-assin";
+  w.appendChild(el("span", "", `Assinatura de quem fez a vistoria (${nomeColaborador()}) *`));
+  const cv = document.createElement("canvas"); cv.className = "assin";
+  const limpar = el("button", "laudo-link", "Limpar assinatura"); limpar.type = "button";
+  w.append(cv, limpar);
+  const preparar = () => {
+    const r = cv.getBoundingClientRect(); if (!r.width) return;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    const g = cv.getContext("2d"); g.scale(dpr, dpr); g.lineWidth = 2.4; g.lineCap = g.lineJoin = "round"; g.strokeStyle = "#13253B";
+    if (laudo.assin) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0, r.width, r.height); im.src = laudo.assin; }
+  };
+  requestAnimationFrame(preparar);
+  let ult = null;
+  const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  cv.onpointerdown = e => { if (enviando) return; if (!cv.width) preparar(); cv.setPointerCapture(e.pointerId); ult = pos(e); };
+  cv.onpointermove = e => {
+    if (!ult) return;
+    const g = cv.getContext("2d"), p = pos(e);
+    g.beginPath(); g.moveTo(...ult); g.lineTo(...p); g.stroke(); ult = p;
+  };
+  cv.onpointerup = cv.onpointercancel = () => { if (!ult) return; ult = null; laudo.assin = cv.toDataURL("image/png"); mudouLaudo(); };
+  limpar.onclick = () => { laudo.assin = ""; cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); mudouLaudo(); };
+  return w;
+}
+
+function mudouLaudo() { gravarLaudo(); atualizarBotao(); }
+
+function naoConformes(l = laudo) {
+  return blocosLaudo(l).flatMap(b => b.s.itens.filter(([id]) => l.r[chaveItem(b.uid, id)]?.st === "NC")
+    .map(([id, texto]) => ({ bloco: rotuloBloco(b, l), texto, obs: (l.r[chaveItem(b.uid, id)].obs || "").trim() })));
+}
+// o que falta para gerar o laudo; alvo = elemento para onde rolar a tela
+function faltaLaudo() {
+  if (!laudo.tipo) return { texto: "Escolha o tipo de laudo" };
+  if (!laudo.resp) return { texto: "Escolha o responsável técnico", alvo: "ld-resp" };
+  const pend = [], semObs = [];
+  for (const b of blocosLaudo()) for (const [id] of b.s.itens) {
+    const x = laudo.r[chaveItem(b.uid, id)];
+    if (!x?.st) pend.push(chaveItem(b.uid, id));
+    else if (x.st === "NC" && !(x.obs || "").trim()) semObs.push(chaveItem(b.uid, id));
+  }
+  if (pend.length) return { texto: `Responda ${pend.length} ${pend.length > 1 ? "itens" : "item"}`, alvo: "li-" + pend[0] };
+  if (semObs.length) return { texto: "Escreva a observação do não conforme", alvo: "li-" + semObs[0] };
+  if (!laudo.conclusao) return { texto: "Escolha o resultado da vistoria", alvo: "ld-conc" };
+  if (!laudo.assin) return { texto: "Assine o laudo", alvo: "ld-assin" };
+  return null;
+}
+
+// monta o PDF do laudo (A4, no padrão dos relatórios da VPX)
+async function gerarLaudoPDF(l, cli, autor) {
+  const jsPDF = window.jspdf?.jsPDF;
+  if (!jsPDF) throw new Error("a ferramenta de PDF não carregou (abra o app uma vez com internet)");
+  const def = LAUDOS[l.tipo];
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const M = 15, L = 210 - 2 * M, AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59];
+  const COR = { C: [31, 122, 69], NC: [178, 34, 34], NA: [91, 107, 128] };
+  let y = 15;
+  const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; return true; } return false; };
+  const hoje = new Date(), dataBR = `${pad(hoje.getDate())}/${pad(hoje.getMonth() + 1)}/${hoje.getFullYear()}`;
+  const [, crea] = CONFIG.responsaveis.find(([n]) => n === l.resp) || [l.resp, ""];
+  const endereco = (l.endereco || avcbDoCliente(cli)?.endereco || "").trim();
+
+  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18, "logo", "FAST"); } catch {}
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL);
+  doc.text(def.nome, 210 - M, y + 7, { align: "right" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
+  doc.text(`Cliente: ${cli}`, 210 - M, y + 13, { align: "right" });
+  doc.text(`Data da vistoria: ${dataBR}`, 210 - M, y + 18, { align: "right" });
+  y += 23;
+  doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y);
+  y += 8;
+
+  const secao = titulo => {
+    cabe(20);
+    doc.setFillColor(...AZUL); doc.rect(M, y, L, 8, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text(titulo.toUpperCase(), M + 3, y + 5.6);
+    y += 13;
+  };
+  const linha = (r, v) => {
+    doc.setFontSize(10);
+    const tr = doc.splitTextToSize(r, 52), tv = doc.splitTextToSize(String(v), L - 56);
+    const h = Math.max(tr.length, tv.length) * 4.6 + 2.2;
+    cabe(h);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(...CINZA); doc.text(tr, M, y);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tv, M + 56, y);
+    y += h;
+  };
+
+  secao("Identificação");
+  [["Cliente", cli], ["Endereço", endereco], ["Data da vistoria", dataBR], ["Vistoria realizada por", autor],
+   ["Acompanhou a vistoria", l.acompanhante], ["Responsável técnico", `${l.resp}${crea ? " - " + crea : ""}`],
+   ["ART", l.art], ["Referência normativa", def.norma]].filter(([, v]) => (v || "").trim()).forEach(([r, v]) => linha(r, v));
+  y += 3;
+
+  // resumo
+  const blocos = blocosLaudo(l);
+  const sts = blocos.flatMap(b => b.s.itens.map(([id]) => l.r[chaveItem(b.uid, id)]?.st)).filter(Boolean);
+  const qtd = v => sts.filter(s => s === v).length;
+  secao("Resumo");
+  linha("Itens verificados", `${sts.length}  (conformes: ${qtd("C")}  |  não conformes: ${qtd("NC")}  |  não se aplica: ${qtd("NA")})`);
+  cabe(14);
+  const corC = l.conclusao === "Apto" ? COR.C : l.conclusao === "Não apto" ? COR.NC : [176, 110, 0];
+  doc.setFillColor(...corC); doc.roundedRect(M, y - 1, L, 10, 2, 2, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(255, 255, 255);
+  doc.text(`Resultado: ${l.conclusao.toUpperCase()}`, 105, y + 5.6, { align: "center" });
+  y += 15;
+  const nc = naoConformes(l);
+  if (nc.length) {
+    cabe(12);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(...COR.NC);
+    doc.text(`Não conformidades encontradas (${nc.length})`, M, y); y += 6;
+    nc.forEach((x, i) => {
+      doc.setFontSize(9.5);
+      const t = doc.splitTextToSize(`${i + 1}. ${x.bloco}: ${x.texto}${x.obs ? " - " + x.obs : ""}`, L - 4);
+      cabe(t.length * 4.3 + 1);
+      doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(t, M + 2, y);
+      y += t.length * 4.3 + 1;
+    });
+    y += 3;
+  }
+
+  // itens verificados, seção por seção
+  const fotosDe = async chaves => {
+    const out = [];
+    for (const k of chaves || []) {
+      try { const b = await lerFotoLaudo(k); if (b) out.push(await fotoParaPdf(b)); } catch {}
+    }
+    return out;
+  };
+  let secaoAtual = null;
+  for (const b of blocos) {
+    if (b.s !== secaoAtual) { secaoAtual = b.s; secao(b.s.titulo); }
+    if (b.s.repetir) {
+      cabe(14);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(...AZUL);
+      doc.text(rotuloBloco(b, l), M, y); y += 6;
+    }
+    for (const [id, texto] of b.s.itens) {
+      const x = l.r[chaveItem(b.uid, id)] || {};
+      doc.setFontSize(10);
+      const tt = doc.splitTextToSize(texto, L - 36);
+      cabe(tt.length * 4.6 + 2);
+      doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tt, M, y);
+      doc.setFont("helvetica", "bold"); doc.setTextColor(...(COR[x.st] || CINZA));
+      doc.text(x.st === "NA" ? "N/A" : ST_LAUDO[x.st] || "-", 210 - M, y, { align: "right" });
+      y += tt.length * 4.6 + 0.6;
+      if ((x.obs || "").trim()) {
+        doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(...CINZA);
+        const to = doc.splitTextToSize("Obs.: " + x.obs.trim(), L - 40);
+        cabe(to.length * 4.1);
+        doc.text(to, M + 4, y); y += to.length * 4.1;
+      }
+      const fts = await fotosDe(x.fotos);
+      if (fts.length) {
+        const lw = (L - 8) / 3, maxH = 48;
+        for (let i = 0; i < fts.length; i += 3) {
+          const trio = fts.slice(i, i + 3), alt = trio.map(p => Math.min(maxH, lw * p.h / p.w)), h = Math.max(...alt);
+          cabe(h + 3);
+          trio.forEach((p, j) => { const w = alt[j] * p.w / p.h; doc.addImage(p.url, "JPEG", M + j * (lw + 4) + (lw - w) / 2, y + 1, w, alt[j]); });
+          y += h + 3;
+        }
+      }
+      doc.setDrawColor(225, 230, 237); doc.setLineWidth(0.2); doc.line(M, y, 210 - M, y);
+      y += 4;
+    }
+    const meds = (b.s.medidas || []).map(([id, r]) => [r, l.med[`${b.uid}.${id}`]]).filter(([, v]) => v);
+    meds.forEach(([r, v]) => linha(r, v));
+    y += 2;
+  }
+
+  secao("Conclusão");
+  linha("Resultado", l.conclusao);
+  if ((l.recom || "").trim()) linha("Recomendações", l.recom.trim());
+  doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); doc.setTextColor(...CINZA);
+  const aviso1 = doc.splitTextToSize("Este laudo retrata as condições observadas na data da vistoria, por inspeção visual e testes funcionais dos itens listados.", L);
+  cabe(aviso1.length * 4 + 4); doc.text(aviso1, M, y); y += aviso1.length * 4 + 4;
+
+  // assinaturas
+  if (cabe(48)) y += 4;
+  y += 22;
+  const col = (L - 16) / 2;
+  if (l.assin) {
+    try {                                          // mantém a proporção do quadro de assinatura
+      const p = doc.getImageProperties(l.assin), h = 20, w = Math.min(col - 8, h * p.width / p.height);
+      doc.addImage(l.assin, "PNG", M + (col - w) / 2, y - 22, w, w * p.height / p.width, "assin", "FAST");
+    } catch {}
+  }
+  doc.setDrawColor(...TINTA); doc.setLineWidth(0.3);
+  doc.line(M, y, M + col, y); doc.line(M + col + 16, y, 210 - M, y);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...TINTA);
+  doc.text(autor, M + col / 2, y + 5, { align: "center" });
+  doc.text(l.resp, M + col + 16 + col / 2, y + 5, { align: "center" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...CINZA);
+  doc.text("Vistoria", M + col / 2, y + 10, { align: "center" });
+  doc.text(`Responsável técnico${crea ? " - " + crea : ""}`, M + col + 16 + col / 2, y + 10, { align: "center" });
+
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...CINZA);
+    doc.text(`VPX Engenharia  -  ${def.nome}  -  ${cli}  -  página ${p} de ${total}`, 105, 290, { align: "center" });
   }
   return doc.output("blob");
 }
@@ -1193,6 +1857,7 @@ function remover(id) {
 // "3 fotos e 1 vídeo"
 function descrever(lista) {
   if (ehComp()) return `${lista.length} comprovante${lista.length > 1 ? "s" : ""}`;
+  if (modo === "laudo") return `${lista.length} laudo${lista.length > 1 ? "s" : ""}`;
   if (modo === "com") {                            // "ficha comercial e 3 fotos"
     const fichas = lista.filter(f => f.pdf).length, p = lista.length - fichas;
     return [fichas ? (fichas > 1 ? `${fichas} fichas comerciais` : "ficha comercial") : "", p ? `${p} foto${p > 1 ? "s" : ""}` : ""].filter(Boolean).join(" e ");
@@ -1572,6 +2237,7 @@ async function alternarLuz() {
 function caminhoVisita() {
   return `${cliente}/${CONFIG.subpasta.replace("{data}", dataISO())}`;
 }
+const caminhoLaudo = () => `${cliente}/${CONFIG.pastaLaudos}`;
 
 function atualizar() {
   const comp = ehComp();
@@ -1583,7 +2249,8 @@ function atualizar() {
   if (av) { const s = situacaoAvcb(av); $("avcb-aviso").className = "avcb-aviso " + s.cls; $("avcb-aviso").textContent = (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto; }
   $("destino").textContent = comp
     ? (tipo ? "Salvar em: " + caminhoComp() : "")
-    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + caminhoVisita().replace(/\//g, " › ") : "");
+    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" ? caminhoLaudo() : caminhoVisita()).replace(/\//g, " › ") : "");
+  if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
 
   const g = $("grade");
   g.innerHTML = "";
@@ -1621,9 +2288,14 @@ function atualizar() {
 function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
-  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida())) {   // só sobraram itens da fila
+  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida()) && !(modo === "laudo" && laudo.tipo)) {   // só sobraram itens da fila
     b.disabled = enviando;
     b.textContent = enviando ? "Salvando…" : "Tentar enviar agora";
+  } else if (modo === "laudo") {
+    // fica habilitado mesmo faltando algo: o toque leva até o que falta
+    const falta = cliente ? faltaLaudo() : { texto: "Escolha o cliente" };
+    b.disabled = enviando || !laudo.tipo;
+    b.textContent = enviando ? "Salvando…" : falta ? falta.texto : "Gerar laudo em PDF";
   } else if (modo === "com") {
     const falta = faltaFicha();
     b.disabled = enviando || !cliente || !!falta;
@@ -1648,7 +2320,7 @@ function atualizarBotao() {
     else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
-  ["aba-visita", "aba-com", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
+  ["aba-visita", "aba-com", "aba-laudo", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
 }
 
 async function reduzir(arquivo) {
@@ -1811,6 +2483,30 @@ async function salvar() {
   if (com && fichaPreenchida() && (!cliente || faltaFicha())) return;
   if (novos.length && (comp ? !tipo || faltaPagamento() || !descricao() : !cliente)) return;
   relatorio = null;                                // só a tela final de quem gerou o relatório mostra "Ver"/"Compartilhar"
+  // laudo: confere o que falta (e leva até lá), gera o PDF e coloca na fila para a pasta Laudos Técnicos do cliente
+  if (modo === "laudo" && laudo.tipo) {
+    if (!cliente) { abrirDialogo(); return; }
+    const falta = faltaLaudo();
+    if (falta) {
+      const alvo = falta.alvo && $(falta.alvo);
+      if (alvo) { alvo.scrollIntoView({ behavior: "smooth", block: "center" }); alvo.classList.add("piscar"); setTimeout(() => alvo.classList.remove("piscar"), 1600); }
+      aviso(falta.texto + ".");
+      return;
+    }
+    const d = { modo: "visita", autor: nomeColaborador(), cliente, caminho: caminhoLaudo(), data: dataISO() };
+    const nomeLaudo = LAUDOS[laudo.tipo].nome;
+    $("btn-salvar").disabled = true; $("btn-salvar").textContent = "Gerando o PDF…";
+    let pdf;
+    try { pdf = await gerarLaudoPDF(laudo, cliente, d.autor); }
+    catch (e) { console.error(e); aviso("Não foi possível gerar o PDF do laudo: " + e.message, true); atualizarBotao(); return; }
+    const arquivo = new File([pdf], nomeLaudo + ".pdf", { type: "application/pdf", lastModified: Date.now() });
+    const item = { id: ++seq, modo: "laudo", arquivo, url: URL.createObjectURL(arquivo), st: "nova", pdf: true, dest: d,
+      prefixo: `${prefixoDe({ arquivo }, d)}_${nomeLaudo}` };     // ex.: João da Silva_2026-10-12_Diamond_Laudo de Hidrantes_01.pdf
+    fotos.unshift(item);
+    await guardarItem(item, true);
+    limparLaudo();                                // o PDF já está guardado no celular: o rascunho (e as fotos dele) pode ser apagado
+    relatorio = { item, cliente, titulo: nomeLaudo };
+  }
   // ficha comercial: vira um PDF (com as fotos novas) que entra na fila junto com as fotos
   if (com && fichaPreenchida()) {
     const d = destinoAtual();
@@ -1823,7 +2519,7 @@ async function salvar() {
     fotos.unshift(item);
     await guardarItem(item, true);
     limparFicha();                                // o PDF já está guardado no celular: a ficha pode ser zerada
-    relatorio = { item, cliente };                // fica disponível para ver/compartilhar na tela final
+    relatorio = { item, cliente, titulo: "Relatório de Visita" };   // fica disponível para ver/compartilhar na tela final
   }
   // congela o destino e o nome de cada item novo: se não der para enviar agora, ele vai depois para o lugar certo
   if (novos.length) {
@@ -1837,8 +2533,11 @@ async function salvar() {
   if ((r.pendentes || r.erros) && relatorio && fila.includes(relatorio.item)) {
     // relatório pronto, mas sem internet: mostra a tela final mesmo assim, para ver e compartilhar na hora
     telaFinal(true);
-    $("ok-titulo").textContent = "Relatório pronto";
-    $("ok-texto").textContent = "Sem internet agora: o relatório e as fotos ficam guardados no celular e vão para o OneDrive sozinhos quando o sinal voltar. Você já pode ver e compartilhar o relatório.";
+    const ehLaudo = modo === "laudo";
+    $("ok-titulo").textContent = ehLaudo ? "Laudo pronto" : "Relatório pronto";
+    $("ok-texto").textContent = ehLaudo
+      ? "Sem internet agora: o laudo fica guardado no celular e vai para o OneDrive sozinho quando o sinal voltar. Você já pode ver e compartilhar o laudo."
+      : "Sem internet agora: o relatório e as fotos ficam guardados no celular e vão para o OneDrive sozinhos quando o sinal voltar. Você já pode ver e compartilhar o relatório.";
     mostrar("tela-ok");
     return;
   }
@@ -1850,7 +2549,7 @@ async function salvar() {
     return;
   }
   const d = fila[0].dest;
-  const masc = d.modo === "comp" || fotos.some(f => f.video);
+  const masc = d.modo === "comp" || modo === "laudo" || fotos.some(f => f.video);
   const titulo = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
   $("ok-titulo").textContent = titulo.charAt(0).toUpperCase() + titulo.slice(1);
   $("ok-texto").textContent = d.modo === "comp"
@@ -1869,12 +2568,16 @@ function telaFinal(pendente) {
   $("selo-ok").classList.toggle("pendente", pendente);
   $("ok-link").hidden = pendente;                 // sem internet ainda não há pasta para abrir
   $("ok-ver").hidden = $("ok-compartilhar").hidden = !relatorio;
+  const qual = relatorio?.titulo?.startsWith("Laudo") ? "laudo" : "relatório";
+  $("ok-ver-txt").textContent = `Ver ${qual}`;
+  $("ok-comp-txt").textContent = `Compartilhar ${qual}`;
+  $("visor-titulo").textContent = relatorio?.titulo || "Relatório de Visita";
 }
 
 // o PDF com o nome final (ex.: João da Silva_2026-10-12_Diamond_Relatório de Visita_01.pdf)
 function arquivoRelatorio() {
   const { item, cliente: cli } = relatorio;
-  const nome = item.nomeBase ? `${item.nomeBase}.pdf` : `Relatório de Visita - ${cli}.pdf`;
+  const nome = item.nomeBase ? `${item.nomeBase}.pdf` : `${relatorio.titulo} - ${cli}.pdf`;
   return new File([item.arquivo], nome, { type: "application/pdf", lastModified: item.arquivo.lastModified });
 }
 
@@ -1882,7 +2585,7 @@ function arquivoRelatorio() {
 async function compartilharRelatorio() {
   if (!relatorio) return;
   const arquivo = arquivoRelatorio();
-  const dados = { files: [arquivo], title: "Relatório de Visita", text: `Relatório de Visita - ${relatorio.cliente}` };
+  const dados = { files: [arquivo], title: relatorio.titulo, text: `${relatorio.titulo} - ${relatorio.cliente}` };
   if (navigator.canShare?.(dados)) {
     try { await navigator.share(dados); }
     catch (e) { if (e.name !== "AbortError") aviso("Não foi possível compartilhar: " + e.message, true); }
@@ -2421,7 +3124,7 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "com", "comp", "avcb"]) {
+  for (const m of ["visita", "com", "laudo", "comp", "avcb"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
@@ -2491,8 +3194,10 @@ $("busca").onkeydown = e => {
 $("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("aba-visita").onclick = () => trocarModo("visita");
 $("aba-com").onclick = () => trocarModo("com");
+$("aba-laudo").onclick = () => trocarModo("laudo");
 $("aba-comp").onclick = () => trocarModo("comp");
 montarFicha();
+montarLaudo();
 $("tipo-compra").onclick = () => escolherTipo("compra");
 $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
 $("pag-cartao").onclick = () => escolherPagamento("cartao");
