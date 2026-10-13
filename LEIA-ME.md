@@ -94,6 +94,14 @@ O botão **AVCB**, no topo, abre a lista de clientes com a validade do AVCB/CLCB
 
 O que for preenchido fica guardado no celular até salvar (se o app fechar, a ficha volta). Funciona sem internet: o PDF é gerado no celular, já pode ser visto e compartilhado, e vai para o OneDrive quando o sinal voltar.
 
+### Treinamento de brigada
+
+1. Toque na aba **Brigada**, escolha o **cliente** e o treinamento: **Brigada básico, Brigada intermediário, Primeiros socorros ou Uso de extintores**. Conteúdo programático e carga horária já vêm preenchidos (dá para mudar).
+2. Confira a data, escolha o **responsável técnico** e, se quiser, o local.
+3. Adicione cada participante com **nome completo e CPF** (o app confere se o CPF é válido) e toque em **Assinar**: o participante assina com o dedo na tela e toca em **Confirmar assinatura**.
+4. O instrutor assina no fim da página. Se quiser, tire fotos da parte prática (Câmera/Galeria).
+5. **Gerar lista e certificados** → um PDF com a lista de presença assinada e um certificado por participante, salvo em *02 - Clientes › [Cliente] › Treinamentos de Brigada*. Dá para ver e compartilhar na hora.
+
 ### Arquivos do cliente (plantas e projetos)
 
 Depois de escolher o cliente (Visita técnica, Comercial ou Laudos), toque em **📁 Arquivos do cliente** para ver tudo o que está na pasta dele no OneDrive. PDFs e fotos abrem no próprio app: use **−** e **+** para aproximar e gire o celular para ver plantas deitadas. Outros arquivos (Word, Excel, DWG) abrem no OneDrive.

@@ -150,8 +150,8 @@ p{margin:0 0 14px;max-width:60ch}
 .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
 .foto{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--linha)}
 .foto img{width:100%;height:100%;object-fit:cover;display:block}
-.abas{display:grid;grid-template-columns:repeat(4,auto);gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
-.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:14.5px;line-height:1.1;padding:0 6px;cursor:pointer}
+.abas{display:grid;grid-template-columns:repeat(5,auto);gap:4px;background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:4px;margin-bottom:16px}
+.abas button{min-height:46px;border:0;border-radius:9px;background:transparent;color:var(--suave);font-family:var(--titulo-fonte);font-weight:700;font-size:13.5px;line-height:1.1;padding:0 4px;cursor:pointer}
 /* ficha comercial */
 .secao{font-family:var(--titulo-fonte);font-weight:700;font-size:19px;color:var(--marinho);margin:22px 2px 10px;padding-bottom:4px;border-bottom:2px solid var(--laranja)}
 @media (prefers-color-scheme:dark){.secao{color:var(--tinta)}}
@@ -197,6 +197,23 @@ p{margin:0 0 14px;max-width:60ch}
 .laudo-link.perigo{color:#B22222}
 .piscar{animation:piscar .8s 2}
 @keyframes piscar{50%{box-shadow:0 0 0 4px var(--laranja)}}
+.trein-tipos{grid-template-columns:1fr 1fr}
+.trein-add{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}
+.trein-add input{width:100%;min-height:52px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 14px;font-size:18px}
+.trein-lista{list-style:none;margin:0 0 8px;padding:0;counter-reset:p}
+.trein-lista li{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;border-radius:12px;border:1.5px solid var(--linha);border-left-width:6px;border-left-color:var(--laranja);background:var(--papel);counter-increment:p}
+.trein-lista li.ok{border-left-color:#1F7A45}
+.trein-lista li::before{content:counter(p);font-weight:700;color:var(--suave);min-width:18px}
+.trein-p{flex:1;min-width:0}
+.trein-p strong{display:block;font-size:16px;overflow-wrap:anywhere}
+.trein-p small{color:var(--suave);font-size:13px}
+.trein-assinar{width:auto;min-height:44px;padding:0 16px;font-size:15px}
+.trein-assinado{background:none;border:0;color:#1F7A45;font-weight:700;font-size:14px;min-height:44px;cursor:pointer}
+.trein-rm{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--linha);background:transparent;color:var(--suave);font-size:18px;cursor:pointer;flex:none}
+.as-nome{font-family:var(--titulo-fonte);font-size:24px;font-weight:700;color:var(--marinho);margin:4px 2px 0}
+@media (prefers-color-scheme:dark){.as-nome{color:var(--tinta)}}
+.as-pad{height:240px;margin-bottom:4px}
+#as-ok{margin-top:10px}
 .modo-laudo #captura,.modo-laudo #semfotos{display:none!important}
 .assin{display:block;width:100%;height:160px;border-radius:10px;border:1.5px solid var(--linha);background:#fff;touch-action:none}
 .abas button[aria-selected="true"]{background:var(--marinho);color:#fff}
@@ -373,6 +390,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
       <button role="tab" id="aba-com" aria-selected="false">Comercial</button>
       <button role="tab" id="aba-laudo" aria-selected="false">Laudos</button>
+      <button role="tab" id="aba-trein" aria-selected="false">Brigada</button>
       <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
     <div id="form-comp" hidden>
@@ -401,6 +419,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <p class="fila" id="fila" role="status" hidden></p>
     <div id="form-com" hidden></div>
     <div id="form-laudo" hidden></div>
+    <div id="form-trein" hidden></div>
     <div class="grade" id="grade"></div>
     <div class="semfotos" id="semfotos">Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.</div>
   </section>
@@ -486,6 +505,18 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <div class="girar" aria-live="polite">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
   Gire o celular para a vertical
+</div>
+
+<div class="tela-avcb" id="tela-assinar" hidden role="dialog" aria-label="Assinatura do participante">
+  <div class="avcb-topo"><button class="avcb-voltar" id="as-cancelar">‹ Cancelar</button><strong>Assinatura</strong></div>
+  <div class="avcb-corpo">
+    <p class="as-nome" id="as-nome"></p>
+    <p class="laudo-dica" id="as-cpf"></p>
+    <p class="laudo-dica">Assine com o dedo no quadro abaixo.</p>
+    <canvas class="assin as-pad" id="as-pad"></canvas>
+    <button class="laudo-link" id="as-limpar">Limpar</button>
+    <button class="btn prim" id="as-ok" disabled>Confirmar assinatura</button>
+  </div>
 </div>
 
 <div class="tela-avcb" id="tela-arq" hidden role="dialog" aria-label="Arquivos do cliente">
@@ -593,6 +624,7 @@ const CONFIG = {
   driveId: "b!LWXbA_WnV0qdA93Eaa3V-E6Mee41gUxAmG8VyG43VRhmTKaEcLjtQ64K4k75--MP",
   pastaClientesId: "01VYL4Q5YGDBCBT3E7CRDLSKCI3476CXTS",
   pastaClientesNome: "02 - Clientes",
+  pastaTreinamentos: "Treinamentos de Brigada",                       // lista de presença e certificados dentro da pasta do cliente
   pastaLaudos: "Laudos Técnicos",                                      // laudos (PDF) dentro da pasta do cliente
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
@@ -669,11 +701,11 @@ const $ = id => document.getElementById(id);
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
-let modo = ["visita", "com", "laudo", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
+let modo = ["visita", "com", "laudo", "trein", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("comp"), ...listaDe("avcb")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -868,12 +900,16 @@ function aplicarModo() {
   $("form-comp").hidden = !comp;
   $("form-com").hidden = !com;
   $("form-laudo").hidden = modo !== "laudo";
+  $("form-trein").hidden = modo !== "trein";
+  $("aba-trein").setAttribute("aria-selected", String(modo === "trein"));
   document.body.classList.toggle("modo-laudo", modo === "laudo");   // laudos: fotos dentro de cada item (sem câmera/galeria embaixo)
   $("btn-cliente").hidden = comp;                 // nos comprovantes, no lugar do cliente vai o centro de custo (digitado)
-  $("in-gal").accept = comp ? "image/*,application/pdf" : com ? "image/*" : "image/*,video/*";
-  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : modo === "laudo" ? "Novo laudo" : "Nova visita";
+  const trn = modo === "trein";
+  $("in-gal").accept = comp ? "image/*,application/pdf" : com || trn ? "image/*" : "image/*,video/*";
+  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : modo === "laudo" ? "Novo laudo" : trn ? "Novo treinamento" : "Nova visita";
   $("semfotos").textContent = comp ? "Nenhum comprovante ainda. Fotografe a nota ou o recibo, ou escolha da galeria (aceita PDF)."
     : com ? "Fotos (opcional): fachada, casa de bombas, hidrantes, quadro de alarme… Elas entram no PDF da ficha."
+    : trn ? "Fotos da prática (opcional). Elas entram no PDF da lista de presença."
     : "Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.";
   atualizar();
 }
@@ -1801,7 +1837,7 @@ function destinoAtual() {
     pag: tipo === "compra" && pagamento ? "_" + PAGAMENTOS[pagamento] : "",
     desc: descricao(), cli: centroCusto() ? "_" + centroCusto() : ""
   };
-  return { modo: "visita", autor, cliente, caminho: caminhoVisita(), data: dataISO() };
+  return { modo: "visita", autor, cliente, caminho: modo === "trein" ? caminhoTrein() : caminhoVisita(), data: dataISO() };   // fotos do treinamento ficam junto da lista
 }
 
 // início do nome do arquivo (sem o número e sem a extensão, que são decididos na hora do envio)
@@ -1903,6 +1939,10 @@ function remover(id) {
 function descrever(lista) {
   if (ehComp()) return `${lista.length} comprovante${lista.length > 1 ? "s" : ""}`;
   if (modo === "laudo") return `${lista.length} laudo${lista.length > 1 ? "s" : ""}`;
+  if (modo === "trein") {                          // "lista e certificados e 3 fotos"
+    const pdfs = lista.filter(f => f.pdf).length, p = lista.length - pdfs;
+    return [pdfs ? "lista e certificados" : "", p ? `${p} foto${p > 1 ? "s" : ""}` : ""].filter(Boolean).join(" e ");
+  }
   if (modo === "com") {                            // "ficha comercial e 3 fotos"
     const fichas = lista.filter(f => f.pdf).length, p = lista.length - fichas;
     return [fichas ? (fichas > 1 ? `${fichas} fichas comerciais` : "ficha comercial") : "", p ? `${p} foto${p > 1 ? "s" : ""}` : ""].filter(Boolean).join(" e ");
@@ -2294,7 +2334,8 @@ function atualizar() {
   if (av) { const s = situacaoAvcb(av); $("avcb-aviso").className = "avcb-aviso " + s.cls; $("avcb-aviso").textContent = (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto; }
   $("destino").textContent = comp
     ? (tipo ? "Salvar em: " + caminhoComp() : "")
-    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" ? caminhoLaudo() : caminhoVisita()).replace(/\//g, " › ") : "");
+    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" ? caminhoLaudo() : modo === "trein" ? caminhoTrein() : caminhoVisita()).replace(/\//g, " › ") : "");
+  if ($("tr-local")) $("tr-local").placeholder = avcbDoCliente(cliente)?.endereco || "";
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
   $("btn-arq").hidden = comp || !cliente;
 
@@ -2334,9 +2375,13 @@ function atualizar() {
 function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
-  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida()) && !(modo === "laudo" && laudo.tipo)) {   // só sobraram itens da fila
+  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida()) && !(modo === "laudo" && laudo.tipo) && !(modo === "trein" && trein.modelo)) {   // só sobraram itens da fila
     b.disabled = enviando;
     b.textContent = enviando ? "Salvando…" : "Tentar enviar agora";
+  } else if (modo === "trein") {
+    const falta = cliente ? faltaTrein() : { texto: "Escolha o cliente" };
+    b.disabled = enviando || !trein.modelo;
+    b.textContent = enviando ? "Salvando…" : falta ? falta.texto : "Gerar lista e certificados";
   } else if (modo === "laudo") {
     // fica habilitado mesmo faltando algo: o toque leva até o que falta
     const falta = cliente ? faltaLaudo() : { texto: "Escolha o cliente" };
@@ -2366,7 +2411,7 @@ function atualizarBotao() {
     else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
-  ["aba-visita", "aba-com", "aba-laudo", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
+  ["aba-visita", "aba-com", "aba-laudo", "aba-trein", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
 }
 
 async function reduzir(arquivo) {
@@ -2553,6 +2598,30 @@ async function salvar() {
     limparLaudo();                                // o PDF já está guardado no celular: o rascunho (e as fotos dele) pode ser apagado
     relatorio = { item, cliente, titulo: nomeLaudo };
   }
+  // treinamento: lista de presença + certificados (com as fotos novas) para a pasta Treinamentos de Brigada; as fotos vão junto
+  if (modo === "trein" && trein.modelo) {
+    if (!cliente) { abrirDialogo(); return; }
+    const falta = faltaTrein();
+    if (falta) {
+      const alvo = falta.alvo && $(falta.alvo);
+      if (alvo) { alvo.scrollIntoView({ behavior: "smooth", block: "center" }); alvo.classList.add("piscar"); setTimeout(() => alvo.classList.remove("piscar"), 1600); }
+      aviso(falta.texto + ".");
+      return;
+    }
+    const d = destinoAtual();
+    const nomeT = "Treinamento - " + TREINAMENTOS[trein.modelo].curto;
+    $("btn-salvar").disabled = true; $("btn-salvar").textContent = "Gerando o PDF…";
+    let pdf;
+    try { pdf = await gerarTreinPDF(trein, cliente, d.autor, novos.filter(f => !f.pdf && !f.video).map(f => f.arquivo)); }
+    catch (e) { console.error(e); aviso("Não foi possível gerar o PDF do treinamento: " + e.message, true); atualizarBotao(); return; }
+    const arquivo = new File([pdf], nomeT + ".pdf", { type: "application/pdf", lastModified: Date.now() });
+    const item = { id: ++seq, modo: "trein", arquivo, url: URL.createObjectURL(arquivo), st: "nova", pdf: true, dest: d,
+      prefixo: `${prefixoDe({ arquivo }, d)}_${nomeT}` };          // ex.: João da Silva_2026-10-12_Diamond_Treinamento - Brigada básico_01.pdf
+    fotos.unshift(item);
+    await guardarItem(item, true);
+    limparTrein();                                // o PDF já está guardado no celular: o rascunho pode ser apagado
+    relatorio = { item, cliente, titulo: "Lista de presença e certificados" };
+  }
   // ficha comercial: vira um PDF (com as fotos novas) que entra na fila junto com as fotos
   if (com && fichaPreenchida()) {
     const d = destinoAtual();
@@ -2597,7 +2666,7 @@ async function salvar() {
   const d = fila[0].dest;
   const masc = d.modo === "comp" || modo === "laudo" || fotos.some(f => f.video);
   const titulo = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
-  $("ok-titulo").textContent = titulo.charAt(0).toUpperCase() + titulo.slice(1);
+  $("ok-titulo").textContent = modo === "trein" && relatorio ? "Treinamento salvo" : titulo.charAt(0).toUpperCase() + titulo.slice(1);
   $("ok-texto").textContent = d.modo === "comp"
     ? `Em ${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[d.tipo]}`
     : `Em ${d.cliente} › ${d.caminho.split("/").slice(1).join(" › ")}`;
@@ -2614,7 +2683,7 @@ function telaFinal(pendente) {
   $("selo-ok").classList.toggle("pendente", pendente);
   $("ok-link").hidden = pendente;                 // sem internet ainda não há pasta para abrir
   $("ok-ver").hidden = $("ok-compartilhar").hidden = !relatorio;
-  const qual = relatorio?.titulo?.startsWith("Laudo") ? "laudo" : "relatório";
+  const qual = relatorio?.titulo?.startsWith("Laudo") ? "laudo" : relatorio?.titulo?.startsWith("Lista") ? "lista e certificados" : "relatório";
   $("ok-ver-txt").textContent = `Ver ${qual}`;
   $("ok-comp-txt").textContent = `Compartilhar ${qual}`;
   $("visor-titulo").textContent = relatorio?.titulo || "Relatório de Visita";
@@ -2728,6 +2797,374 @@ function zoomVisor(d) {
     pags.scrollTop = ry * pags.scrollHeight - pags.clientHeight / 2;
   });
 }
+/* ---------- treinamento de brigada (aba "Brigada") ----------
+   Lista de presença (nome e CPF de cada participante, assinatura no celular) + um certificado por participante,
+   tudo num PDF que vai para 02 - Clientes › [Cliente] › Treinamentos de Brigada. Conteúdo e carga horária
+   vêm prontos de cada modelo e podem ser editados. Rascunho em localStorage (vpx_trein). */
+const TREINAMENTOS = {
+  basico: { curto: "Brigada básico", titulo: "Treinamento de Brigada de Incêndio - Nível Básico", ch: "4 horas",
+    norma: "ABNT NBR 14276 e Instruções Técnicas do CBMBA", conteudo: [
+      "Introdução e legislação de segurança contra incêndio", "Teoria do fogo e propagação do calor", "Classes de incêndio",
+      "Prevenção de incêndio", "Métodos de extinção e agentes extintores", "Equipamentos de combate: extintores e hidrantes",
+      "Procedimentos de abandono de área", "Noções de primeiros socorros: avaliação da vítima e RCP", "Prática de combate com extintores"] },
+  intermediario: { curto: "Brigada intermediário", titulo: "Treinamento de Brigada de Incêndio - Nível Intermediário", ch: "8 horas",
+    norma: "ABNT NBR 14276 e Instruções Técnicas do CBMBA", conteudo: [
+      "Introdução e legislação de segurança contra incêndio", "Teoria do fogo, propagação e classes de incêndio", "Prevenção de incêndio",
+      "Métodos de extinção e agentes extintores", "Sistemas de detecção, alarme, iluminação e sinalização de emergência",
+      "Extintores: tipos, inspeção e uso", "Hidrantes e mangueiras: montagem e uso", "Abandono de área e pessoas com mobilidade reduzida",
+      "Plano de emergência e atribuições da brigada", "Primeiros socorros: RCP, obstrução de vias aéreas, hemorragias, imobilização e transporte",
+      "Prática com extintores e hidrantes e simulado"] },
+  socorros: { curto: "Primeiros socorros", titulo: "Treinamento de Primeiros Socorros", ch: "4 horas",
+    norma: "ABNT NBR 14276", conteudo: [
+      "Avaliação da cena e segurança do socorrista", "Acionamento do socorro (SAMU 192 / Bombeiros 193)", "Avaliação primária da vítima",
+      "Reanimação cardiopulmonar (RCP) e uso do DEA", "Obstrução de vias aéreas", "Hemorragias e estado de choque",
+      "Queimaduras", "Fraturas e imobilizações", "Transporte de vítimas"] },
+  extintores: { curto: "Uso de extintores", titulo: "Treinamento de Uso de Extintores", ch: "2 horas",
+    norma: "ABNT NBR 12693 e ABNT NBR 14276", conteudo: [
+      "Teoria do fogo e classes de incêndio", "Tipos de extintores e agentes extintores", "Inspeção visual: lacre, manômetro e validade",
+      "Técnica de uso e distância segura", "Prática de combate com extintores"] }
+};
+const treinVazio = (m = "") => ({ modelo: m, ch: TREINAMENTOS[m]?.ch || "", data: dataISO(), local: "", conteudo: TREINAMENTOS[m]?.conteudo.join("\n") || "", resp: "", part: [], assin: "" });
+let trein = lerLS("vpx_trein", null) || treinVazio();
+const gravarTrein = () => gravarLS("vpx_trein", trein);
+const caminhoTrein = () => `${cliente}/${CONFIG.pastaTreinamentos}`;
+
+// CPF: 11 dígitos com dígitos verificadores corretos
+function cpfValido(c) {
+  const d = digitos(c);
+  if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
+  const dv = n => { let s = 0; for (let i = 0; i < n; i++) s += +d[i] * (n + 1 - i); const r = s * 10 % 11; return r === 10 ? 0 : r; };
+  return dv(9) === +d[9] && dv(10) === +d[10];
+}
+const fmtCpf = c => digitos(c).replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+
+// quadro de assinatura com o dedo; exporta a imagem reduzida (600 px de largura) para não pesar no celular nem no PDF
+function ligarPad(cv, inicial, aoMudar) {
+  const preparar = () => {
+    const r = cv.getBoundingClientRect(); if (!r.width) return;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.lineWidth = 2.4; g.lineCap = g.lineJoin = "round"; g.strokeStyle = "#13253B";
+    if (inicial) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0, r.width, r.height); im.src = inicial; }
+  };
+  requestAnimationFrame(preparar);
+  let ult = null;
+  const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  cv.onpointerdown = e => { if (!cv.width) preparar(); cv.setPointerCapture(e.pointerId); ult = pos(e); };
+  cv.onpointermove = e => { if (!ult) return; const g = cv.getContext("2d"), p = pos(e); g.beginPath(); g.moveTo(...ult); g.lineTo(...p); g.stroke(); ult = p; };
+  cv.onpointerup = cv.onpointercancel = () => {
+    if (!ult) return; ult = null;
+    const o = document.createElement("canvas"); o.width = 600; o.height = Math.round(600 * cv.height / cv.width);
+    o.getContext("2d").drawImage(cv, 0, 0, o.width, o.height);
+    aoMudar(o.toDataURL("image/png"));
+  };
+  return () => { cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); aoMudar(""); };
+}
+
+function escolherModeloTrein(m) {
+  if (enviando || m === trein.modelo) return;
+  if (trein.modelo && (trein.part.length || trein.assin) && !confirm(`Trocar para ${TREINAMENTOS[m].curto}? Os participantes e assinaturas continuam; conteúdo e carga horária passam a ser os do novo modelo.`)) return;
+  trein = { ...trein, modelo: m, ch: TREINAMENTOS[m].ch, conteudo: TREINAMENTOS[m].conteudo.join("\n") };
+  gravarTrein(); montarTrein(); atualizarBotao();
+}
+function limparTrein() { trein = treinVazio(); gravarTrein(); montarTrein(); }
+
+function montarTrein() {
+  const raiz = $("form-trein");
+  raiz.innerHTML = "";
+  raiz.appendChild(el("p", "rotulo", "Treinamento"));
+  const tipos = el("div", "laudo-tipos trein-tipos");
+  for (const [m, d] of Object.entries(TREINAMENTOS)) {
+    const b = el("button", "", d.curto); b.type = "button"; b.setAttribute("aria-pressed", String(trein.modelo === m));
+    b.onclick = () => escolherModeloTrein(m);
+    tipos.appendChild(b);
+  }
+  raiz.appendChild(tipos);
+  const def = TREINAMENTOS[trein.modelo];
+  if (!def) { raiz.appendChild(el("p", "laudo-dica", "Escolha o cliente e o treinamento para começar.")); return; }
+  raiz.appendChild(el("p", "laudo-dica", `${def.titulo} - ${def.norma}. Fica guardado no celular até gerar o PDF.`));
+
+  raiz.appendChild(el("h2", "secao", "Dados do treinamento"));
+  const campo = (rot, chave, op = {}) => {
+    const w = el("label", "campo"); w.appendChild(el("span", "", rot));
+    const e = document.createElement(op.longo ? "textarea" : "input");
+    if (op.tipo) e.type = op.tipo;
+    if (op.id) e.id = op.id;
+    e.value = trein[chave] || ""; e.placeholder = op.dica || ""; e.autocomplete = "off";
+    if (op.longo) e.rows = 8;
+    e.oninput = () => { trein[chave] = e.value; mudouTrein(); };
+    w.appendChild(e); return w;
+  };
+  raiz.appendChild(campo("Data *", "data", { tipo: "date" }));
+  raiz.appendChild(campo("Carga horária *", "ch", { dica: "Ex.: 4 horas" }));
+  raiz.appendChild(campo("Local", "local", { id: "tr-local", dica: avcbDoCliente(cliente)?.endereco || "" }));
+  const resp = el("div", "campo"); resp.id = "tr-resp";
+  resp.appendChild(el("span", "", "Responsável técnico *"));
+  const chips = el("div", "chips");
+  CONFIG.responsaveis.forEach(([nome]) => {
+    const b = el("button", "", nome); b.type = "button"; b.setAttribute("aria-pressed", String(trein.resp === nome));
+    b.onclick = () => { trein.resp = trein.resp === nome ? "" : nome; chips.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.textContent === trein.resp))); mudouTrein(); };
+    chips.appendChild(b);
+  });
+  resp.appendChild(chips);
+  raiz.appendChild(resp);
+  raiz.appendChild(campo("Conteúdo programático (um assunto por linha)", "conteudo", { longo: true }));
+
+  // participantes
+  const hp = el("h2", "secao", `Participantes (${trein.part.length})`); hp.id = "tr-part";
+  raiz.appendChild(hp);
+  const add = el("div", "trein-add");
+  const inNome = document.createElement("input"); inNome.placeholder = "Nome completo"; inNome.autocomplete = "off"; inNome.enterKeyHint = "next";
+  const inCpf = document.createElement("input"); inCpf.placeholder = "CPF"; inCpf.inputMode = "numeric"; inCpf.maxLength = 14; inCpf.autocomplete = "off"; inCpf.enterKeyHint = "done";
+  inCpf.oninput = () => { const d = digitos(inCpf.value).slice(0, 11); inCpf.value = d.length === 11 ? fmtCpf(d) : d; };
+  const bAdd = el("button", "btn sec", "+ Adicionar participante"); bAdd.type = "button";
+  const adicionar = () => {
+    const nome = limparNome(inNome.value).replace(/\s+/g, " ");
+    if (nome.split(" ").length < 2) { aviso("Escreva o nome completo do participante.", true); inNome.focus(); return; }
+    if (!cpfValido(inCpf.value)) { aviso("CPF inválido. Confira os números.", true); inCpf.focus(); return; }
+    if (trein.part.some(p => digitos(p.cpf) === digitos(inCpf.value))) { aviso("Este CPF já está na lista.", true); return; }
+    trein.part.push({ nome: tit(nome), cpf: fmtCpf(inCpf.value), assin: "" });
+    gravarTrein(); montarTrein(); atualizarBotao();
+    $("form-trein").querySelector(".trein-add input").focus();
+  };
+  inNome.onkeydown = e => { if (e.key === "Enter") inCpf.focus(); };
+  inCpf.onkeydown = e => { if (e.key === "Enter") adicionar(); };
+  bAdd.onclick = adicionar;
+  add.append(inNome, inCpf, bAdd);
+  raiz.appendChild(add);
+  const lista = el("ol", "trein-lista");
+  trein.part.forEach((p, i) => {
+    const li = el("li", p.assin ? "ok" : "");
+    const t = el("div", "trein-p"); t.appendChild(el("strong", "", p.nome)); t.appendChild(el("small", "", "CPF " + p.cpf));
+    const bA = el("button", p.assin ? "trein-assinado" : "btn prim trein-assinar", p.assin ? "✓ Assinado" : "Assinar"); bA.type = "button";
+    bA.onclick = () => abrirAssinar(i);
+    const bR = el("button", "trein-rm", "×"); bR.type = "button"; bR.setAttribute("aria-label", "Remover " + p.nome);
+    bR.onclick = () => { if (!confirm(`Remover ${p.nome} da lista?`)) return; trein.part.splice(i, 1); gravarTrein(); montarTrein(); atualizarBotao(); };
+    li.append(t, bA, bR);
+    lista.appendChild(li);
+  });
+  raiz.appendChild(lista);
+
+  // instrutor
+  raiz.appendChild(el("h2", "secao", "Instrutor"));
+  const w = el("div", "campo"); w.id = "tr-assin";
+  w.appendChild(el("span", "", `Assinatura do instrutor (${nomeColaborador()}) *`));
+  const cv = document.createElement("canvas"); cv.className = "assin";
+  const limpar = el("button", "laudo-link", "Limpar assinatura"); limpar.type = "button";
+  const zerar = ligarPad(cv, trein.assin, url => { trein.assin = url; mudouTrein(); });
+  limpar.onclick = zerar;
+  w.append(cv, limpar);
+  raiz.appendChild(w);
+  raiz.appendChild(el("p", "laudo-dica", "Fotos da parte prática (opcional): use Câmera ou Galeria embaixo. Elas entram no PDF e também ficam na pasta."));
+  const desc = el("button", "laudo-link perigo", "Descartar este treinamento"); desc.type = "button";
+  desc.onclick = () => { if (confirm("Apagar tudo o que foi preenchido neste treinamento?")) { limparTrein(); atualizarBotao(); window.scrollTo(0, 0); } };
+  raiz.appendChild(desc);
+}
+function mudouTrein() { gravarTrein(); atualizarBotao(); }
+
+// tela cheia para o participante assinar (o celular passa de mão em mão)
+let assinando = null;
+function abrirAssinar(i) {
+  const p = trein.part[i];
+  assinando = { i, url: p.assin };
+  $("as-nome").textContent = p.nome;
+  $("as-cpf").textContent = "CPF " + p.cpf;
+  $("tela-assinar").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ assinar: true }, "");
+  const cv = $("as-pad");
+  assinando.zerar = ligarPad(cv, p.assin, url => { assinando.url = url; $("as-ok").disabled = !url; });
+  $("as-ok").disabled = !p.assin;
+}
+function fecharAssinar(voltar = true) {
+  if ($("tela-assinar").hidden) return;
+  $("tela-assinar").hidden = true;
+  document.body.style.overflow = "";
+  assinando = null;
+  if (voltar && history.state?.assinar) history.back();
+}
+function confirmarAssinatura() {
+  if (!assinando?.url) return;
+  trein.part[assinando.i].assin = assinando.url;
+  gravarTrein();
+  fecharAssinar();
+  montarTrein(); atualizarBotao();
+  const prox = trein.part.findIndex(p => !p.assin);
+  if (prox >= 0) $("form-trein").querySelectorAll(".trein-lista li")[prox]?.scrollIntoView({ block: "center" });
+}
+
+function faltaTrein() {
+  if (!trein.modelo) return { texto: "Escolha o treinamento" };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trein.data || "")) return { texto: "Preencha a data" };
+  if (!(trein.ch || "").trim()) return { texto: "Preencha a carga horária" };
+  if (!trein.resp) return { texto: "Escolha o responsável técnico", alvo: "tr-resp" };
+  if (!trein.part.length) return { texto: "Adicione os participantes", alvo: "tr-part" };
+  const sem = trein.part.filter(p => !p.assin).length;
+  if (sem) return { texto: `Falta${sem > 1 ? "m" : ""} ${sem} assinatura${sem > 1 ? "s" : ""} de participante${sem > 1 ? "s" : ""}`, alvo: "tr-part" };
+  if (!trein.assin) return { texto: "Assinatura do instrutor", alvo: "tr-assin" };
+  return null;
+}
+
+const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+const dataExtenso = iso => { const [a, m, d] = iso.split("-"); return `${+d} de ${MESES[+m - 1]} de ${a}`; };
+
+// PDF: lista de presença (retrato) + um certificado por participante (paisagem)
+async function gerarTreinPDF(t, cli, instrutor, arquivos) {
+  const jsPDF = window.jspdf?.jsPDF;
+  if (!jsPDF) throw new Error("a ferramenta de PDF não carregou (abra o app uma vez com internet)");
+  const def = TREINAMENTOS[t.modelo];
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const M = 15, L = 210 - 2 * M, AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59];
+  let y = 15;
+  const cabe = h => { if (y + h > 280) { doc.addPage("a4", "portrait"); y = 15; return true; } return false; };
+  const [, crea] = CONFIG.responsaveis.find(([n]) => n === t.resp) || [t.resp, ""];
+  const local = (t.local || avcbDoCliente(cli)?.endereco || "").trim();
+  const dataBR = dataBRde(t.data);
+  const conteudo = t.conteudo.split("\n").map(s => s.trim()).filter(Boolean);
+  let logo = null;
+  try { logo = await paraDataURL(await (await fetch("logo.png")).blob()); } catch {}
+
+  if (logo) doc.addImage(logo, "PNG", M, y, 32, 18, "logo", "FAST");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL);
+  doc.text("Lista de Presença", 210 - M, y + 7, { align: "right" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
+  doc.text(def.titulo, 210 - M, y + 13, { align: "right" });
+  doc.text(`Cliente: ${cli}`, 210 - M, y + 18, { align: "right" });
+  y += 23;
+  doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y);
+  y += 8;
+  const secao = titulo => {
+    cabe(20);
+    doc.setFillColor(...AZUL); doc.rect(M, y, L, 8, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text(titulo.toUpperCase(), M + 3, y + 5.6);
+    y += 13;
+  };
+  const linha = (r, v) => {
+    doc.setFontSize(10);
+    const tr = doc.splitTextToSize(r, 46), tv = doc.splitTextToSize(String(v), L - 50);
+    const h = Math.max(tr.length, tv.length) * 4.6 + 2;
+    cabe(h);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(...CINZA); doc.text(tr, M, y);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tv, M + 50, y);
+    y += h;
+  };
+  secao("Dados do treinamento");
+  [["Treinamento", def.titulo], ["Cliente", cli], ["Local", local], ["Data", dataBR], ["Carga horária", t.ch], ["Instrutor", instrutor],
+   ["Responsável técnico", `${t.resp}${crea ? " - " + crea : ""}`], ["Referência normativa", def.norma], ["Participantes", String(t.part.length)]]
+    .filter(([, v]) => (v || "").trim()).forEach(([r, v]) => linha(r, v));
+  y += 2;
+  secao("Conteúdo programático");
+  doc.setFontSize(9.5);
+  conteudo.forEach((c, i) => {
+    const tx = doc.splitTextToSize(`${i + 1}. ${c}`, L - 4);
+    cabe(tx.length * 4.3 + 0.8);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tx, M + 2, y);
+    y += tx.length * 4.3 + 0.8;
+  });
+  y += 3;
+
+  // tabela de presença
+  secao("Participantes");
+  const C = [M, M + 9, M + 89, M + 124, 210 - M];          // nº | nome | CPF | assinatura
+  const cabecalho = () => {
+    doc.setFillColor(236, 240, 245); doc.rect(M, y - 4.5, L, 7, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...CINZA);
+    ["Nº", "Nome", "CPF", "Assinatura"].forEach((h, i) => doc.text(h, C[i] + 1.5, y));
+    y += 5;
+  };
+  cabecalho();
+  const H = 13;
+  t.part.forEach((p, i) => {
+    if (cabe(H)) cabecalho();
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...TINTA);
+    doc.text(String(i + 1), C[0] + 1.5, y + 7);
+    doc.text(doc.splitTextToSize(p.nome, C[2] - C[1] - 3), C[1] + 1.5, y + 5.2);
+    doc.text(p.cpf, C[2] + 1.5, y + 7);
+    if (p.assin) {
+      try {
+        const pr = doc.getImageProperties(p.assin), w = Math.min(C[4] - C[3] - 4, (H - 2) * pr.width / pr.height);
+        doc.addImage(p.assin, "PNG", C[3] + 2, y + 1, w, w * pr.height / pr.width, "ap" + i, "FAST");
+      } catch {}
+    }
+    doc.setDrawColor(215, 222, 230); doc.setLineWidth(0.2); doc.line(M, y + H, 210 - M, y + H);
+    y += H;
+  });
+  y += 4;
+
+  // fotos da prática
+  if (arquivos.length) {
+    secao(`Registro fotográfico (${arquivos.length})`);
+    const lw = (L - 6) / 2, maxH = 68;
+    for (let i = 0; i < arquivos.length; i += 2) {
+      const par = [];
+      for (const a of arquivos.slice(i, i + 2)) { try { par.push(await fotoParaPdf(a)); } catch { par.push(null); } }
+      const alturas = par.map(p => p ? Math.min(maxH, lw * p.h / p.w) : 0), h = Math.max(...alturas, 10);
+      cabe(h + 6);
+      par.forEach((p, k) => { if (p) { const w = alturas[k] * p.w / p.h; doc.addImage(p.url, "JPEG", M + k * (lw + 6) + (lw - w) / 2, y, w, alturas[k]); } });
+      y += h + 6;
+    }
+  }
+
+  // assinaturas da lista
+  if (cabe(46)) y += 4;
+  y += 22;
+  const col = (L - 16) / 2;
+  const assinar = (img, x, nome, papel) => {
+    if (img) { try { const pr = doc.getImageProperties(img), w = Math.min(col - 8, 20 * pr.width / pr.height); doc.addImage(img, "PNG", x + (col - w) / 2, y - 22, w, w * pr.height / pr.width, "instr", "FAST"); } catch {} }
+    doc.setDrawColor(...TINTA); doc.setLineWidth(0.3); doc.line(x, y, x + col, y);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...TINTA); doc.text(nome, x + col / 2, y + 5, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...CINZA); doc.text(papel, x + col / 2, y + 10, { align: "center" });
+  };
+  assinar(t.assin, M, instrutor, "Instrutor");
+  assinar(null, M + col + 16, t.resp, `Responsável técnico${crea ? " - " + crea : ""}`);
+  const paginasLista = doc.getNumberOfPages();
+  for (let p = 1; p <= paginasLista; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...CINZA);
+    doc.text(`VPX Engenharia  -  Lista de presença  -  ${cli}  -  ${dataBR}  -  página ${p} de ${paginasLista}`, 105, 290, { align: "center" });
+  }
+  doc.setPage(paginasLista);
+
+  // certificados (A4 deitado)
+  const resumo = conteudo.join("; ") + ".";
+  for (const p of t.part) {
+    doc.addPage("a4", "landscape");
+    const W = 297, Hp = 210, cx = W / 2;
+    doc.setDrawColor(...AZUL); doc.setLineWidth(2.2); doc.rect(8, 8, W - 16, Hp - 16);
+    doc.setDrawColor(...LARANJA); doc.setLineWidth(0.7); doc.rect(12, 12, W - 24, Hp - 24);
+    if (logo) doc.addImage(logo, "PNG", cx - 20, 20, 40, 22.3, "logo", "FAST");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(30); doc.setTextColor(...AZUL);
+    doc.text("CERTIFICADO", cx, 58, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(13); doc.setTextColor(...TINTA);
+    doc.text("Certificamos que", cx, 72, { align: "center" });
+    doc.setFont("helvetica", "bold"); doc.setFontSize(21); doc.setTextColor(...AZUL);
+    doc.text(p.nome, cx, 84, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(...CINZA);
+    doc.text(`CPF ${p.cpf}`, cx, 91, { align: "center" });
+    doc.setFontSize(13); doc.setTextColor(...TINTA);
+    const frase = `participou do ${def.titulo}, realizado em ${dataExtenso(t.data)}, ${local ? `em ${cli} (${local})` : `em ${cli}`}, com carga horária de ${t.ch}, conforme ${def.norma}.`;
+    const fr = doc.splitTextToSize(frase, 230);
+    doc.text(fr, cx, 102, { align: "center", lineHeightFactor: 1.4 });
+    let yy = 102 + fr.length * 6.4 + 4;
+    doc.setFontSize(8.5); doc.setTextColor(...CINZA);
+    const cp = doc.splitTextToSize("Conteúdo programático: " + resumo, 240).slice(0, 4);
+    doc.text(cp, cx, yy, { align: "center" });
+    const ys = 172, cw = 90;
+    if (t.assin) { try { const pr = doc.getImageProperties(t.assin), w = Math.min(cw - 10, 18 * pr.width / pr.height); doc.addImage(t.assin, "PNG", 45 + (cw - w) / 2, ys - 20, w, w * pr.height / pr.width, "instr", "FAST"); } catch {} }
+    doc.setDrawColor(...TINTA); doc.setLineWidth(0.3);
+    doc.line(45, ys, 45 + cw, ys); doc.line(W - 45 - cw, ys, W - 45, ys);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(...TINTA);
+    doc.text(instrutor, 45 + cw / 2, ys + 5, { align: "center" });
+    doc.text(t.resp, W - 45 - cw / 2, ys + 5, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...CINZA);
+    doc.text("Instrutor", 45 + cw / 2, ys + 10, { align: "center" });
+    doc.text(`Responsável técnico${crea ? " - " + crea : ""}`, W - 45 - cw / 2, ys + 10, { align: "center" });
+    doc.setFontSize(8); doc.text("VPX Engenharia  -  vpxengenharia.com.br", cx, Hp - 16, { align: "center" });
+  }
+  return doc.output("blob");
+}
+
 /* ---------- arquivos do cliente (projetos, plantas, material do cliente…) ----------
    Navega pela pasta do cliente no OneDrive. PDF e imagem abrem no visualizador do app (com zoom);
    o resto abre no OneDrive (com internet) ou em outro app do celular (sem internet, se estiver guardado).
@@ -3450,7 +3887,7 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "com", "laudo", "comp", "avcb"]) {
+  for (const m of ["visita", "com", "laudo", "trein", "comp", "avcb"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
@@ -3521,9 +3958,14 @@ $("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
 $("aba-visita").onclick = () => trocarModo("visita");
 $("aba-com").onclick = () => trocarModo("com");
 $("aba-laudo").onclick = () => trocarModo("laudo");
+$("aba-trein").onclick = () => trocarModo("trein");
+$("as-cancelar").onclick = () => fecharAssinar();
+$("as-limpar").onclick = () => assinando?.zerar();
+$("as-ok").onclick = confirmarAssinatura;
 $("aba-comp").onclick = () => trocarModo("comp");
 montarFicha();
 montarLaudo();
+montarTrein();
 $("tipo-compra").onclick = () => escolherTipo("compra");
 $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
 $("pag-cartao").onclick = () => escolherPagamento("cartao");
@@ -3540,6 +3982,7 @@ $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
 window.addEventListener("popstate", () => {
   if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
+  if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
   if (history.state?.arq) return;                                    // voltou do visualizador para os arquivos do cliente
   if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false);
