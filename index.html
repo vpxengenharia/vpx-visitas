@@ -55,6 +55,19 @@ button,input,label{font:inherit}
 .btn-arq small{font-weight:400;font-size:13px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .btn-arq[hidden]{display:none}
 .abas button[hidden],.avcb-acoes[hidden]{display:none}
+#pt-gerar{margin:4px 0 6px}
+.pt-item{background:var(--papel);border:1.5px solid var(--linha);border-left-width:6px;border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.pt-item.ok{border-left-color:#1F7A45}.pt-item.warn{border-left-color:#E0A100}.pt-item.crit,.pt-item.falta{border-left-color:#B22222}.pt-item.na{border-left-color:#8A97A8;opacity:.75}
+.pt-item.outros{border-left-color:var(--linha)}
+.pt-l1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:15.5px}
+.pt-l1 strong{flex:1;min-width:60%;font-weight:600}
+.pt-ico{font-weight:700;width:16px;text-align:center}
+.pt-item.ok .pt-ico,.pt-item.ok .pt-st{color:#1F7A45}.pt-item.warn .pt-ico,.pt-item.warn .pt-st{color:#B07800}.pt-item.crit .pt-ico,.pt-item.crit .pt-st,.pt-item.falta .pt-ico,.pt-item.falta .pt-st{color:#C0392B}
+.pt-st{font-size:13px;font-weight:700;margin-left:24px;width:100%}
+.pt-doc-l{display:flex;align-items:center;gap:6px;margin-top:4px}
+.pt-doc{background:none;border:0;color:var(--marinho);font-size:14px;text-align:left;padding:6px 0;cursor:pointer;text-decoration:underline;min-height:36px}
+@media (prefers-color-scheme:dark){.pt-doc{color:var(--laranja)}}
+.pt-fila{font-size:13px;color:var(--suave);margin-top:4px}
 .sem-acesso #tela-app > :not(#sem-acesso),.sem-acesso #barra{display:none!important}
 .sem-acesso-msg{margin:60px 16px;text-align:center;font-size:18px;line-height:1.5;color:var(--suave)}
 .adm-funcoes{margin-bottom:6px}
@@ -449,6 +462,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     </button>
     <p class="avcb-aviso" id="avcb-aviso" hidden></p>
     <button class="btn-arq" id="btn-arq" hidden><span>📁 Arquivos do cliente</span><small>plantas e projetos</small></button>
+    <button class="btn-arq" id="btn-pt" hidden><span>📂 Pasta técnica</span><small>vistoria CBM-BA</small></button>
     <button class="hist-resumo" id="hist-resumo" hidden><span class="hr-linhas"></span><span class="hr-total">Ver histórico</span></button>
     <p class="destino" id="destino"></p>
     <p class="fila" id="fila" role="status" hidden></p>
@@ -551,6 +565,19 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <canvas class="assin as-pad" id="as-pad"></canvas>
     <button class="laudo-link" id="as-limpar">Limpar</button>
     <button class="btn prim" id="as-ok" disabled>Confirmar assinatura</button>
+  </div>
+</div>
+
+<div class="tela-avcb" id="tela-pt" hidden role="dialog" aria-label="Pasta técnica">
+  <div class="avcb-topo"><button class="avcb-voltar" id="pt-voltar">‹ Voltar</button><strong id="pt-titulo">Pasta técnica</strong></div>
+  <div class="avcb-corpo">
+    <p class="laudo-dica" style="margin-top:0">Pasta Técnica CBM-BA: documentação para a vistoria do Corpo de Bombeiros.</p>
+    <div class="avcb-resumo" id="pt-resumo"></div>
+    <button class="btn prim" id="pt-gerar">🖨 Gerar PDF para imprimir</button>
+    <p class="avcb-nota" id="pt-estado"></p>
+    <div id="pt-lista"></div>
+    <p class="avcb-nota" id="pt-nota"></p>
+    <button class="laudo-link" id="pt-atualizar">Atualizar</button>
   </div>
 </div>
 
@@ -696,6 +723,7 @@ const CONFIG = {
   pastaClientesNome: "02 - Clientes",
   pastaTreinamentos: "Treinamentos de Brigada",                       // lista de presença e certificados dentro da pasta do cliente
   pastaInspecoes: "Relatórios de Inspeção",                            // relatórios de inspeção dentro da pasta do cliente
+  pastaTecnica: "Pasta Técnica CBM-BA",                                  // documentação para a vistoria do Corpo de Bombeiros (dentro do cliente)
   pastaOrcamento: "02 - Orçamento",                                    // lista de serviços (planilha e PDF) das não conformidades
   pastaLaudos: "Laudos Técnicos",                                      // laudos (PDF) dentro da pasta do cliente
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
@@ -777,10 +805,10 @@ const $ = id => document.getElementById(id);
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
 let modo = ["visita", "com", "laudo", "insp", "trein", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, pt: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb"), ...listaDe("pt")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -2733,6 +2761,7 @@ function atualizar() {
   if ($("tr-local")) $("tr-local").placeholder = avcbDoCliente(cliente)?.endereco || "";
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
   $("btn-arq").hidden = comp || !cliente || !pode("arquivos");
+  $("btn-pt").hidden = comp || !cliente || !pode("pastaTec");
   if (cliente !== atualizar.cliHist || comp !== atualizar.compHist) { atualizar.cliHist = cliente; atualizar.compHist = comp; atualizarResumoHist(); }   // resumo do histórico ao trocar de cliente
 
   const g = $("grade");
@@ -2992,6 +3021,7 @@ async function salvar() {
       prefixo: `${prefixoDe({ arquivo }, d)}_${nomeLaudo}` };     // ex.: João da Silva_2026-10-12_Diamond_Laudo de Hidrantes_01.pdf
     fotos.unshift(item);
     await guardarItem(item, true);
+    await copiarParaPastaTec(ehInsp() ? "insp" : laudo.tipo, arquivo, cliente, d.autor);   // cópia na pasta técnica (05 - Laudos / 08 - Inspeções)
     // serviços das não conformidades: planilha (para precificar) + PDF interno em 02 - Orçamento (não vão para o cliente)
     const servs = servicosDe(laudo);
     if (servs.length) {
@@ -3031,6 +3061,7 @@ async function salvar() {
       prefixo: `${prefixoDe({ arquivo }, d)}_${nomeT}` };          // ex.: João da Silva_2026-10-12_Diamond_Treinamento - Brigada básico_01.pdf
     fotos.unshift(item);
     await guardarItem(item, true);
+    await copiarParaPastaTec("trein", arquivo, cliente, d.autor);   // cópia na pasta técnica (06 - Brigada)
     limparTrein();                                // o PDF já está guardado no celular: o rascunho pode ser apagado
     relatorio = { item, cliente, titulo: "Lista de presença e certificados" };
   }
@@ -4002,7 +4033,7 @@ function fecharHistorico(voltar = true) {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -4229,6 +4260,365 @@ async function salvarPermissoes() {
     console.error(e);
     aviso(e.status === 403 || e.semAcesso ? "Sem permissão para alterar o arquivo de permissões." : "Não foi possível salvar: " + e.message, true);
   } finally { b.textContent = "Salvar permissões"; b.disabled = !adm?.mudou; }
+}
+
+/* ---------- pasta técnica do cliente (vistoria do CBM-BA) ----------
+   02 - Clientes › [Cliente] › Pasta Técnica CBM-BA › "01 - Documentos do cliente" … "09 - Plano de emergência".
+   Cada documento é um arquivo com nome "Item - AAAA-MM-DD[ - válido até AAAA-MM-DD]_NN.ext": o item e a validade
+   vêm do próprio nome (sem banco de dados). Arquivos colocados à mão no OneDrive aparecem como "Outros documentos"
+   da seção. "Não se aplica" fica em pasta-tecnica.json. Laudos, inspeções e treinamentos feitos no app entram
+   sozinhos (cópia). O PDF para imprimir junta capa, índice, separadores e todos os documentos (pdf-lib). */
+const PASTA_TEC = [
+  { id: "01", titulo: "Documentos do cliente", itens: [["cnpj", "Cartão CNPJ"], ["ata", "Ata de eleição do síndico ou contrato social"], ["docresp", "Documento do responsável (síndico)"], ["procuracao", "Procuração"]] },
+  { id: "02", titulo: "Projeto aprovado", itens: [["projeto", "Projeto de segurança contra incêndio (PSCIP)"], ["aprovacao", "Certificado ou parecer de aprovação do projeto"]] },
+  { id: "03", titulo: "AVCB e CLCB", itens: [["avcbAnt", "AVCB ou CLCB anterior"], ["protocolo", "Protocolo da solicitação de vistoria"]] },
+  { id: "04", titulo: "ARTs", itens: [["artExec", "ART de execução dos sistemas"], ["artManut", "ART de manutenção"], ["artLaudos", "ARTs dos laudos"]] },
+  { id: "05", titulo: "Laudos técnicos", itens: [["lHid", "Laudo de hidrantes"], ["lEle", "Laudo de instalações elétricas"], ["lAla", "Laudo do sistema de alarme"],
+    ["lGas", "Laudo de instalações de gás"], ["lGer", "Laudo do grupo gerador"], ["lSpda", "Laudo de SPDA"]] },
+  { id: "06", titulo: "Brigada de incêndio", itens: [["brigada", "Lista de presença e certificados da brigada"], ["atestado", "Atestado de brigada"]] },
+  { id: "07", titulo: "Certificados e notas fiscais", itens: [["ext", "Recarga e manutenção de extintores"], ["mangueiras", "Teste hidrostático das mangueiras"],
+    ["portas", "Certificado das portas corta-fogo"], ["cmar", "Certificado de materiais de acabamento (CMAR)"], ["ilum", "Iluminação de emergência (nota ou certificado)"]] },
+  { id: "08", titulo: "Manutenções e inspeções", itens: [["insp", "Relatório de inspeção"], ["manut", "Relatórios de manutenção dos sistemas"]] },
+  { id: "09", titulo: "Plano de emergência", itens: [["plano", "Plano de emergência e abandono"]] }
+];
+// documentos gerados pelo app que entram sozinhos: [seção, item, meses de validade (0 = sem validade)]
+const PT_AUTO = { hidrantes: ["05", "lHid", 12], eletrica: ["05", "lEle", 12], alarme: ["05", "lAla", 12], gas: ["05", "lGas", 12],
+  gerador: ["05", "lGer", 12], spda: ["05", "lSpda", 12], insp: ["08", "insp", 0], trein: ["06", "brigada", 12] };
+const PDFLIB = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
+let pt = null;                                     // { cliente, dados: { arquivos: { secId: [...] }, na: [], quando }, online }
+const ptPasta = (cli, sec) => `${cli}/${CONFIG.pastaTecnica}${sec ? `/${sec.id} - ${sec.titulo}` : ""}`;
+const secPT = id => PASTA_TEC.find(s => s.id === id);
+const somaMeses = (iso, m) => { const d = new Date(iso + "T12:00:00"); d.setMonth(d.getMonth() + m); return dataISO(d); };
+const prefixoPT = (titulo, data, validade) => `${titulo} - ${data}${validade ? ` - válido até ${validade}` : ""}`;
+function lerNomePT(nome) {
+  const m = nome.match(/^(.*?) - (\d{4}-\d{2}-\d{2})(?: - válido até (\d{4}-\d{2}-\d{2}))?(?:_\d+)?(?: \d+)?\.[^.]+$/i);
+  return m ? { titulo: m[1], data: m[2], validade: m[3] || "" } : null;
+}
+
+// fila: cópia de um PDF gerado pelo app para a pasta técnica (chamado ao salvar laudo/inspeção/treinamento)
+async function copiarParaPastaTec(chave, arquivo, cli, autor) {
+  const a = PT_AUTO[chave]; if (!a) return;
+  const sec = secPT(a[0]), item = sec.itens.find(i => i[0] === a[1]);
+  const hoje = dataISO();
+  const it = { id: ++seq, modo: "pt", arquivo: new File([arquivo], arquivo.name, { type: arquivo.type, lastModified: Date.now() }), url: "", st: "pendente", pdf: true,
+    dest: { modo: "visita", autor, cliente: cli, caminho: ptPasta(cli, sec), data: hoje }, prefixo: prefixoPT(item[1], hoje, a[2] ? somaMeses(hoje, a[2]) : "") };
+  listaDe("pt").push(it);
+  await guardarItem(it, true);
+  try { localStorage.removeItem("vpx_pt_" + cli); } catch {}
+}
+
+async function carregarPT(cli, forcar) {
+  const chave = "vpx_pt_" + cli, guardado = lerLS(chave, null);
+  if (guardado && (!navigator.onLine || !conta)) return { ...guardado, online: false };
+  if (guardado && !forcar && Date.now() - guardado.quando < 30000) return { ...guardado, online: true };
+  try {
+    const arquivos = {};
+    await Promise.all(PASTA_TEC.map(async s => { arquivos[s.id] = (await listarPastaHist(cli, `${CONFIG.pastaTecnica}/${s.id} - ${s.titulo}`)).itens
+      .map(i => ({ id: i.id, nome: i.name, mod: i.lastModifiedDateTime, size: i.size, web: i.webUrl })); }));
+    let na = [];
+    try {
+      const it = await graph(`${BASE()}:/${encPath(ptPasta(cli) + "/pasta-tecnica.json")}`);
+      na = (await (await fetch(it["@microsoft.graph.downloadUrl"])).json()).na || [];
+    } catch (e) { if (e.status !== 404 && !(e instanceof SyntaxError)) throw e; }
+    const d = { arquivos, na, quando: Date.now() };
+    gravarLS(chave, d);
+    return { ...d, online: true };
+  } catch (e) {
+    console.error(e);
+    if (guardado) return { ...guardado, online: false };
+    throw e;
+  }
+}
+
+// situação de cada item: documentos (do nome do arquivo), pendentes na fila, validade
+function situacaoPT(sec, item, dados, cli) {
+  const docs = (dados.arquivos[sec.id] || []).map(a => ({ ...a, info: lerNomePT(a.nome) }))
+    .filter(a => a.info && semAcento(a.info.titulo) === semAcento(item[1])).sort((a, b) => a.info.data.localeCompare(b.info.data));
+  const fila = listaDe("pt").filter(f => f.st !== "ok" && f.dest?.cliente === cli && f.dest.caminho === ptPasta(cli, sec) && semAcento(f.prefixo).startsWith(semAcento(item[1]) + " - "));
+  if (dados.na.includes(item[0])) return { cls: "na", ico: "–", texto: "Não se aplica", docs, fila };
+  if (!docs.length && !fila.length) return { cls: "falta", ico: "○", texto: "Falta", docs, fila };
+  const vals = docs.map(d => d.info.validade);
+  if (!docs.length || vals.some(v => !v)) return { cls: "ok", ico: "✓", texto: docs.length ? "Ok" : "Aguardando envio", docs, fila };
+  const melhor = vals.sort().at(-1), dias = diasAte(melhor);
+  if (dias < 0) return { cls: "crit", ico: "✗", texto: `Vencido em ${dataBRde(melhor)}`, docs, fila, validade: melhor };
+  if (dias <= 30) return { cls: "warn", ico: "⚠", texto: `Vence em ${dias} dia${dias === 1 ? "" : "s"} (${dataBRde(melhor)})`, docs, fila, validade: melhor };
+  return { cls: "ok", ico: "✓", texto: `Válido até ${dataBRde(melhor)}`, docs, fila, validade: melhor };
+}
+// arquivos da seção que não seguem o padrão de nome (colocados à mão)
+const outrosPT = (sec, dados) => (dados.arquivos[sec.id] || []).filter(a => { const i = lerNomePT(a.nome); return !i || !sec.itens.some(it => semAcento(it[1]) === semAcento(i.titulo)); });
+
+function abrirPastaTec() {
+  if (!cliente) return;
+  pt = { cliente };
+  $("pt-titulo").textContent = cliente;
+  $("tela-pt").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ pt: true }, "");
+  recarregarPT(false);
+}
+function fecharPastaTec(voltar = true) {
+  if ($("tela-pt").hidden) return;
+  $("tela-pt").hidden = true;
+  document.body.style.overflow = "";
+  pt = null;
+  if (voltar && history.state?.pt) history.back();
+}
+async function recarregarPT(forcar) {
+  if (!pt) return;
+  const cli = pt.cliente;
+  $("pt-estado").textContent = "Carregando…";
+  try {
+    const d = await carregarPT(cli, forcar);
+    if (!pt || pt.cliente !== cli) return;
+    pt.dados = d;
+    $("pt-estado").textContent = d.online ? "" : `Sem internet: mostrando a última consulta (${new Date(d.quando).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}).`;
+    desenharPT();
+  } catch (e) {
+    $("pt-estado").textContent = !navigator.onLine ? "Sem internet e a pasta técnica deste cliente ainda não foi aberta neste celular." : "Não foi possível abrir a pasta técnica: " + e.message;
+  }
+}
+
+function desenharPT() {
+  const raiz = $("pt-lista"), d = pt.dados, cli = pt.cliente;
+  raiz.innerHTML = "";
+  const cont = { ok: 0, warn: 0, crit: 0, falta: 0, na: 0 };
+  for (const sec of PASTA_TEC) {
+    raiz.appendChild(el("h2", "secao", `${sec.id} - ${sec.titulo}`));
+    for (const item of sec.itens) {
+      const s = situacaoPT(sec, item, d, cli);
+      cont[s.cls]++;
+      const w = el("div", "pt-item " + s.cls);
+      const l1 = el("div", "pt-l1");
+      l1.append(el("span", "pt-ico", s.ico), el("strong", "", item[1]), el("span", "pt-st", s.texto));
+      w.appendChild(l1);
+      for (const doc of s.docs.slice().reverse()) {
+        const b = el("button", "pt-doc", `📄 ${dataBRde(doc.info.data)}${doc.info.validade ? " · válido até " + dataBRde(doc.info.validade) : ""}`); b.type = "button";
+        b.onclick = () => abrirDocPT(doc);
+        const v = el("button", "laudo-link", "validade"); v.type = "button";
+        v.onclick = () => mudarValidadePT(sec, item, doc);
+        const lin = el("div", "pt-doc-l"); lin.append(b, v);
+        w.appendChild(lin);
+      }
+      for (const f of s.fila) w.appendChild(el("div", "pt-fila", `⏳ ${f.arquivo.name} - aguardando envio`));
+      const ac = el("div", "li-acoes");
+      const add = el("label", "li-foto", "＋ Adicionar");
+      const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*,application/pdf"; inp.multiple = true; inp.className = "oculto";
+      inp.onchange = () => { const fs = [...inp.files]; inp.value = ""; if (fs.length) adicionarDocPT(sec, item, fs); };
+      add.appendChild(inp);
+      const na = el("button", "li-obs-btn", d.na.includes(item[0]) ? "Desfazer N/A" : "N/A"); na.type = "button";
+      na.onclick = () => alternarNaPT(item[0]);
+      ac.append(add, na);
+      w.appendChild(ac);
+      raiz.appendChild(w);
+    }
+    const outros = outrosPT(sec, d);
+    if (outros.length) {
+      const w = el("div", "pt-item outros");
+      w.appendChild(el("div", "pt-l1", "Outros documentos desta seção"));
+      for (const doc of outros) { const b = el("button", "pt-doc", "📄 " + doc.nome); b.type = "button"; b.onclick = () => abrirDocPT(doc); w.appendChild(b); }
+      raiz.appendChild(w);
+    }
+  }
+  const total = cont.ok + cont.warn + cont.crit + cont.falta;
+  const r = $("pt-resumo");
+  r.innerHTML = "";
+  for (const [cls, n, rot] of [["ok", cont.ok, "Em dia"], ["warn", cont.warn, "Vencem em 30 dias"], ["crit", cont.crit + cont.falta, "Vencidos ou faltando"]]) {
+    const x = el("div", cls); x.append(el("b", "", n), rot); r.appendChild(x);
+  }
+  $("pt-nota").textContent = `${cont.ok} de ${total} itens em dia${cont.na ? ` · ${cont.na} não se aplica` : ""}. Laudos, inspeções e treinamentos feitos no app entram sozinhos.`;
+}
+
+// incluir documento: pergunta a validade e põe na fila para a subpasta da seção
+async function adicionarDocPT(sec, item, arquivos) {
+  const r = prompt(`${item[1]}\n\nVálido até (dd/mm/aaaa)?\nDeixe em branco se o documento não tiver validade.`, "");
+  if (r === null) return;
+  let validade = "";
+  if (r.trim()) {
+    const m = r.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) { aviso("Data inválida. Use o formato dd/mm/aaaa.", true); return; }
+    validade = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  }
+  const cli = pt.cliente, hoje = dataISO();
+  for (const a of arquivos) {
+    const it = { id: ++seq, modo: "pt", arquivo: a, url: "", st: "pendente", pdf: true,
+      dest: { modo: "visita", autor: nomeColaborador(), cliente: cli, caminho: ptPasta(cli, sec), data: hoje }, prefixo: prefixoPT(item[1], hoje, validade) };
+    listaDe("pt").push(it);
+    await guardarItem(it, true);
+  }
+  try { localStorage.removeItem("vpx_pt_" + cli); } catch {}
+  desenharPT();
+  aviso(navigator.onLine ? "Enviando para a pasta técnica…" : "Guardado no celular. Vai para a pasta técnica quando a internet voltar.");
+  await tentarPendentes();
+}
+async function abrirDocPT(doc) {
+  const ehPdf = ehPdfArq(doc.nome);
+  if (!ehPdf && !ehImgArq(doc.nome)) { if (navigator.onLine && doc.web) window.open(doc.web, "_blank", "noopener"); return; }
+  let blob = guardadosArq[doc.id]?.mod === doc.mod ? await lerArqGuardado(doc.id).catch(() => null) : null;
+  if (!blob) {
+    if (!navigator.onLine) { aviso("Este documento ainda não foi aberto neste celular.", true); return; }
+    try { aviso("Abrindo…"); blob = await baixarArq({ id: doc.id, nome: doc.nome, mod: doc.mod }, pt.cliente); }
+    catch (e) { aviso("Não foi possível abrir: " + e.message, true); return; }
+  }
+  abrirVisor(new File([blob], doc.nome, { type: blob.type || (ehPdf ? "application/pdf" : "") }), doc.nome, `${doc.nome} - ${pt.cliente}`);
+}
+async function mudarValidadePT(sec, item, doc) {
+  if (!navigator.onLine) { aviso("Sem internet para alterar a validade.", true); return; }
+  const atual = doc.info.validade ? dataBRde(doc.info.validade) : "";
+  const r = prompt(`${item[1]} de ${dataBRde(doc.info.data)}\n\nVálido até (dd/mm/aaaa)? Em branco = sem validade.`, atual);
+  if (r === null) return;
+  let validade = "";
+  if (r.trim()) {
+    const m = r.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) { aviso("Data inválida. Use dd/mm/aaaa.", true); return; }
+    validade = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  }
+  const resto = doc.nome.match(/((?:_\d+)?(?: \d+)?\.[^.]+)$/)[1];
+  try {
+    await graph(`/drives/${CONFIG.driveId}/items/${doc.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: prefixoPT(doc.info.titulo, doc.info.data, validade) + resto }) });
+    aviso("Validade alterada.");
+    recarregarPT(true);
+  } catch (e) { aviso("Não foi possível alterar: " + e.message, true); }
+}
+async function alternarNaPT(itemId) {
+  if (!navigator.onLine) { aviso("Sem internet para marcar \"não se aplica\".", true); return; }
+  const d = pt.dados, cli = pt.cliente;
+  const na = d.na.includes(itemId) ? d.na.filter(x => x !== itemId) : [...d.na, itemId];
+  try {
+    const pasta = await garantirPasta(ptPasta(cli));
+    await graph(`/drives/${CONFIG.driveId}/items/${pasta.id}:/pasta-tecnica.json:/content`, { method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ na, atualizado: new Date().toISOString(), por: nomeColaborador() }, null, 2) });
+    d.na = na; gravarLS("vpx_pt_" + cli, { arquivos: d.arquivos, na, quando: d.quando });
+    desenharPT();
+  } catch (e) { aviso("Não foi possível salvar: " + e.message, true); }
+}
+
+/* PDF para imprimir: capa + índice (com páginas e situação) + separador por seção + documentos */
+async function gerarPDFPastaTec() {
+  if (!pt?.dados) return;
+  if (!navigator.onLine) { aviso("Gerar o PDF da pasta técnica precisa de internet (para baixar os documentos).", true); return; }
+  const cli = pt.cliente, d = pt.dados, st = $("pt-estado"), bt = $("pt-gerar");
+  bt.disabled = true;
+  try {
+    if (!window.PDFLib) await carregarScript(PDFLIB);
+    const jsPDF = window.jspdf?.jsPDF;
+    // documentos na ordem: seção → itens → outros
+    const plano = PASTA_TEC.map(sec => ({ sec, itens: sec.itens.map(item => ({ item, s: situacaoPT(sec, item, d, cli) })), outros: outrosPT(sec, d) }));
+    const docs = plano.flatMap(p => [...p.itens.flatMap(x => x.s.docs), ...p.outros]).filter(x => ehPdfArq(x.nome) || ehImgArq(x.nome));
+    const totalMB = docs.reduce((s, x) => s + (x.size || 0), 0);
+    if (totalMB > 150 * 1048576 && !confirm(`São ${mb(totalMB)} de documentos. Pode demorar e pesar no celular. Continuar?`)) return;
+    // baixa e conta as páginas
+    let n = 0;
+    for (const x of docs) {
+      st.textContent = `Baixando documentos… ${++n} de ${docs.length}`;
+      try {
+        x.blob = (guardadosArq[x.id]?.mod === x.mod && await lerArqGuardado(x.id)) || await baixarArq({ id: x.id, nome: x.nome, mod: x.mod }, cli);
+        if (ehPdfArq(x.nome)) { x.pdf = await PDFLib.PDFDocument.load(await x.blob.arrayBuffer(), { ignoreEncryption: true }); x.paginas = x.pdf.getPageCount(); }
+        else x.paginas = 1;
+      } catch (e) { console.error(e); x.erro = true; x.paginas = 1; }
+    }
+    st.textContent = "Montando o PDF…";
+    // numeração: capa (1) + índice + por seção: separador + páginas dos documentos
+    // páginas do índice: simula a mesma distribuição de linhas usada ao desenhar o índice
+    let pagIndice = 1;
+    { let yy = 30; const passo = h => { if (yy > 280) { pagIndice++; yy = 20; } yy += h; };
+      for (const p of plano) { yy += 1; passo(7); p.itens.forEach(() => passo(6)); if (p.outros.length) passo(6); } }
+    let pg = 1 + pagIndice;
+    for (const p of plano) {
+      p.pagSep = ++pg;
+      for (const x of p.itens) for (const doc of x.s.docs) { const dd = docs.find(z => z.id === doc.id); if (dd) { dd.pag = pg + 1; pg += dd.paginas; } }
+      for (const o of p.outros) { const dd = docs.find(z => z.id === o.id); if (dd) { dd.pag = pg + 1; pg += dd.paginas; } }
+    }
+    const totalPag = pg;
+    // capa, índice e separadores com jsPDF
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59], COR = { ok: [31, 122, 69], warn: [176, 110, 0], crit: [178, 34, 34], falta: [178, 34, 34], na: [91, 107, 128] };
+    let logo = null; try { logo = await paraDataURL(await (await fetch("logo.png")).blob()); } catch {}
+    const av = avcbDoCliente(cli);
+    if (logo) doc.addImage(logo, "PNG", 65, 40, 80, 44.6, "logo", "FAST");
+    doc.setDrawColor(...LARANJA); doc.setLineWidth(1.2); doc.line(30, 105, 180, 105);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(30); doc.setTextColor(...AZUL); doc.text("PASTA TÉCNICA", 105, 125, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(13); doc.setTextColor(...CINZA);
+    doc.text("Segurança Contra Incêndio e Pânico", 105, 135, { align: "center" });
+    doc.text("Documentação para a vistoria do Corpo de Bombeiros Militar da Bahia (CBM-BA)", 105, 142, { align: "center" });
+    doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(...TINTA); doc.text(doc.splitTextToSize(cli, 160), 105, 165, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(...CINZA);
+    let yc = 178;
+    for (const t of [av?.endereco, av?.cnpj && "CNPJ " + av.cnpj, `Emitida em ${dataBRde(dataISO())}`]) if (t) { doc.text(doc.splitTextToSize(t, 160), 105, yc, { align: "center" }); yc += 7; }
+    doc.setFontSize(10); doc.text("VPX Engenharia  -  (71) 99194-9900  -  vpxengenharia.com.br", 105, 275, { align: "center" });
+    // índice
+    doc.addPage(); let y = 20;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL); doc.text("Índice", 15, y); y += 10;
+    // bolinha colorida no lugar de ✓ ○ ⚠ (a fonte padrão do PDF não tem esses símbolos)
+    const bola = (cls, x, yy) => { const c = COR[cls]; if (cls === "na" || cls === "falta") { doc.setDrawColor(...c); doc.setLineWidth(0.4); doc.circle(x, yy, 1.3, "S"); } else { doc.setFillColor(...c); doc.circle(x, yy, 1.3, "F"); } };
+    const linhaIdx = (txt, dir, cor, negrito, rec = 0, cls = null) => {
+      if (y > 280) { doc.addPage(); y = 20; }
+      doc.setFont("helvetica", negrito ? "bold" : "normal"); doc.setFontSize(negrito ? 11 : 10); doc.setTextColor(...(cor || TINTA));
+      if (cls) { bola(cls, 15 + rec + 1.3, y - 1.2); rec += 5; }
+      doc.text(doc.splitTextToSize(txt, 140)[0], 15 + rec, y);
+      if (dir) { doc.setTextColor(...(cor || CINZA)); doc.text(dir, 195, y, { align: "right" }); }
+      y += negrito ? 7 : 6;
+    };
+    for (const p of plano) {
+      y += 1;
+      linhaIdx(`${p.sec.id} - ${p.sec.titulo}`, `pág. ${p.pagSep}`, AZUL, true);
+      for (const x of p.itens) {
+        const pags = x.s.docs.map(dd => docs.find(z => z.id === dd.id)?.pag).filter(Boolean);
+        const dir = x.s.cls === "na" ? "Não se aplica" : x.s.cls === "falta" ? "PENDENTE" : `${x.s.texto}${pags.length ? "  -  pág. " + pags[0] : ""}`;
+        linhaIdx(x.item[1], dir, COR[x.s.cls], false, 4, x.s.cls);
+      }
+      if (p.outros.length) linhaIdx(`Outros documentos (${p.outros.length})`, "", CINZA, false, 4);
+    }
+    while (doc.getNumberOfPages() < 1 + pagIndice) doc.addPage();
+    const inicioSep = doc.getNumberOfPages();          // índice (0-based) do 1º separador no molde
+    // separadores
+    for (const p of plano) {
+      doc.addPage();
+      doc.setFillColor(...AZUL); doc.rect(0, 110, 210, 50, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(48); doc.setTextColor(...LARANJA); doc.text(p.sec.id, 105, 132, { align: "center" });
+      doc.setFontSize(22); doc.setTextColor(255, 255, 255); doc.text(p.sec.titulo.toUpperCase(), 105, 148, { align: "center" });
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
+      let ys = 175;
+      for (const x of p.itens) { bola(x.s.cls, 31.3, ys - 1.2); doc.setTextColor(...COR[x.s.cls]); doc.text(`${x.item[1]} - ${x.s.texto}`, 36, ys); ys += 6; }
+    }
+    const molde = await PDFLib.PDFDocument.load(doc.output("arraybuffer"));
+    // junta tudo
+    const out = await PDFLib.PDFDocument.create();
+    const fonte = await out.embedFont(PDFLib.StandardFonts.Helvetica);
+    const copiar = async (src, idx) => (await out.copyPages(src, idx)).forEach(p => out.addPage(p));
+    await copiar(molde, Array.from({ length: inicioSep }, (_, i) => i));
+    const A4 = [595.28, 841.89];
+    const aviso1 = (titulo, msg) => { const p = out.addPage(A4); p.drawText(titulo.slice(0, 80), { x: 50, y: 760, size: 14, font: fonte }); p.drawText(msg, { x: 50, y: 735, size: 11, font: fonte }); };
+    for (let i = 0; i < plano.length; i++) {
+      const p = plano[i];
+      await copiar(molde, [inicioSep + i]);
+      const daSecao = [...p.itens.flatMap(x => x.s.docs), ...p.outros].map(z => docs.find(w => w.id === z.id)).filter(Boolean);
+      for (const x of daSecao) {
+        if (x.erro) { aviso1(x.nome, "Este documento não pôde ser incluído. Imprima-o separadamente."); continue; }
+        if (x.pdf) { await copiar(x.pdf, x.pdf.getPageIndices()); continue; }
+        try {
+          const im = await fotoParaPdf(x.blob);         // foto: JPEG reduzido, centralizado na página
+          const jpg = await out.embedJpg(await (await fetch(im.url)).arrayBuffer());
+          const pg = out.addPage(A4), esc = Math.min(515 / jpg.width, 760 / jpg.height);
+          pg.drawImage(jpg, { x: (A4[0] - jpg.width * esc) / 2, y: (A4[1] - jpg.height * esc) / 2, width: jpg.width * esc, height: jpg.height * esc });
+        } catch (e) { console.error(e); aviso1(x.nome, "Esta imagem não pôde ser incluída."); }
+      }
+    }
+    // rodapé com a página em todas, menos a capa
+    const pags = out.getPages();
+    pags.forEach((p, i) => { if (i) { const { width } = p.getSize(); const t = `Pasta Técnica - ${cli} - página ${i + 1} de ${pags.length}`; p.drawText(t, { x: width / 2 - fonte.widthOfTextAtSize(t, 8) / 2, y: 12, size: 8, font: fonte, color: PDFLib.rgb(0.36, 0.42, 0.5) }); } });
+    const blob = new Blob([await out.save()], { type: "application/pdf" });
+    const arquivo = new File([blob], `Pasta Técnica - ${cli}.pdf`, { type: "application/pdf" });
+    // guarda uma cópia na pasta técnica (pela fila) e abre para ver/imprimir/compartilhar
+    const it = { id: ++seq, modo: "pt", arquivo, url: "", st: "pendente", pdf: true,
+      dest: { modo: "visita", autor: nomeColaborador(), cliente: cli, caminho: ptPasta(cli), data: dataISO() }, prefixo: `Pasta Técnica para impressão - ${dataISO()}` };
+    listaDe("pt").push(it); await guardarItem(it, true); tentarPendentes();
+    st.textContent = `PDF pronto: ${pags.length} páginas. Uma cópia vai para a pasta técnica no OneDrive.`;
+    abrirVisor(arquivo, "Pasta Técnica", `Pasta Técnica - ${cli}`);
+  } catch (e) {
+    console.error(e);
+    st.textContent = "Não foi possível gerar o PDF: " + e.message;
+  } finally { bt.disabled = false; }
 }
 
 /* ---------- validade AVCB/CLCB (lista em CONFIG.validadeAvcb) ---------- */
@@ -4711,7 +5101,7 @@ function fecharVisor(voltar = true) {
   if (visor?.img) URL.revokeObjectURL(visor.img);
   visor = null;
   travarVertical(true);
-  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico: a lista continua
+  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -4722,13 +5112,14 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "com", "laudo", "insp", "trein", "comp", "avcb"]) {
+  for (const m of ["visita", "com", "laudo", "insp", "trein", "comp", "avcb", "pt"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
   atualizar();
   if (r.ok) aviso(`${r.ok} ${r.ok > 1 ? "itens da fila foram enviados" : "item da fila foi enviado"} para o OneDrive.`);
   if (fila.some(f => f.modo === "avcb" && f.st === "ok")) sincronizarAvcb();   // AVCB fotografado chegou: atualiza a lista
+  if (fila.some(f => f.modo === "pt" && f.st === "ok")) { fila.forEach(f => { if (f.modo === "pt") try { localStorage.removeItem("vpx_pt_" + f.dest.cliente); } catch {} }); if (pt) recarregarPT(true); }   // pasta técnica mudou
 }
 
 // ao abrir o app: devolve à lista o que estava guardado no celular
@@ -4823,10 +5214,10 @@ window.addEventListener("popstate", () => {
   if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
-  if (history.state?.arq) return;                                    // voltou do visualizador para os arquivos do cliente
+  if (history.state?.arq || history.state?.pt) return;              // voltou do visualizador para os arquivos do cliente / pasta técnica
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false);
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
 });
 $("btn-arq").onclick = abrirArquivos;
 $("arq-voltar").onclick = voltarArq;
@@ -4841,6 +5232,10 @@ $("adm-email").onkeydown = e => { if (e.key === "Enter") adicionarUsuarioAdmin()
 // permissões alteradas pelo administrador: confere ao voltar para o app (no máximo 1 vez por minuto)
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (carregarPermissoes.quando || 0) > 60000) carregarPermissoes(); });
 $("hist-resumo").onclick = abrirHistorico;
+$("btn-pt").onclick = abrirPastaTec;
+$("pt-voltar").onclick = () => fecharPastaTec();
+$("pt-gerar").onclick = gerarPDFPastaTec;
+$("pt-atualizar").onclick = () => recarregarPT(true);
 $("hist-voltar").onclick = () => fecharHistorico();
 $("hist-atualizar").onclick = () => hist && recarregarHistorico(true);
 $("hist-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { if (!hist) return; hist.filtro = b.dataset.f; $("hist-filtro").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); desenharHistorico(); });

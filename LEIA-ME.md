@@ -120,6 +120,18 @@ Nada disso aparece no relatório que vai para o cliente.
 4. O instrutor assina no fim da página. Se quiser, tire fotos da parte prática (Câmera/Galeria).
 5. **Gerar lista e certificados** → um PDF com a lista de presença assinada e um certificado por participante, salvo em *02 - Clientes › [Cliente] › Treinamentos de Brigada*. Dá para ver e compartilhar na hora.
 
+### Pasta técnica (vistoria do CBM-BA)
+
+Escolha o cliente e toque em **📂 Pasta técnica**. Aparece o checklist da documentação para a vistoria do Corpo de Bombeiros, por seção (documentos do cliente, projeto aprovado, AVCB/CLCB, ARTs, laudos, brigada, certificados e notas, manutenções e inspeções, plano de emergência), com a situação de cada item: em dia, **vence em até 30 dias**, **vencido**, **falta** ou não se aplica.
+
+- **+ Adicionar**: fotografe ou escolha o PDF do documento e informe até quando ele é válido (ou deixe em branco). Ele vai para a subpasta certa em *[Cliente] › Pasta Técnica CBM-BA* no OneDrive.
+- **N/A**: marca o item como "não se aplica" (ex.: prédio sem gerador).
+- **validade**: corrige a data de validade de um documento já enviado.
+- Laudos, inspeções e listas de treinamento feitos no app **entram sozinhos** no item certo.
+- **🖨 Gerar PDF para imprimir**: monta um único PDF com capa, índice (com a página e a situação de cada documento), uma folha separadora por seção e todos os documentos na ordem. Abre no app para imprimir ou compartilhar, e uma cópia fica na pasta técnica.
+
+Documentos colocados à mão no OneDrive também entram no PDF (como "Outros documentos" da seção); para o app reconhecer o item e a validade, prefira incluir pelo app.
+
 ### Administração (o que cada pessoa vê)
 
 Só o administrador vê o botão **⚙** no topo. Nele:
