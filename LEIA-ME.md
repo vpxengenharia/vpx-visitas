@@ -127,7 +127,7 @@ No topo ficam a **Agenda**, o **AVCB** e o **☰ Menu**. No menu: ITs do CBM-BA,
 ### Pedidos de compra
 
 1. Menu ☰ → **Pedidos de compra** → **+ Novo pedido**.
-2. Escolha o cliente/obra (ou "Escritório / estoque"), a urgência, onde entregar e, se quiser, até quando precisa.
+2. Escolha o **centro de custo** (a mesma lista do Fin365, ou "Outro (digitar)"), a urgência, onde entregar e, se quiser, até quando precisa.
 3. Adicione os itens: comece a digitar e escolha da lista (extintores, recargas, placas, mangueiras, luminárias…) ou escreva qualquer item; informe a quantidade (e um detalhe, se precisar: marca, medida…).
 4. **Enviar pedido**. Funciona sem internet (vai quando o sinal voltar).
 

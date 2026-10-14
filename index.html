@@ -4980,7 +4980,7 @@ function desenharPedidos() {
     const b = el("button", "pc-card " + cls); b.type = "button";
     const l1 = el("div", "pc-l1"); l1.append(el("strong", "", `Pedido ${p.numero}`), el("span", "pc-st", p.pendente ? "⏳ aguardando envio" : rot));
     b.appendChild(l1);
-    b.appendChild(el("div", "pc-l2", `${p.itens.length} ite${p.itens.length > 1 ? "ns" : "m"} · ${p.cliente || "Escritório/estoque"}${p.urgencia === "Urgente" ? " · URGENTE" : ""}`));
+    b.appendChild(el("div", "pc-l2", `${p.itens.length} ite${p.itens.length > 1 ? "ns" : "m"} · ${centroPC(p)}${p.urgencia === "Urgente" ? " · URGENTE" : ""}`));
     b.appendChild(el("div", "pc-l3", `${p.solicitante?.nome || ""} · ${new Date(p.criadoEm).toLocaleDateString("pt-BR")}${p.precisaAte ? " · precisa até " + dataBRde(p.precisaAte) : ""}`));
     b.onclick = () => { pcAberto = p.id; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };
     lista.appendChild(b);
@@ -4998,7 +4998,7 @@ function desenharDetalhePC(p) {
   det.appendChild(el("h2", "secao", `Pedido ${p.numero}`));
   det.appendChild(el("p", "avcb-aviso " + cls, p.pendente ? "⏳ Guardado no celular, aguardando envio" : rot));
   const linhas = [["Solicitante", p.solicitante?.nome], ["Data", new Date(p.criadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })],
-    ["Cliente / obra", p.cliente || "Escritório/estoque"], ["Urgência", p.urgencia], ["Precisa até", p.precisaAte && dataBRde(p.precisaAte)], ["Entrega", p.entrega],
+    ["Centro de custo", centroPC(p)], ["Urgência", p.urgencia], ["Precisa até", p.precisaAte && dataBRde(p.precisaAte)], ["Entrega", p.entrega],
     ["Observação", p.obs], ["Fornecedor", p.compra?.fornecedor], ["Valor", p.compra?.valor], ["Previsão de entrega", p.compra?.previsao && dataBRde(p.compra.previsao)]];
   const tab = el("div", "pc-dados");
   linhas.filter(([, v]) => v).forEach(([r, v]) => { const d = el("div", "pc-dl"); d.append(el("span", "", r), el("strong", "", v)); tab.appendChild(d); });
@@ -5054,7 +5054,7 @@ function marcarComprado(p) {
 
 /* novo pedido */
 function abrirNovoPC() {
-  pcNovo = lerLS("vpx_pc_rascunho", null) || { cliente: cliente || "", urgencia: "Normal", entrega: "Na obra", precisaAte: "", obs: "", itens: [] };
+  pcNovo = lerLS("vpx_pc_rascunho", null) || { centro: "", centroDesc: "", urgencia: "Normal", entrega: "Na obra", precisaAte: "", obs: "", itens: [] };
   $("pc-novo").hidden = false; $("pc-lista").hidden = true; $("pc-topo-lista").hidden = true; $("pc-detalhe").hidden = true;
   desenharNovoPC();
 }
@@ -5064,12 +5064,28 @@ function desenharNovoPC() {
   const f = $("pc-novo"); f.innerHTML = "";
   const voltar = el("button", "laudo-link", "‹ Cancelar"); voltar.type = "button"; voltar.onclick = fecharNovoPC;
   f.append(voltar, el("h2", "secao", "Novo pedido de compra"));
-  // cliente: lista de clientes + escritório
-  const wc = el("label", "campo"); wc.appendChild(el("span", "", "Cliente / obra"));
+  // centro de custo (obrigatório): mesma lista do Fin365 dos comprovantes, "código · descrição", ou "Outro (digitar)"
+  const wc = el("label", "campo"); wc.id = "pc-centro"; wc.appendChild(el("span", "", "Centro de custo *"));
   const sel = document.createElement("select");
-  [["", "Escritório / estoque"], ...clientes.map(c => [c, c])].forEach(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); });
-  sel.value = pcNovo.cliente; sel.onchange = () => { pcNovo.cliente = sel.value; gravarRascPC(); };
-  wc.appendChild(sel); f.appendChild(wc);
+  const opc = (v, t) => { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); };
+  opc("", "Escolha o centro de custo");
+  CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true })).forEach(([n, d]) => opc(n, `${n} · ${d}`));
+  CONFIG.centrosCusto.filter(([, d]) => !d).forEach(([n]) => opc(n, n));
+  opc(OUTRO, "Outro (digitar)");
+  const outro = document.createElement("input"); outro.placeholder = "Digite o centro de custo"; outro.autocomplete = "off"; outro.style.marginTop = "6px";
+  const ehOutro = pcNovo.centro && !CONFIG.centrosCusto.some(([n]) => n === pcNovo.centro);
+  sel.value = ehOutro ? OUTRO : pcNovo.centro || "";
+  outro.hidden = !ehOutro; outro.value = ehOutro ? pcNovo.centro : "";
+  const mudouCentro = () => {
+    const v = sel.value;
+    outro.hidden = v !== OUTRO;
+    pcNovo.centro = v === OUTRO ? outro.value.trim() : v;
+    pcNovo.centroDesc = v === OUTRO ? "" : (CONFIG.centrosCusto.find(([n]) => n === v)?.[1] || "");
+    gravarRascPC(); atualizarEnvioPC();
+  };
+  sel.onchange = () => { mudouCentro(); if (sel.value === OUTRO) outro.focus(); };
+  outro.oninput = mudouCentro;
+  wc.append(sel, outro); f.appendChild(wc);
   const chips = (rot, chave, opcoes) => {
     const w = el("div", "campo"); w.appendChild(el("span", "", rot));
     const c = el("div", "chips");
@@ -5110,19 +5126,28 @@ function desenharNovoPC() {
   const wo = el("label", "campo"); wo.appendChild(el("span", "", "Observação (opcional)"));
   const ta = document.createElement("textarea"); ta.value = pcNovo.obs; ta.oninput = () => { pcNovo.obs = ta.value; gravarRascPC(); };
   wo.appendChild(ta); f.appendChild(wo);
-  const env = el("button", "btn prim", pcNovo.itens.length ? `Enviar pedido (${pcNovo.itens.length} ite${pcNovo.itens.length > 1 ? "ns" : "m"})` : "Adicione pelo menos um item");
-  env.type = "button"; env.disabled = !pcNovo.itens.length; env.onclick = enviarNovoPC;
+  const env = el("button", "btn prim"); env.id = "pc-enviar";
+  env.type = "button"; env.onclick = enviarNovoPC;
   f.appendChild(env);
+  atualizarEnvioPC();
 }
+// o que falta para enviar: centro de custo e pelo menos um item
+function atualizarEnvioPC() {
+  const b = $("pc-enviar"); if (!b || !pcNovo) return;
+  const n = pcNovo.itens.length;
+  b.disabled = !pcNovo.centro || !n;
+  b.textContent = !pcNovo.centro ? "Escolha o centro de custo" : !n ? "Adicione pelo menos um item" : `Enviar pedido (${n} ite${n > 1 ? "ns" : "m"})`;
+}
+const centroPC = p => p.centro ? `${p.centro}${p.centroDesc ? " · " + p.centroDesc : ""}` : p.cliente || "Escritório/estoque";   // pedidos antigos tinham cliente
 
 async function enviarNovoPC() {
-  if (!pcNovo?.itens.length) return;
+  if (!pcNovo?.itens.length || !pcNovo.centro) return;
   const agora = new Date();
   const ini = nomeColaborador().split(/\s+/).map(p => p[0]).join("").slice(0, 3).toUpperCase();
   const numero = `${dataISO(agora).replace(/-/g, "")}-${pad(agora.getHours())}${pad(agora.getMinutes())}${pad(agora.getSeconds())}-${ini}`;
   const id = "PC-" + numero;
   const ped = { versao: 1, id, numero, criadoEm: agora.toISOString(), solicitante: { nome: nomeColaborador(), email: emailDe() },
-    cliente: pcNovo.cliente, urgencia: pcNovo.urgencia, entrega: pcNovo.entrega, precisaAte: pcNovo.precisaAte, obs: pcNovo.obs.trim(),
+    centro: pcNovo.centro, centroDesc: pcNovo.centroDesc || "", urgencia: pcNovo.urgencia, entrega: pcNovo.entrega, precisaAte: pcNovo.precisaAte, obs: pcNovo.obs.trim(),
     itens: pcNovo.itens, status: "aguardando", historico: [{ status: "aguardando", por: nomeColaborador(), em: agora.toISOString(), obs: "" }] };
   let pdf;
   try { pdf = await gerarPedidoPDF(ped); } catch (e) { aviso("Não foi possível gerar o PDF: " + e.message, true); return; }
@@ -5154,7 +5179,7 @@ async function gerarPedidoPDF(p) {
   y += 23; doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y); y += 9;
   const linha = (r, v) => { doc.setFontSize(10); const tv = doc.splitTextToSize(String(v), L - 50); cabe(tv.length * 4.6 + 2);
     doc.setFont("helvetica", "bold"); doc.setTextColor(...CINZA); doc.text(r, M, y); doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tv, M + 50, y); y += tv.length * 4.6 + 2; };
-  [["Solicitante", p.solicitante.nome], ["Cliente / obra", p.cliente || "Escritório / estoque"], ["Urgência", p.urgencia], ["Precisa até", p.precisaAte && dataBRde(p.precisaAte)],
+  [["Solicitante", p.solicitante.nome], ["Centro de custo", centroPC(p)], ["Urgência", p.urgencia], ["Precisa até", p.precisaAte && dataBRde(p.precisaAte)],
    ["Entrega", p.entrega], ["Observação", p.obs]].filter(([, v]) => v).forEach(([r, v]) => linha(r, v));
   y += 4;
   doc.setFillColor(...AZUL); doc.rect(M, y - 5, L, 7.5, "F");
@@ -5181,9 +5206,9 @@ async function gerarPedidoPDF(p) {
 async function exportarPedidos() {
   try {
     if (!window.XLSX) await carregarScript(SHEETJS);
-    const linhas = [["Pedido", "Data", "Solicitante", "Cliente / obra", "Urgência", "Precisa até", "Entrega", "Situação", "Item", "Qtd", "Un", "Detalhe", "Fornecedor", "Valor", "Previsão"]];
+    const linhas = [["Pedido", "Data", "Solicitante", "Centro de custo", "Urgência", "Precisa até", "Entrega", "Situação", "Item", "Qtd", "Un", "Detalhe", "Fornecedor", "Valor", "Previsão"]];
     for (const p of Object.values(pedidos).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || "")))
-      for (const it of p.itens) linhas.push([p.numero, new Date(p.criadoEm).toLocaleDateString("pt-BR"), p.solicitante?.nome, p.cliente || "Escritório/estoque", p.urgencia,
+      for (const it of p.itens) linhas.push([p.numero, new Date(p.criadoEm).toLocaleDateString("pt-BR"), p.solicitante?.nome, centroPC(p), p.urgencia,
         p.precisaAte && dataBRde(p.precisaAte), p.entrega, ST_PC[p.status]?.[0] || p.status, it.desc, numBR(it.qtd) ?? it.qtd, it.un, it.obs, p.compra?.fornecedor, p.compra?.valor, p.compra?.previsao && dataBRde(p.compra.previsao)]);
     const ws = XLSX.utils.aoa_to_sheet(linhas);
     ws["!cols"] = [18, 11, 22, 26, 10, 11, 14, 20, 40, 7, 6, 26, 20, 12, 11].map(w => ({ wch: w }));
