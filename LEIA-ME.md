@@ -104,6 +104,14 @@ O que for preenchido fica guardado no celular até salvar (se o app fechar, a fi
 4. Escreva as recomendações (o botão "Sugerir" lista o que precisa corrigir) e assine.
 5. **Gerar relatório em PDF** → vai para *02 - Clientes › [Cliente] › Relatórios de Inspeção*. O relatório não tem "Apto/Não apto": mostra o resumo, o que precisa corrigir e as recomendações — ótimo para virar proposta de serviço.
 
+### Da inspeção (ou laudo) para a proposta
+
+Ao marcar **Não conforme** num item, aparece o quadro **Serviço para orçamento (uso interno)** com o serviço já sugerido (ex.: "Recarga dentro da validade" → "Recarga de extintor"). Informe a **quantidade** (e ajuste o texto se quiser, ex.: "Recarga de extintor PQS 4 kg"). Ao gerar o laudo ou relatório, o app cria também, na pasta *02 - Orçamento* do cliente:
+- uma **planilha Excel** com os serviços, quantidades e colunas de **preço unitário** e **total** (já com fórmula) — é só preencher os preços; a aba "Resumo" soma os serviços iguais;
+- um **PDF interno** com a mesma lista.
+
+Nada disso aparece no relatório que vai para o cliente.
+
 ### Treinamento de brigada
 
 1. Toque na aba **Brigada**, escolha o **cliente** e o treinamento: **Brigada básico, Brigada intermediário, Primeiros socorros ou Uso de extintores**. Conteúdo programático e carga horária já vêm preenchidos (dá para mudar).

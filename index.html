@@ -207,6 +207,11 @@ p{margin:0 0 14px;max-width:60ch}
 .li-obs{display:none;width:100%;min-height:64px;margin-top:8px;border-radius:9px;border:1.5px solid var(--linha);background:var(--fundo,transparent);color:var(--tinta);padding:8px 10px;font:inherit;font-size:16px;resize:vertical}
 .laudo-item.com-obs .li-obs{display:block}
 .laudo-item[data-st="NC"] .li-obs:placeholder-shown{border-color:#B22222}
+.li-serv{display:none;margin-top:8px;padding:8px 10px;border-radius:9px;border:1.5px dashed var(--laranja);background:rgba(235,157,43,.07)}
+.laudo-item[data-st="NC"] .li-serv{display:block}
+.li-serv-rot{display:block;font-size:12.5px;font-weight:700;color:var(--suave);margin-bottom:6px}
+.li-serv input{width:100%;min-height:44px;border-radius:8px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 10px;font-size:16px}
+.li-serv-linha{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
 .li-fotos{display:flex;flex-wrap:wrap;gap:6px}
 .li-fotos:not(:empty){margin-top:8px}
 .li-mini{position:relative;width:72px;height:72px}
@@ -691,6 +696,7 @@ const CONFIG = {
   pastaClientesNome: "02 - Clientes",
   pastaTreinamentos: "Treinamentos de Brigada",                       // lista de presença e certificados dentro da pasta do cliente
   pastaInspecoes: "Relatórios de Inspeção",                            // relatórios de inspeção dentro da pasta do cliente
+  pastaOrcamento: "02 - Orçamento",                                    // lista de serviços (planilha e PDF) das não conformidades
   pastaLaudos: "Laudos Técnicos",                                      // laudos (PDF) dentro da pasta do cliente
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
@@ -1484,6 +1490,151 @@ function alternarSistema(id) {
   gravarLaudo(); montarLaudo(); atualizarBotao();
 }
 
+/* ---------- da inspeção/laudo para a proposta ----------
+   Cada não conformidade pode ter um serviço (sugerido) com quantidade. Ao gerar o laudo/relatório, o app também gera
+   uma planilha Excel (para precificar: colunas de preço e total com fórmula) e um PDF interno com a lista de serviços,
+   salvos em 02 - Clientes › [Cliente] › 02 - Orçamento. Nada disso vai para o relatório do cliente. */
+// sugestões: inspeção "i:sistema.item"; laudo "tipo:seção.item". Sem sugestão: "Adequação: <item>" em verba (vb)
+const SERVICOS = {
+  "i:ilum.acende": ["Manutenção/substituição de luminária de emergência", "un"], "i:ilum.autonomia": ["Substituição de bateria de luminária de emergência", "un"],
+  "i:ilum.indicador": ["Manutenção de luminária de emergência", "un"], "i:ilum.fixacao": ["Fixação/limpeza de luminária de emergência", "un"],
+  "i:ilum.cobertura": ["Instalação de luminária de emergência adicional", "un"],
+  "i:sinal.saida": ["Placa de saída/rota de fuga (fornecimento e instalação)", "un"], "i:sinal.equip": ["Placa de sinalização de equipamento", "un"],
+  "i:sinal.fotolum": ["Substituição de placa fotoluminescente", "un"], "i:sinal.alerta": ["Placa de alerta/proibição", "un"], "i:sinal.piso": ["Sinalização de piso (demarcação)", "un"],
+  "i:portas.fecha": ["Regulagem/substituição de mola da porta corta-fogo", "un"], "i:portas.livre": ["Retirada de calço/trava e orientação ao condomínio", "vb"],
+  "i:portas.macaneta": ["Substituição de maçaneta/fechadura de porta corta-fogo", "un"], "i:portas.barra": ["Manutenção/substituição de barra antipânico", "un"],
+  "i:portas.estado": ["Reparo de porta corta-fogo (folha/batente/vedação)", "un"], "i:portas.etiqueta": ["Placa de identificação de porta corta-fogo", "un"],
+  "i:corrimao.continuo": ["Corrimão (fornecimento e instalação)", "m"], "i:corrimao.fixo": ["Refixação de corrimão", "m"],
+  "i:corrimao.altura": ["Adequação de altura de corrimão/guarda-corpo", "m"], "i:corrimao.vaos": ["Adequação de guarda-corpo (vãos)", "m"], "i:corrimao.estado": ["Recuperação de corrimão/guarda-corpo", "m"],
+  "i:ext.local": ["Reposicionamento/desobstrução de extintor", "un"], "i:ext.tipo": ["Extintor adequado ao risco (fornecimento)", "un"],
+  "i:ext.recarga": ["Recarga de extintor", "un"], "i:ext.hidro": ["Teste hidrostático de extintor", "un"], "i:ext.manometro": ["Manutenção de extintor (manômetro)", "un"],
+  "i:ext.lacre": ["Recolocação de lacre/pino de extintor", "un"], "i:ext.estado": ["Manutenção de extintor (mangueira/difusor)", "un"], "i:ext.fixacao": ["Suporte de extintor (fornecimento e instalação)", "un"],
+  "i:rotas.desobs": ["Desobstrução de rota de fuga", "vb"], "i:rotas.portas": ["Adequação de porta de saída", "un"],
+  "i:rotas.piso": ["Faixa antiderrapante em degraus", "m"], "i:rotas.deposito": ["Retirada de materiais da escada", "vb"],
+  "i:hid.abrigo": ["Complementação de abrigo de hidrante (mangueira/esguicho/chave)", "un"], "i:hid.mangueiras": ["Teste hidrostático/substituição de mangueira", "un"],
+  "i:hid.valvula": ["Manutenção de válvula de hidrante", "un"], "i:hid.recalque": ["Adequação do registro de recalque", "un"],
+  "i:bomba.auto": ["Manutenção do painel da bomba de incêndio", "vb"], "i:bomba.partida": ["Manutenção da bomba de incêndio", "vb"],
+  "i:bomba.vazam": ["Correção de vazamento na casa de bombas", "vb"], "i:bomba.rti": ["Adequação da reserva de incêndio", "vb"],
+  "i:spk.bicos": ["Substituição de bico de sprinkler", "un"], "i:spk.distancia": ["Desobstrução dos bicos de sprinkler", "vb"],
+  "i:spk.vga": ["Manutenção da VGA", "un"], "i:spk.manometros": ["Substituição de manômetro", "un"],
+  "i:alarme.central": ["Manutenção da central de alarme", "vb"], "i:alarme.acion": ["Manutenção/substituição de acionador manual", "un"],
+  "i:alarme.detect": ["Substituição/limpeza de detector", "un"], "i:alarme.sirene": ["Manutenção/substituição de sirene", "un"],
+  "i:gas.abrigo": ["Adequação do abrigo de GLP", "vb"], "i:gas.extintor": ["Extintor para central de GLP (fornecimento)", "un"],
+  "i:gas.vazam": ["Teste de estanqueidade e correção de vazamento", "vb"], "i:gas.tubul": ["Pintura/identificação da tubulação de gás", "m"],
+  "i:spda.captores": ["Manutenção da captação do SPDA", "vb"], "i:spda.descidas": ["Recuperação de descida do SPDA", "un"],
+  "i:spda.caixas": ["Adequação de caixa de inspeção", "un"], "i:spda.laudo": ["Laudo de SPDA (medição)", "un"],
+  "i:pressur.partida": ["Manutenção do sistema de pressurização", "vb"], "i:pressur.portas": ["Regulagem de porta da escada", "un"], "i:pressur.grelhas": ["Limpeza/desobstrução de grelhas e dampers", "vb"],
+  "i:compart.shafts": ["Selagem corta-fogo de shafts/passagens", "un"], "i:compart.portas": ["Adequação de porta de área técnica", "un"], "i:compart.aberturas": ["Vedação de aberturas", "vb"],
+  "i:doc.avcb": ["Renovação do AVCB/CLCB", "un"], "i:doc.plano": ["Elaboração do plano de emergência", "un"], "i:doc.brigada": ["Treinamento de brigada de incêndio", "un"],
+  "i:doc.manut": ["Plano de manutenção dos sistemas", "un"], "i:doc.laudos": ["Emissão de laudos técnicos", "un"],
+  "hidrantes:hid.mangueiras": ["Mangueira de incêndio (fornecimento)", "un"], "hidrantes:hid.teste": ["Teste hidrostático de mangueira", "un"],
+  "hidrantes:hid.esguicho": ["Esguicho/chave storz (fornecimento)", "un"], "hidrantes:hid.valvula": ["Manutenção de válvula angular", "un"],
+  "hidrantes:bombas.manometro": ["Substituição de manômetro", "un"], "alarme:disp.fumaca": ["Substituição de detector de fumaça", "un"],
+  "alarme:disp.acion": ["Manutenção/substituição de acionador manual", "un"], "alarme:central.bateria": ["Substituição de bateria da central", "un"],
+  "eletrica:qd.dr": ["Instalação de dispositivo DR", "un"], "eletrica:qd.dps": ["Instalação/substituição de DPS", "un"], "eletrica:qd.ident": ["Identificação de circuitos do quadro", "un"],
+  "gerador:insp.bateria": ["Substituição de bateria do gerador", "un"], "spda:aterr.caixas": ["Adequação de caixa de inspeção", "un"]
+};
+function sugestaoServico(uid, id, texto) {
+  const sec = uid.split("#")[0];
+  const s = SERVICOS[(ehInsp() ? "i" : laudo.tipo) + ":" + sec + "." + id];
+  return s ? { desc: s[0], un: s[1] } : { desc: "Adequação: " + texto.charAt(0).toLowerCase() + texto.slice(1), un: "vb" };
+}
+
+// lista de serviços do laudo/inspeção (uma linha por não conformidade com serviço)
+function servicosDe(l) {
+  const out = [];
+  for (const b of blocosLaudo(l)) for (const [id, texto] of b.s.itens) {
+    const x = l.r[chaveItem(b.uid, id)];
+    if (x?.st !== "NC" || !(x.serv?.desc || "").trim()) continue;
+    out.push({ servico: x.serv.desc.trim(), qtd: x.serv.qtd || "", un: x.serv.un || "", local: (ehInsp(l) && b.s.repetir ? b.s.titulo + " - " : "") + rotuloBloco(b, l), item: texto, obs: (x.obs || "").trim() });
+  }
+  return out;
+}
+const numBR = v => { const n = parseFloat(String(v).replace(/\./g, "").replace(",", ".")); return isNaN(n) ? null : n; };
+
+// planilha: aba "Serviços" (linha a linha, com preço e total) e aba "Resumo" (somado por serviço)
+const SHEETJS = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mini.min.js";
+async function gerarServicosXLSX(l, cli, autor, servs) {
+  if (!window.XLSX) await carregarScript(SHEETJS);
+  const def = defDe(l), hoje = dataBRde(dataISO());
+  const linhas = [
+    ["VPX Engenharia - Lista de serviços para orçamento (uso interno)"], [],
+    ["Cliente", cli], ["Origem", `${def.nome} de ${hoje}`], ["Vistoria por", autor], ["Responsável técnico", l.resp], [],
+    ["Nº", "Serviço", "Local / sistema", "Qtd", "Un", "Preço unitário (R$)", "Total (R$)", "Não conformidade", "Observação"]
+  ];
+  const ini = linhas.length + 1;                    // 1ª linha de dados (numeração do Excel)
+  servs.forEach((s, i) => linhas.push([i + 1, s.servico, s.local, numBR(s.qtd) ?? (s.qtd || null), s.un, null, null, s.item, s.obs]));
+  const fim = linhas.length;
+  linhas.push([], ["", "TOTAL", "", "", "", "", null]);
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  for (let r = ini; r <= fim; r++) ws["G" + r] = { t: "n", v: 0, f: `IF(OR(D${r}="",F${r}=""),"",D${r}*F${r})` };   // v: a biblioteca só grava fórmula com valor inicial
+  ws["G" + (fim + 2)] = { t: "n", v: 0, f: `SUM(G${ini}:G${fim})` };
+  ws["!cols"] = [{ wch: 5 }, { wch: 48 }, { wch: 30 }, { wch: 7 }, { wch: 6 }, { wch: 18 }, { wch: 14 }, { wch: 45 }, { wch: 40 }];
+  // resumo: soma as quantidades do mesmo serviço e unidade
+  const mapa = new Map();
+  for (const s of servs) { const k = s.servico + "|" + s.un; const m = mapa.get(k) || { servico: s.servico, un: s.un, qtd: 0 }; m.qtd += numBR(s.qtd) ?? 0; mapa.set(k, m); }
+  const res = [["Serviço", "Un", "Qtd total", "Preço unitário (R$)", "Total (R$)"], ...[...mapa.values()].map(m => [m.servico, m.un, m.qtd || null, null, null])];
+  const wr = XLSX.utils.aoa_to_sheet(res);
+  for (let r = 2; r <= res.length; r++) wr["E" + r] = { t: "n", v: 0, f: `IF(OR(C${r}="",D${r}=""),"",C${r}*D${r})` };
+  wr["E" + (res.length + 2)] = { t: "n", v: 0, f: `SUM(E2:E${res.length})` };
+  wr["A" + (res.length + 2)] = { t: "s", v: "TOTAL" };
+  wr["!ref"] = `A1:E${res.length + 2}`;
+  wr["!cols"] = [{ wch: 50 }, { wch: 6 }, { wch: 10 }, { wch: 18 }, { wch: 14 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Serviços");
+  XLSX.utils.book_append_sheet(wb, wr, "Resumo");
+  const dados = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  return new Blob([dados], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+
+// PDF interno com a mesma lista (sem preços)
+async function gerarServicosPDF(l, cli, autor, servs) {
+  const jsPDF = window.jspdf?.jsPDF;
+  if (!jsPDF) throw new Error("a ferramenta de PDF não carregou");
+  const def = defDe(l), doc = new jsPDF({ unit: "mm", format: "a4" });
+  const M = 15, L = 180, AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59];
+  let y = 15;
+  const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; return true; } return false; };
+  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18, "logo", "FAST"); } catch {}
+  doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(...AZUL);
+  doc.text("Lista de serviços", 210 - M, y + 7, { align: "right" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+  doc.text(`USO INTERNO - para orçamento`, 210 - M, y + 12.5, { align: "right" });
+  doc.text(`${cli} - ${def.nome} de ${dataBRde(dataISO())} - ${autor}`, 210 - M, y + 17.5, { align: "right" });
+  y += 23;
+  doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y);
+  y += 8;
+  const C = [M, M + 9, M + 92, M + 152, M + 166];   // nº | serviço | local | qtd | un
+  const cab = () => {
+    doc.setFillColor(...AZUL); doc.rect(M, y - 5, L, 7.5, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+    ["Nº", "Serviço", "Local / sistema", "Qtd", "Un"].forEach((h, i) => doc.text(h, C[i] + 1.5, y));
+    y += 6;
+  };
+  cab();
+  servs.forEach((s, i) => {
+    doc.setFontSize(9.5);
+    const ts = doc.splitTextToSize(s.servico, C[2] - C[1] - 3), tl = doc.splitTextToSize(s.local, C[3] - C[2] - 3);
+    const tn = doc.splitTextToSize(`${s.item}${s.obs ? " - " + s.obs : ""}`, C[3] - C[1] - 3);
+    const h = Math.max(ts.length, tl.length) * 4.4 + tn.length * 3.8 + 3;
+    if (cabe(h)) cab();
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA);
+    doc.text(String(i + 1), C[0] + 1.5, y); doc.text(ts, C[1] + 1.5, y); doc.text(tl, C[2] + 1.5, y);
+    doc.setFont("helvetica", "bold"); doc.text(String(s.qtd || "-"), C[3] + 1.5, y); doc.setFont("helvetica", "normal"); doc.text(s.un || "", C[4] + 1.5, y);
+    const y2 = y + Math.max(ts.length, tl.length) * 4.4;
+    doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); doc.setTextColor(...CINZA); doc.text(tn, C[1] + 1.5, y2);
+    y = y2 + tn.length * 3.8 + 1;
+    doc.setDrawColor(215, 222, 230); doc.setLineWidth(0.2); doc.line(M, y - 2, 210 - M, y - 2);
+    y += 2;
+  });
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...CINZA);
+    doc.text(`VPX Engenharia  -  Lista de serviços (uso interno)  -  ${cli}  -  página ${p} de ${total}`, 105, 290, { align: "center" });
+  }
+  return doc.output("blob");
+}
+
 const ST_LAUDO = { C: "Conforme", NC: "Não conforme", NA: "Não se aplica" };
 const CONCLUSOES = ["Apto", "Apto com ressalvas", "Não apto"];
 
@@ -1687,6 +1838,7 @@ function itemLaudo(uid, id, texto) {
       if (enviando) return;
       const x = laudo.r[k] ||= {};
       x.st = x.st === v ? "" : v;
+      if (x.st === "NC" && !x.serv) x.serv = { ...sugestaoServico(uid, id, texto), qtd: "" };   // serviço sugerido para o orçamento
       pintarItem(w, k); mudouLaudo();
       if (x.st === "NC" && !x.obs) w.querySelector("textarea").focus();
     };
@@ -1720,6 +1872,17 @@ function itemLaudo(uid, id, texto) {
   obs.value = laudo.r[k]?.obs || "";
   obs.oninput = () => { (laudo.r[k] ||= {}).obs = obs.value; mudouLaudo(); };
   w.appendChild(obs);
+  // serviço para o orçamento (só aparece no não conforme; não vai para o relatório do cliente)
+  const sv = el("div", "li-serv");
+  sv.appendChild(el("span", "li-serv-rot", "Serviço para orçamento (uso interno)"));
+  const sDesc = document.createElement("input"); sDesc.className = "sv-desc"; sDesc.placeholder = "Serviço"; sDesc.autocomplete = "off";
+  const sQtd = document.createElement("input"); sQtd.className = "sv-qtd"; sQtd.placeholder = "Qtd"; sQtd.inputMode = "decimal"; sQtd.autocomplete = "off";
+  const sUn = document.createElement("input"); sUn.className = "sv-un"; sUn.placeholder = "Un"; sUn.autocomplete = "off"; sUn.maxLength = 6;
+  const sv2 = el("div", "li-serv-linha"); sv2.append(sQtd, sUn);
+  const lerServ = () => { const s = (laudo.r[k] ||= {}).serv ||= {}; s.desc = sDesc.value; s.qtd = sQtd.value.trim(); s.un = sUn.value.trim(); mudouLaudo(); };
+  [sDesc, sQtd, sUn].forEach(e => e.oninput = lerServ);
+  sv.append(sDesc, sv2);
+  w.appendChild(sv);
   pintarItem(w, k);
   return w;
 }
@@ -1729,6 +1892,12 @@ function pintarItem(w, k) {
   w.dataset.st = x.st || "";
   w.querySelectorAll(".li-st button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === x.st)));
   w.classList.toggle("com-obs", x.st === "NC" || !!x.obs);
+  if (x.serv) {                                    // preenche o serviço (sugerido ao marcar não conforme)
+    const q = s => w.querySelector(s);
+    if (q(".sv-desc") && document.activeElement?.closest(".li-serv") !== q(".li-serv")) {
+      q(".sv-desc").value = x.serv.desc || ""; q(".sv-qtd").value = x.serv.qtd || ""; q(".sv-un").value = x.serv.un || "";
+    }
+  }
   const caixa = w.querySelector(".li-fotos");
   caixa.innerHTML = "";
   for (const chave of x.fotos || []) {
@@ -2580,7 +2749,7 @@ function atualizar() {
     } else if (f.pdf) {
       img.remove();
       const t = document.createElement("span");
-      t.className = "pdf-txt"; t.textContent = "PDF";
+      t.className = "pdf-txt"; t.textContent = (f.arquivo.name.match(/\.(\w+)$/)?.[1] || "PDF").toUpperCase();   // PDF ou XLSX (lista de serviços)
       const s = document.createElement("small"); s.textContent = f.arquivo.name; t.appendChild(s);
       d.prepend(t);
     } else img.src = f.url;
@@ -2823,8 +2992,23 @@ async function salvar() {
       prefixo: `${prefixoDe({ arquivo }, d)}_${nomeLaudo}` };     // ex.: João da Silva_2026-10-12_Diamond_Laudo de Hidrantes_01.pdf
     fotos.unshift(item);
     await guardarItem(item, true);
+    // serviços das não conformidades: planilha (para precificar) + PDF interno em 02 - Orçamento (não vão para o cliente)
+    const servs = servicosDe(laudo);
+    if (servs.length) {
+      const dO = { ...d, caminho: `${cliente}/${CONFIG.pastaOrcamento}` };
+      try {
+        const [xl, pd] = await Promise.all([gerarServicosXLSX(laudo, cliente, d.autor, servs), gerarServicosPDF(laudo, cliente, d.autor, servs)]);
+        for (const [blob, nome, rot] of [[xl, "Orçamento.xlsx", "Orçamento"], [pd, "Lista de serviços.pdf", "Lista de serviços"]]) {
+          const a = new File([blob], nome, { type: blob.type, lastModified: Date.now() });
+          const it = { id: ++seq, modo, arquivo: a, url: "", st: "nova", pdf: true, dest: dO,
+            prefixo: `${prefixoDe({ arquivo: a }, dO)}_${rot} - ${nomeLaudo}` };   // ex.: João da Silva_2026-10-14_Diamond_Orçamento - Relatório de Inspeção_01.xlsx
+          fotos.push(it);
+          await guardarItem(it, true);
+        }
+      } catch (e) { console.error(e); aviso("O documento foi gerado, mas a lista de serviços não: " + e.message, true); }
+    }
     limparLaudo();                                // o PDF já está guardado no celular: o rascunho (e as fotos dele) pode ser apagado
-    relatorio = { item, cliente, titulo: nomeLaudo };
+    relatorio = { item, cliente, titulo: nomeLaudo, servicos: servs.length };
   }
   // treinamento: lista de presença + certificados (com as fotos novas) para a pasta Treinamentos de Brigada; as fotos vão junto
   if (modo === "trein" && trein.modelo) {
@@ -2894,10 +3078,13 @@ async function salvar() {
   const d = fila[0].dest;
   const masc = d.modo === "comp" || modo === "laudo" || modo === "insp" || fotos.some(f => f.video);
   const titulo = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
-  $("ok-titulo").textContent = modo === "trein" && relatorio ? "Treinamento salvo" : titulo.charAt(0).toUpperCase() + titulo.slice(1);
-  $("ok-texto").textContent = d.modo === "comp"
+  $("ok-titulo").textContent = modo === "trein" && relatorio ? "Treinamento salvo"
+    : (modo === "laudo" || modo === "insp") && relatorio ? `${relatorio.titulo} salvo`
+    : titulo.charAt(0).toUpperCase() + titulo.slice(1);
+  $("ok-texto").textContent = (d.modo === "comp"
     ? `Em ${CONFIG.comprovantesNome} › ${CONFIG.pastasComprovante[d.tipo]}`
-    : `Em ${d.cliente} › ${d.caminho.split("/").slice(1).join(" › ")}`;
+    : `Em ${d.cliente} › ${d.caminho.split("/").slice(1).join(" › ")}`)
+    + (relatorio?.servicos ? `. Lista de ${relatorio.servicos} serviço${relatorio.servicos > 1 ? "s" : ""} (planilha e PDF) em ${CONFIG.pastaOrcamento}.` : "");
   $("ok-link").href = r.pasta?.webUrl || "#";
   telaFinal(false);
   mostrar("tela-ok");
