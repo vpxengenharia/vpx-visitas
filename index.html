@@ -54,6 +54,23 @@ button,input,label{font:inherit}
 .btn-arq span{white-space:nowrap}
 .btn-arq small{font-weight:400;font-size:13px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .btn-arq[hidden]{display:none}
+.abas button[hidden],.avcb-acoes[hidden]{display:none}
+.sem-acesso #tela-app > :not(#sem-acesso),.sem-acesso #barra{display:none!important}
+.sem-acesso-msg{margin:60px 16px;text-align:center;font-size:18px;line-height:1.5;color:var(--suave)}
+.adm-funcoes{margin-bottom:6px}
+.adm-grupo{font-size:13px;font-weight:700;color:var(--suave);margin:8px 2px 6px;text-transform:uppercase;letter-spacing:.04em}
+.adm-user{border:1.5px solid var(--linha);border-radius:12px;background:var(--papel);margin-bottom:8px;overflow:hidden}
+.adm-user.aberto{border-color:var(--laranja)}
+.adm-topo{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:none;border:0;color:var(--tinta);text-align:left;cursor:pointer;min-height:56px}
+.adm-tag{flex:none;font-size:12px;font-weight:700;color:var(--suave);text-align:right;max-width:34%}
+.adm-topo .arq-txt small{display:block;overflow-wrap:anywhere}
+.adm-corpo{padding:0 12px 12px}
+.adm-admin{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--suave);margin:12px 2px 4px}
+.adm-admin input{width:20px;height:20px;flex:none;margin-top:1px}
+.adm-add{display:grid;grid-template-columns:1fr auto;gap:8px;margin:12px 0}
+.adm-add input{min-height:48px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 12px;font-size:16px;min-width:0}
+.adm-add .btn{width:auto;min-height:48px;padding:0 16px}
+#adm-salvar{position:sticky;bottom:8px;margin-top:8px}
 .hist-resumo{display:block;width:100%;margin-top:8px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);text-align:left;cursor:pointer;font-size:14px;line-height:1.35}
 .hist-resumo[hidden]{display:none}
 .hist-resumo .hr-linhas{display:block;color:var(--suave)}
@@ -372,6 +389,9 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
     </button>
     <button class="avcb-btn" id="btn-avcb" hidden aria-label="Validade AVCB/CLCB">AVCB<span class="avcb-qtd" id="avcb-qtd" hidden></span></button>
+    <button class="agenda-btn" id="btn-admin" hidden aria-label="Administração">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
     <button class="conta" id="btn-conta" hidden aria-label="Conta"></button>
   </div>
 </header>
@@ -393,6 +413,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   </section>
 
   <section id="tela-app" hidden>
+    <p class="sem-acesso-msg" id="sem-acesso" hidden>Você ainda não tem acesso às funções do app.<br>Peça ao administrador para liberar.</p>
     <div class="abas" role="tablist">
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
       <button role="tab" id="aba-com" aria-selected="false">Comercial</button>
@@ -528,6 +549,24 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   </div>
 </div>
 
+<div class="tela-avcb" id="tela-admin" hidden role="dialog" aria-label="Administração">
+  <div class="avcb-topo"><button class="avcb-voltar" id="adm-voltar">‹ Voltar</button><strong>Administração</strong></div>
+  <div class="avcb-corpo">
+    <p class="laudo-dica">Defina o que cada pessoa vê no app. O acesso às pastas continua sendo o compartilhamento do OneDrive.</p>
+    <h2 class="secao">Perfil padrão</h2>
+    <p class="laudo-dica">Vale para quem ainda não foi personalizado (inclusive quem entrar pela primeira vez).</p>
+    <div id="adm-padrao"></div>
+    <h2 class="secao">Usuários</h2>
+    <p class="avcb-nota" id="adm-estado" style="margin-top:0"></p>
+    <div id="adm-lista"></div>
+    <div class="adm-add">
+      <input id="adm-email" type="email" placeholder="Adicionar pelo e-mail" autocomplete="off">
+      <button class="btn sec" id="adm-add" type="button">Adicionar</button>
+    </div>
+    <button class="btn prim" id="adm-salvar" disabled>Salvar permissões</button>
+  </div>
+</div>
+
 <div class="tela-avcb" id="tela-hist" hidden role="dialog" aria-label="Histórico do cliente">
   <div class="avcb-topo"><button class="avcb-voltar" id="hist-voltar">‹ Voltar</button><strong id="hist-titulo">Histórico</strong></div>
   <div class="avcb-corpo">
@@ -656,7 +695,10 @@ const CONFIG = {
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
   subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
-  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i],
+  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i],
+  admins: ["gustavoponchio@vpxengenharia.com.br"],                     // administrador principal (área ⚙ e tudo liberado)
+  pastaConfig: "VPX Visitas - Configuração",                           // na raiz do OneDrive do Gustavo: permissoes.json (equipe só lê)
+  pastaUsuarios: "00 - Usuários do app",                              // em 02 - Clientes: registro de quem usa o app (para a administração)
   pastaAvcb: "00 - Validade AVCB",            // dentro de 02 - Clientes: fotos e dados dos AVCBs fotografados pela equipe
   // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
   comprovantesCaminho: "VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes",
@@ -2521,7 +2563,7 @@ function atualizar() {
     : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" || modo === "insp" ? caminhoLaudo() : modo === "trein" ? caminhoTrein() : caminhoVisita()).replace(/\//g, " › ") : "");
   if ($("tr-local")) $("tr-local").placeholder = avcbDoCliente(cliente)?.endereco || "";
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
-  $("btn-arq").hidden = comp || !cliente;
+  $("btn-arq").hidden = comp || !cliente || !pode("arquivos");
   if (cliente !== atualizar.cliHist || comp !== atualizar.compHist) { atualizar.cliHist = cliente; atualizar.compHist = comp; atualizarResumoHist(); }   // resumo do histórico ao trocar de cliente
 
   const g = $("grade");
@@ -3666,7 +3708,7 @@ const quemQuando = e => [e.data && dataBRde(e.data), e.autor].filter(Boolean).jo
 async function atualizarResumoHist() {
   const caixa = $("hist-resumo");
   const cli = cliente;
-  if (!cli || ehComp()) { caixa.hidden = true; return; }
+  if (!cli || ehComp() || !pode("hist")) { caixa.hidden = true; return; }
   caixa.hidden = false;
   caixa.querySelector(".hr-linhas").textContent = "Carregando histórico…";
   let h;
@@ -3762,6 +3804,244 @@ function fecharHistorico(voltar = true) {
   document.body.style.overflow = "";
   hist = null;
   if (voltar && history.state?.hist) history.back();
+}
+
+/* ---------- permissões e administração ----------
+   O administrador (CONFIG.admins) define o que cada pessoa vê no app. As permissões ficam em
+   "VPX Visitas - Configuração/permissoes.json" no OneDrive do Gustavo (a equipe só lê; só ele altera).
+   Quem abre o app se registra sozinho em 02 - Clientes › 00 - Usuários do app (<email>.json, uma vez por dia),
+   para aparecer na lista da administração. Isto controla o que aparece no app; o acesso real às pastas
+   continua sendo o compartilhamento do OneDrive. */
+const FUNCOES = [
+  ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
+  ["trein", "Brigada", "aba"], ["comp", "Comprovantes", "aba"],
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"]
+];
+const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
+const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
+const emailDe = () => (conta?.username || "").toLowerCase();
+const ehAdminFixo = () => CONFIG.admins.includes(emailDe());
+let perm = lerLS("vpx_perm", null);                // última cópia do arquivo de permissões (para funcionar sem internet)
+const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
+function funcoesDoUsuario() {
+  if (ehAdmin() || !perm) return TODAS_FUNCOES;    // arquivo nunca carregado neste celular: tudo liberado (como antes)
+  const u = perm.usuarios?.[emailDe()];
+  return u?.funcoes || perm.padrao || TODAS_FUNCOES;
+}
+const pode = f => funcoesDoUsuario().includes(f);
+
+// mostra/esconde abas e botões conforme as permissões
+function aplicarPermissoes() {
+  if (!conta) return;
+  for (const a of ABAS_APP) $("aba-" + a).hidden = !pode(a);
+  $("btn-avcb").hidden = !pode("avcb");
+  $("btn-agenda").hidden = !pode("agenda");
+  $("tela-avcb").querySelector(".avcb-acoes").hidden = !pode("avcbFoto");
+  $("btn-admin").hidden = !ehAdmin();
+  const abas = ABAS_APP.filter(pode);
+  document.body.classList.toggle("sem-acesso", !abas.length);
+  $("sem-acesso").hidden = !!abas.length;
+  if (abas.length && !abas.includes(modo) && !enviando) trocarModo(abas[0]);
+  atualizar.cliHist = undefined;                   // refaz o resumo do histórico (pode ter sido liberado/bloqueado)
+  atualizar();
+}
+
+// pasta de configuração: pelo caminho no OneDrive do Gustavo ou, para a equipe, por "Compartilhados comigo"
+async function pastaConfig(criar) {
+  if (pastaConfig.id) return pastaConfig.id;
+  let id = null;
+  try { id = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(CONFIG.pastaConfig)}?$select=id`)).id; }
+  catch (e) { if (e.status !== 403 && e.status !== 404) throw e; }
+  if (!id) {
+    try {
+      const r = await graph("/me/drive/sharedWithMe");
+      id = r.value.find(i => i.name === CONFIG.pastaConfig && i.remoteItem?.parentReference?.driveId === CONFIG.driveId)?.remoteItem?.id || null;
+    } catch {}
+  }
+  if (!id && criar) id = (await garantirFilhas((await graph(`/drives/${CONFIG.driveId}/root?$select=id`)).id, [CONFIG.pastaConfig])).id;
+  if (!id) { const e = new Error("sem acesso à pasta de configuração"); e.semAcesso = true; throw e; }
+  return pastaConfig.id = id;
+}
+
+async function carregarPermissoes() {
+  if (!conta || !navigator.onLine) { aplicarPermissoes(); return; }
+  carregarPermissoes.quando = Date.now();
+  try {
+    const pasta = await pastaConfig(ehAdminFixo());
+    let item = null;
+    try { item = await graph(`/drives/${CONFIG.driveId}/items/${pasta}:/permissoes.json`); }
+    catch (e) { if (e.status !== 404) throw e; }
+    if (item && item.eTag !== perm?.etag) {
+      const dados = await (await fetch(item["@microsoft.graph.downloadUrl"])).json();
+      perm = { ...dados, etag: item.eTag };
+      gravarLS("vpx_perm", perm);
+    }
+  } catch (e) { console.error("permissões:", e); }
+  aplicarPermissoes();
+}
+
+// registro de quem usa o app (uma vez por dia), para aparecer na administração
+async function registrarUsuario() {
+  if (!conta || !navigator.onLine) return;
+  const marca = dataISO() + "|" + emailDe();
+  if (lerLS("vpx_registro", "") === marca) return;
+  try {
+    const pasta = await garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaUsuarios]);
+    await graph(`/drives/${CONFIG.driveId}/items/${pasta.id}:/${encodeURIComponent(emailDe() + ".json")}:/content`, {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailDe(), nome: conta.name || "", ultimoAcesso: new Date().toISOString() })
+    });
+    gravarLS("vpx_registro", marca);
+  } catch (e) { console.error("registro:", e); }
+}
+
+/* tela de administração */
+let adm = null;                                    // { perm (cópia editável), lista: [{ email, nome, ultimo }], aberto, mudou }
+const copiaPerm = p => JSON.parse(JSON.stringify(p || { versao: 1, padrao: TODAS_FUNCOES.slice(), usuarios: {} }));
+
+async function abrirAdmin() {
+  if (!ehAdmin()) return;
+  $("tela-admin").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ admin: true }, "");
+  adm = { perm: copiaPerm(perm), lista: [], aberto: null, mudou: false };
+  $("adm-lista").innerHTML = "";
+  $("adm-estado").textContent = "Carregando usuários…";
+  desenharAdmin();
+  if (!navigator.onLine) { $("adm-estado").textContent = "Sem internet: dá para ver, mas para salvar é preciso internet."; return; }
+  await carregarPermissoes();
+  if (!adm) return;
+  adm.perm = copiaPerm(perm);
+  try {
+    const pasta = await garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaUsuarios]);
+    const r = await graph(`/drives/${CONFIG.driveId}/items/${pasta.id}/children?$top=999&$select=name,lastModifiedDateTime,lastModifiedBy`);
+    adm.lista = r.value.filter(i => /\.json$/i.test(i.name)).map(i => ({
+      email: i.name.replace(/\.json$/i, "").toLowerCase(), nome: i.lastModifiedBy?.user?.displayName || "", ultimo: i.lastModifiedDateTime }));
+    $("adm-estado").textContent = "";
+  } catch (e) { console.error(e); $("adm-estado").textContent = "Não foi possível ler a lista de usuários: " + e.message; }
+  desenharAdmin();
+}
+function fecharAdmin(voltar = true) {
+  if ($("tela-admin").hidden) return true;
+  if (adm?.mudou && !confirm("Sair sem salvar as alterações de permissões?")) { if (!voltar) history.pushState({ admin: true }, ""); return false; }
+  $("tela-admin").hidden = true;
+  document.body.style.overflow = "";
+  adm = null;
+  if (voltar && history.state?.admin) history.back();
+  return true;
+}
+
+function chipsFuncoes(lista, aoMudar) {
+  const w = el("div", "adm-funcoes");
+  for (const [grupo, filtro] of [["Abas", f => f[2] === "aba"], ["Outras funções", f => f[2] !== "aba"]]) {
+    w.appendChild(el("p", "adm-grupo", grupo));
+    const ch = el("div", "chips");
+    FUNCOES.filter(filtro).forEach(([id, rot]) => {
+      const b = el("button", "", rot); b.type = "button"; b.setAttribute("aria-pressed", String(lista.includes(id)));
+      b.onclick = () => {
+        const i = lista.indexOf(id);
+        if (i >= 0) lista.splice(i, 1); else lista.push(id);
+        b.setAttribute("aria-pressed", String(lista.includes(id)));
+        aoMudar();
+      };
+      ch.appendChild(b);
+    });
+    w.appendChild(ch);
+  }
+  return w;
+}
+function mudouAdmin() { if (adm) { adm.mudou = true; $("adm-salvar").disabled = false; } }
+
+function desenharAdmin() {
+  if (!adm) return;
+  const p = adm.perm;
+  // perfil padrão
+  const pad = $("adm-padrao");
+  pad.innerHTML = "";
+  pad.appendChild(chipsFuncoes(p.padrao ||= TODAS_FUNCOES.slice(), () => { mudouAdmin(); desenharListaAdmin(); }));
+  desenharListaAdmin();
+  $("adm-salvar").disabled = !adm.mudou;
+}
+function desenharListaAdmin() {
+  const p = adm.perm, lista = $("adm-lista");
+  lista.innerHTML = "";
+  const emails = [...new Set([...adm.lista.map(u => u.email), ...Object.keys(p.usuarios || {}), ...CONFIG.admins])];
+  const info = e => adm.lista.find(u => u.email === e) || {};
+  emails.sort((a, b) => (info(a).nome || p.usuarios[a]?.nome || a).localeCompare(info(b).nome || p.usuarios[b]?.nome || b, "pt-BR"));
+  for (const email of emails) {
+    const u = p.usuarios[email] || {}, i = info(email), fixo = CONFIG.admins.includes(email);
+    const nome = i.nome || u.nome || email.split("@")[0];
+    const card = el("div", "adm-user" + (adm.aberto === email ? " aberto" : ""));
+    const topo = el("button", "adm-topo"); topo.type = "button";
+    const tx = el("span", "arq-txt");
+    tx.appendChild(el("strong", "", nome));
+    tx.appendChild(el("small", "", email + (i.ultimo ? ` · último acesso ${new Date(i.ultimo).toLocaleDateString("pt-BR")}` : " · ainda não abriu o app")));
+    const tag = fixo ? "Administrador principal" : u.admin ? "Administrador" : u.funcoes ? `Personalizado (${u.funcoes.length} de ${TODAS_FUNCOES.length})` : "Perfil padrão";
+    topo.append(tx, el("span", "adm-tag", tag));
+    topo.onclick = () => { adm.aberto = adm.aberto === email ? null : email; desenharListaAdmin(); };
+    card.appendChild(topo);
+    if (adm.aberto === email) {
+      const corpo = el("div", "adm-corpo");
+      if (fixo) corpo.appendChild(el("p", "laudo-dica", "Administrador principal: vê tudo e acessa esta área. Para mudar, peça ao Claude."));
+      else {
+        const modoCh = el("div", "chips");
+        const usaPadrao = !u.funcoes;
+        [["padrao", "Usar perfil padrão"], ["pers", "Personalizar"]].forEach(([v, rot]) => {
+          const b = el("button", "", rot); b.type = "button"; b.setAttribute("aria-pressed", String((v === "padrao") === usaPadrao));
+          b.onclick = () => {
+            const reg = p.usuarios[email] ||= { nome };
+            if (v === "padrao") delete reg.funcoes; else reg.funcoes ||= (p.padrao || TODAS_FUNCOES).slice();
+            mudouAdmin(); desenharListaAdmin();
+          };
+          modoCh.appendChild(b);
+        });
+        corpo.appendChild(modoCh);
+        if (u.funcoes) corpo.appendChild(chipsFuncoes(u.funcoes, () => { mudouAdmin(); desenharListaAdmin(); }));
+        else corpo.appendChild(el("p", "laudo-dica", "Vê o que estiver marcado no perfil padrão."));
+        const adminB = el("label", "adm-admin");
+        const ck = document.createElement("input"); ck.type = "checkbox"; ck.checked = !!u.admin;
+        ck.onchange = () => { (p.usuarios[email] ||= { nome }).admin = ck.checked; mudouAdmin(); desenharListaAdmin(); };
+        adminB.append(ck, " Administrador (vê tudo e esta área; para salvar alterações precisa de permissão de edição na pasta de configuração)");
+        corpo.appendChild(adminB);
+        if (p.usuarios[email] && !i.ultimo) {
+          const rm = el("button", "laudo-link perigo", "Remover da lista"); rm.type = "button";
+          rm.onclick = () => { delete p.usuarios[email]; adm.aberto = null; mudouAdmin(); desenharListaAdmin(); };
+          corpo.appendChild(rm);
+        }
+      }
+      card.appendChild(corpo);
+    }
+    lista.appendChild(card);
+  }
+}
+function adicionarUsuarioAdmin() {
+  const e = $("adm-email").value.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) { aviso("E-mail inválido.", true); return; }
+  adm.perm.usuarios[e] ||= { nome: "" };
+  adm.aberto = e;
+  $("adm-email").value = "";
+  mudouAdmin(); desenharListaAdmin();
+}
+async function salvarPermissoes() {
+  if (!adm?.mudou) return;
+  if (!navigator.onLine) { aviso("Sem internet: conecte para salvar as permissões.", true); return; }
+  const b = $("adm-salvar");
+  b.disabled = true; b.textContent = "Salvando…";
+  try {
+    const { etag, ...dados } = adm.perm;
+    dados.versao = 1; dados.atualizado = new Date().toISOString(); dados.por = conta.name || emailDe();
+    const pasta = await pastaConfig(true);
+    const item = await graph(`/drives/${CONFIG.driveId}/items/${pasta}:/permissoes.json:/content`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dados, null, 2) });
+    perm = { ...dados, etag: item?.eTag };
+    gravarLS("vpx_perm", perm);
+    adm.perm = copiaPerm(perm); adm.mudou = false;
+    aviso("Permissões salvas. Valem quando cada pessoa abrir o app (ou em até 1 minuto, com o app aberto).");
+    aplicarPermissoes();
+  } catch (e) {
+    console.error(e);
+    aviso(e.status === 403 || e.semAcesso ? "Sem permissão para alterar o arquivo de permissões." : "Não foi possível salvar: " + e.message, true);
+  } finally { b.textContent = "Salvar permissões"; b.disabled = !adm?.mudou; }
 }
 
 /* ---------- validade AVCB/CLCB (lista em CONFIG.validadeAvcb) ---------- */
@@ -4304,6 +4584,9 @@ async function iniciarApp() {
   $("btn-agenda").hidden = false;
   atualizarBadgeAvcb();
   mostrar("tela-app"); aplicarModo();
+  aplicarPermissoes();                            // com a última cópia das permissões (funciona sem internet)
+  carregarPermissoes();                           // e confere se mudaram
+  registrarUsuario();                             // aparece na lista da administração
   carregarClientes();
   sincronizarAvcb();                              // AVCBs fotografados pela equipe (contador do botão AVCB)
   await restaurarItens();                         // fotos guardadas no celular da última vez
@@ -4355,6 +4638,7 @@ window.addEventListener("popstate", () => {
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
   if (history.state?.arq) return;                                    // voltou do visualizador para os arquivos do cliente
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
+  if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
   if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false);
 });
 $("btn-arq").onclick = abrirArquivos;
@@ -4362,6 +4646,13 @@ $("arq-voltar").onclick = voltarArq;
 $("arq-baixar").onclick = baixarPastaArq;
 $("arq-cancelar").onclick = () => { if (baixandoArq) baixandoArq.cancelar = true; };
 $("arq-limpar").onclick = limparArqCliente;
+$("btn-admin").onclick = abrirAdmin;
+$("adm-voltar").onclick = () => fecharAdmin();
+$("adm-salvar").onclick = salvarPermissoes;
+$("adm-add").onclick = adicionarUsuarioAdmin;
+$("adm-email").onkeydown = e => { if (e.key === "Enter") adicionarUsuarioAdmin(); };
+// permissões alteradas pelo administrador: confere ao voltar para o app (no máximo 1 vez por minuto)
+document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (carregarPermissoes.quando || 0) > 60000) carregarPermissoes(); });
 $("hist-resumo").onclick = abrirHistorico;
 $("hist-voltar").onclick = () => fecharHistorico();
 $("hist-atualizar").onclick = () => hist && recarregarHistorico(true);

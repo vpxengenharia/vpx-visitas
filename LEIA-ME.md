@@ -15,6 +15,8 @@ Você não precisa se compartilhar consigo mesmo.
 
 Para a aba **Comprovantes**, faça o mesmo com a pasta *VPX Engenharia - AVCB › 02 - Financeiro* › **01 - Comprovantes** (botão direito → Compartilhar → e-mail de cada pessoa → **Pode editar**). Quem tiver acesso a ela consegue ver os comprovantes de todos.
 
+Para a **administração (permissões)**: depois que você (administrador) abrir o app uma vez, aparece no seu OneDrive a pasta **VPX Visitas - Configuração**. Compartilhe essa pasta com a equipe com permissão **Pode exibir** (não "Pode editar"). Assim todos leem as permissões e só você altera. Enquanto ela não for compartilhada, a equipe continua vendo tudo.
+
 ## Parte 2 — Colocar o site no ar (GitHub Pages, grátis)
 
 1. Crie uma conta gratuita em **github.com**.
@@ -109,6 +111,17 @@ O que for preenchido fica guardado no celular até salvar (se o app fechar, a fi
 3. Adicione cada participante com **nome completo e CPF** (o app confere se o CPF é válido) e toque em **Assinar**: o participante assina com o dedo na tela e toca em **Confirmar assinatura**.
 4. O instrutor assina no fim da página. Se quiser, tire fotos da parte prática (Câmera/Galeria).
 5. **Gerar lista e certificados** → um PDF com a lista de presença assinada e um certificado por participante, salvo em *02 - Clientes › [Cliente] › Treinamentos de Brigada*. Dá para ver e compartilhar na hora.
+
+### Administração (o que cada pessoa vê)
+
+Só o administrador vê o botão **⚙** no topo. Nele:
+1. **Perfil padrão**: marque as funções que um usuário novo (ou não personalizado) recebe.
+2. **Usuários**: quem abriu o app aparece sozinho na lista (com a data do último acesso). Toque na pessoa → **Usar perfil padrão** ou **Personalizar** e marque as funções. Dá para adicionar alguém pelo e-mail antes de a pessoa entrar.
+3. **Salvar permissões**. Vale quando cada pessoa abrir o app (ou em até 1 minuto, se estiver com ele aberto).
+
+Funções que dá para liberar/bloquear: abas Visita técnica, Comercial, Laudos, Inspeções, Brigada e Comprovantes; Validade AVCB, Fotografar AVCB, Agenda, Arquivos do cliente e Histórico do cliente. Se a pessoa não tiver nenhuma aba, aparece "Peça ao administrador para liberar".
+
+Importante: isso controla o que aparece **no app**. Quem tem uma pasta compartilhada continua conseguindo abri-la pelo OneDrive; para bloquear de verdade (ex.: comprovantes), não compartilhe a pasta com a pessoa.
 
 ### Histórico do cliente
 
