@@ -54,6 +54,13 @@ button,input,label{font:inherit}
 .btn-arq span{white-space:nowrap}
 .btn-arq small{font-weight:400;font-size:13px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .btn-arq[hidden]{display:none}
+.hist-resumo{display:block;width:100%;margin-top:8px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);text-align:left;cursor:pointer;font-size:14px;line-height:1.35}
+.hist-resumo[hidden]{display:none}
+.hist-resumo .hr-linhas{display:block;color:var(--suave)}
+.hist-resumo .hr-l b{color:var(--tinta);font-weight:600}
+.hist-resumo .hr-total{display:block;margin-top:4px;font-weight:700;color:var(--marinho)}
+.hist-resumo .hr-total::before{content:"🕘 "}
+@media (prefers-color-scheme:dark){.hist-resumo .hr-total{color:var(--laranja)}}
 @media (prefers-color-scheme:dark){.btn-arq{color:var(--tinta)}}
 .arq-trilha{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-bottom:6px;color:var(--suave);font-size:14px}
 .arq-trilha button{background:none;border:0;color:var(--marinho);font-weight:600;font-size:14px;text-decoration:underline;cursor:pointer;padding:6px 2px;min-height:36px}
@@ -416,6 +423,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     </button>
     <p class="avcb-aviso" id="avcb-aviso" hidden></p>
     <button class="btn-arq" id="btn-arq" hidden><span>📁 Arquivos do cliente</span><small>plantas e projetos</small></button>
+    <button class="hist-resumo" id="hist-resumo" hidden><span class="hr-linhas"></span><span class="hr-total">Ver histórico</span></button>
     <p class="destino" id="destino"></p>
     <p class="fila" id="fila" role="status" hidden></p>
     <div id="form-com" hidden></div>
@@ -517,6 +525,23 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <canvas class="assin as-pad" id="as-pad"></canvas>
     <button class="laudo-link" id="as-limpar">Limpar</button>
     <button class="btn prim" id="as-ok" disabled>Confirmar assinatura</button>
+  </div>
+</div>
+
+<div class="tela-avcb" id="tela-hist" hidden role="dialog" aria-label="Histórico do cliente">
+  <div class="avcb-topo"><button class="avcb-voltar" id="hist-voltar">‹ Voltar</button><strong id="hist-titulo">Histórico</strong></div>
+  <div class="avcb-corpo">
+    <p class="avcb-aviso" id="hist-avcb" hidden></p>
+    <div class="chips avcb-filtro" id="hist-filtro" style="margin-top:12px">
+      <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+      <button type="button" data-f="visita" aria-pressed="false">Visitas</button>
+      <button type="button" data-f="laudo" aria-pressed="false">Laudos</button>
+      <button type="button" data-f="insp" aria-pressed="false">Inspeções</button>
+      <button type="button" data-f="trein" aria-pressed="false">Treinamentos</button>
+    </div>
+    <p class="avcb-nota" id="hist-estado" style="margin-top:0"></p>
+    <div id="hist-lista"></div>
+    <button class="laudo-link" id="hist-atualizar">Atualizar histórico</button>
   </div>
 </div>
 
@@ -2497,6 +2522,7 @@ function atualizar() {
   if ($("tr-local")) $("tr-local").placeholder = avcbDoCliente(cliente)?.endereco || "";
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
   $("btn-arq").hidden = comp || !cliente;
+  if (cliente !== atualizar.cliHist || comp !== atualizar.compHist) { atualizar.cliHist = cliente; atualizar.compHist = comp; atualizarResumoHist(); }   // resumo do histórico ao trocar de cliente
 
   const g = $("grade");
   g.innerHTML = "";
@@ -2703,6 +2729,7 @@ async function enviarFila(lista, visivel) {
         await enviarArquivo(pasta.id, `${nomeBase}.${extensao}`, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
         f.st = "ok"; r.ok++;
         apagarItem(f.id);                               // chegou ao OneDrive: pode sair do celular
+        if (f.dest?.cliente) { try { localStorage.removeItem("vpx_hist_" + f.dest.cliente); } catch {} atualizar.cliHist = undefined; }   // histórico do cliente mudou
       } catch (e) {
         console.error(e);
         if (e.semAcesso) r.semAcesso = true;
@@ -3374,9 +3401,9 @@ async function pastaRaizArq(cli) {
   const e = new Error("sem internet"); e.offline = true; throw e;
 }
 
-function abrirArquivos() {
+function abrirArquivos(pastaInicial) {                 // pastaInicial: { id, nome } (ex.: a pasta de fotos, vindo do histórico)
   if (!cliente) return;
-  arq = { cliente, pilha: [] };
+  arq = { cliente, pilha: [], inicial: pastaInicial && pastaInicial.id ? pastaInicial : null };
   $("arq-titulo").textContent = cliente;
   $("tela-arq").hidden = false;
   document.body.style.overflow = "hidden";
@@ -3387,7 +3414,7 @@ function fecharArquivos(voltar = true) {
   if ($("tela-arq").hidden) return;
   if (baixandoArq) baixandoArq.cancelar = true;
   $("tela-arq").hidden = true;
-  document.body.style.overflow = "";
+  document.body.style.overflow = $("tela-hist").hidden ? "" : "hidden";   // aberto pelo histórico: ele continua aberto
   if (voltar && history.state?.arq) history.back();
 }
 function voltarArq() {
@@ -3400,7 +3427,7 @@ async function carregarPastaArq() {
   lista.innerHTML = ""; estado.textContent = "Carregando…";
   $("arq-baixar").hidden = true;
   try {
-    if (!arq.pilha.length) arq.pilha.push({ id: await pastaRaizArq(arq.cliente), nome: arq.cliente });
+    if (!arq.pilha.length) { arq.pilha.push({ id: await pastaRaizArq(arq.cliente), nome: arq.cliente }); if (arq.inicial) arq.pilha.push(arq.inicial); }
     desenharTrilhaArq();
     const atual = arq.pilha.at(-1);
     const { itens, online } = await listarPastaArq(atual.id);
@@ -3552,6 +3579,189 @@ async function limparArqCliente() {
   gravarLS("vpx_arq_guardados", guardadosArq);
   aviso("Arquivos apagados do celular.");
   desenharListaArq();
+}
+
+/* ---------- histórico do cliente ----------
+   Montado a partir dos arquivos que o app já salva no OneDrive (nome Colaborador_AAAA-MM-DD_Cliente_…):
+   fotos/vídeos de visita e relatórios de visita (06 - Fotos e Visitas Técnicas), laudos, relatórios de inspeção
+   e treinamentos, mais os AVCBs fotografados. Arquivos com nome antigo usam a data de modificação.
+   Fica guardado no celular (localStorage vpx_hist_<cliente>) para ver sem internet. */
+const TIPOS_HIST = {
+  visita: { ico: "📷", rot: "Visita técnica" }, relvisita: { ico: "📝", rot: "Relatório de visita" },
+  laudo: { ico: "📋", rot: "Laudo" }, insp: { ico: "🔍", rot: "Inspeção" }, trein: { ico: "🎓", rot: "Treinamento" }, avcb: { ico: "🧾", rot: "AVCB" }
+};
+const FILTROS_HIST = [["todos", "Todos"], ["visita", "Visitas"], ["laudo", "Laudos"], ["insp", "Inspeções"], ["trein", "Treinamentos"]];
+let hist = null;                                   // { cliente, eventos, quando, online, filtro }
+const ehMidia = n => ehImgArq(n) || ehVideoArq(n);
+
+// separa "João da Silva_2026-10-12_Diamond_Laudo de Hidrantes_01.pdf" em autor, data e o resto
+function partesNome(nome, mod) {
+  const m = nome.match(/^(.+?)_(\d{4}-\d{2}-\d{2})_(.*)$/);
+  if (m) return { autor: m[1], data: m[2], resto: m[3].replace(/_\d+(?: \d+)?\.[^.]+$/, "") };
+  return { autor: "", data: (mod || "").slice(0, 10), resto: nome.replace(/\.[^.]+$/, "") };
+}
+
+async function listarPastaHist(cli, pasta) {
+  try {
+    const itens = [];
+    let url = `${BASE()}:/${encPath(cli + "/" + pasta)}:/children?$top=999&$select=id,name,size,file,folder,lastModifiedDateTime,webUrl`;
+    while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
+    return { itens: itens.filter(i => i.file), pasta: null };
+  } catch (e) { if (e.status === 404) return { itens: [] }; throw e; }
+}
+async function idPastaHist(cli, pasta) {
+  try { return (await graph(`${BASE()}:/${encPath(cli + "/" + pasta)}?$select=id,name`)).id; } catch { return null; }
+}
+
+// junta os arquivos em eventos: fotos/vídeos do mesmo dia e da mesma pessoa viram uma "visita técnica"
+async function montarHistorico(cli) {
+  const pastas = [CONFIG.subpasta.replace("{data}", "").replace(/\/$/, ""), CONFIG.pastaLaudos, CONFIG.pastaInspecoes, CONFIG.pastaTreinamentos];
+  const [fotosP, laudosP, inspP, treinP] = await Promise.all(pastas.map(p => listarPastaHist(cli, p)));
+  const ev = [], grupos = new Map();
+  const pdfEv = (i, tipo, titulo) => {
+    const p = partesNome(i.name, i.lastModifiedDateTime);
+    ev.push({ tipo, titulo, data: p.data, autor: p.autor, id: i.id, nome: i.name, web: i.webUrl, mod: i.lastModifiedDateTime });
+  };
+  for (const i of fotosP.itens) {
+    if (ehPdfArq(i.name)) { pdfEv(i, "relvisita", /Relatório de Visita/i.test(i.name) ? "Relatório de visita (comercial)" : i.name.replace(/\.pdf$/i, "")); continue; }
+    if (!ehMidia(i.name)) continue;
+    const p = partesNome(i.name, i.lastModifiedDateTime), k = p.data + "|" + p.autor;
+    if (!grupos.has(k)) grupos.set(k, { tipo: "visita", titulo: "Visita técnica", data: p.data, autor: p.autor, fotos: 0, videos: 0, pasta: pastas[0] });
+    const g = grupos.get(k); if (ehVideoArq(i.name)) g.videos++; else g.fotos++;
+  }
+  ev.push(...grupos.values());
+  for (const i of laudosP.itens) if (ehPdfArq(i.name)) pdfEv(i, "laudo", (i.name.match(/Laudo[^_]*/) || [i.name.replace(/\.pdf$/i, "")])[0]);
+  for (const i of inspP.itens) if (ehPdfArq(i.name)) pdfEv(i, "insp", "Relatório de inspeção");
+  for (const i of treinP.itens) if (ehPdfArq(i.name)) pdfEv(i, "trein", (i.name.match(/Treinamento - [^_]*/) || ["Treinamento"])[0].replace("Treinamento - ", "Treinamento: "));
+  return ev;
+}
+
+// AVCBs fotografados deste cliente (mesmo critério do aviso de validade)
+function avcbsFotografados(cli) {
+  const n = semAcento(cli);
+  return Object.values(regsAvcb).filter(r => { const a = semAcento(r.nome || ""); return a && (a === n || n.startsWith(a) || a.startsWith(n)); })
+    .map(r => ({ tipo: "avcb", titulo: `${r.tipo || "AVCB"} fotografado - válido até ${dataBRde(r.validade)}`, data: (r.fotografadoEm || "").slice(0, 10), autor: r.fotografadoPor || "", fotoWeb: r.foto }));
+}
+
+async function carregarHistorico(cli, forcar = false) {
+  const chave = "vpx_hist_" + cli;
+  const guardado = lerLS(chave, null);
+  if (guardado && (!navigator.onLine || !conta) ) return { ...guardado, online: false };
+  if (guardado && !forcar && Date.now() - guardado.quando < 60000) return { ...guardado, online: true };
+  try {
+    const eventos = await montarHistorico(cli);
+    const r = { cliente: cli, eventos, quando: Date.now() };
+    gravarLS(chave, r);
+    return { ...r, online: true };
+  } catch (e) {
+    console.error(e);
+    if (guardado) return { ...guardado, online: false };
+    throw e;
+  }
+}
+const ordenarHist = evs => evs.slice().sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.mod || "").localeCompare(a.mod || ""));
+const quemQuando = e => [e.data && dataBRde(e.data), e.autor].filter(Boolean).join(" · ");
+
+// resumo embaixo do cliente: última visita técnica e último laudo/inspeção/treinamento
+async function atualizarResumoHist() {
+  const caixa = $("hist-resumo");
+  const cli = cliente;
+  if (!cli || ehComp()) { caixa.hidden = true; return; }
+  caixa.hidden = false;
+  caixa.querySelector(".hr-linhas").textContent = "Carregando histórico…";
+  let h;
+  try { h = await carregarHistorico(cli); } catch { if (cliente === cli) caixa.querySelector(".hr-linhas").textContent = "Histórico indisponível agora."; return; }
+  if (cliente !== cli) return;                     // trocou de cliente enquanto carregava
+  const evs = ordenarHist([...h.eventos, ...avcbsFotografados(cli)]);
+  const linhas = caixa.querySelector(".hr-linhas");
+  linhas.innerHTML = "";
+  if (!evs.length) { linhas.textContent = "Nenhum registro deste cliente ainda."; return; }
+  const visita = evs.find(e => e.tipo === "visita" || e.tipo === "relvisita");
+  const doc = evs.find(e => e.tipo === "laudo" || e.tipo === "insp" || e.tipo === "trein");
+  for (const [rot, e] of [["Última visita", visita], ["Último documento", doc]]) {
+    if (!e) continue;
+    const d = el("div", "hr-l");
+    d.appendChild(el("b", "", rot + ": "));
+    d.append(`${e.tipo === "visita" || e.tipo === "relvisita" ? "" : e.titulo + " · "}${quemQuando(e)}`);
+    linhas.appendChild(d);
+  }
+  caixa.querySelector(".hr-total").textContent = `Ver histórico (${evs.length})`;
+}
+
+function abrirHistorico() {
+  if (!cliente) return;
+  hist = { cliente, filtro: "todos", eventos: [] };
+  $("hist-titulo").textContent = cliente;
+  $("tela-hist").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ hist: true }, "");
+  $("hist-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === "todos")));
+  // situação do AVCB no topo
+  const av = avcbDoCliente(cliente), st = $("hist-avcb");
+  st.hidden = !av;
+  if (av) { const s = situacaoAvcb(av); st.className = "avcb-aviso " + s.cls; st.textContent = (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto; }
+  recarregarHistorico(false);
+}
+async function recarregarHistorico(forcar) {
+  const cli = hist.cliente;
+  $("hist-estado").textContent = "Carregando…";
+  try {
+    const h = await carregarHistorico(cli, forcar);
+    if (!hist || hist.cliente !== cli) return;
+    hist.eventos = ordenarHist([...h.eventos, ...avcbsFotografados(cli)]);
+    $("hist-estado").textContent = (h.online ? "" : "Sem internet: mostrando o último histórico guardado. ")
+      + `Atualizado em ${new Date(h.quando).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}.`;
+    desenharHistorico();
+  } catch (e) {
+    $("hist-estado").textContent = e.offline || !navigator.onLine ? "Sem internet e sem histórico guardado deste cliente." : "Não foi possível carregar o histórico: " + e.message;
+  }
+}
+function desenharHistorico() {
+  const lista = $("hist-lista");
+  lista.innerHTML = "";
+  const f = hist.filtro;
+  const evs = hist.eventos.filter(e => f === "todos" || e.tipo === f || (f === "visita" && (e.tipo === "relvisita" || e.tipo === "avcb")));
+  if (!evs.length) { lista.appendChild(el("p", "avcb-nota", "Nenhum registro.")); return; }
+  let mes = "";
+  for (const e of evs) {
+    const m = e.data ? `${MESES[+e.data.slice(5, 7) - 1]} de ${e.data.slice(0, 4)}` : "Sem data";
+    if (m !== mes) { mes = m; lista.appendChild(el("h3", "avcb-grupo", m.charAt(0).toUpperCase() + m.slice(1))); }
+    const t = TIPOS_HIST[e.tipo];
+    const b = el("button", "arq-item"); b.type = "button";
+    b.appendChild(el("span", "arq-ico", t.ico));
+    const tx = el("span", "arq-txt");
+    tx.appendChild(el("strong", "", e.titulo));
+    const det = e.tipo === "visita" ? [e.fotos && `${e.fotos} foto${e.fotos > 1 ? "s" : ""}`, e.videos && `${e.videos} vídeo${e.videos > 1 ? "s" : ""}`].filter(Boolean).join(" e ") : "";
+    tx.appendChild(el("small", "", [quemQuando(e), det].filter(Boolean).join(" · ")));
+    b.appendChild(tx);
+    b.onclick = () => abrirEventoHist(e);
+    lista.appendChild(b);
+  }
+}
+async function abrirEventoHist(e) {
+  if (e.tipo === "visita") {                       // fotos: abre a pasta nos arquivos do cliente
+    const id = await idPastaHist(hist.cliente, e.pasta);
+    if (!id) { aviso("Sem internet para abrir a pasta de fotos.", true); return; }
+    abrirArquivos({ id, nome: e.pasta });
+    return;
+  }
+  if (e.tipo === "avcb") { if (e.fotoWeb && navigator.onLine) window.open(e.fotoWeb, "_blank", "noopener"); else aviso("A foto do AVCB abre com internet."); return; }
+  // PDF: usa o guardado no celular ou baixa
+  let blob = guardadosArq[e.id] && guardadosArq[e.id].mod === e.mod ? await lerArqGuardado(e.id).catch(() => null) : null;
+  if (!blob) {
+    if (!navigator.onLine) { aviso("Este PDF ainda não foi aberto neste celular. Abra com internet.", true); return; }
+    aviso("Abrindo…");
+    try { blob = await baixarArq({ id: e.id, nome: e.nome, mod: e.mod }, hist.cliente); }
+    catch (er) { console.error(er); aviso("Não foi possível abrir o PDF: " + er.message, true); return; }
+  }
+  abrirVisor(new File([blob], e.nome, { type: "application/pdf" }), e.titulo, `${e.titulo} - ${hist.cliente}`);
+}
+function fecharHistorico(voltar = true) {
+  if ($("tela-hist").hidden) return;
+  $("tela-hist").hidden = true;
+  document.body.style.overflow = "";
+  hist = null;
+  if (voltar && history.state?.hist) history.back();
 }
 
 /* ---------- validade AVCB/CLCB (lista em CONFIG.validadeAvcb) ---------- */
@@ -4034,7 +4244,7 @@ function fecharVisor(voltar = true) {
   if (visor?.img) URL.revokeObjectURL(visor.img);
   visor = null;
   travarVertical(true);
-  document.body.style.overflow = $("tela-arq").hidden ? "" : "hidden";   // aberto a partir dos arquivos do cliente: a lista continua
+  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -4144,13 +4354,18 @@ window.addEventListener("popstate", () => {
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
   if (history.state?.arq) return;                                    // voltou do visualizador para os arquivos do cliente
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false);
+  if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false);
 });
 $("btn-arq").onclick = abrirArquivos;
 $("arq-voltar").onclick = voltarArq;
 $("arq-baixar").onclick = baixarPastaArq;
 $("arq-cancelar").onclick = () => { if (baixandoArq) baixandoArq.cancelar = true; };
 $("arq-limpar").onclick = limparArqCliente;
+$("hist-resumo").onclick = abrirHistorico;
+$("hist-voltar").onclick = () => fecharHistorico();
+$("hist-atualizar").onclick = () => hist && recarregarHistorico(true);
+$("hist-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { if (!hist) return; hist.filtro = b.dataset.f; $("hist-filtro").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); desenharHistorico(); });
 $("btn-agenda").onclick = abrirAgenda;
 $("agenda-voltar").onclick = () => fecharAgenda();
 $("agenda-hoje").onclick = irParaHoje;

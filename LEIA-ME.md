@@ -110,6 +110,10 @@ O que for preenchido fica guardado no celular até salvar (se o app fechar, a fi
 4. O instrutor assina no fim da página. Se quiser, tire fotos da parte prática (Câmera/Galeria).
 5. **Gerar lista e certificados** → um PDF com a lista de presença assinada e um certificado por participante, salvo em *02 - Clientes › [Cliente] › Treinamentos de Brigada*. Dá para ver e compartilhar na hora.
 
+### Histórico do cliente
+
+Ao escolher o cliente (em qualquer aba, menos Comprovantes), aparece um resumo com a **última visita** e o **último documento** (laudo, inspeção ou treinamento), com data e quem fez. Tocando em **🕘 Ver histórico**, abre a linha do tempo do cliente por mês: visitas técnicas (com quantidade de fotos e vídeos), relatórios de visita, laudos, inspeções, treinamentos e AVCBs fotografados, com a validade do AVCB no topo. Use os botões para filtrar. Tocando num laudo/relatório, o PDF abre no app; tocando numa visita, abre a pasta de fotos. Sem internet, mostra o último histórico carregado.
+
 ### Arquivos do cliente (plantas e projetos)
 
 Depois de escolher o cliente (Visita técnica, Comercial ou Laudos), toque em **📁 Arquivos do cliente** para ver tudo o que está na pasta dele no OneDrive. PDFs e fotos abrem no próprio app: use **−** e **+** para aproximar e gire o celular para ver plantas deitadas. Outros arquivos (Word, Excel, DWG) abrem no OneDrive.
