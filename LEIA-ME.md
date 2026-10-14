@@ -124,7 +124,13 @@ Nada disso aparece no relatório que vai para o cliente.
 
 No topo ficam a **Agenda**, o **AVCB** e o **☰ Menu**. No menu: ITs do CBM-BA, Pedidos de compra, Administração (só para o administrador) e Sair da conta.
 
-### Pedidos de compra
+### Pedidos de compra e de pagamento
+
+Menu ☰ → **Pedidos (compra e pagamento)**. A tela tem duas abas: **🛒 Compra** e **💳 Pagamento**.
+
+**Pedido de pagamento**: **+ Novo pedido de pagamento** → centro de custo, favorecido (quem recebe), CPF/CNPJ, valor, vencimento, forma (Boleto, PIX, Transferência ou Dinheiro — o app pede a chave PIX ou banco/agência/conta conforme a forma; no boleto, o código ou o boleto anexado), urgência e descrição. Anexe o boleto, a nota fiscal ou o recibo (foto ou PDF). O administrador aprova ou recusa e, depois de pagar, toca em **Marcar como pago**, escolhe o comprovante e informa a data; quem pediu vê que foi pago e abre o comprovante. Ficam em *02 - Financeiro › 03 - Pedidos de Pagamento* — **compartilhe essa pasta com a equipe com "Pode editar"** (ela é criada quando o administrador abre os pedidos).
+
+**Pedido de compra**:
 
 1. Menu ☰ → **Pedidos de compra** → **+ Novo pedido**.
 2. Escolha o **centro de custo** (a mesma lista do Fin365, ou "Outro (digitar)"), a urgência, onde entregar e, se quiser, até quando precisa.
