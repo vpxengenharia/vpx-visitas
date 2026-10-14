@@ -120,6 +120,21 @@ Nada disso aparece no relatório que vai para o cliente.
 4. O instrutor assina no fim da página. Se quiser, tire fotos da parte prática (Câmera/Galeria).
 5. **Gerar lista e certificados** → um PDF com a lista de presença assinada e um certificado por participante, salvo em *02 - Clientes › [Cliente] › Treinamentos de Brigada*. Dá para ver e compartilhar na hora.
 
+### Menu ☰
+
+No topo ficam a **Agenda**, o **AVCB** e o **☰ Menu**. No menu: ITs do CBM-BA, Pedidos de compra, Administração (só para o administrador) e Sair da conta.
+
+### Pedidos de compra
+
+1. Menu ☰ → **Pedidos de compra** → **+ Novo pedido**.
+2. Escolha o cliente/obra (ou "Escritório / estoque"), a urgência, onde entregar e, se quiser, até quando precisa.
+3. Adicione os itens: comece a digitar e escolha da lista (extintores, recargas, placas, mangueiras, luminárias…) ou escreva qualquer item; informe a quantidade (e um detalhe, se precisar: marca, medida…).
+4. **Enviar pedido**. Funciona sem internet (vai quando o sinal voltar).
+
+O administrador vê o número de pedidos aguardando no ☰, abre o pedido e toca em **Aprovar** ou **Recusar**; depois **Marcar como comprado** (fornecedor, valor e previsão) e **Marcar como entregue** (o solicitante também pode marcar a entrega). Quem pediu acompanha a situação e o histórico no app e pode cancelar enquanto o pedido aguarda aprovação. O administrador também pode **exportar uma planilha Excel** com todos os pedidos.
+
+Os pedidos ficam em *02 - Financeiro › 02 - Pedidos de Compra* (um PDF e um arquivo de dados por pedido). Essa pasta é criada quando o administrador abre os pedidos pela primeira vez; **compartilhe-a com a equipe com permissão "Pode editar"** para que todos consigam fazer pedidos.
+
 ### ITs do CBM-BA (consulta)
 
 O botão **ITs**, no topo, abre todas as Instruções Técnicas do Corpo de Bombeiros da Bahia, mais a Lei 12.929/2013 e o Decreto 16.302/2015.

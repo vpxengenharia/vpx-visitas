@@ -58,6 +58,40 @@ button,input,label{font:inherit}
 .abas button[hidden],.avcb-acoes[hidden]{display:none}
 #pt-gerar{margin:4px 0 6px}
 #btn-its[hidden]{display:none}
+/* topo: ITs, administração e conta ficam no menu ☰ */
+.topo-dir #btn-its,.topo-dir #btn-admin,.topo-dir #btn-conta{display:none!important}
+.menu-btn{position:relative}
+.menu-btn[hidden]{display:none}
+.menu{position:fixed;z-index:30;top:calc(env(safe-area-inset-top,0px) + 74px);right:12px;min-width:250px;max-width:min(300px,calc(100vw - 24px));background:var(--papel);border:1.5px solid var(--linha);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column}
+.menu[hidden]{display:none}
+.menu button{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 12px;border:0;border-radius:10px;background:none;color:var(--tinta);font-size:16px;font-weight:600;text-align:left;cursor:pointer}
+.menu button:hover,.menu button:focus-visible{background:rgba(127,127,127,.12)}
+.menu button[hidden]{display:none}
+.mn-qtd{margin-left:auto;min-width:22px;height:22px;border-radius:11px;background:var(--erro);color:#fff;font-size:12px;display:grid;place-items:center;padding:0 6px}
+.mn-qtd[hidden]{display:none}
+.mn-conta{margin:6px 12px 0;padding-top:8px;border-top:1px solid var(--linha);font-size:12.5px;color:var(--suave);overflow-wrap:anywhere}
+#mn-sair{color:var(--erro)}
+.pc-card{display:block;width:100%;text-align:left;background:var(--papel);border:1.5px solid var(--linha);border-left-width:6px;border-radius:12px;padding:10px 12px;margin-bottom:8px;color:var(--tinta);cursor:pointer}
+.pc-card.warn{border-left-color:#E0A100}.pc-card.ok{border-left-color:#1F7A45}.pc-card.crit{border-left-color:#B22222;opacity:.8}
+.pc-l1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.pc-l1 strong{font-size:15.5px}
+.pc-st{font-size:12.5px;font-weight:700;color:var(--suave);text-align:right}
+.pc-card.warn .pc-st{color:#B07800}.pc-card.ok .pc-st{color:#1F7A45}.pc-card.crit .pc-st{color:#C0392B}
+.pc-l2{font-size:14px;margin-top:3px}
+.pc-l3{font-size:12.5px;color:var(--suave);margin-top:2px}
+.pc-dados{margin:8px 0}
+.pc-dl{display:flex;gap:10px;padding:5px 2px;border-bottom:1px solid var(--linha);font-size:14.5px}
+.pc-dl span{flex:none;width:38%;color:var(--suave)}
+.pc-item{padding:8px 10px;border:1.5px solid var(--linha);border-radius:10px;background:var(--papel);margin-bottom:6px;font-size:15px}
+.pc-item-ed{display:flex;align-items:center;gap:8px}
+.pc-item-ed span{flex:1}
+.pc-hist{font-size:13px;color:var(--suave);padding:3px 2px}
+.pc-acoes{display:grid;gap:8px;margin-top:14px}
+.pc-acoes .btn{width:100%}
+.pc-add{display:grid;gap:6px;padding:10px;border:1.5px dashed var(--linha);border-radius:12px;margin:6px 0 12px}
+.pc-add input{width:100%;min-height:48px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 12px;font-size:16px;min-width:0}
+.pc-add-l{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#pc-novo select{width:100%}
 .its-res{background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .its-res > strong{display:block;font-size:15px;margin-bottom:4px}
 .its-res small{color:var(--suave);font-size:12.5px}
@@ -423,6 +457,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
     <button class="conta" id="btn-conta" hidden aria-label="Conta"></button>
+    <button class="agenda-btn menu-btn" id="btn-menu" hidden aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="avcb-qtd" id="menu-qtd" hidden></span></button>
   </div>
 </header>
 
@@ -577,6 +612,34 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <canvas class="assin as-pad" id="as-pad"></canvas>
     <button class="laudo-link" id="as-limpar">Limpar</button>
     <button class="btn prim" id="as-ok" disabled>Confirmar assinatura</button>
+  </div>
+</div>
+
+<div class="menu" id="menu" hidden role="menu">
+  <button id="mn-its" role="menuitem">📘 ITs do CBM-BA</button>
+  <button id="mn-pc" role="menuitem">🛒 Pedidos de compra <span class="mn-qtd" id="mn-pc-qtd" hidden></span></button>
+  <button id="mn-admin" role="menuitem">⚙ Administração</button>
+  <p class="mn-conta" id="mn-conta"></p>
+  <button id="mn-sair" role="menuitem">Sair da conta</button>
+</div>
+
+<div class="tela-avcb" id="tela-pc" hidden role="dialog" aria-label="Pedidos de compra">
+  <div class="avcb-topo"><button class="avcb-voltar" id="pc-voltar">‹ Voltar</button><strong>Pedidos de compra</strong></div>
+  <div class="avcb-corpo">
+    <div id="pc-topo-lista">
+      <button class="btn prim" id="pc-novo-btn">+ Novo pedido</button>
+      <div class="chips avcb-filtro" id="pc-filtro" style="margin-top:12px">
+        <button type="button" data-f="abertos" aria-pressed="true">Em aberto</button>
+        <button type="button" data-f="aguardando" aria-pressed="false">Aguardando aprovação</button>
+        <button type="button" data-f="todos" aria-pressed="false">Todos</button>
+      </div>
+      <p class="avcb-nota" id="pc-estado" style="margin-top:0"></p>
+    </div>
+    <div id="pc-lista"></div>
+    <div id="pc-detalhe" hidden></div>
+    <div id="pc-novo" hidden></div>
+    <button class="laudo-link" id="pc-exportar" hidden>Exportar planilha com todos os pedidos (Excel)</button>
+    <datalist id="pc-materiais"></datalist>
   </div>
 </div>
 
@@ -747,6 +810,8 @@ const CONFIG = {
   pastaClientesNome: "02 - Clientes",
   pastaTreinamentos: "Treinamentos de Brigada",                       // lista de presença e certificados dentro da pasta do cliente
   pastaInspecoes: "Relatórios de Inspeção",                            // relatórios de inspeção dentro da pasta do cliente
+  pedidosCaminho: "VPX Engenharia - AVCB/02 - Financeiro/02 - Pedidos de Compra",   // pedidos de compra (.json + PDF)
+  pedidosNome: "02 - Pedidos de Compra",
   pastaTecnica: "Pasta Técnica CBM-BA",                                  // documentação para a vistoria do Corpo de Bombeiros (dentro do cliente)
   pastaOrcamento: "02 - Orçamento",                                    // lista de serviços (planilha e PDF) das não conformidades
   pastaLaudos: "Laudos Técnicos",                                      // laudos (PDF) dentro da pasta do cliente
@@ -829,10 +894,10 @@ const $ = id => document.getElementById(id);
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
 let modo = ["visita", "com", "laudo", "insp", "trein", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, pt: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, pt: { fotos: [], cliente: null }, pc: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb"), ...listaDe("pt")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb"), ...listaDe("pt"), ...listaDe("pc")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -2313,10 +2378,11 @@ const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // pasta do OneDrive de um destino; criada (se faltar) uma vez só por envio
 const pastasCache = new Map();
 function pastaDe(d) {
-  const chave = d.modo === "comp" ? "c:" + d.tipo : d.modo === "avcb" ? "avcb" : "v:" + d.caminho;
+  const chave = d.modo === "comp" ? "c:" + d.tipo : d.modo === "avcb" ? "avcb" : d.modo === "pc" ? "pc" : "v:" + d.caminho;
   if (!pastasCache.has(chave)) {
     const p = d.modo === "comp" ? baseComprovantes().then(b => garantirFilhas(b, [CONFIG.pastasComprovante[d.tipo]]))
       : d.modo === "avcb" ? garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaAvcb])
+      : d.modo === "pc" ? basePedidos().then(id => ({ id }))
       : garantirPasta(d.caminho);
     p.catch(() => pastasCache.delete(chave));                     // falhou (ex.: sem internet): tenta de novo da próxima vez
     pastasCache.set(chave, p);
@@ -4079,7 +4145,7 @@ function fecharHistorico(voltar = true) {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["normas", "ITs do CBM-BA"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -4804,6 +4870,339 @@ async function guardarTodasNormas() {
   finally { b.disabled = false; b.textContent = "⬇ Guardar todas no celular (53 MB)"; await atualizarGuardadas(); desenharNormas(); }
 }
 
+/* ---------- pedidos de compra ----------
+   VPX Engenharia - AVCB/02 - Financeiro/02 - Pedidos de Compra: cada pedido = um .json (dados e situação) + um PDF.
+   Fluxo: aguardando → aprovado/recusado (administrador) → comprado (fornecedor, valor, previsão) → entregue; o
+   solicitante pode cancelar enquanto aguarda. A situação é atualizada no próprio .json (com If-Match, para não
+   sobrescrever a alteração de outra pessoa). Pedidos novos vão pela fila (funciona sem internet). */
+const MATERIAIS = [
+  ["Extintor PQS ABC 4 kg", "un"], ["Extintor PQS ABC 6 kg", "un"], ["Extintor PQS BC 4 kg", "un"], ["Extintor CO2 6 kg", "un"], ["Extintor água pressurizada 10 L", "un"],
+  ["Recarga de extintor PQS", "un"], ["Recarga de extintor CO2", "un"], ["Recarga de extintor água", "un"], ["Teste hidrostático de extintor", "un"],
+  ["Suporte de parede para extintor", "un"], ["Suporte de piso (tripé) para extintor", "un"],
+  ["Placa de saída de emergência", "un"], ["Placa de rota de fuga", "un"], ["Placa de extintor", "un"], ["Placa de hidrante", "un"], ["Placa de alarme/acionador", "un"],
+  ["Placa de proibido fumar", "un"], ["Placa de risco elétrico", "un"], ["Placa de porta corta-fogo", "un"],
+  ["Mangueira de incêndio 1½\" 15 m", "un"], ["Mangueira de incêndio 2½\" 15 m", "un"], ["Teste hidrostático de mangueira", "un"],
+  ["Esguicho regulável 1½\"", "un"], ["Esguicho agulheta 1½\"", "un"], ["Chave storz", "un"], ["Adaptador storz", "un"], ["Tampão storz", "un"],
+  ["Abrigo de mangueira", "un"], ["Válvula angular 45° 2½\"", "un"],
+  ["Luminária de emergência (bloco autônomo)", "un"], ["Bateria para luminária de emergência", "un"],
+  ["Acionador manual (botoeira)", "un"], ["Detector de fumaça", "un"], ["Detector de temperatura", "un"], ["Sirene audiovisual", "un"], ["Bateria 12 V para central de alarme", "un"],
+  ["Mola aérea para porta corta-fogo", "un"], ["Barra antipânico", "un"], ["Dobradiça para porta corta-fogo", "un"],
+  ["Fita antiderrapante", "m"], ["Fita de demarcação de piso", "m"], ["Tinta vermelha (galão)", "un"],
+  ["Cabo elétrico", "m"], ["Eletroduto", "m"], ["Parafusos e buchas", "cx"]
+];
+const ST_PC = {
+  aguardando: ["Aguardando aprovação", "warn"], aprovado: ["Aprovado", "ok"], recusado: ["Recusado", "crit"],
+  comprado: ["Comprado", "ok"], entregue: ["Entregue", "ok"], cancelado: ["Cancelado", "crit"]
+};
+let pedidos = lerLS("vpx_pc", {});                 // id → { ...json, etag, itemId, pdfWeb }
+let pcFiltro = "abertos", pcNovo = null, pcAberto = null;
+
+// pasta dos pedidos: pelo caminho (dono do OneDrive) ou por "Compartilhados comigo"; o administrador cria se faltar
+async function basePedidos() {
+  if (basePedidos.id) return basePedidos.id;
+  let id = null;
+  try { id = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(CONFIG.pedidosCaminho)}?$select=id`)).id; }
+  catch (e) { if (e.status !== 403 && e.status !== 404) throw e; }
+  if (!id) {
+    try {
+      const r = await graph("/me/drive/sharedWithMe");
+      id = r.value.find(i => i.name === CONFIG.pedidosNome && i.remoteItem?.parentReference?.driveId === CONFIG.driveId)?.remoteItem?.id || null;
+    } catch {}
+  }
+  if (!id && ehAdminFixo()) {
+    const fin = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(CONFIG.pedidosCaminho.split("/").slice(0, -1).join("/"))}?$select=id`)).id;
+    id = (await garantirFilhas(fin, [CONFIG.pedidosNome])).id;
+  }
+  if (!id) { const e = new Error("sem acesso"); e.semAcesso = true; throw e; }
+  return basePedidos.id = id;
+}
+
+async function sincronizarPedidos() {
+  if (!conta || !navigator.onLine || !(pode("pedidos") || ehAdmin()) || sincronizarPedidos.rodando) return;
+  sincronizarPedidos.rodando = true;
+  try {
+    const pasta = await basePedidos();
+    const itens = [];
+    let url = `/drives/${CONFIG.driveId}/items/${pasta}/children?$top=999`;
+    while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
+    const pdfs = new Map(itens.filter(i => /\.pdf$/i.test(i.name)).map(i => [i.name.replace(/\.pdf$/i, ""), i.webUrl]));
+    const novo = {};
+    for (const i of itens.filter(i => /\.json$/i.test(i.name))) {
+      const chave = i.name.replace(/\.json$/i, ""), velho = pedidos[chave];
+      let d = velho && !velho.pendente && velho.etag === i.eTag ? velho : null;
+      if (!d) { try { d = await (await fetch(i["@microsoft.graph.downloadUrl"])).json(); } catch { d = velho; } }
+      if (d) novo[chave] = { ...d, etag: i.eTag, itemId: i.id, pdfWeb: pdfs.get(chave) || null, pendente: false };
+    }
+    for (const [k, p] of Object.entries(pedidos)) if (p.pendente && !novo[k]) novo[k] = p;   // ainda na fila deste celular
+    pedidos = novo;
+    gravarLS("vpx_pc", pedidos);
+  } catch (e) { console.error("pedidos:", e); if (!$("tela-pc").hidden) $("pc-estado").textContent = e.semAcesso ? `Sem acesso à pasta "${CONFIG.pedidosNome}". Peça ao administrador para compartilhá-la com você.` : "Não foi possível atualizar os pedidos agora."; }
+  finally { sincronizarPedidos.rodando = false; }
+  atualizarContadores();
+  if (!$("tela-pc").hidden) desenharPedidos();
+}
+const meusPedidos = () => Object.values(pedidos).filter(p => ehAdmin() || p.solicitante?.email === emailDe());
+function atualizarContadores() {
+  const n = ehAdmin() ? Object.values(pedidos).filter(p => p.status === "aguardando").length : 0;
+  $("menu-qtd").hidden = !n; $("menu-qtd").textContent = n;
+  $("mn-pc-qtd").hidden = !n; $("mn-pc-qtd").textContent = n;
+}
+
+function abrirPedidos() {
+  fecharMenu();
+  $("tela-pc").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ pc: true }, "");
+  pcAberto = null;
+  $("pc-exportar").hidden = !ehAdmin();
+  desenharPedidos();
+  sincronizarPedidos();
+}
+function fecharPedidos(voltar = true) {
+  if ($("tela-pc").hidden) return;
+  $("tela-pc").hidden = true;
+  document.body.style.overflow = "";
+  if (voltar && history.state?.pc) history.back();
+}
+
+function desenharPedidos() {
+  const lista = $("pc-lista"), det = $("pc-detalhe");
+  if (pcAberto && pedidos[pcAberto]) { lista.hidden = true; $("pc-topo-lista").hidden = true; det.hidden = false; desenharDetalhePC(pedidos[pcAberto]); return; }
+  pcAberto = null; lista.hidden = false; $("pc-topo-lista").hidden = false; det.hidden = true;
+  $("pc-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === pcFiltro)));
+  const abertos = s => ["aguardando", "aprovado", "comprado"].includes(s);
+  const todos = meusPedidos().sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
+  const vis = todos.filter(p => pcFiltro === "todos" || (pcFiltro === "aguardando" ? p.status === "aguardando" : abertos(p.status)));
+  lista.innerHTML = "";
+  if (!vis.length) lista.appendChild(el("p", "avcb-nota", pcFiltro === "todos" ? "Nenhum pedido ainda." : "Nenhum pedido em aberto."));
+  for (const p of vis) {
+    const [rot, cls] = ST_PC[p.status] || [p.status, ""];
+    const b = el("button", "pc-card " + cls); b.type = "button";
+    const l1 = el("div", "pc-l1"); l1.append(el("strong", "", `Pedido ${p.numero}`), el("span", "pc-st", p.pendente ? "⏳ aguardando envio" : rot));
+    b.appendChild(l1);
+    b.appendChild(el("div", "pc-l2", `${p.itens.length} ite${p.itens.length > 1 ? "ns" : "m"} · ${p.cliente || "Escritório/estoque"}${p.urgencia === "Urgente" ? " · URGENTE" : ""}`));
+    b.appendChild(el("div", "pc-l3", `${p.solicitante?.nome || ""} · ${new Date(p.criadoEm).toLocaleDateString("pt-BR")}${p.precisaAte ? " · precisa até " + dataBRde(p.precisaAte) : ""}`));
+    b.onclick = () => { pcAberto = p.id; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };
+    lista.appendChild(b);
+  }
+  $("pc-estado").textContent = navigator.onLine ? "" : "Sem internet: mostrando a última consulta.";
+}
+
+function desenharDetalhePC(p) {
+  const det = $("pc-detalhe");
+  det.innerHTML = "";
+  const voltar = el("button", "laudo-link", "‹ Todos os pedidos"); voltar.type = "button";
+  voltar.onclick = () => { pcAberto = null; desenharPedidos(); };
+  det.appendChild(voltar);
+  const [rot, cls] = ST_PC[p.status] || [p.status, ""];
+  det.appendChild(el("h2", "secao", `Pedido ${p.numero}`));
+  det.appendChild(el("p", "avcb-aviso " + cls, p.pendente ? "⏳ Guardado no celular, aguardando envio" : rot));
+  const linhas = [["Solicitante", p.solicitante?.nome], ["Data", new Date(p.criadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })],
+    ["Cliente / obra", p.cliente || "Escritório/estoque"], ["Urgência", p.urgencia], ["Precisa até", p.precisaAte && dataBRde(p.precisaAte)], ["Entrega", p.entrega],
+    ["Observação", p.obs], ["Fornecedor", p.compra?.fornecedor], ["Valor", p.compra?.valor], ["Previsão de entrega", p.compra?.previsao && dataBRde(p.compra.previsao)]];
+  const tab = el("div", "pc-dados");
+  linhas.filter(([, v]) => v).forEach(([r, v]) => { const d = el("div", "pc-dl"); d.append(el("span", "", r), el("strong", "", v)); tab.appendChild(d); });
+  det.appendChild(tab);
+  det.appendChild(el("h3", "avcb-grupo", `Itens (${p.itens.length})`));
+  p.itens.forEach((it, i) => det.appendChild(el("div", "pc-item", `${i + 1}. ${it.desc} — ${it.qtd} ${it.un}${it.obs ? " (" + it.obs + ")" : ""}`)));
+  if (p.historico?.length) {
+    det.appendChild(el("h3", "avcb-grupo", "Histórico"));
+    p.historico.forEach(h => det.appendChild(el("div", "pc-hist", `${new Date(h.em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} · ${ST_PC[h.status]?.[0] || h.status} · ${h.por}${h.obs ? " — " + h.obs : ""}`)));
+  }
+  const ac = el("div", "pc-acoes");
+  const botao = (txt, cls, fn) => { const b = el("button", "btn " + cls, txt); b.type = "button"; b.onclick = fn; ac.appendChild(b); };
+  const adm = ehAdmin(), meu = p.solicitante?.email === emailDe();
+  if (!p.pendente) {
+    if (adm && p.status === "aguardando") { botao("✓ Aprovar", "prim", () => mudarStatusPC(p, "aprovado")); botao("Recusar", "sec", () => mudarStatusPC(p, "recusado", true)); }
+    if (adm && p.status === "aprovado") botao("Marcar como comprado", "prim", () => marcarComprado(p));
+    if ((adm || meu) && p.status === "comprado") botao("Marcar como entregue", "prim", () => mudarStatusPC(p, "entregue"));
+    if (meu && p.status === "aguardando") botao("Cancelar pedido", "sec", () => mudarStatusPC(p, "cancelado", true));
+  }
+  if (p.pdfWeb) { const a = el("a", "btn sec", "Abrir PDF do pedido"); a.href = p.pdfWeb; a.target = "_blank"; a.rel = "noopener"; ac.appendChild(a); }
+  det.appendChild(ac);
+}
+
+// muda a situação no .json do OneDrive (lê a versão mais nova e grava com If-Match)
+async function mudarStatusPC(p, status, pedirMotivo, extra) {
+  if (!navigator.onLine) { aviso("Sem internet para alterar o pedido.", true); return; }
+  let obs = "";
+  if (pedirMotivo) { obs = prompt(status === "recusado" ? "Motivo da recusa (opcional):" : "Motivo do cancelamento (opcional):", ""); if (obs === null) return; }
+  try {
+    const item = await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}`);
+    const atual = await (await fetch(item["@microsoft.graph.downloadUrl"])).json();
+    atual.status = status;
+    if (extra) Object.assign(atual, extra);
+    (atual.historico ||= []).push({ status, por: nomeColaborador(), em: new Date().toISOString(), obs: obs.trim() });
+    const r = await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}/content`, { method: "PUT", headers: { "Content-Type": "application/json", "If-Match": item.eTag }, body: JSON.stringify(atual, null, 2) });
+    pedidos[p.id] = { ...atual, etag: r?.eTag, itemId: p.itemId, pdfWeb: p.pdfWeb, pendente: false };
+    gravarLS("vpx_pc", pedidos);
+    aviso(`Pedido ${p.numero}: ${ST_PC[status][0].toLowerCase()}.`);
+    atualizarContadores(); desenharPedidos();
+  } catch (e) {
+    console.error(e);
+    aviso(e.status === 412 ? "Outra pessoa alterou este pedido agora. Atualizando…" : "Não foi possível alterar: " + e.message, true);
+    sincronizarPedidos();
+  }
+}
+function marcarComprado(p) {
+  const fornecedor = prompt("Fornecedor:", p.compra?.fornecedor || ""); if (fornecedor === null) return;
+  const valor = prompt("Valor total (R$):", p.compra?.valor || ""); if (valor === null) return;
+  const prev = prompt("Previsão de entrega (dd/mm/aaaa, opcional):", ""); if (prev === null) return;
+  const m = prev.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  mudarStatusPC(p, "comprado", false, { compra: { fornecedor: fornecedor.trim(), valor: valor.trim(), previsao: m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : "" } });
+}
+
+/* novo pedido */
+function abrirNovoPC() {
+  pcNovo = lerLS("vpx_pc_rascunho", null) || { cliente: cliente || "", urgencia: "Normal", entrega: "Na obra", precisaAte: "", obs: "", itens: [] };
+  $("pc-novo").hidden = false; $("pc-lista").hidden = true; $("pc-topo-lista").hidden = true; $("pc-detalhe").hidden = true;
+  desenharNovoPC();
+}
+function fecharNovoPC() { $("pc-novo").hidden = true; pcNovo = null; desenharPedidos(); }
+const gravarRascPC = () => gravarLS("vpx_pc_rascunho", pcNovo);
+function desenharNovoPC() {
+  const f = $("pc-novo"); f.innerHTML = "";
+  const voltar = el("button", "laudo-link", "‹ Cancelar"); voltar.type = "button"; voltar.onclick = fecharNovoPC;
+  f.append(voltar, el("h2", "secao", "Novo pedido de compra"));
+  // cliente: lista de clientes + escritório
+  const wc = el("label", "campo"); wc.appendChild(el("span", "", "Cliente / obra"));
+  const sel = document.createElement("select");
+  [["", "Escritório / estoque"], ...clientes.map(c => [c, c])].forEach(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); });
+  sel.value = pcNovo.cliente; sel.onchange = () => { pcNovo.cliente = sel.value; gravarRascPC(); };
+  wc.appendChild(sel); f.appendChild(wc);
+  const chips = (rot, chave, opcoes) => {
+    const w = el("div", "campo"); w.appendChild(el("span", "", rot));
+    const c = el("div", "chips");
+    opcoes.forEach(o => { const b = el("button", "", o); b.type = "button"; b.setAttribute("aria-pressed", String(pcNovo[chave] === o));
+      b.onclick = () => { pcNovo[chave] = o; c.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.textContent === o))); gravarRascPC(); }; c.appendChild(b); });
+    w.appendChild(c); return w;
+  };
+  f.appendChild(chips("Urgência", "urgencia", ["Normal", "Urgente"]));
+  f.appendChild(chips("Entrega", "entrega", ["Na obra", "No escritório", "Retirar no fornecedor"]));
+  const wd = el("label", "campo"); wd.appendChild(el("span", "", "Precisa até (opcional)"));
+  const dt = document.createElement("input"); dt.type = "date"; dt.value = pcNovo.precisaAte; dt.oninput = () => { pcNovo.precisaAte = dt.value; gravarRascPC(); };
+  wd.appendChild(dt); f.appendChild(wd);
+  // itens
+  f.appendChild(el("h3", "avcb-grupo", `Itens (${pcNovo.itens.length})`));
+  pcNovo.itens.forEach((it, i) => {
+    const d = el("div", "pc-item pc-item-ed");
+    d.appendChild(el("span", "", `${i + 1}. ${it.desc} — ${it.qtd} ${it.un}${it.obs ? " (" + it.obs + ")" : ""}`));
+    const rm = el("button", "trein-rm", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Remover item");
+    rm.onclick = () => { pcNovo.itens.splice(i, 1); gravarRascPC(); desenharNovoPC(); };
+    d.appendChild(rm); f.appendChild(d);
+  });
+  const add = el("div", "pc-add");
+  const desc = document.createElement("input"); desc.placeholder = "Item (comece a digitar)"; desc.setAttribute("list", "pc-materiais"); desc.autocomplete = "off";
+  const qtd = document.createElement("input"); qtd.placeholder = "Qtd"; qtd.inputMode = "decimal";
+  const un = document.createElement("input"); un.placeholder = "Un"; un.value = "un"; un.maxLength = 6;
+  const obs = document.createElement("input"); obs.placeholder = "Detalhe (opcional: marca, medida…)";
+  desc.oninput = () => { const m = MATERIAIS.find(([d]) => d === desc.value); if (m) un.value = m[1]; };
+  const bAdd = el("button", "btn sec", "+ Adicionar item"); bAdd.type = "button";
+  bAdd.onclick = () => {
+    if (!desc.value.trim()) { aviso("Escreva o item.", true); desc.focus(); return; }
+    if (!(numBR(qtd.value) > 0)) { aviso("Informe a quantidade.", true); qtd.focus(); return; }
+    pcNovo.itens.push({ desc: desc.value.trim(), qtd: qtd.value.trim(), un: un.value.trim() || "un", obs: obs.value.trim() });
+    gravarRascPC(); desenharNovoPC(); $("pc-novo").querySelector(".pc-add input").focus();
+  };
+  const linha = el("div", "pc-add-l"); linha.append(qtd, un);
+  add.append(desc, linha, obs, bAdd);
+  f.appendChild(add);
+  const wo = el("label", "campo"); wo.appendChild(el("span", "", "Observação (opcional)"));
+  const ta = document.createElement("textarea"); ta.value = pcNovo.obs; ta.oninput = () => { pcNovo.obs = ta.value; gravarRascPC(); };
+  wo.appendChild(ta); f.appendChild(wo);
+  const env = el("button", "btn prim", pcNovo.itens.length ? `Enviar pedido (${pcNovo.itens.length} ite${pcNovo.itens.length > 1 ? "ns" : "m"})` : "Adicione pelo menos um item");
+  env.type = "button"; env.disabled = !pcNovo.itens.length; env.onclick = enviarNovoPC;
+  f.appendChild(env);
+}
+
+async function enviarNovoPC() {
+  if (!pcNovo?.itens.length) return;
+  const agora = new Date();
+  const ini = nomeColaborador().split(/\s+/).map(p => p[0]).join("").slice(0, 3).toUpperCase();
+  const numero = `${dataISO(agora).replace(/-/g, "")}-${pad(agora.getHours())}${pad(agora.getMinutes())}${pad(agora.getSeconds())}-${ini}`;
+  const id = "PC-" + numero;
+  const ped = { versao: 1, id, numero, criadoEm: agora.toISOString(), solicitante: { nome: nomeColaborador(), email: emailDe() },
+    cliente: pcNovo.cliente, urgencia: pcNovo.urgencia, entrega: pcNovo.entrega, precisaAte: pcNovo.precisaAte, obs: pcNovo.obs.trim(),
+    itens: pcNovo.itens, status: "aguardando", historico: [{ status: "aguardando", por: nomeColaborador(), em: agora.toISOString(), obs: "" }] };
+  let pdf;
+  try { pdf = await gerarPedidoPDF(ped); } catch (e) { aviso("Não foi possível gerar o PDF: " + e.message, true); return; }
+  const arqs = [new File([JSON.stringify(ped, null, 2)], id + ".json", { type: "application/json" }), new File([pdf], id + ".pdf", { type: "application/pdf" })];
+  for (const a of arqs) {
+    const it = { id: ++seq, modo: "pc", arquivo: a, url: "", st: "pendente", pdf: true, dest: { modo: "pc" }, prefixo: id, nomeBase: id };
+    listaDe("pc").push(it); await guardarItem(it, true);
+  }
+  pedidos[id] = { ...ped, pendente: true };
+  gravarLS("vpx_pc", pedidos);
+  try { localStorage.removeItem("vpx_pc_rascunho"); } catch {}
+  $("pc-novo").hidden = true; pcNovo = null; pcAberto = id; desenharPedidos();
+  aviso(navigator.onLine ? "Pedido enviado. O administrador vai aprovar no app." : "Pedido guardado no celular. Será enviado quando a internet voltar.");
+  await tentarPendentes();
+}
+
+async function gerarPedidoPDF(p) {
+  const jsPDF = window.jspdf?.jsPDF;
+  if (!jsPDF) throw new Error("a ferramenta de PDF não carregou");
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const M = 15, L = 180, AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59];
+  let y = 15;
+  const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; return true; } return false; };
+  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18, "logo", "FAST"); } catch {}
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL); doc.text("Pedido de Compra", 210 - M, y + 7, { align: "right" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
+  doc.text(`Nº ${p.numero}`, 210 - M, y + 13, { align: "right" });
+  doc.text(new Date(p.criadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }), 210 - M, y + 18, { align: "right" });
+  y += 23; doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y); y += 9;
+  const linha = (r, v) => { doc.setFontSize(10); const tv = doc.splitTextToSize(String(v), L - 50); cabe(tv.length * 4.6 + 2);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(...CINZA); doc.text(r, M, y); doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tv, M + 50, y); y += tv.length * 4.6 + 2; };
+  [["Solicitante", p.solicitante.nome], ["Cliente / obra", p.cliente || "Escritório / estoque"], ["Urgência", p.urgencia], ["Precisa até", p.precisaAte && dataBRde(p.precisaAte)],
+   ["Entrega", p.entrega], ["Observação", p.obs]].filter(([, v]) => v).forEach(([r, v]) => linha(r, v));
+  y += 4;
+  doc.setFillColor(...AZUL); doc.rect(M, y - 5, L, 7.5, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(255, 255, 255);
+  const C = [M, M + 10, M + 135, M + 155];
+  ["Nº", "Item", "Qtd", "Un"].forEach((h, i) => doc.text(h, C[i] + 1.5, y)); y += 7;
+  p.itens.forEach((it, i) => {
+    doc.setFontSize(10);
+    const t = doc.splitTextToSize(it.desc + (it.obs ? ` (${it.obs})` : ""), C[2] - C[1] - 3);
+    cabe(t.length * 4.6 + 3);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA);
+    doc.text(String(i + 1), C[0] + 1.5, y); doc.text(t, C[1] + 1.5, y);
+    doc.setFont("helvetica", "bold"); doc.text(String(it.qtd), C[2] + 1.5, y); doc.setFont("helvetica", "normal"); doc.text(it.un, C[3] + 1.5, y);
+    y += t.length * 4.6 + 1.5; doc.setDrawColor(215, 222, 230); doc.setLineWidth(0.2); doc.line(M, y - 1, 210 - M, y - 1); y += 2;
+  });
+  y += 10; cabe(30);
+  doc.setFontSize(9); doc.setTextColor(...CINZA);
+  doc.text("Aprovação: ______________________________   Data: ____/____/______", M, y + 10);
+  doc.setFontSize(8); doc.text(`VPX Engenharia - Pedido de compra ${p.numero}`, 105, 290, { align: "center" });
+  return doc.output("blob");
+}
+
+// planilha geral (administrador): uma linha por item de cada pedido
+async function exportarPedidos() {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const linhas = [["Pedido", "Data", "Solicitante", "Cliente / obra", "Urgência", "Precisa até", "Entrega", "Situação", "Item", "Qtd", "Un", "Detalhe", "Fornecedor", "Valor", "Previsão"]];
+    for (const p of Object.values(pedidos).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || "")))
+      for (const it of p.itens) linhas.push([p.numero, new Date(p.criadoEm).toLocaleDateString("pt-BR"), p.solicitante?.nome, p.cliente || "Escritório/estoque", p.urgencia,
+        p.precisaAte && dataBRde(p.precisaAte), p.entrega, ST_PC[p.status]?.[0] || p.status, it.desc, numBR(it.qtd) ?? it.qtd, it.un, it.obs, p.compra?.fornecedor, p.compra?.valor, p.compra?.previsao && dataBRde(p.compra.previsao)]);
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    ws["!cols"] = [18, 11, 22, 26, 10, 11, 14, 20, 40, 7, 6, 26, 20, 12, 11].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
+    const arquivo = new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], `Pedidos de compra - ${dataISO()}.xlsx`, { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    compartilharArquivo(arquivo, "Pedidos de compra", "Pedidos de compra - VPX");
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+
+/* menu ☰ do topo: ITs, pedidos, administração e conta (não cabem mais botões no topo) */
+function abrirMenu() {
+  $("mn-its").hidden = $("btn-its").hidden;
+  $("mn-pc").hidden = !(pode("pedidos") || ehAdmin());
+  $("mn-admin").hidden = !ehAdmin();
+  $("mn-conta").textContent = `${conta?.name || ""} · ${conta?.username || ""}`;
+  $("menu").hidden = false;
+}
+function fecharMenu() { $("menu").hidden = true; }
+
 /* ---------- validade AVCB/CLCB (lista em CONFIG.validadeAvcb) ---------- */
 const diasAte = iso => { const hoje = new Date(); hoje.setHours(0, 0, 0, 0); return Math.round((new Date(iso + "T00:00:00") - hoje) / 86400000); };
 const dataBRde = iso => { const [a, m, d] = iso.split("-"); return `${d}/${m}/${a}`; };
@@ -5296,13 +5695,14 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "com", "laudo", "insp", "trein", "comp", "avcb", "pt"]) {
+  for (const m of ["visita", "com", "laudo", "insp", "trein", "comp", "avcb", "pt", "pc"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
   atualizar();
   if (r.ok) aviso(`${r.ok} ${r.ok > 1 ? "itens da fila foram enviados" : "item da fila foi enviado"} para o OneDrive.`);
   if (fila.some(f => f.modo === "avcb" && f.st === "ok")) sincronizarAvcb();   // AVCB fotografado chegou: atualiza a lista
+  if (fila.some(f => f.modo === "pc" && f.st === "ok")) sincronizarPedidos();  // pedido de compra chegou
   if (fila.some(f => f.modo === "pt" && f.st === "ok")) { fila.forEach(f => { if (f.modo === "pt") try { localStorage.removeItem("vpx_pt_" + f.dest.cliente); } catch {} }); if (pt) recarregarPT(true); }   // pasta técnica mudou
 }
 
@@ -5349,6 +5749,8 @@ async function iniciarApp() {
   aplicarPermissoes();                            // com a última cópia das permissões (funciona sem internet)
   carregarPermissoes();                           // e confere se mudaram
   registrarUsuario();                             // aparece na lista da administração
+  $("btn-menu").hidden = false;
+  sincronizarPedidos();                           // contador de pedidos aguardando aprovação (administrador)
   carregarClientes();
   sincronizarAvcb();                              // AVCBs fotografados pela equipe (contador do botão AVCB)
   await restaurarItens();                         // fotos guardadas no celular da última vez
@@ -5401,7 +5803,7 @@ window.addEventListener("popstate", () => {
   if (history.state?.arq || history.state?.pt || history.state?.its) return;              // voltou do visualizador para os arquivos do cliente / pasta técnica
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false);
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharMenu();
 });
 $("btn-arq").onclick = abrirArquivos;
 $("arq-voltar").onclick = voltarArq;
@@ -5418,6 +5820,17 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && co
 $("hist-resumo").onclick = abrirHistorico;
 $("btn-pt").onclick = abrirPastaTec;
 $("btn-its").onclick = abrirNormas;
+$("btn-menu").onclick = e => { e.stopPropagation(); $("menu").hidden ? abrirMenu() : fecharMenu(); };
+document.addEventListener("click", e => { if (!$("menu").hidden && !e.target.closest("#menu")) fecharMenu(); });
+$("mn-its").onclick = () => { fecharMenu(); abrirNormas(); };
+$("mn-pc").onclick = abrirPedidos;
+$("mn-admin").onclick = () => { fecharMenu(); abrirAdmin(); };
+$("mn-sair").onclick = () => { fecharMenu(); $("btn-conta").onclick(); };
+$("pc-voltar").onclick = () => fecharPedidos();
+$("pc-novo-btn").onclick = abrirNovoPC;
+$("pc-exportar").onclick = exportarPedidos;
+$("pc-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { pcFiltro = b.dataset.f; desenharPedidos(); });
+$("pc-materiais").append(...MATERIAIS.map(([d]) => { const o = document.createElement("option"); o.value = d; return o; }));
 $("its-voltar").onclick = () => fecharNormas();
 $("its-guardar").onclick = guardarTodasNormas;
 $("its-busca").oninput = () => { clearTimeout(desenharNormas.t); desenharNormas.t = setTimeout(desenharNormas, 350); };
