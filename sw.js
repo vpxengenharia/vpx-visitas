@@ -22,7 +22,7 @@ self.addEventListener("install", e => {
 
 self.addEventListener("activate", e => {
   // apaga só as cópias antigas do app; "vpx-arquivos" (arquivos de clientes baixados para usar sem internet) fica
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== "vpx-arquivos").map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== "vpx-arquivos" && k !== "vpx-normas").map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener("fetch", e => {
@@ -32,6 +32,7 @@ self.addEventListener("fetch", e => {
   const doApp = url.origin === location.origin;
   const externo = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)$/.test(url.hostname);
   if (!doApp && !externo) return;
+  if (doApp && url.pathname.includes("/it/")) return;   // ITs do CBM-BA: o próprio app guarda no cache "vpx-normas" (sem duplicar aqui)
   if (req.mode === "navigate") e.respondWith(paginaRedePrimeiro(req));
   else e.respondWith(copiaPrimeiro(req));
 });

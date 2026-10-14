@@ -120,6 +120,15 @@ Nada disso aparece no relatório que vai para o cliente.
 4. O instrutor assina no fim da página. Se quiser, tire fotos da parte prática (Câmera/Galeria).
 5. **Gerar lista e certificados** → um PDF com a lista de presença assinada e um certificado por participante, salvo em *02 - Clientes › [Cliente] › Treinamentos de Brigada*. Dá para ver e compartilhar na hora.
 
+### ITs do CBM-BA (consulta)
+
+O botão **ITs**, no topo, abre todas as Instruções Técnicas do Corpo de Bombeiros da Bahia, mais a Lei 12.929/2013 e o Decreto 16.302/2015.
+- Toque numa IT para abrir no app (com zoom).
+- **Buscar**: digite o número ("22"), o nome ("hidrantes") ou uma palavra/expressão ("corrimão", "distância extintor"). O app mostra em quais ITs e em quais páginas aparece, com o trecho; tocando no trecho, a IT abre já naquela página.
+- **⬇ Guardar todas no celular (53 MB)**: deixa todas disponíveis sem internet. Cada IT aberta também fica guardada.
+
+São cópias dos documentos oficiais conferidas em 14/10/2026. Quando o CBM-BA publicar uma IT nova ou revisada, peça ao Claude para atualizar. No fim da lista há o link da página oficial.
+
 ### Pasta técnica (vistoria do CBM-BA)
 
 Escolha o cliente e toque em **📂 Pasta técnica**. Aparece o checklist da documentação para a vistoria do Corpo de Bombeiros, por seção (documentos do cliente, projeto aprovado, AVCB/CLCB, ARTs, laudos, brigada, certificados e notas, manutenções e inspeções, plano de emergência), com a situação de cada item: em dia, **vence em até 30 dias**, **vencido**, **falta** ou não se aplica.

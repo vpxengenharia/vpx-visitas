@@ -42,6 +42,7 @@ button,input,label{font:inherit}
 .logo-grande img{height:96px;width:auto;display:block}
 .conta{background:transparent;border:1.5px solid rgba(28,60,97,.45);color:var(--marinho);border-radius:999px;width:38px;height:38px;font-weight:600;cursor:pointer}
 .topo-dir{display:flex;align-items:center;gap:10px}
+@media (max-width:420px){.topo{padding-left:12px;padding-right:12px}.topo-dir{gap:6px}.topo-dir .avcb-btn{padding:0 9px}.topo-dir .agenda-btn{width:38px}.marca img{height:48px}}   /* cabe todos os botões do topo (admin) no celular */
 /* validade AVCB/CLCB (cores do painel do Claude) */
 :root{--crit-bg:#F8E4E2;--crit-tx:#9A2E23;--warn-bg:#FBEFD8;--warn-tx:#8A5A0E;--okv-bg:#E4F3EA;--okv-tx:#1F6B41}
 @media (prefers-color-scheme:dark){:root{--crit-bg:#3A1E1A;--crit-tx:#EB8A80;--warn-bg:#3A2C10;--warn-tx:#E8B85A;--okv-bg:#163524;--okv-tx:#6FCE97}}
@@ -56,6 +57,13 @@ button,input,label{font:inherit}
 .btn-arq[hidden]{display:none}
 .abas button[hidden],.avcb-acoes[hidden]{display:none}
 #pt-gerar{margin:4px 0 6px}
+#btn-its[hidden]{display:none}
+.its-res{background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.its-res > strong{display:block;font-size:15px;margin-bottom:4px}
+.its-res small{color:var(--suave);font-size:12.5px}
+.its-trecho{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--linha);padding:8px 0;color:var(--tinta);font-size:13.5px;line-height:1.35;cursor:pointer}
+.its-trecho b{color:var(--marinho)}
+@media (prefers-color-scheme:dark){.its-trecho b{color:var(--laranja)}}
 .pt-item{background:var(--papel);border:1.5px solid var(--linha);border-left-width:6px;border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .pt-item.ok{border-left-color:#1F7A45}.pt-item.warn{border-left-color:#E0A100}.pt-item.crit,.pt-item.falta{border-left-color:#B22222}.pt-item.na{border-left-color:#8A97A8;opacity:.75}
 .pt-item.outros{border-left-color:var(--linha)}
@@ -314,6 +322,9 @@ p{margin:0 0 14px;max-width:60ch}
 .visor-btn:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
 .visor-paginas{flex:1;overflow:auto;padding:8px 8px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-overflow-scrolling:touch}
 .visor-paginas canvas{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);max-width:100%;height:auto}
+.visor-paginas .vpag{flex:none;max-width:100%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.visor-paginas .vpag canvas{display:block;width:100%;height:100%;box-shadow:none}
+.visor-paginas.zoom .vpag{max-width:none}
 .visor-msg{color:#fff;text-align:center;margin:40px 16px}
 .visor-paginas.zoom{align-items:flex-start}
 .visor-paginas.zoom canvas,.visor-paginas.zoom img{max-width:none}
@@ -406,6 +417,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <button class="agenda-btn" id="btn-agenda" hidden aria-label="Agenda">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
     </button>
+    <button class="avcb-btn" id="btn-its" hidden aria-label="ITs do CBM-BA">ITs</button>
     <button class="avcb-btn" id="btn-avcb" hidden aria-label="Validade AVCB/CLCB">AVCB<span class="avcb-qtd" id="avcb-qtd" hidden></span></button>
     <button class="agenda-btn" id="btn-admin" hidden aria-label="Administração">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
@@ -565,6 +577,18 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <canvas class="assin as-pad" id="as-pad"></canvas>
     <button class="laudo-link" id="as-limpar">Limpar</button>
     <button class="btn prim" id="as-ok" disabled>Confirmar assinatura</button>
+  </div>
+</div>
+
+<div class="tela-avcb" id="tela-its" hidden role="dialog" aria-label="ITs do CBM-BA">
+  <div class="avcb-topo"><button class="avcb-voltar" id="its-voltar">‹ Voltar</button><strong>ITs do CBM-BA</strong></div>
+  <div class="avcb-corpo">
+    <input class="avcb-busca" id="its-busca" type="search" placeholder="Buscar: número, nome ou palavra (ex.: corrimão)" autocomplete="off">
+    <p class="avcb-nota" id="its-estado" style="margin-top:0"></p>
+    <div id="its-lista"></div>
+    <button class="btn sec" id="its-guardar" style="margin-top:12px">⬇ Guardar todas no celular (53 MB)</button>
+    <p class="avcb-nota" id="its-nota"></p>
+    <a class="laudo-link" id="its-fonte" target="_blank" rel="noopener">Página oficial das ITs (CBM-BA)</a>
   </div>
 </div>
 
@@ -3174,8 +3198,8 @@ function verRelatorio() {
 
 // visualizador genérico (relatórios, laudos e arquivos do cliente): PDF página por página ou imagem, com zoom (− / +)
 let visor = null;                                  // { arquivo, titulo, texto, zoom, pdf, img }
-async function abrirVisor(arquivo, titulo, texto) {
-  visor = { arquivo, titulo, texto, zoom: 1, pdf: null, img: null };
+async function abrirVisor(arquivo, titulo, texto, op = {}) {      // op.pagina: abre já nessa página (busca nas ITs)
+  visor = { arquivo, titulo, texto, zoom: 1, pdf: null, img: null, pagina: op.pagina || null };
   $("visor-titulo").textContent = titulo;
   const pags = $("visor-paginas");
   pags.innerHTML = '<p class="visor-msg">Abrindo…</p>';
@@ -3216,20 +3240,42 @@ async function desenharVisor() {
     pags.appendChild(im);
     return;
   }
+  // PDF: cria um espaço do tamanho de cada página e só desenha as que estão perto da tela (documentos longos
+  // como as ITs não estouram a memória do celular); as que se afastam são apagadas e redesenhadas ao voltar
+  este.obs?.disconnect();
+  const caixas = [];
   for (let p = 1; p <= este.pdf.numPages; p++) {
     const pg = await este.pdf.getPage(p);
+    if (visor !== este) return;
+    const v = pg.getViewport({ scale: 1 });
+    const d = document.createElement("div");
+    d.className = "vpag"; d.dataset.p = p;
+    d.style.width = largura + "px"; d.style.height = Math.round(largura * v.height / v.width) + "px";
+    caixas.push(d);
+  }
+  pags.innerHTML = "";
+  caixas.forEach(d => pags.appendChild(d));
+  const desenhar = async d => {
+    if (d.dataset.ok) return;
+    d.dataset.ok = "1";
+    const pg = await este.pdf.getPage(+d.dataset.p);
     let esc = largura / pg.getViewport({ scale: 1 }).width * (window.devicePixelRatio || 1);
     const v1 = pg.getViewport({ scale: esc });
     const lim = 16e6;                              // limite de pixels do canvas no iPhone (plantas grandes)
     if (v1.width * v1.height > lim) esc *= Math.sqrt(lim / (v1.width * v1.height));
     const vp = pg.getViewport({ scale: esc });
     const cv = document.createElement("canvas");
-    cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height); cv.style.width = largura + "px";
+    cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
     await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
-    if (visor !== este) return;
-    if (p === 1) pags.innerHTML = "";
-    pags.appendChild(cv);
-  }
+    if (visor !== este || !d.dataset.ok) return;
+    d.replaceChildren(cv);
+  };
+  este.obs = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) desenhar(e.target);
+    else if (e.target.dataset.ok) { delete e.target.dataset.ok; e.target.replaceChildren(); }
+  }), { root: pags, rootMargin: "1200px 0px" });
+  caixas.forEach(d => este.obs.observe(d));
+  if (este.pagina) { caixas[este.pagina - 1]?.scrollIntoView({ block: "start" }); este.pagina = null; }
 }
 function zoomVisor(d) {
   if (!visor || (!visor.pdf && !visor.img)) return;
@@ -4033,7 +4079,7 @@ function fecharHistorico(voltar = true) {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["normas", "ITs do CBM-BA"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -4054,6 +4100,7 @@ function aplicarPermissoes() {
   for (const a of ABAS_APP) $("aba-" + a).hidden = !pode(a);
   $("btn-avcb").hidden = !pode("avcb");
   $("btn-agenda").hidden = !pode("agenda");
+  $("btn-its").hidden = !pode("normas");
   $("tela-avcb").querySelector(".avcb-acoes").hidden = !pode("avcbFoto");
   $("btn-admin").hidden = !ehAdmin();
   const abas = ABAS_APP.filter(pode);
@@ -4621,6 +4668,142 @@ async function gerarPDFPastaTec() {
   } finally { bt.disabled = false; }
 }
 
+/* ---------- ITs do CBM-BA (consulta) ----------
+   Cópia dos PDFs oficiais em it/ (baixados de ba.gov.br/bombeiros/node/4005 em 14/10/2026 — o site do CBM-BA não
+   permite baixar direto de outro site). it/indice.json tem o texto de cada página, para buscar palavras dentro das ITs.
+   PDFs e índice ficam no Cache Storage "vpx-normas" depois de abertos (ou com "Guardar todas"); o sw.js não apaga esse cache. */
+const NORMAS_FONTE = "https://www.ba.gov.br/bombeiros/node/4005", NORMAS_DATA = "14/10/2026", CACHE_NORMAS = "vpx-normas";
+const NORMAS = [
+  ["lei-12929-2013", "Lei Estadual 12.929/2013", "Segurança contra incêndio e pânico no Estado da Bahia"],
+  ["decreto-16302-2015", "Decreto Estadual 16.302/2015", "Regulamento de segurança contra incêndio e pânico"],
+  ["it-01-2016", "IT 01/2016", "Procedimentos administrativos"], ["it-02-2016", "IT 02/2016", "Processo administrativo infracional"],
+  ["it-03-2016", "IT 03/2016", "Terminologia de segurança contra incêndio"], ["it-04-2016", "IT 04/2016", "Símbolos gráficos"],
+  ["it-05-2021", "IT 05/2021", "Credenciamento na área de segurança contra incêndio"], ["it-06-2016", "IT 06/2016", "Acesso de viatura na edificação"],
+  ["it-07-2016", "IT 07/2016", "Separação entre edificações"], ["it-08-2016", "IT 08/2016", "Resistência ao fogo dos elementos de construção"],
+  ["it-09-2016", "IT 09/2016", "Compartimentação horizontal e vertical"], ["it-10-2016", "IT 10/2016", "Controle de materiais de acabamento e revestimento"],
+  ["it-11-2016", "IT 11/2016", "Saídas de emergência"], ["it-12-2016", "IT 12/2016", "Centros esportivos e de exibição"],
+  ["it-13-2022", "IT 13/2022", "Pressurização de escada de segurança"], ["it-14-2026", "IT 14/2026", "Carga de incêndio nas edificações e áreas de risco"],
+  ["it-16-2018", "IT 16/2018", "Plano de emergência"], ["it-17-2016", "IT 17/2016", "Brigada de incêndio"],
+  ["it-18-2017", "IT 18/2017", "Sistema de iluminação de emergência"], ["it-19-2017", "IT 19/2017", "Sistema de alarme e detecção de incêndio"],
+  ["it-20-2017", "IT 20/2017", "Sinalização de emergência"], ["it-21-2017", "IT 21/2017", "Sistema de proteção por extintores de incêndio"],
+  ["it-22-2016", "IT 22/2016", "Sistema de hidrantes e mangotinhos"], ["it-23-2018", "IT 23/2018", "Sistema de chuveiros automáticos"],
+  ["it-24-2020", "IT 24/2020", "Sistema de chuveiros automáticos para depósitos"], ["it-26-2021", "IT 26/2021", "Sistema fixo de gases para combate a incêndio"],
+  ["it-27-2020", "IT 27/2020", "Armazenamento em silos"], ["it-28-2021", "IT 28/2021", "Manipulação, armazenamento, comercialização e utilização de GLP"],
+  ["it-29-2021", "IT 29/2021", "Comercialização, distribuição e utilização de gás natural"], ["it-30-2017", "IT 30/2017", "Fogos de artifício e pirotecnia"],
+  ["it-32-2021", "IT 32/2021", "Produtos perigosos em edificações e áreas de risco"], ["it-33-2021", "IT 33/2021", "Cobertura de sapé, piaçava e similares"],
+  ["it-34-2021", "IT 34/2021", "Hidrante urbano"], ["it-35-2021", "IT 35/2021", "Túnel rodoviário"], ["it-36-2021", "IT 36/2021", "Pátio de contêineres"],
+  ["it-37-2018", "IT 37/2018", "Subestação elétrica"], ["it-39-2019", "IT 39/2019", "Estabelecimentos destinados à restrição de liberdade"],
+  ["it-40-2017", "IT 40/2017", "Edificações que compõem o patrimônio histórico ou cultural"], ["it-41-2018", "IT 41/2018", "Inspeção visual em instalações elétricas de baixa tensão"],
+  ["it-42-2024", "IT 42/2024", "Projeto técnico simplificado"], ["it-43-2016", "IT 43/2016", "Edificações existentes"],
+  ["it-44-2025", "IT 44/2025", "Segurança em sistemas fotovoltaicos"], ["it-45-2026", "IT 45/2026", "Garagens e locais com alimentação de veículos elétricos"],
+  ["it-46-2024", "IT 46/2024", "Evento programado"]
+];
+const urlNorma = a => `it/${a}.pdf`;
+let normasIdx = null, normasGuardadas = new Set();
+
+async function lerNorma(url) {                      // do celular (cache) ou da internet (e guarda)
+  const c = await caches.open(CACHE_NORMAS);
+  const r = await c.match(url);
+  if (r) return r;
+  const n = await fetch(url);
+  if (!n.ok) throw new Error("Erro " + n.status);
+  await c.put(url, n.clone());
+  return n;
+}
+async function carregarIndiceNormas() {
+  if (normasIdx) return normasIdx;
+  normasIdx = await (await lerNorma("it/indice.json")).json();
+  return normasIdx;
+}
+async function atualizarGuardadas() {
+  try { const c = await caches.open(CACHE_NORMAS); normasGuardadas = new Set((await c.keys()).map(r => decodeURIComponent(new URL(r.url).pathname.split("/").pop()))); } catch {}
+}
+
+async function abrirNormas() {
+  $("tela-its").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ its: true }, "");
+  $("its-busca").value = "";
+  $("its-fonte").href = NORMAS_FONTE;
+  $("its-nota").textContent = `Cópia dos documentos oficiais do CBM-BA, conferida em ${NORMAS_DATA}. Em caso de dúvida, confira a versão vigente no site oficial.`;
+  await atualizarGuardadas();
+  desenharNormas();
+}
+function fecharNormas(voltar = true) {
+  if ($("tela-its").hidden) return;
+  $("tela-its").hidden = true;
+  document.body.style.overflow = "";
+  if (voltar && history.state?.its) history.back();
+}
+
+// lista (sem busca) ou resultado da busca: por número/nome e por palavras dentro do texto
+async function desenharNormas() {
+  const q = semAcento($("its-busca").value.trim()), lista = $("its-lista"), est = $("its-estado");
+  lista.innerHTML = "";
+  const item = ([a, num, tit], extra) => {
+    const b = el("button", "arq-item"); b.type = "button";
+    b.appendChild(el("span", "arq-ico", "📘"));
+    const tx = el("span", "arq-txt"); tx.append(el("strong", "", `${num} - ${tit}`));
+    if (extra) tx.appendChild(el("small", "", extra));
+    b.appendChild(tx);
+    if (normasGuardadas.has(a + ".pdf")) b.appendChild(el("span", "arq-ok", "✓ no celular"));
+    b.onclick = () => abrirNorma(a, num, tit);
+    return b;
+  };
+  if (!q) { est.textContent = `${NORMAS.length - 2} ITs + Lei e Decreto. Digite para buscar também dentro dos textos.`; NORMAS.forEach(n => lista.appendChild(item(n))); return; }
+  const palavras = q.split(/\s+/).filter(Boolean);
+  const porNome = NORMAS.filter(([a, num, tit]) => palavras.every(p => semAcento(`${num} ${tit} ${a.replace(/-/g, " ")}`).includes(p)));
+  if (porNome.length) { lista.appendChild(el("h3", "avcb-grupo", "Pelo número ou nome")); porNome.forEach(n => lista.appendChild(item(n))); }
+  if (q.length < 3) { est.textContent = ""; return; }
+  est.textContent = "Buscando dentro das ITs…";
+  const termo = q;
+  let idx;
+  try { idx = await carregarIndiceNormas(); }
+  catch { est.textContent = "Sem internet: a busca dentro dos textos precisa ter sido usada uma vez com internet."; return; }
+  if (semAcento($("its-busca").value.trim()) !== termo) return;      // a pessoa continuou digitando
+  const achados = [];
+  for (const n of NORMAS) {
+    const pags = (idx[n[0]] || []).map((t, i) => ({ t, i, s: semAcento(t) })).filter(x => palavras.every(p => x.s.includes(p)));
+    if (pags.length) achados.push({ n, pags });
+  }
+  est.textContent = achados.length ? `Encontrado em ${achados.length} documento${achados.length > 1 ? "s" : ""}.` : "Nenhum trecho encontrado.";
+  if (!achados.length) return;
+  lista.appendChild(el("h3", "avcb-grupo", "Dentro dos textos"));
+  for (const { n, pags } of achados.sort((a, b) => b.pags.length - a.pags.length)) {
+    const w = el("div", "its-res");
+    w.appendChild(el("strong", "", `${n[1]} - ${n[2]}`));
+    for (const pg of pags.slice(0, 4)) {
+      const pos = pg.s.indexOf(palavras[0]), ini = Math.max(0, pos - 70);
+      const trecho = (ini ? "…" : "") + pg.t.slice(ini, pos + 110).trim() + "…";
+      const b = el("button", "its-trecho"); b.type = "button";
+      b.append(el("b", "", `pág. ${pg.i + 1}: `), trecho);
+      b.onclick = () => abrirNorma(n[0], n[1], n[2], pg.i + 1);
+      w.appendChild(b);
+    }
+    if (pags.length > 4) w.appendChild(el("small", "", `e mais ${pags.length - 4} página(s): ${pags.slice(4, 14).map(x => x.i + 1).join(", ")}${pags.length > 14 ? "…" : ""}`));
+    lista.appendChild(w);
+  }
+}
+async function abrirNorma(a, num, tit, pagina) {
+  try {
+    aviso("Abrindo " + num + "…");
+    const blob = await (await lerNorma(urlNorma(a))).blob();
+    normasGuardadas.add(a + ".pdf");
+    abrirVisor(new File([blob], `${num.replace("/", "-")} - ${tit}.pdf`, { type: "application/pdf" }), num, `${num} - ${tit} (CBM-BA)`, { pagina });
+  } catch (e) { aviso(navigator.onLine ? "Não foi possível abrir: " + e.message : "Sem internet e esta IT ainda não foi guardada no celular.", true); }
+}
+async function guardarTodasNormas() {
+  if (!navigator.onLine) { aviso("Sem internet agora.", true); return; }
+  const b = $("its-guardar"); b.disabled = true;
+  let n = 0;
+  try {
+    await carregarIndiceNormas();
+    for (const [a] of NORMAS) { b.textContent = `Guardando… ${++n} de ${NORMAS.length}`; await lerNorma(urlNorma(a)); }
+    aviso("Todas as ITs estão guardadas no celular. Já dá para consultar sem internet.");
+  } catch (e) { aviso("Parou no meio: " + e.message + ". Toque de novo para continuar.", true); }
+  finally { b.disabled = false; b.textContent = "⬇ Guardar todas no celular (53 MB)"; await atualizarGuardadas(); desenharNormas(); }
+}
+
 /* ---------- validade AVCB/CLCB (lista em CONFIG.validadeAvcb) ---------- */
 const diasAte = iso => { const hoje = new Date(); hoje.setHours(0, 0, 0, 0); return Math.round((new Date(iso + "T00:00:00") - hoje) / 86400000); };
 const dataBRde = iso => { const [a, m, d] = iso.split("-"); return `${d}/${m}/${a}`; };
@@ -5099,9 +5282,10 @@ function fecharVisor(voltar = true) {
   $("visor-pdf").hidden = true;
   $("visor-paginas").innerHTML = "";
   if (visor?.img) URL.revokeObjectURL(visor.img);
+  visor?.obs?.disconnect();
   visor = null;
   travarVertical(true);
-  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico: a lista continua
+  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -5214,10 +5398,10 @@ window.addEventListener("popstate", () => {
   if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
-  if (history.state?.arq || history.state?.pt) return;              // voltou do visualizador para os arquivos do cliente / pasta técnica
+  if (history.state?.arq || history.state?.pt || history.state?.its) return;              // voltou do visualizador para os arquivos do cliente / pasta técnica
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false);
 });
 $("btn-arq").onclick = abrirArquivos;
 $("arq-voltar").onclick = voltarArq;
@@ -5233,6 +5417,10 @@ $("adm-email").onkeydown = e => { if (e.key === "Enter") adicionarUsuarioAdmin()
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (carregarPermissoes.quando || 0) > 60000) carregarPermissoes(); });
 $("hist-resumo").onclick = abrirHistorico;
 $("btn-pt").onclick = abrirPastaTec;
+$("btn-its").onclick = abrirNormas;
+$("its-voltar").onclick = () => fecharNormas();
+$("its-guardar").onclick = guardarTodasNormas;
+$("its-busca").oninput = () => { clearTimeout(desenharNormas.t); desenharNormas.t = setTimeout(desenharNormas, 350); };
 $("pt-voltar").onclick = () => fecharPastaTec();
 $("pt-gerar").onclick = gerarPDFPastaTec;
 $("pt-atualizar").onclick = () => recarregarPT(true);
