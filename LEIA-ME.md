@@ -53,7 +53,7 @@ Envie o endereço da Parte 2 por WhatsApp ou e-mail.
 **iPhone**
 1. Abra o link no **Safari** (precisa ser o Safari; pelo WhatsApp, toque em "Abrir no Safari").
 2. Toque no botão **Compartilhar** (quadrado com seta) → **Adicionar à Tela de Início** → **Adicionar**.
-3. Abra pelo ícone **VPX Visitas** e toque em **Entrar com a conta da VPX** usando o e-mail @vpxengenharia.com.br da pessoa.
+3. Abra pelo ícone **VPX Engenharia** e toque em **Entrar com a conta da VPX** usando o e-mail @vpxengenharia.com.br da pessoa.
 4. Para o app não pedir permissão toda vez que é aberto: **Ajustes › Apps › Safari › Câmera › Permitir** e **Ajustes › Apps › Safari › Microfone › Permitir** (o microfone é para o som dos vídeos; em iOS mais antigos: **Ajustes › Safari**).
 
 **Android**

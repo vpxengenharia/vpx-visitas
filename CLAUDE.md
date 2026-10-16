@@ -4,6 +4,8 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 
 ## Como funciona
 
+- **Nome mostrado no celular: "VPX Engenharia"** (trocado em 16/10/2026 a pedido do Gustavo: `<title>`, `apple-mobile-web-app-title` e `manifest.webmanifest`). Continuam com "VPX Visitas", de propósito: o repositório e o endereço do site (mudar quebraria o login no Entra), o registro no Entra e a pasta `VPX Visitas - Configuração` do OneDrive (`CONFIG.pastaConfig`, onde estão as permissões).
+
 - Site estático publicado pelo **GitHub Pages** a partir da branch `main`, pasta raiz:
   `https://vpxengenharia.github.io/vpx-visitas/`
 - Arquivos: `index.html` (app inteiro: HTML, CSS e JS num arquivo só), `manifest.webmanifest`, `icone-180.png`, `icone-192.png`, `icone-512.png`, `logo.png` (logo colorida, fundo transparente), `logo-branco.png` (letras brancas, para fundo azul ou modo escuro) e `sw.js` (service worker: cópia do app no celular para abrir sem internet).

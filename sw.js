@@ -1,8 +1,8 @@
-// VPX Visitas — cópia do app no celular, para abrir mesmo sem internet (obra, subsolo, casa de máquinas).
+// VPX Engenharia (app VPX Visitas) — cópia do app no celular, para abrir mesmo sem internet (obra, subsolo, casa de máquinas).
 // A página (index.html) vem sempre da internet quando há sinal, e da cópia quando não há.
-// Logos, ícones, fontes e as bibliotecas de login, de PDF, do visualizador de PDF e de planilha vêm da cópia. Se trocar logo/ícone, mude o número de CACHE.
+// Logos, ícones, fontes e as bibliotecas de login, de PDF, do visualizador de PDF e de planilha vêm da cópia. Se trocar logo/ícone/nome do app, mude o número de CACHE.
 // Login e envio para a Microsoft (login.microsoftonline.com, graph.microsoft.com, upload) nunca passam por aqui.
-const CACHE = "vpx-visitas-v4";
+const CACHE = "vpx-visitas-v5";
 const ESCOPO = self.registration.scope;               // ex.: https://vpxengenharia.github.io/vpx-visitas/
 const PRE = [
   ESCOPO, "manifest.webmanifest", "logo.png", "logo-branco.png",
