@@ -68,6 +68,15 @@ button,input,label{font:inherit}
 .cli-ac[hidden]{display:none}
 .cli-ac:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
 @media (prefers-color-scheme:dark){.cli-ac{color:var(--tinta)}}
+/* histórico de comprovantes */
+.ch-abrir{margin:0 0 14px}
+#ch-lista .arq-txt small{display:block}
+.ch-resumo{padding:12px 14px;border-radius:12px;background:var(--papel);border:1.5px solid var(--linha);margin-bottom:10px;font-size:14.5px;line-height:1.4;color:var(--suave)}
+.ch-resumo b{display:block;font-family:var(--titulo-fonte);font-size:22px;color:var(--marinho)}
+@media (prefers-color-scheme:dark){.ch-resumo b{color:var(--laranja)}}
+.ch-arqs{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px 12px}
+.ch-arqs[hidden]{display:none}
+.ch-arqs button{min-height:40px;padding:4px 12px;border-radius:999px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-size:14px;font-weight:600;cursor:pointer}
 /* clientes recentes: um toque para escolher, sem abrir a lista */
 .recentes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .recentes[hidden]{display:none}
@@ -545,6 +554,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
     <div id="form-comp" hidden>
+      <button class="btn-arq ch-abrir" id="btn-comphist" type="button"><span>🧾 Histórico de comprovantes</span><small>enviados</small></button>
       <div class="tipos">
         <button id="tipo-compra" aria-pressed="false">Compra<small>nota fiscal</small></button>
         <button id="tipo-reembolso" aria-pressed="false">Reembolso<small>gasto pago por você</small></button>
@@ -557,6 +567,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
         </div>
       </div>
       <label class="campo"><span>Descrição</span><input id="descricao" type="text" maxlength="80" placeholder="Ex.: Combustível, material elétrico" autocomplete="off" enterkeyhint="next"></label>
+      <label class="campo"><span>Valor (R$)</span><input id="comp-valor" type="text" inputmode="decimal" maxlength="14" placeholder="Ex.: 150,00" autocomplete="off" enterkeyhint="next"></label>
       <label class="campo"><span>Centro de custo (opcional)</span><select id="centro-sel"></select></label>
       <label class="campo" id="campo-outro" hidden><span>Qual centro de custo?</span><input id="centro" type="text" maxlength="60" placeholder="Digite o centro de custo" autocomplete="off" enterkeyhint="done"></label>
     </div>
@@ -765,6 +776,24 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <p class="avcb-nota" id="hist-estado" style="margin-top:0"></p>
     <div id="hist-lista"></div>
     <button class="laudo-link" id="hist-atualizar">Atualizar histórico</button>
+  </div>
+</div>
+
+<div class="tela-avcb" id="tela-ch" hidden role="dialog" aria-label="Histórico de comprovantes">
+  <div class="avcb-topo"><button class="avcb-voltar" id="ch-voltar">‹ Voltar</button><strong id="ch-titulo">Comprovantes enviados</strong></div>
+  <div class="avcb-corpo">
+    <div class="chips avcb-filtro" id="ch-filtro" style="margin-top:4px">
+      <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+      <button type="button" data-f="compra" aria-pressed="false">Compras</button>
+      <button type="button" data-f="reembolso" aria-pressed="false">Reembolsos</button>
+    </div>
+    <label class="campo"><span>Mês</span><select id="ch-mes"></select></label>
+    <label class="campo" id="ch-pessoa-campo" hidden><span>Colaborador</span><select id="ch-pessoa"></select></label>
+    <div class="ch-resumo" id="ch-resumo"></div>
+    <p class="avcb-nota" id="ch-estado" style="margin-top:0"></p>
+    <div id="ch-lista"></div>
+    <button class="btn sec" id="ch-exportar" type="button" style="width:100%;margin-top:12px">⬇ Exportar planilha (Excel)</button>
+    <button class="laudo-link" id="ch-atualizar">Atualizar</button>
   </div>
 </div>
 
@@ -2574,12 +2603,23 @@ function escolherPagamento(p) {
 const faltaPagamento = () => tipo === "compra" && !pagamento;
 
 const nomeColaborador = () => limparNome(conta?.name || (conta?.username || "").split("@")[0]) || "Sem nome";
-const descricao = () => limparNome($("descricao").value).slice(0, 80);
+const descricao = () => limparNome($("descricao").value.replace(/_/g, "-")).slice(0, 80);   // "_" separa as partes do nome do arquivo
+// valor do comprovante (obrigatório): aceita "150", "150,5", "1.234,56" ou "150.50"; vai no nome do arquivo como "R$ 1.234,56"
+function lerValor(s) {
+  s = String(s || "").replace(/[^\d.,]/g, "");
+  if (!s) return null;
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  else if (!/^\d+\.\d{1,2}$/.test(s)) s = s.replace(/\./g, "");
+  const n = parseFloat(s);
+  return n > 0 ? Math.round(n * 100) / 100 : null;
+}
+const moedaBR = n => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const valorComp = () => lerValor($("comp-valor").value);
 // centro de custo: escolhido da lista do Fin365 ou, em "Outro", digitado. "/" vira "-" para caber no nome do arquivo
 const OUTRO = "__outro";
 const centroCusto = () => {
   const sel = $("centro-sel").value;
-  return limparNome((sel === OUTRO ? $("centro").value : sel).replace(/\//g, "-")).slice(0, 60);
+  return limparNome((sel === OUTRO ? $("centro").value : sel).replace(/[\/_]/g, "-")).slice(0, 60);
 };
 function montarCentros() {
   const s = $("centro-sel");
@@ -2649,18 +2689,18 @@ function destinoAtual() {
     modo: "comp", autor, tipo,
     rotuloTipo: tipo === "reembolso" ? "Reembolso" : "Compra",       // o tipo vai no nome: o arquivo continua identificável se for movido
     pag: tipo === "compra" && pagamento ? "_" + PAGAMENTOS[pagamento] : "",
-    desc: descricao(), cli: centroCusto() ? "_" + centroCusto() : ""
+    desc: descricao(), valor: valorComp() ? "_R$ " + moedaBR(valorComp()) : "", cli: centroCusto() ? "_" + centroCusto() : ""
   };
   return { modo: "visita", autor, cliente, caminho: modo === "trein" ? caminhoTrein() : caminhoVisita(), data: dataISO() };   // fotos do treinamento ficam junto da lista
 }
 
 // início do nome do arquivo (sem o número e sem a extensão, que são decididos na hora do envio)
 // visita: Colaborador_AAAA-MM-DD_Cliente  → arquivo Colaborador_AAAA-MM-DD_Cliente_NN (nome na frente; cliente para identificar a foto fora da pasta)
-// comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_CentroDeCusto → ..._NN (data da própria foto)
+// comprovante: Colaborador_AAAA-MM-DD_Tipo[_Pagamento]_Descrição_R$ Valor_CentroDeCusto → ..._NN (data da própria foto)
 function prefixoDe(f, d) {
   const quando = new Date(f.arquivo.lastModified || Date.now());
   return d.modo === "comp"
-    ? `${d.autor}_${dataISO(quando)}_${d.rotuloTipo}${d.pag}_${d.desc}${d.cli}`
+    ? `${d.autor}_${dataISO(quando)}_${d.rotuloTipo}${d.pag}_${d.desc}${d.valor || ""}${d.cli}`
     : `${d.autor}_${d.data}_${limparNome(d.cliente)}`;
 }
 
@@ -3218,12 +3258,13 @@ function atualizarBotao() {
     else if (falta) b.textContent = `Preencha: ${falta}`;
     else b.textContent = novas.length ? `Salvar ficha e ${descrever(novas)}` : "Salvar ficha";
   } else if (ehComp()) {
-    b.disabled = enviando || !tipo || faltaPagamento() || !descricao() || !pend.length;
+    b.disabled = enviando || !tipo || faltaPagamento() || !descricao() || !valorComp() || !pend.length;
     if (enviando) b.textContent = "Salvando…";
     else if (!pend.length) b.textContent = "Salvar comprovante";
     else if (!tipo) b.textContent = "Escolha Compra ou Reembolso";
     else if (faltaPagamento()) b.textContent = "Informe como foi pago";
     else if (!descricao()) b.textContent = "Preencha a descrição";
+    else if (!valorComp()) b.textContent = "Informe o valor";
     else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))}`;
   } else {
     b.disabled = enviando || !cliente || !pend.length;
@@ -3233,7 +3274,7 @@ function atualizarBotao() {
     else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))} no cliente`;
   }
   $("captura").style.display = enviando ? "none" : "";
-  ["aba-visita", "aba-com", "aba-laudo", "aba-insp", "aba-trein", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
+  ["aba-visita", "aba-com", "aba-laudo", "aba-insp", "aba-trein", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "comp-valor", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
   pintarProgresso();
 }
 
@@ -3414,7 +3455,7 @@ async function salvar() {
   const comp = ehComp(), com = modo === "com";
   const novos = fotos.filter(f => f.st !== "ok" && !f.dest);
   if (com && fichaPreenchida() && (!cliente || faltaFicha())) return;
-  if (novos.length && (comp ? !tipo || faltaPagamento() || !descricao() : !cliente)) return;
+  if (novos.length && (comp ? !tipo || faltaPagamento() || !descricao() || !valorComp() : !cliente)) return;
   relatorio = null;                                // só a tela final de quem gerou o relatório mostra "Ver"/"Compartilhar"
   // laudo: confere o que falta (e leva até lá), gera o PDF e coloca na fila para a pasta Laudos Técnicos do cliente
   if ((modo === "laudo" || modo === "insp") && laudo.tipo) {
@@ -4470,6 +4511,168 @@ function fecharHistorico(voltar = true) {
   document.body.style.overflow = "";
   hist = null;
   if (voltar && history.state?.hist) history.back();
+}
+
+/* ---------- histórico de comprovantes (aba Comprovantes) ----------
+   Sem banco de dados: lê as pastas Compras e Reembolsos e entende o nome dos arquivos
+   (Colaborador_AAAA-MM-DD_Compra_Forma_Descrição_R$ Valor_Centro_NN.ext). Cada pessoa vê os seus; o admin vê todos.
+   Fotos do mesmo envio (mesmo início de nome, enviadas em até 10 min) contam como um comprovante só. */
+let ch = null;                                     // { envios, filtro, mes, pessoa }
+function lerNomeComp(nome, t) {
+  const m = nome.match(/^(.*)_\d{2,}(?: \d+)?\.[^.]+$/);
+  if (!m) return null;
+  const p = m[1].split("_");
+  if (p.length < 4 || !/^\d{4}-\d{2}-\d{2}$/.test(p[1])) return null;
+  const r = { autor: p[0], data: p[1], forma: "", desc: "", valor: null, centro: "", prefixo: m[1] };
+  let i = 3;                                       // p[2] = Compra | Reembolso
+  if (t === "compra" && Object.values(PAGAMENTOS).includes(p[3])) { r.forma = p[3]; i = 4; }
+  const resto = p.slice(i), iv = resto.findIndex(x => /^R\$ /.test(x));
+  if (iv >= 0) { r.valor = lerValor(resto[iv].slice(3)); r.desc = resto.slice(0, iv).join("_"); r.centro = resto.slice(iv + 1).join("_"); }
+  else if (resto.length > 1 && CONFIG.centrosCusto.some(([n]) => n.replace(/[\/_]/g, "-") === resto[resto.length - 1])) { r.centro = resto.pop(); r.desc = resto.join("_"); }
+  else r.desc = resto.join("_");               // comprovante antigo (antes do campo valor)
+  return r;
+}
+async function carregarCompHist(forcar) {
+  const chave = "vpx_comp_hist", guardado = lerLS(chave, null);
+  if (guardado && (!navigator.onLine || !conta)) return { ...guardado, online: false };
+  if (guardado && !forcar && Date.now() - guardado.quando < 60000) return { ...guardado, online: true };
+  try {
+    const base = await baseComprovantes(), arqs = [];
+    for (const t of ["compra", "reembolso"]) {
+      let pasta;
+      try { pasta = await graph(`/drives/${CONFIG.driveId}/items/${base}:/${encodeURIComponent(CONFIG.pastasComprovante[t])}`); }
+      catch (e) { if (e.status === 404) continue; throw e; }
+      let url = `/drives/${CONFIG.driveId}/items/${pasta.id}/children?$top=999&$select=id,name,file,createdDateTime,webUrl`;
+      while (url) {
+        const r = await graph(url);
+        r.value.filter(i => i.file).forEach(i => arqs.push({ t, id: i.id, nome: i.name, criado: i.createdDateTime, web: i.webUrl }));
+        url = r["@odata.nextLink"];
+      }
+    }
+    const r = { arqs, quando: Date.now() };
+    gravarLS(chave, r);
+    return { ...r, online: true };
+  } catch (e) {
+    if (guardado) return { ...guardado, online: false };
+    throw e;
+  }
+}
+function enviosComp(arqs) {
+  const lista = [], ultimo = new Map();
+  for (const a of arqs.slice().sort((x, y) => (x.criado || "").localeCompare(y.criado || ""))) {
+    const p = lerNomeComp(a.nome, a.t);
+    const k = a.t + "|" + (p ? p.prefixo : a.id), g = ultimo.get(k);
+    if (p && g && new Date(a.criado) - new Date(g.ultimo) < 600000) { g.arqs.push(a); g.ultimo = a.criado; continue; }
+    const e = { autor: "", data: (a.criado || "").slice(0, 10), forma: "", desc: a.nome.replace(/\.[^.]+$/, ""), valor: null, centro: "", ...(p || {}), t: a.t, arqs: [a], ultimo: a.criado };
+    ultimo.set(k, e); lista.push(e);
+  }
+  return lista.sort((a, b) => b.data.localeCompare(a.data) || (b.ultimo || "").localeCompare(a.ultimo || ""));
+}
+function abrirCompHist() {
+  ch = { envios: [], filtro: "todos", mes: dataISO().slice(0, 7), pessoa: "" };
+  $("ch-titulo").textContent = ehAdmin() ? "Comprovantes enviados" : "Meus comprovantes";
+  $("ch-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === "todos")));
+  $("tela-ch").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ ch: true }, "");
+  recarregarCompHist(false);
+}
+async function recarregarCompHist(forcar) {
+  $("ch-estado").textContent = "Carregando…";
+  try {
+    const h = await carregarCompHist(forcar);
+    if (!ch) return;
+    const eu = semAcento(nomeColaborador());
+    ch.envios = enviosComp(h.arqs).filter(e => ehAdmin() || semAcento(e.autor) === eu);   // cada pessoa vê só os seus
+    $("ch-estado").textContent = (h.online ? "" : "Sem internet: mostrando a última lista guardada. ")
+      + `Atualizado em ${new Date(h.quando).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}.`;
+    // meses que têm comprovantes (o atual sempre aparece) e, para o admin, as pessoas
+    const meses = [...new Set([dataISO().slice(0, 7), ...ch.envios.map(e => e.data.slice(0, 7))])].sort().reverse();
+    const sel = $("ch-mes"); sel.innerHTML = "";
+    const opc = (s, v, t) => { const o = document.createElement("option"); o.value = v; o.textContent = t; s.appendChild(o); };
+    meses.forEach(m => opc(sel, m, `${MESES[+m.slice(5, 7) - 1]} de ${m.slice(0, 4)}`.replace(/^./, c => c.toUpperCase())));
+    opc(sel, "", "Todos os meses");
+    if (!meses.includes(ch.mes) && ch.mes) ch.mes = meses[0];
+    sel.value = ch.mes;
+    $("ch-pessoa-campo").hidden = !ehAdmin();
+    if (ehAdmin()) {
+      const ps = $("ch-pessoa"); ps.innerHTML = "";
+      opc(ps, "", "Todos");
+      [...new Set(ch.envios.map(e => e.autor).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR")).forEach(n => opc(ps, n, n));
+      ps.value = ch.pessoa;
+    }
+    desenharCompHist();
+  } catch (e) {
+    console.error(e);
+    $("ch-estado").textContent = e.semAcesso ? `Sem acesso à pasta "${CONFIG.comprovantesNome}". Peça para ela ser compartilhada com você.`
+      : !navigator.onLine ? "Sem internet e sem lista guardada neste celular." : "Não foi possível carregar: " + e.message;
+  }
+}
+const compFiltrados = () => ch.envios.filter(e => (ch.filtro === "todos" || e.t === ch.filtro) && (!ch.mes || e.data.startsWith(ch.mes)) && (!ch.pessoa || e.autor === ch.pessoa));
+function desenharCompHist() {
+  const envs = compFiltrados(), lista = $("ch-lista"), res = $("ch-resumo");
+  const soma = t => envs.filter(e => !t || e.t === t).reduce((s, e) => s + (e.valor || 0), 0);
+  const semValor = envs.filter(e => e.valor == null).length;
+  res.innerHTML = "";
+  res.appendChild(el("span", "", `${ch.mes ? $("ch-mes").selectedOptions[0]?.textContent : "Todos os meses"} · ${envs.length} comprovante${envs.length === 1 ? "" : "s"}`));
+  res.appendChild(el("b", "", "R$ " + moedaBR(soma())));
+  if (ch.filtro === "todos") res.appendChild(el("span", "", `Compras R$ ${moedaBR(soma("compra"))} · Reembolsos R$ ${moedaBR(soma("reembolso"))}`));
+  if (semValor) res.appendChild(el("span", "", ` · ${semValor} sem valor (enviados antes do campo valor)`));
+  lista.innerHTML = "";
+  $("ch-exportar").hidden = !envs.length;
+  if (!envs.length) { lista.appendChild(el("p", "avcb-nota", "Nenhum comprovante neste filtro.")); return; }
+  let dia = "";
+  for (const e of envs) {
+    if (e.data !== dia) { dia = e.data; lista.appendChild(el("h3", "avcb-grupo", dataBRde(dia))); }
+    const b = el("button", "arq-item"); b.type = "button";
+    b.appendChild(el("span", "arq-ico", e.t === "compra" ? "🛒" : "💸"));
+    const tx = el("span", "arq-txt");
+    tx.appendChild(el("strong", "", `${e.desc || "(sem descrição)"}${e.valor != null ? " · R$ " + moedaBR(e.valor) : ""}`));
+    tx.appendChild(el("small", "", [e.t === "compra" ? "Compra" + (e.forma ? " (" + e.forma + ")" : "") : "Reembolso", e.centro && "Centro: " + e.centro].filter(Boolean).join(" · ")));
+    tx.appendChild(el("small", "", [ehAdmin() && e.autor, `${e.arqs.length} arquivo${e.arqs.length > 1 ? "s" : ""}`].filter(Boolean).join(" · ")));
+    b.appendChild(tx);
+    lista.appendChild(b);
+    if (e.arqs.length === 1) { b.onclick = () => abrirArqComp(e.arqs[0], e); continue; }
+    const arqs = el("div", "ch-arqs"); arqs.hidden = true;     // vários arquivos: tocar mostra um botão para cada
+    e.arqs.forEach((a, i) => { const x = el("button", "", `Arquivo ${i + 1}`); x.type = "button"; x.onclick = () => abrirArqComp(a, e); arqs.appendChild(x); });
+    b.onclick = () => { arqs.hidden = !arqs.hidden; };
+    lista.appendChild(arqs);
+  }
+}
+async function abrirArqComp(a, e) {
+  if (!navigator.onLine) { aviso("Os arquivos abrem com internet.", true); return; }
+  const ext = extDe(a.nome);
+  if (!/^(pdf|jpe?g|png|webp|gif)$/.test(ext)) { window.open(a.web, "_blank", "noopener"); return; }   // ex.: HEIC abre no OneDrive
+  aviso("Abrindo…");
+  try {
+    const it = await graph(`/drives/${CONFIG.driveId}/items/${a.id}`);
+    const blob = await (await fetch(it["@microsoft.graph.downloadUrl"])).blob();
+    const tipoA = ext === "pdf" ? "application/pdf" : "image/" + (ext === "jpg" ? "jpeg" : ext);
+    abrirVisor(new File([blob], a.nome, { type: tipoA }), e.desc || "Comprovante", a.nome);
+  } catch (er) { console.error(er); aviso("Não foi possível abrir: " + er.message, true); }
+}
+async function exportarCompHist() {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const envs = compFiltrados().slice().reverse();          // planilha em ordem de data
+    const linhas = [["Data", "Colaborador", "Tipo", "Forma de pagamento", "Descrição", "Centro de custo", "Valor (R$)", "Arquivos", "Link"]];
+    envs.forEach(e => linhas.push([dataBRde(e.data), e.autor, e.t === "compra" ? "Compra" : "Reembolso", e.forma, e.desc, e.centro, e.valor ?? "", e.arqs.length, e.arqs[0].web]));
+    linhas.push(["", "", "", "", "", "TOTAL", envs.reduce((s, e) => s + (e.valor || 0), 0), "", ""]);
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    ws["!cols"] = [11, 22, 10, 26, 34, 26, 12, 9, 40].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Comprovantes");
+    const periodo = ch.mes || "todos os meses";
+    const nome = `Comprovantes - ${ehAdmin() && !ch.pessoa ? "equipe" : ch.pessoa || nomeColaborador()} - ${periodo}`;
+    const arquivo = new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    compartilharArquivo(arquivo, nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+function fecharCompHist(voltar = true) {
+  if ($("tela-ch").hidden) return;
+  $("tela-ch").hidden = true;
+  document.body.style.overflow = "";
+  ch = null;
+  if (voltar && history.state?.ch) history.back();
 }
 
 /* ---------- permissões e administração ----------
@@ -6199,7 +6402,7 @@ function fecharVisor(voltar = true) {
   visor?.obs?.disconnect();
   visor = null;
   travarVertical(true);
-  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs: a lista continua
+  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -6247,7 +6450,7 @@ function novaVisita() {
   fotos = fotos.filter(f => f.st !== "ok");        // o que ainda está na fila continua na lista
   cliente = null;
   relatorio = null;
-  if (ehComp()) { $("descricao").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo(null); }
+  if (ehComp()) { $("descricao").value = ""; $("comp-valor").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo(null); }
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
 }
@@ -6303,6 +6506,15 @@ $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
 $("pag-cartao").onclick = () => escolherPagamento("cartao");
 $("pag-conta").onclick = () => escolherPagamento("conta");
 $("descricao").oninput = () => { atualizarBotao(); };
+$("comp-valor").oninput = () => { atualizarBotao(); };
+$("comp-valor").onblur = () => { const v = valorComp(); if (v) $("comp-valor").value = moedaBR(v); };   // mostra "1.234,56"
+$("btn-comphist").onclick = abrirCompHist;
+$("ch-voltar").onclick = () => fecharCompHist();
+$("ch-atualizar").onclick = () => recarregarCompHist(true);
+$("ch-exportar").onclick = exportarCompHist;
+$("ch-mes").onchange = () => { ch.mes = $("ch-mes").value; desenharCompHist(); };
+$("ch-pessoa").onchange = () => { ch.pessoa = $("ch-pessoa").value; desenharCompHist(); };
+$("ch-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { ch.filtro = b.dataset.f; $("ch-filtro").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); desenharCompHist(); });
 $("descricao").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
 $("centro-sel").onchange = aoEscolherCentro;
 montarCentros();
@@ -6316,10 +6528,10 @@ window.addEventListener("popstate", () => {
   if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
-  if (history.state?.arq || history.state?.pt || history.state?.its) return;              // voltou do visualizador para os arquivos do cliente / pasta técnica
+  if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharMenu();
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharMenu();
 });
 $("btn-arq").onclick = abrirArquivos;
 $("arq-voltar").onclick = voltarArq;
