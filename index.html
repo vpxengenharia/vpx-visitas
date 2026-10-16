@@ -281,6 +281,18 @@ p{margin:0 0 14px;max-width:60ch}
 .laudo-link{background:none;border:0;color:var(--marinho);font-size:14px;font-weight:600;text-decoration:underline;cursor:pointer;padding:6px 2px;min-height:36px}
 @media (prefers-color-scheme:dark){.laudo-link{color:var(--laranja)}}
 .laudo-link.perigo{color:#B22222}
+.ld-data-add{display:flex;gap:8px;margin-top:8px}
+.ld-data-add input{flex:1;min-width:0}
+.ld-data-add .btn{min-height:52px;padding:0 14px;white-space:nowrap}
+.ld-pausar{width:100%;margin:14px 0 4px}
+.ld-aviso{margin:4px 2px 10px;padding:10px 12px;border-radius:10px;background:var(--warn-bg);color:var(--warn-tx);font-size:14px;line-height:1.35}
+#ld-salvos{margin-top:8px;padding:10px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
+#ld-salvos[hidden]{display:none}
+.lds-grupo{font-size:13px;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.04em;margin:6px 2px 6px}
+.lds-item{display:block;width:100%;margin-bottom:8px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--linha);background:var(--fundo);color:var(--tinta);text-align:left;cursor:pointer;font-size:16px;line-height:1.35}
+.lds-item b{display:block;color:var(--marinho);font-size:17px}
+@media (prefers-color-scheme:dark){.lds-item b{color:var(--laranja)}}
+.lds-item small{display:block;color:var(--suave);font-size:13.5px}
 .piscar{animation:piscar .8s 2}
 @keyframes piscar{50%{box-shadow:0 0 0 4px var(--laranja)}}
 .trein-tipos{grid-template-columns:1fr 1fr}
@@ -512,6 +524,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <p class="avcb-aviso" id="avcb-aviso" hidden></p>
     <button class="btn-arq" id="btn-arq" hidden><span>📁 Arquivos do cliente</span><small>plantas e projetos</small></button>
     <button class="btn-arq" id="btn-pt" hidden><span>📂 Pasta técnica</span><small>vistoria CBM-BA</small></button>
+    <button class="btn-arq" id="btn-ldsalvos" hidden><span id="ldsalvos-txt">📋 Laudos salvos</span><small>continuar ou reabrir</small></button>
+    <div id="ld-salvos" hidden></div>
     <button class="hist-resumo" id="hist-resumo" hidden><span class="hr-linhas"></span><span class="hr-total">Ver histórico</span></button>
     <p class="destino" id="destino"></p>
     <p class="fila" id="fila" role="status" hidden></p>
@@ -899,10 +913,10 @@ const $ = id => document.getElementById(id);
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
 let modo = ["visita", "com", "laudo", "insp", "trein", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, pt: { fotos: [], cliente: null }, pc: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados)
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, pt: { fotos: [], cliente: null }, pc: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null }, ld: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados); ld: só fila (dados dos laudos para reabrir)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb"), ...listaDe("pt"), ...listaDe("pc")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb"), ...listaDe("pt"), ...listaDe("pc"), ...listaDe("ld")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -947,7 +961,8 @@ function bdTx(modoTx, fn) {
 function guardarItem(f, comArquivo = false) {
   const meta = {
     id: f.id, modo: f.modo, nome: f.arquivo.name, tipo: f.arquivo.type, lm: f.arquivo.lastModified,
-    video: !!f.video, pdf: !!f.pdf, st: f.st === "enviando" ? "pendente" : f.st, dest: f.dest || null, prefixo: f.prefixo || null, nomeBase: f.nomeBase || null
+    video: !!f.video, pdf: !!f.pdf, st: f.st === "enviando" ? "pendente" : f.st, dest: f.dest || null, prefixo: f.prefixo || null, nomeBase: f.nomeBase || null,
+    parDe: f.parDe || null, paiBase: f.paiBase || null, substituir: !!f.substituir
   };
   return bdTx("readwrite", (itens, arqs) => { itens.put(meta); if (comArquivo) arqs.put(f.arquivo, f.id); }).catch(e => {
     console.error(e);
@@ -1760,7 +1775,9 @@ async function gerarServicosPDF(l, cli, autor, servs) {
 const ST_LAUDO = { C: "Conforme", NC: "Não conforme", NA: "Não se aplica" };
 const CONCLUSOES = ["Apto", "Apto com ressalvas", "Não apto"];
 
-const laudoVazio = (t = "") => ({ tipo: t, resp: "", endereco: "", acompanhante: "", art: "", r: {}, med: {}, rep: {}, conclusao: "", recom: "", assin: "" });
+// datas = dias das visitas (o dia em que o laudo é preenchido entra sozinho; dá para tirar/pôr à mão)
+// id/cli/origem: laudo pausado ou reaberto (dados guardados no OneDrive; origem = nomes dos arquivos do PDF anterior, para substituir)
+const laudoVazio = (t = "") => ({ tipo: t, resp: "", endereco: "", acompanhante: "", art: "", r: {}, med: {}, rep: {}, conclusao: "", recom: "", assin: "", datas: [] });
 // dois rascunhos independentes: o do laudo e o da inspeção. "laudo" aponta para o da aba aberta (trocado em aplicarModo)
 const rascunhos = { laudo: lerLS("vpx_laudo", null) || laudoVazio(), insp: lerLS("vpx_insp", null) || inspVazio() };
 let laudo = modo === "insp" ? rascunhos.insp : rascunhos.laudo;
@@ -1777,6 +1794,161 @@ function blocosLaudo(l = laudo) {
 const chaveItem = (uid, item) => `${uid}.${item}`;
 const rotuloBloco = (b, l = laudo) => b.s.repetir ? `${b.s.repetir} ${b.n}${l.med[b.uid + ".local"] ? " - " + l.med[b.uid + ".local"] : ""}` : b.s.titulo;
 const laudoIniciado = () => Object.keys(laudo.r).length || Object.values(laudo.med).some(Boolean) || laudo.assin;
+
+// datas das visitas: o dia de hoje entra sozinho na primeira mudança do dia (se for tirado à mão, não volta no mesmo dia)
+function marcarDiaLaudo() {
+  if (!laudo.tipo) return;
+  const hoje = dataISO();
+  if (laudo.diaAuto === hoje) return;
+  laudo.diaAuto = hoje;
+  laudo.datas ||= [];
+  if (!laudo.datas.includes(hoje)) { laudo.datas.push(hoje); laudo.datas.sort(); pintarDatas(); }
+}
+function campoDatas() {
+  const w = el("div", "campo"); w.id = "ld-datas";
+  w.appendChild(el("span", "", "Datas das visitas técnicas"));
+  const cx = el("div", "chips");
+  w.appendChild(cx);
+  const add = el("div", "ld-data-add");
+  const inp = document.createElement("input"); inp.type = "date"; inp.max = dataISO();
+  const b = el("button", "btn sec", "+ Adicionar"); b.type = "button";
+  b.onclick = () => {
+    if (!inp.value) { try { inp.showPicker(); } catch { inp.focus(); } return; }
+    laudo.datas ||= [];
+    if (!laudo.datas.includes(inp.value)) { laudo.datas.push(inp.value); laudo.datas.sort(); }
+    inp.value = ""; pintarDatas(cx); gravarLaudo();
+  };
+  add.append(inp, b);
+  w.appendChild(add);
+  pintarDatas(cx);
+  return w;
+}
+function pintarDatas(cx = $("ld-datas")?.querySelector(".chips")) {
+  if (!cx) return;
+  cx.innerHTML = "";
+  (laudo.datas || []).forEach(d => {
+    const c = el("button", "", `${dataBRde(d)}  ×`); c.type = "button"; c.setAttribute("aria-label", `Tirar a data ${dataBRde(d)}`);
+    c.onclick = () => { if (!confirm(`Tirar a data ${dataBRde(d)}?`)) return; laudo.datas = laudo.datas.filter(x => x !== d); pintarDatas(cx); gravarLaudo(); };
+    cx.appendChild(c);
+  });
+  if (!laudo.datas?.length) cx.appendChild(el("p", "laudo-dica", "A data de hoje entra sozinha quando você começar a preencher."));
+}
+
+/* ---------- laudo pausado / reaberto: respostas e fotos guardadas no OneDrive ----------
+   Cliente › Laudos Técnicos (ou Relatórios de Inspeção) › Dados para reabrir: LD-….json (respostas, pequeno, para a lista)
+   e LD-….fotos.json (fotos dos itens). Vão pela fila (funcionam sem internet) e são gravados por cima a cada pausa/conclusão. */
+const PASTA_DADOS_LD = "Dados para reabrir";
+const pastaDadosLaudo = (cli, insp) => `${cli}/${insp ? CONFIG.pastaInspecoes : CONFIG.pastaLaudos}/${PASTA_DADOS_LD}`;
+const INI_DADOS = '{"pdf":null,';                  // no laudo concluído, o envio troca o null pelo nome do PDF
+function novoIdLaudo() {
+  const a = new Date();
+  const ini = semAcento(nomeColaborador()).split(/\s+/).filter(Boolean).map(p => p[0]).slice(0, 2).join("").toUpperCase().replace(/[^A-Z]/g, "");
+  return `LD-${dataISO(a).replace(/-/g, "")}-${pad(a.getHours())}${pad(a.getMinutes())}${pad(a.getSeconds())}-${ini || "X"}`;
+}
+// estado: "andamento" (pausado) ou "concluido"; pai = item do PDF gerado agora (só no concluído)
+async function guardarDadosLaudo(l, cli, estado, pai) {
+  l.id ||= novoIdLaudo();
+  l.cli = cli;
+  const fotosLd = {};
+  for (const k of todasFotosLaudo(l)) { try { const b = await lerFotoLaudo(k); if (b) fotosLd[k] = await paraDataURL(b); } catch {} }
+  const meta = { versao: 1, estado, cliente: cli, tipo: l.tipo, nome: defDe(l)?.nome || "", autor: nomeColaborador(),
+    atualizadoEm: new Date().toISOString(), datas: l.datas || [], laudo: l };
+  const d = { modo: "visita", autor: meta.autor, cliente: cli, caminho: pastaDadosLaudo(cli, ehInsp(l)), data: dataISO() };
+  for (const [txt, nome, comPai] of [[INI_DADOS + JSON.stringify(meta).slice(1), l.id, true], [JSON.stringify(fotosLd), l.id + ".fotos", false]]) {
+    // uma versão mais nova substitui a que ainda estava na fila (para a antiga não chegar depois e gravar por cima)
+    const lista = listaDe("ld");
+    for (let i = lista.length - 1; i >= 0; i--) if (lista[i].nomeBase === nome && lista[i].st !== "enviando") { apagarItem(lista[i].id); lista.splice(i, 1); }
+    const it = { id: ++seq, modo: "ld", arquivo: new File([txt], nome + ".json", { type: "application/json", lastModified: Date.now() }), url: "", st: "pendente", pdf: true,
+      dest: d, prefixo: nome, nomeBase: nome, substituir: true };
+    if (comPai && pai) { it.parDe = pai.id; if (pai.nomeBase) it.paiBase = pai.nomeBase; }
+    lista.push(it);
+    await guardarItem(it, true);
+  }
+}
+async function pausarLaudo() {
+  if (enviando || !laudo.tipo) return;
+  if (!cliente) { abrirDialogo(); return; }
+  if (laudo.cli && laudo.cli !== cliente) { aviso(`Este ${ehInsp() ? "relatório" : "laudo"} é do cliente ${laudo.cli}. Escolha esse cliente para pausar.`, true); return; }
+  marcarDiaLaudo();
+  const nome = defLaudo().nome;
+  try { await guardarDadosLaudo(laudo, cliente, "andamento"); }
+  catch (e) { console.error(e); aviso("Não foi possível guardar: " + e.message, true); return; }
+  limparLaudo(); atualizar(); window.scrollTo(0, 0);
+  aviso(`${nome} pausado e guardado na pasta do cliente. Para continuar, escolha o cliente e toque em "${rotuloSalvos()}".`);
+  tentarPendentes();
+}
+
+// lista dos laudos pausados e concluídos do cliente (botão "Laudos salvos"); tocar abre o laudo no formulário
+const rotuloSalvos = () => modo === "insp" ? "Relatórios salvos" : "Laudos salvos";
+async function baixarJSON(id) {
+  const it = await graph(`/drives/${CONFIG.driveId}/items/${id}`);
+  const r = await fetch(it["@microsoft.graph.downloadUrl"]);
+  if (!r.ok) throw new Error("download " + r.status);
+  return r.json();
+}
+async function abrirSalvos() {
+  const caixa = $("ld-salvos");
+  if (!caixa.hidden) { caixa.hidden = true; return; }
+  caixa.hidden = false; caixa.innerHTML = "";
+  caixa.appendChild(el("p", "laudo-dica", "Procurando…"));
+  const cli = cliente, insp = modo === "insp", m0 = modo;
+  let metas = [];
+  try {
+    if (!navigator.onLine) throw new TypeError("sem internet");
+    const { itens } = await listarPastaHist(cli, `${insp ? CONFIG.pastaInspecoes : CONFIG.pastaLaudos}/${PASTA_DADOS_LD}`);
+    const ids = new Map(itens.map(i => [i.name.toLowerCase(), i.id]));
+    metas = (await Promise.all(itens.filter(i => /^LD-.*\.json$/i.test(i.name) && !/\.fotos\.json$/i.test(i.name)).map(async i => {
+      try { const m = await baixarJSON(i.id); return { ...m, idFotos: ids.get(i.name.replace(/\.json$/i, ".fotos.json").toLowerCase()) }; } catch (e) { console.error(e); return null; }
+    }))).filter(m => m?.laudo);
+  } catch (e) {
+    console.error(e);
+    if (cliente !== cli || modo !== m0) return;
+    caixa.innerHTML = "";
+    caixa.appendChild(el("p", "laudo-dica", !navigator.onLine || e instanceof TypeError ? "Sem internet: a lista dos salvos precisa de conexão." : "Não foi possível ler a lista: " + e.message));
+    return;
+  }
+  if (cliente !== cli || modo !== m0) return;      // trocou de cliente/aba enquanto procurava
+  caixa.innerHTML = "";
+  const fila = listaDe("ld").filter(f => f.st !== "ok" && f.dest?.cliente === cli && !/\.fotos$/.test(f.nomeBase)).length;
+  if (fila) caixa.appendChild(el("p", "ld-aviso", `⏳ ${fila} ${fila > 1 ? "salvos ainda estão" : "salvo ainda está"} na fila deste celular e ${fila > 1 ? "aparecerão" : "aparecerá"} aqui depois de enviado.`));
+  if (!metas.length) { caixa.appendChild(el("p", "laudo-dica", `Nenhum ${insp ? "relatório" : "laudo"} pausado ou concluído neste cliente ainda. Os gerados a partir de hoje aparecem aqui.`)); return; }
+  metas.sort((a, b) => (b.atualizadoEm || "").localeCompare(a.atualizadoEm || ""));
+  for (const [estado, titulo] of [["andamento", "Em andamento"], ["concluido", "Concluídos"]]) {
+    const doGrupo = metas.filter(m => (m.estado === "concluido" ? "concluido" : "andamento") === estado);
+    if (!doGrupo.length) continue;
+    caixa.appendChild(el("p", "lds-grupo", titulo));
+    for (const m of doGrupo) {
+      const b = el("button", "lds-item"); b.type = "button";
+      b.appendChild(el("b", "", m.nome || "Laudo"));
+      const visitas = (m.datas || []).map(dataBRde).join(", ");
+      b.appendChild(el("small", "", [visitas && `Visitas: ${visitas}`, m.autor && `por ${m.autor}`].filter(Boolean).join(" · ")));
+      b.appendChild(el("small", "", estado === "andamento" ? (m.laudo.origem?.pdf || m.pdf ? "Já tem PDF · toque para continuar" : "Toque para continuar") : "Toque para reabrir e editar"));
+      b.onclick = () => reabrirLaudo(m);
+      caixa.appendChild(b);
+    }
+  }
+}
+async function reabrirLaudo(m) {
+  if (enviando) return;
+  const insp = ehInsp(m.laudo), qual = insp ? "relatório" : "laudo";
+  if (laudo.id === m.laudo.id && laudo.tipo) { $("ld-salvos").hidden = true; aviso(`Este ${qual} já está aberto.`); return; }
+  if (laudo.tipo && laudoIniciado() && !confirm(`O ${qual} que está aberto neste celular será apagado. Para guardá-lo, toque antes em "Pausar e continuar depois" no fim do formulário. Continuar?`)) return;
+  let fotosLd = {};
+  if (todasFotosLaudo(m.laudo).length) {
+    aviso("Baixando as fotos…");
+    try { if (!m.idFotos) throw new Error("arquivo das fotos não encontrado"); fotosLd = await baixarJSON(m.idFotos); }
+    catch (e) { console.error(e); aviso("Não foi possível baixar as fotos: " + e.message, true); return; }
+  }
+  todasFotosLaudo().forEach(apagarFotoLaudo);       // fotos do rascunho que estava aberto
+  try { for (const [k, url] of Object.entries(fotosLd)) await gravarFotoLaudo(k, await (await fetch(url)).blob()); }
+  catch (e) { console.error(e); aviso("Não foi possível guardar as fotos no celular (falta de espaço?).", true); }
+  const l = { ...(insp ? inspVazio() : laudoVazio()), ...m.laudo, cli: m.cliente };
+  if (m.pdf) l.origem = { ...(l.origem || {}), pdf: m.pdf };
+  laudo = l; gravarLaudo(); montarLaudo(); atualizar();
+  $("ld-salvos").hidden = true;
+  $("form-laudo").scrollIntoView({ block: "start" });
+  aviso(`${m.nome} aberto.${l.origem?.pdf ? " Ao gerar o PDF de novo, ele substitui o anterior." : ""}`);
+}
 
 // fotos dos itens: reduzidas (1400 px) e guardadas no IndexedDB enquanto o laudo não é salvo
 const urlsFotoLaudo = new Map();
@@ -1809,7 +1981,9 @@ function limparLaudo() {
   gravarLaudo(); montarLaudo();
 }
 function descartarLaudo() {
-  if (!confirm(`Apagar tudo o que foi preenchido neste ${ehInsp() ? "relatório" : "laudo"}?`)) return;
+  const qual = ehInsp() ? "relatório" : "laudo";
+  if (!confirm(laudo.cli ? `Apagar deste celular o que foi preenchido neste ${qual}? A cópia salva na pasta do cliente (${rotuloSalvos()}) continua lá.`
+    : `Apagar tudo o que foi preenchido neste ${qual}?`)) return;
   limparLaudo(); atualizarBotao(); window.scrollTo(0, 0);
 }
 
@@ -1842,7 +2016,8 @@ function montarLaudo() {
   }
   const def = defLaudo();
   if (!def || (insp && !def.secoes.length)) { raiz.appendChild(el("p", "laudo-dica", insp ? "Escolha o cliente e marque os sistemas para começar." : "Escolha o cliente e o tipo de laudo para começar.")); return; }
-  raiz.appendChild(el("p", "laudo-dica", `${def.nome} - ${insp ? "" : "referência: "}${def.norma}. O preenchimento fica guardado no celular até gerar o PDF.`));
+  raiz.appendChild(el("p", "laudo-dica", `${def.nome} - ${insp ? "" : "referência: "}${def.norma}. O preenchimento fica guardado no celular até gerar o PDF. Para terminar outro dia (ou em outro celular), toque em "Pausar e continuar depois" no fim.`));
+  if (laudo.cli) raiz.appendChild(el("p", "ld-aviso", `${insp ? "Relatório" : "Laudo"} do cliente ${laudo.cli}${laudo.origem?.pdf ? ", reaberto: ao gerar o PDF de novo, ele substitui o anterior" : ", continuado"}.`));
 
   // identificação
   raiz.appendChild(el("h2", "secao", "Identificação"));
@@ -1857,6 +2032,7 @@ function montarLaudo() {
   });
   resp.appendChild(chips);
   raiz.appendChild(resp);
+  raiz.appendChild(campoDatas());
   raiz.appendChild(campoLaudo("Endereço", "endereco", { id: "ld-end", dica: avcbDoCliente(cliente)?.endereco || "" }));
   raiz.appendChild(campoLaudo("Acompanhou a vistoria (nome/função)", "acompanhante"));
   if (!insp) raiz.appendChild(campoLaudo("Nº da ART (opcional)", "art"));
@@ -1904,6 +2080,8 @@ function montarLaudo() {
   raiz.appendChild(campoLaudo("Recomendações / adequações necessárias", "recom", { longo: true, id: "ld-recom" }));
   raiz.appendChild(sug);
   raiz.appendChild(padAssinatura());
+  const pausa = el("button", "btn sec ld-pausar", "⏸ Pausar e continuar depois"); pausa.type = "button"; pausa.onclick = pausarLaudo;
+  raiz.appendChild(pausa);
   const desc = el("button", "laudo-link perigo", insp ? "Descartar este relatório" : "Descartar este laudo"); desc.type = "button"; desc.onclick = descartarLaudo;
   raiz.appendChild(desc);
 }
@@ -2063,7 +2241,7 @@ function padAssinatura() {
   return w;
 }
 
-function mudouLaudo() { gravarLaudo(); atualizarBotao(); }
+function mudouLaudo() { marcarDiaLaudo(); gravarLaudo(); atualizarBotao(); }
 
 // na inspeção, o bloco repetido leva o nome do sistema na frente (ex.: "Extintores - Pavimento/área 2 - Garagem")
 function naoConformes(l = laudo) {
@@ -2073,6 +2251,7 @@ function naoConformes(l = laudo) {
 // o que falta para gerar o laudo; alvo = elemento para onde rolar a tela
 function faltaLaudo() {
   if (!laudo.tipo) return { texto: "Escolha o tipo de laudo" };
+  if (laudo.cli && cliente && laudo.cli !== cliente) return { texto: `Escolha o cliente ${laudo.cli}` };   // laudo continuado/reaberto é de um cliente só
   if (ehInsp() && !laudo.sist.length) return { texto: "Marque os sistemas inspecionados", alvo: "ld-sist" };
   if (!laudo.resp) return { texto: "Escolha o responsável técnico", alvo: "ld-resp" };
   const pend = [], semObs = [];
@@ -2099,6 +2278,9 @@ async function gerarLaudoPDF(l, cli, autor) {
   let y = 15;
   const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; return true; } return false; };
   const hoje = new Date(), dataBR = `${pad(hoje.getDate())}/${pad(hoje.getMonth() + 1)}/${hoje.getFullYear()}`;
+  // datas das visitas (laudo feito em mais de um dia); sem nenhuma, vale a de hoje
+  const datas = (l.datas?.length ? l.datas : [dataISO(hoje)]).slice().sort().map(dataBRde);
+  const rotDatas = datas.length > 1 ? "Datas das vistorias" : "Data da vistoria";
   const [, crea] = CONFIG.responsaveis.find(([n]) => n === l.resp) || [l.resp, ""];
   const endereco = (l.endereco || avcbDoCliente(cli)?.endereco || "").trim();
 
@@ -2107,7 +2289,7 @@ async function gerarLaudoPDF(l, cli, autor) {
   doc.text(def.nome, 210 - M, y + 7, { align: "right" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
   doc.text(`Cliente: ${cli}`, 210 - M, y + 13, { align: "right" });
-  doc.text(`Data da vistoria: ${dataBR}`, 210 - M, y + 18, { align: "right" });
+  doc.text(datas.length > 1 ? `Vistorias: ${datas[0]} a ${datas[datas.length - 1]}` : `Data da vistoria: ${datas[0]}`, 210 - M, y + 18, { align: "right" });
   y += 23;
   doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y);
   y += 8;
@@ -2130,7 +2312,7 @@ async function gerarLaudoPDF(l, cli, autor) {
   };
 
   secao("Identificação");
-  [["Cliente", cli], ["Endereço", endereco], ["Data da vistoria", dataBR], ["Vistoria realizada por", autor],
+  [["Cliente", cli], ["Endereço", endereco], [rotDatas, datas.join(", ")], ["Data de emissão", datas[datas.length - 1] === dataBR ? "" : dataBR], ["Vistoria realizada por", autor],
    ["Acompanhou a vistoria", l.acompanhante], ["Responsável técnico", `${l.resp}${crea ? " - " + crea : ""}`],
    ["ART", insp ? "" : l.art], [insp ? "Referência" : "Referência normativa", def.norma],
    ["Sistemas inspecionados", insp ? def.secoes.map(s => s.titulo).join(", ") : ""]].filter(([, v]) => (v || "").trim()).forEach(([r, v]) => linha(r, v));
@@ -2857,6 +3039,9 @@ function atualizar() {
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
   $("btn-arq").hidden = comp || !cliente || !pode("arquivos");
   $("btn-pt").hidden = comp || !cliente || !pode("pastaTec");
+  $("btn-ldsalvos").hidden = !(modo === "laudo" || modo === "insp") || !cliente;   // laudos/relatórios pausados e concluídos do cliente
+  $("ldsalvos-txt").textContent = "📋 " + rotuloSalvos();
+  if (cliente !== atualizar.cliSalvos || modo !== atualizar.modoSalvos) { atualizar.cliSalvos = cliente; atualizar.modoSalvos = modo; $("ld-salvos").hidden = true; }
   if (cliente !== atualizar.cliHist || comp !== atualizar.compHist) { atualizar.cliHist = cliente; atualizar.compHist = comp; atualizarResumoHist(); }   // resumo do histórico ao trocar de cliente
 
   const g = $("grade");
@@ -2969,10 +3154,12 @@ async function garantirPasta(caminho) {
 }
 
 // avancou(n) informa quantos bytes já chegaram ao OneDrive (para a barra de progresso)
-async function enviarArquivo(pastaId, nome, blob, avancou = () => {}) {
+// substituir = grava por cima do arquivo de mesmo nome (laudo reaberto); senão o OneDrive cria uma cópia com outro nome
+async function enviarArquivo(pastaId, nome, blob, avancou = () => {}, substituir = false) {
   const alvo = `/drives/${CONFIG.driveId}/items/${pastaId}:/${encodeURIComponent(nome)}:`;
+  const conflito = substituir ? "replace" : "rename";
   if (blob.size < 4 * 1024 * 1024) {
-    await graph(`${alvo}/content?@microsoft.graph.conflictBehavior=rename`, {
+    await graph(`${alvo}/content?@microsoft.graph.conflictBehavior=${conflito}`, {
       method: "PUT", headers: { "Content-Type": blob.type || "application/octet-stream" }, body: blob
     });
     avancou(blob.size);
@@ -2980,7 +3167,7 @@ async function enviarArquivo(pastaId, nome, blob, avancou = () => {}) {
   }
   const s = await graph(`${alvo}/createUploadSession`, {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ item: { "@microsoft.graph.conflictBehavior": "rename" } })
+    body: JSON.stringify({ item: { "@microsoft.graph.conflictBehavior": conflito } })
   });
   const PEDACO = 320 * 1024 * 10;
   let ini = 0, falhas = 0;
@@ -3024,8 +3211,20 @@ async function enviarFila(lista, visivel) {
 
   // numeração: lê os nomes da pasta uma vez por envio e continua do maior número usado
   const nomesPasta = new Map(), contadores = new Map();
+  // laudo: a planilha de serviços, a cópia da pasta técnica e os dados para reabrir seguem o PDF (parDe = id do item do PDF):
+  // usam o mesmo número dele, e os dados guardam o nome do PDF para ele ser substituído se o laudo for reaberto
+  const basePai = async f => {
+    if (!f.paiBase) {
+      const p = todosItens().find(x => x.id === f.parDe);
+      if (p) { f.paiBase = await numerar(p); guardarItem(f); }
+    }
+    return f.paiBase || null;
+  };
   const numerar = async f => {
+    if (f.parDe) await basePai(f);
     if (f.nomeBase) return f.nomeBase;              // já numerado (ou item salvo por versão anterior do app)
+    const nnPai = f.paiBase?.match(/_(\d+)$/)?.[1];
+    if (nnPai) { f.nomeBase = `${f.prefixo}_${nnPai}`; guardarItem(f); return f.nomeBase; }
     const pasta = await pastaDe(f.dest);
     if (!nomesPasta.has(pasta.id)) {
       const p = listarNomes(pasta.id);
@@ -3043,6 +3242,8 @@ async function enviarFila(lista, visivel) {
     contadores.set(chave, n);
     f.nomeBase = `${f.prefixo}_${pad(n)}`;
     guardarItem(f);                                 // o número fica reservado mesmo se o envio falhar agora
+    // passa o nome para os itens que seguem este PDF (eles podem ser enviados depois, quando o PDF já saiu da lista)
+    todosItens().filter(x => x.parDe === f.id && !x.paiBase).forEach(x => { x.paiBase = f.nomeBase; guardarItem(x); });
     return f.nomeBase;
   };
   // numera na ordem da lista antes de enviar (os envios rodam em paralelo); se falhar (ex.: sem internet), tenta no envio
@@ -3057,11 +3258,13 @@ async function enviarFila(lista, visivel) {
         const pasta = await pastaDe(f.dest);
         r.pasta ||= pasta;
         const nomeBase = await numerar(f);
-        const { blob, ext } = await reduzir(f.arquivo);
+        let { blob, ext } = await reduzir(f.arquivo);
+        // dados do laudo concluído: grava o nome do PDF (decidido só agora, na numeração) no início do arquivo
+        if (f.modo === "ld" && f.parDe) blob = new Blob([`{"pdf":${JSON.stringify(await basePai(f))},`, f.arquivo.slice(INI_DADOS.length)], { type: "application/json" });
         const extensao = ext || (f.arquivo.name.split(".").pop() || "jpg").toLowerCase();
         // se a foto foi reduzida, converte o progresso para o tamanho original
         const fator = f.arquivo.size / (blob.size || 1);
-        await enviarArquivo(pasta.id, `${nomeBase}.${extensao}`, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); });
+        await enviarArquivo(pasta.id, `${nomeBase}.${extensao}`, blob, k => { const d = k * fator; deste += d; bytes += d; prog(); }, f.substituir);
         f.st = "ok"; r.ok++;
         apagarItem(f.id);                               // chegou ao OneDrive: pode sair do celular
         if (f.dest?.cliente) { try { localStorage.removeItem("vpx_hist_" + f.dest.cliente); } catch {} atualizar.cliHist = undefined; }   // histórico do cliente mudou
@@ -3112,11 +3315,15 @@ async function salvar() {
     try { pdf = await gerarLaudoPDF(laudo, cliente, d.autor); }
     catch (e) { console.error(e); aviso("Não foi possível gerar o PDF do laudo: " + e.message, true); atualizarBotao(); return; }
     const arquivo = new File([pdf], nomeLaudo + ".pdf", { type: "application/pdf", lastModified: Date.now() });
+    // laudo reaberto (origem.pdf): grava por cima do PDF anterior, com o mesmo nome; a planilha e a cópia da pasta técnica também
+    const o = laudo.origem || {}, subst = !!o.pdf;
+    const visita = o.visita || prefixoDe({ arquivo }, d);
     const item = { id: ++seq, modo, arquivo, url: URL.createObjectURL(arquivo), st: "nova", pdf: true, dest: d,
-      prefixo: `${prefixoDe({ arquivo }, d)}_${nomeLaudo}` };     // ex.: João da Silva_2026-10-12_Diamond_Laudo de Hidrantes_01.pdf
+      prefixo: `${visita}_${nomeLaudo}`, ...(subst ? { nomeBase: o.pdf, substituir: true } : {}) };   // ex.: João da Silva_2026-10-12_Diamond_Laudo de Hidrantes_01.pdf
+    const filho = { parDe: item.id, paiBase: item.nomeBase || null, substituir: subst };   // planilha/cópia: mesmo número do PDF
     fotos.unshift(item);
     await guardarItem(item, true);
-    await copiarParaPastaTec(ehInsp() ? "insp" : laudo.tipo, arquivo, cliente, d.autor);   // cópia na pasta técnica (05 - Laudos / 08 - Inspeções)
+    const ptPrefixo = await copiarParaPastaTec(ehInsp() ? "insp" : laudo.tipo, arquivo, cliente, d.autor, { ...filho, prefixo: o.pt });   // cópia na pasta técnica (05 - Laudos / 08 - Inspeções)
     // serviços das não conformidades: planilha (para precificar) + PDF interno em 02 - Orçamento (não vão para o cliente)
     const servs = servicosDe(laudo);
     if (servs.length) {
@@ -3125,13 +3332,17 @@ async function salvar() {
         const [xl, pd] = await Promise.all([gerarServicosXLSX(laudo, cliente, d.autor, servs), gerarServicosPDF(laudo, cliente, d.autor, servs)]);
         for (const [blob, nome, rot] of [[xl, "Orçamento.xlsx", "Orçamento"], [pd, "Lista de serviços.pdf", "Lista de serviços"]]) {
           const a = new File([blob], nome, { type: blob.type, lastModified: Date.now() });
-          const it = { id: ++seq, modo, arquivo: a, url: "", st: "nova", pdf: true, dest: dO,
-            prefixo: `${prefixoDe({ arquivo: a }, dO)}_${rot} - ${nomeLaudo}` };   // ex.: João da Silva_2026-10-14_Diamond_Orçamento - Relatório de Inspeção_01.xlsx
+          const it = { id: ++seq, modo, arquivo: a, url: "", st: "nova", pdf: true, dest: dO, ...filho,
+            prefixo: `${visita}_${rot} - ${nomeLaudo}` };   // ex.: João da Silva_2026-10-14_Diamond_Orçamento - Relatório de Inspeção_01.xlsx
           fotos.push(it);
           await guardarItem(it, true);
         }
       } catch (e) { console.error(e); aviso("O documento foi gerado, mas a lista de serviços não: " + e.message, true); }
     }
+    // respostas e fotos vão para "Dados para reabrir": o laudo pode ser reaberto e editado depois
+    laudo.origem = { pdf: o.pdf || null, visita, pt: ptPrefixo || o.pt || null };
+    try { await guardarDadosLaudo(laudo, cliente, "concluido", item); }
+    catch (e) { console.error(e); aviso("O documento foi gerado, mas não foi possível guardar os dados para reabrir: " + e.message, true); }
     limparLaudo();                                // o PDF já está guardado no celular: o rascunho (e as fotos dele) pode ser apagado
     relatorio = { item, cliente, titulo: nomeLaudo, servicos: servs.length };
   }
@@ -3182,6 +3393,8 @@ async function salvar() {
   const fila = fotos.filter(f => f.st !== "ok");
   if (!fila.length) return;
   const r = await enviarFila(fila, true);
+  // laudo: os dados para reabrir e a cópia da pasta técnica vão logo em seguida, pela fila
+  if (relatorio && (modo === "laudo" || modo === "insp")) setTimeout(tentarPendentes, 300);
 
   if ((r.pendentes || r.erros) && relatorio && fila.includes(relatorio.item)) {
     // relatório pronto, mas sem internet: mostra a tela final mesmo assim, para ver e compartilhar na hora
@@ -4414,15 +4627,19 @@ function lerNomePT(nome) {
 }
 
 // fila: cópia de um PDF gerado pelo app para a pasta técnica (chamado ao salvar laudo/inspeção/treinamento)
-async function copiarParaPastaTec(chave, arquivo, cli, autor) {
-  const a = PT_AUTO[chave]; if (!a) return;
+// op (laudo): parDe/paiBase = segue o número do PDF; prefixo/substituir = laudo reaberto grava por cima da cópia anterior. Devolve o início do nome.
+async function copiarParaPastaTec(chave, arquivo, cli, autor, op = {}) {
+  const a = PT_AUTO[chave]; if (!a) return null;
   const sec = secPT(a[0]), item = sec.itens.find(i => i[0] === a[1]);
   const hoje = dataISO();
+  const prefixo = op.prefixo || prefixoPT(item[1], hoje, a[2] ? somaMeses(hoje, a[2]) : "");
   const it = { id: ++seq, modo: "pt", arquivo: new File([arquivo], arquivo.name, { type: arquivo.type, lastModified: Date.now() }), url: "", st: "pendente", pdf: true,
-    dest: { modo: "visita", autor, cliente: cli, caminho: ptPasta(cli, sec), data: hoje }, prefixo: prefixoPT(item[1], hoje, a[2] ? somaMeses(hoje, a[2]) : "") };
+    dest: { modo: "visita", autor, cliente: cli, caminho: ptPasta(cli, sec), data: hoje }, prefixo,
+    parDe: op.parDe || null, paiBase: op.paiBase || null, substituir: !!(op.prefixo && op.substituir) };
   listaDe("pt").push(it);
   await guardarItem(it, true);
   try { localStorage.removeItem("vpx_pt_" + cli); } catch {}
+  return prefixo;
 }
 
 async function carregarPT(cli, forcar) {
@@ -5875,7 +6092,7 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "com", "laudo", "insp", "trein", "comp", "avcb", "pt", "pc"]) {
+  for (const m of ["visita", "com", "laudo", "insp", "trein", "comp", "avcb", "pt", "pc", "ld"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
@@ -5895,7 +6112,8 @@ async function restaurarItens() {
     const arquivo = new File([r.blob], r.nome, { type: r.tipo, lastModified: r.lm });
     const item = {
       id: r.id, modo: r.modo, arquivo, url: URL.createObjectURL(arquivo), video: r.video, pdf: r.pdf,
-      dest: r.dest, prefixo: r.prefixo, nomeBase: r.nomeBase, st: r.dest ? (r.st === "erro" ? "erro" : "pendente") : "nova"
+      dest: r.dest, prefixo: r.prefixo, nomeBase: r.nomeBase, st: r.dest ? (r.st === "erro" ? "erro" : "pendente") : "nova",
+      parDe: r.parDe || null, paiBase: r.paiBase || null, substituir: !!r.substituir
     };
     listaDe(r.modo).push(item);
     if (item.video) gerarCapa(item);
@@ -5999,6 +6217,7 @@ $("adm-email").onkeydown = e => { if (e.key === "Enter") adicionarUsuarioAdmin()
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (carregarPermissoes.quando || 0) > 60000) carregarPermissoes(); });
 $("hist-resumo").onclick = abrirHistorico;
 $("btn-pt").onclick = abrirPastaTec;
+$("btn-ldsalvos").onclick = abrirSalvos;
 $("btn-its").onclick = abrirNormas;
 $("btn-menu").onclick = e => { e.stopPropagation(); $("menu").hidden ? abrirMenu() : fecharMenu(); };
 document.addEventListener("click", e => { if (!$("menu").hidden && !e.target.closest("#menu")) fecharMenu(); });
