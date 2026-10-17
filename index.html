@@ -376,6 +376,18 @@ p{margin:0 0 14px;max-width:60ch}
 .ld-data-add input{flex:1;min-width:0}
 .ld-data-add .btn{min-height:52px;padding:0 14px;white-space:nowrap}
 .ld-pausar{width:100%;margin:14px 0 4px}
+/* relatório de serviço */
+.sv-horas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sv-fotos{margin-top:8px}
+.sv-fotos .li-foto{min-height:46px;font-size:15px;margin-bottom:6px;color:var(--marinho)}
+@media (prefers-color-scheme:dark){.sv-fotos .li-foto{color:var(--tinta)}}
+.sv-mat{list-style:none;margin:0 0 10px;padding:0;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
+.sv-mat li{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--linha);font-size:16px}
+.sv-mat li:last-child{border-bottom:0}
+.sv-mat li span{flex:1;min-width:0}
+.sv-mat-add{display:grid;grid-template-columns:1fr 64px 58px;gap:8px;margin-bottom:8px}
+.sv-mat-add input{min-height:48px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 10px;font-size:16px;min-width:0}
+.sv-mat-add .btn{grid-column:1 / -1;min-height:48px}
 .ld-tudo-c{width:100%;min-height:48px;margin:0 0 10px;color:#1F7A45;border-color:#1F7A45;font-weight:700;gap:10px}
 .ld-tudo-c small{font-weight:400;font-size:13px;color:var(--suave)}
 @media (prefers-color-scheme:dark){.ld-tudo-c{color:#6FCE97;border-color:#6FCE97}}
@@ -615,6 +627,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <button role="tab" id="aba-laudo" aria-selected="false">Laudos</button>
       <button role="tab" id="aba-insp" aria-selected="false">Inspeções</button>
       <button role="tab" id="aba-trein" aria-selected="false">Brigada</button>
+      <button role="tab" id="aba-serv" aria-selected="false">Serviço</button>
       <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
     <div id="form-comp" hidden>
@@ -655,6 +668,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <div id="form-com" hidden></div>
     <div id="form-laudo" hidden></div>
     <div id="form-trein" hidden></div>
+    <div id="form-serv" hidden></div>
     <div class="grade" id="grade"></div>
     <div class="semfotos" id="semfotos">Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.</div>
   </section>
@@ -857,6 +871,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <button type="button" data-f="laudo" aria-pressed="false">Laudos</button>
       <button type="button" data-f="insp" aria-pressed="false">Inspeções</button>
       <button type="button" data-f="trein" aria-pressed="false">Treinamentos</button>
+      <button type="button" data-f="serv" aria-pressed="false">Serviços</button>
     </div>
     <p class="avcb-nota" id="hist-estado" style="margin-top:0"></p>
     <div id="hist-lista"></div>
@@ -988,6 +1003,7 @@ const CONFIG = {
   pastaClientesId: "01VYL4Q5YGDBCBT3E7CRDLSKCI3476CXTS",
   pastaClientesNome: "02 - Clientes",
   pastaTreinamentos: "Treinamentos de Brigada",                       // lista de presença e certificados dentro da pasta do cliente
+  pastaServicos: "Relatórios de Serviço",                             // relatórios dos serviços feitos no dia, dentro da pasta do cliente
   pastaInspecoes: "Relatórios de Inspeção",                            // relatórios de inspeção dentro da pasta do cliente
   pedidosCaminho: "VPX Engenharia - AVCB/02 - Financeiro/02 - Pedidos de Compra",   // pedidos de compra (.json + PDF)
   pedidosNome: "02 - Pedidos de Compra",
@@ -1074,11 +1090,11 @@ const $ = id => document.getElementById(id);
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
-let modo = ["visita", "com", "laudo", "insp", "trein", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
-const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, pt: { fotos: [], cliente: null }, pc: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null }, ld: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados); ld: só fila (dados dos laudos para reabrir)
+let modo = ["visita", "com", "laudo", "insp", "trein", "serv", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
+const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, serv: { fotos: [], cliente: null }, pt: { fotos: [], cliente: null }, pc: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null }, ld: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados); ld: só fila (dados dos laudos para reabrir)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
-const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("comp"), ...listaDe("avcb"), ...listaDe("pt"), ...listaDe("pc"), ...listaDe("ld")];
+const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("laudo"), ...listaDe("insp"), ...listaDe("trein"), ...listaDe("serv"), ...listaDe("comp"), ...listaDe("avcb"), ...listaDe("pt"), ...listaDe("pc"), ...listaDe("ld")];
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
@@ -1294,13 +1310,16 @@ function aplicarModo() {
   $("form-laudo").hidden = !lau;
   if (lau && laudo !== rascunhos[modo]) { laudo = rascunhos[modo]; montarLaudo(); }   // cada aba tem seu rascunho
   $("form-trein").hidden = modo !== "trein";
+  $("form-serv").hidden = modo !== "serv";
+  if (modo === "serv") montarServ();
   $("aba-insp").setAttribute("aria-selected", String(modo === "insp"));
   $("aba-trein").setAttribute("aria-selected", String(modo === "trein"));
-  document.body.classList.toggle("modo-laudo", lau);   // laudos e inspeções: fotos dentro de cada item (sem câmera/galeria embaixo)
+  $("aba-serv").setAttribute("aria-selected", String(modo === "serv"));
+  document.body.classList.toggle("modo-laudo", lau || modo === "serv");   // laudos, inspeções e serviço: fotos dentro de cada item (sem câmera/galeria embaixo)
   $("btn-cliente").hidden = comp;                 // nos comprovantes, no lugar do cliente vai o centro de custo (digitado)
   const trn = modo === "trein";
   $("in-gal").accept = comp ? "image/*,application/pdf" : com || trn ? "image/*" : "image/*,video/*";
-  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : modo === "laudo" ? "Novo laudo" : modo === "insp" ? "Nova inspeção" : trn ? "Novo treinamento" : "Nova visita";
+  $("btn-nova").textContent = comp ? "Novo comprovante" : com ? "Nova ficha" : modo === "laudo" ? "Novo laudo" : modo === "insp" ? "Nova inspeção" : trn ? "Novo treinamento" : modo === "serv" ? "Novo relatório de serviço" : "Nova visita";
   $("semfotos").textContent = comp ? "Nenhum comprovante ainda. Fotografe a nota ou o recibo, ou escolha da galeria (aceita PDF)."
     : com ? "Fotos (opcional): fachada, casa de bombas, hidrantes, quadro de alarme… Elas entram no PDF da ficha."
     : trn ? "Fotos da prática (opcional). Elas entram no PDF da lista de presença."
@@ -2820,7 +2839,7 @@ function destinoAtual() {
     pag: tipo === "compra" && pagamento ? "_" + PAGAMENTOS[pagamento] : "",
     desc: descricao(), valor: valorComp() ? "_R$ " + moedaBR(valorComp()) : "", cli: centroCusto() ? "_" + centroCusto() : ""
   };
-  return { modo: "visita", autor, cliente, caminho: modo === "trein" ? caminhoTrein() : caminhoVisita(), data: dataISO() };   // fotos do treinamento ficam junto da lista
+  return { modo: "visita", autor, cliente, caminho: modo === "trein" ? caminhoTrein() : modo === "serv" ? caminhoServ() : caminhoVisita(), data: dataISO() };   // fotos do treinamento ficam junto da lista
 }
 
 // início do nome do arquivo (sem o número e sem a extensão, que são decididos na hora do envio)
@@ -3319,7 +3338,7 @@ function atualizar() {
   if (av) { const s = situacaoAvcb(av); $("avcb-aviso").className = "avcb-aviso " + s.cls; $("avcb-aviso").textContent = (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto; }
   $("destino").textContent = comp
     ? (tipo ? "Salvar em: " + caminhoComp() : "")
-    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" || modo === "insp" ? caminhoLaudo() : modo === "trein" ? caminhoTrein() : caminhoVisita()).replace(/\//g, " › ") : "");
+    : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" || modo === "insp" ? caminhoLaudo() : modo === "trein" ? caminhoTrein() : modo === "serv" ? caminhoServ() : caminhoVisita()).replace(/\//g, " › ") : "");
   if ($("tr-local")) $("tr-local").placeholder = avcbDoCliente(cliente)?.endereco || "";
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
   $("btn-arq").hidden = comp || !cliente || !pode("arquivos");
@@ -3368,9 +3387,14 @@ function atualizar() {
 function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
-  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida()) && !((modo === "laudo" || modo === "insp") && laudo.tipo) && !(modo === "trein" && trein.modelo)) {   // só sobraram itens da fila
+  if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida()) && !((modo === "laudo" || modo === "insp") && laudo.tipo) && !(modo === "trein" && trein.modelo) && modo !== "serv") {   // só sobraram itens da fila
     b.disabled = enviando;
     b.textContent = enviando ? "Salvando…" : "Tentar enviar agora";
+  } else if (modo === "serv") {
+    // fica habilitado mesmo faltando algo: o toque leva até o que falta
+    const falta = cliente ? faltaServ() : { texto: "Escolha o cliente" };
+    b.disabled = enviando;
+    b.textContent = enviando ? "Salvando…" : falta ? falta.texto : "Gerar relatório em PDF";
   } else if (modo === "trein") {
     const falta = cliente ? faltaTrein() : { texto: "Escolha o cliente" };
     b.disabled = enviando || !trein.modelo;
@@ -3661,6 +3685,31 @@ async function salvar() {
     limparTrein();                                // o PDF já está guardado no celular: o rascunho pode ser apagado
     relatorio = { item, cliente, titulo: "Lista de presença e certificados" };
   }
+  // relatório de serviço: PDF para a pasta Relatórios de Serviço do cliente, com cópia na pasta técnica
+  if (modo === "serv") {
+    if (!cliente) { abrirDialogo(); return; }
+    const falta = faltaServ();
+    if (falta) {
+      const alvo = falta.alvo && $(falta.alvo);
+      if (alvo) { alvo.scrollIntoView({ behavior: "smooth", block: "center" }); alvo.classList.add("piscar"); setTimeout(() => alvo.classList.remove("piscar"), 1600); }
+      aviso(falta.texto + ".");
+      return;
+    }
+    const d = { ...destinoAtual(), data: serv.data };   // o nome do arquivo leva a data do serviço
+    const nomeS = "Relatório de Serviço";
+    $("btn-salvar").disabled = true; $("btn-salvar").textContent = "Gerando o PDF…";
+    let pdf;
+    try { pdf = await gerarServPDF(serv, cliente, d.autor); }
+    catch (e) { console.error(e); aviso("Não foi possível gerar o PDF do relatório: " + e.message, true); atualizarBotao(); return; }
+    const arquivo = new File([pdf], nomeS + ".pdf", { type: "application/pdf", lastModified: Date.now() });
+    const item = { id: ++seq, modo: "serv", arquivo, url: URL.createObjectURL(arquivo), st: "nova", pdf: true, dest: d,
+      prefixo: `${prefixoDe({ arquivo }, d)}_${nomeS}` };          // ex.: João da Silva_2026-10-16_Diamond_Relatório de Serviço_01.pdf
+    fotos.unshift(item);
+    await guardarItem(item, true);
+    await copiarParaPastaTec("serv", arquivo, cliente, d.autor, { parDe: item.id });   // cópia na pasta técnica (08 - Manutenções e inspeções)
+    limparServ();                                 // o PDF já está guardado no celular: o rascunho (e as fotos dele) pode ser apagado
+    relatorio = { item, cliente, titulo: nomeS };
+  }
   // ficha comercial: vira um PDF (com as fotos novas) que entra na fila junto com as fotos
   if (com && fichaPreenchida()) {
     const d = destinoAtual();
@@ -3684,7 +3733,7 @@ async function salvar() {
   if (!fila.length) return;
   const r = await enviarFila(fila, true);
   // laudo: os dados para reabrir e a cópia da pasta técnica vão logo em seguida, pela fila
-  if (relatorio && (modo === "laudo" || modo === "insp")) setTimeout(tentarPendentes, 300);
+  if (relatorio && (modo === "laudo" || modo === "insp" || modo === "serv")) setTimeout(tentarPendentes, 300);
 
   if ((r.pendentes || r.erros) && relatorio && fila.includes(relatorio.item)) {
     // relatório pronto, mas sem internet: mostra a tela final mesmo assim, para ver e compartilhar na hora
@@ -3708,6 +3757,7 @@ async function salvar() {
   const masc = d.modo === "comp" || modo === "laudo" || modo === "insp" || fotos.some(f => f.video);
   const titulo = `${descrever(fotos)} ${masc ? "salvo" : "salva"}${fotos.length > 1 ? "s" : ""}`;
   $("ok-titulo").textContent = modo === "trein" && relatorio ? "Treinamento salvo"
+    : modo === "serv" && relatorio ? "Relatório de serviço salvo"
     : (modo === "laudo" || modo === "insp") && relatorio ? `${relatorio.titulo} salvo`
     : titulo.charAt(0).toUpperCase() + titulo.slice(1);
   $("ok-texto").textContent = (d.modo === "comp"
@@ -4231,6 +4281,324 @@ async function gerarTreinPDF(t, cli, instrutor, arquivos) {
   return doc.output("blob");
 }
 
+/* ---------- relatório de serviço (o que foi feito no dia no cliente) ----------
+   Pedido do Gustavo em 16/10/2026. Dados do dia (data, horários, equipe), tipo de serviço, sistemas atendidos,
+   atividades com fotos antes/depois, materiais utilizados, pendências e assinaturas (técnico obrigatória, cliente opcional).
+   Rascunho em localStorage vpx_serv; fotos das atividades reduzidas no IndexedDB (mesmas funções das fotos dos laudos).
+   O PDF vai para Cliente › Relatórios de Serviço e é copiado para a pasta técnica (08 - Manutenções e inspeções). */
+const TIPOS_SERV = ["Manutenção preventiva", "Manutenção corretiva", "Instalação", "Teste/inspeção", "Outro"];
+const SISTEMAS_SERV = ["Extintores", "Hidrantes", "Bombas", "Alarme", "Iluminação de emergência", "SPDA", "Aterramento", "Sprinklers", "Portas corta-fogo", "Elétrica", "Gás", "Outro"];
+const novaAtiv = () => ({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), desc: "", local: "", antes: [], depois: [] });
+const servVazio = () => ({ data: dataISO(), chegada: "", saida: "", equipe: [], tipo: "", tipoOutro: "", sist: [], ativ: [novaAtiv()], mat: [], pend: "", respCli: "", assinCli: "", assin: "" });
+let serv = lerLS("vpx_serv", null) || servVazio();
+const gravarServ = () => gravarLS("vpx_serv", serv);
+const caminhoServ = () => `${cliente}/${CONFIG.pastaServicos}`;
+function mudouServ() { gravarServ(); atualizarBotao(); }
+const fotosServ = (s = serv) => s.ativ.flatMap(a => [...a.antes, ...a.depois]);
+const servIniciado = (s = serv) => !!(s.tipo || s.sist.length || s.ativ.some(a => a.desc.trim() || a.antes.length || a.depois.length) || s.mat.length || s.pend.trim() || s.assin);
+function limparServ() { fotosServ().forEach(apagarFotoLaudo); serv = servVazio(); gravarServ(); montarServ(); }
+const tipoServTexto = (s = serv) => s.tipo === "Outro" ? (s.tipoOutro || "").trim() || "Outro" : s.tipo;
+
+// miniaturas das fotos (com × para tirar); fotos guardadas no IndexedDB como as dos laudos
+function caixaFotosServ(lista, aoMudar) {
+  const caixa = el("div", "li-fotos");
+  for (const chave of lista) {
+    const t = el("div", "li-mini");
+    const img = document.createElement("img"); img.alt = "foto";
+    const u = urlsFotoLaudo.get(chave);
+    if (u) img.src = u;
+    else lerFotoLaudo(chave).then(b => { if (b) { const nu = URL.createObjectURL(b); urlsFotoLaudo.set(chave, nu); img.src = nu; } }).catch(() => {});
+    const rm = el("button", "", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Remover foto");
+    rm.onclick = () => { lista.splice(lista.indexOf(chave), 1); apagarFotoLaudo(chave); aoMudar(); };
+    t.append(img, rm);
+    caixa.appendChild(t);
+  }
+  return caixa;
+}
+function botaoFotoServ(rotulo, lista, aoMudar) {
+  const foto = el("label", "li-foto", rotulo);
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = "image/*"; inp.multiple = true; inp.className = "oculto";
+  inp.onchange = async () => {
+    const arqs = [...inp.files]; inp.value = "";
+    for (const a of arqs) {
+      try {
+        const blob = await reduzirFotoLaudo(a), chave = novaChaveFoto();
+        await gravarFotoLaudo(chave, blob);
+        urlsFotoLaudo.set(chave, URL.createObjectURL(blob));
+        lista.push(chave);
+      } catch (e) { console.error(e); aviso("Não foi possível usar esta foto.", true); }
+    }
+    aoMudar();
+  };
+  foto.appendChild(inp);
+  return foto;
+}
+
+function montarServ() {
+  const raiz = $("form-serv");
+  raiz.innerHTML = "";
+  if (!serv.equipe.length && conta) serv.equipe = [nomeColaborador()];   // quem preenche já entra na equipe
+  raiz.appendChild(el("p", "laudo-dica", "Relatório do que foi feito hoje no cliente. Fica guardado no celular até gerar o PDF."));
+  const campo = (rot, valor, aoMudar, op = {}) => {
+    const w = el("label", "campo" + (op.cls ? " " + op.cls : "")); w.appendChild(el("span", "", rot));
+    const e = document.createElement(op.longo ? "textarea" : "input");
+    if (op.tipo) e.type = op.tipo;
+    if (op.list) e.setAttribute("list", op.list);
+    e.value = valor || ""; e.placeholder = op.dica || ""; e.autocomplete = "off";
+    e.oninput = () => { aoMudar(e.value); mudouServ(); };
+    w.appendChild(e); return w;
+  };
+
+  // dados do dia
+  raiz.appendChild(el("h2", "secao", "Dados do dia"));
+  raiz.appendChild(campo("Data *", serv.data, v => serv.data = v, { tipo: "date" }));
+  const horas = el("div", "sv-horas");
+  horas.append(campo("Chegada", serv.chegada, v => serv.chegada = v, { tipo: "time" }), campo("Saída", serv.saida, v => serv.saida = v, { tipo: "time" }));
+  raiz.appendChild(horas);
+  const eq = el("div", "campo"); eq.appendChild(el("span", "", "Equipe"));
+  const chEq = el("div", "chips");
+  serv.equipe.forEach((n, i) => {
+    const c = el("button", "", `${n}  ×`); c.type = "button"; c.setAttribute("aria-label", "Tirar " + n);
+    c.onclick = () => { serv.equipe.splice(i, 1); mudouServ(); montarServ(); };
+    chEq.appendChild(c);
+  });
+  const addEq = el("div", "ld-data-add");
+  const inEq = document.createElement("input"); inEq.placeholder = "Nome de quem foi junto"; inEq.autocomplete = "off"; inEq.enterKeyHint = "done";
+  const bEq = el("button", "btn sec", "+ Adicionar"); bEq.type = "button";
+  const addPessoa = () => { const n = limparNome(inEq.value).replace(/\s+/g, " "); if (!n) { inEq.focus(); return; } if (!serv.equipe.includes(n)) serv.equipe.push(n); mudouServ(); montarServ(); };
+  bEq.onclick = addPessoa; inEq.onkeydown = e => { if (e.key === "Enter") addPessoa(); };
+  addEq.append(inEq, bEq);
+  eq.append(chEq, addEq);
+  raiz.appendChild(eq);
+
+  // tipo de serviço (um) e sistemas atendidos (vários)
+  const hT = el("h2", "secao", "Tipo de serviço *"); hT.id = "sv-tipo"; raiz.appendChild(hT);
+  const chT = el("div", "chips");
+  TIPOS_SERV.forEach(t => {
+    const b = el("button", "", t); b.type = "button"; b.setAttribute("aria-pressed", String(serv.tipo === t));
+    b.onclick = () => { serv.tipo = serv.tipo === t ? "" : t; mudouServ(); montarServ(); };
+    chT.appendChild(b);
+  });
+  raiz.appendChild(chT);
+  if (serv.tipo === "Outro") raiz.appendChild(campo("Qual serviço? *", serv.tipoOutro, v => serv.tipoOutro = v, { dica: "Ex.: Recarga de extintores" }));
+  const hS = el("h2", "secao", "Sistemas atendidos *"); hS.id = "sv-sist"; raiz.appendChild(hS);
+  const chS = el("div", "chips");
+  SISTEMAS_SERV.forEach(s => {
+    const b = el("button", "", s); b.type = "button"; b.setAttribute("aria-pressed", String(serv.sist.includes(s)));
+    b.onclick = () => { serv.sist = serv.sist.includes(s) ? serv.sist.filter(x => x !== s) : [...serv.sist, s]; b.setAttribute("aria-pressed", String(serv.sist.includes(s))); mudouServ(); };
+    chS.appendChild(b);
+  });
+  raiz.appendChild(chS);
+
+  // atividades, cada uma com fotos antes e depois
+  const hA = el("h2", "secao", "Atividades realizadas *"); hA.id = "sv-ativ"; raiz.appendChild(hA);
+  serv.ativ.forEach((a, i) => {
+    const card = el("div", "laudo-bloco"); card.id = "sv-at-" + a.id;
+    const topo = el("div", "laudo-bloco-topo");
+    topo.appendChild(el("strong", "", `Atividade ${i + 1}`));
+    if (serv.ativ.length > 1) {
+      const rm = el("button", "laudo-link perigo", "Remover"); rm.type = "button";
+      rm.onclick = () => { if (!confirm(`Remover a atividade ${i + 1} e as fotos dela?`)) return; [...a.antes, ...a.depois].forEach(apagarFotoLaudo); serv.ativ.splice(i, 1); mudouServ(); montarServ(); };
+      topo.appendChild(rm);
+    }
+    card.appendChild(topo);
+    card.appendChild(campo("O que foi feito *", a.desc, v => a.desc = v, { longo: true, dica: "Ex.: Troca do pressostato da bomba principal e teste de partida automática" }));
+    card.appendChild(campo("Local (pavimento, área)", a.local, v => a.local = v, { dica: "Ex.: Casa de bombas" }));
+    for (const [qual, rot] of [["antes", "📷 Fotos antes"], ["depois", "📷 Fotos depois"]]) {
+      const linhaF = el("div", "sv-fotos");
+      const redesenhar = () => { mudouServ(); montarServ(); $("sv-at-" + a.id)?.scrollIntoView({ block: "center" }); };
+      linhaF.appendChild(botaoFotoServ(`${rot}${a[qual].length ? ` (${a[qual].length})` : ""}`, a[qual], redesenhar));
+      linhaF.appendChild(caixaFotosServ(a[qual], redesenhar));
+      card.appendChild(linhaF);
+    }
+    raiz.appendChild(card);
+  });
+  const addA = el("button", "btn sec laudo-add", "+ Adicionar atividade"); addA.type = "button";
+  addA.onclick = () => { const n = novaAtiv(); serv.ativ.push(n); mudouServ(); montarServ(); $("sv-at-" + n.id)?.scrollIntoView({ block: "start" }); };
+  raiz.appendChild(addA);
+
+  // materiais utilizados (sem preço)
+  raiz.appendChild(el("h2", "secao", "Materiais utilizados"));
+  if (serv.mat.length) {
+    const ul = el("ul", "sv-mat");
+    serv.mat.forEach((m, i) => {
+      const li = el("li");
+      li.appendChild(el("span", "", `${m.desc}${m.qtd ? ` — ${m.qtd} ${m.un || ""}` : ""}`));
+      const rm = el("button", "trein-rm", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Tirar " + m.desc);
+      rm.onclick = () => { serv.mat.splice(i, 1); mudouServ(); montarServ(); };
+      li.appendChild(rm); ul.appendChild(li);
+    });
+    raiz.appendChild(ul);
+  }
+  const addM = el("div", "sv-mat-add");
+  const inD = document.createElement("input"); inD.placeholder = "Material"; inD.setAttribute("list", "pc-materiais"); inD.autocomplete = "off";
+  const inQ = document.createElement("input"); inQ.placeholder = "Qtd"; inQ.inputMode = "decimal"; inQ.autocomplete = "off";
+  const inU = document.createElement("input"); inU.placeholder = "Un"; inU.maxLength = 6; inU.autocomplete = "off";
+  const bM = el("button", "btn sec", "+ Adicionar material"); bM.type = "button";
+  const addMat = () => { const d = inD.value.trim(); if (!d) { inD.focus(); return; } serv.mat.push({ desc: d, qtd: inQ.value.trim(), un: inU.value.trim() }); mudouServ(); montarServ(); };
+  bM.onclick = addMat; inU.onkeydown = e => { if (e.key === "Enter") addMat(); };
+  addM.append(inD, inQ, inU, bM);
+  raiz.appendChild(addM);
+
+  // pendências
+  raiz.appendChild(el("h2", "secao", "Pendências e recomendações"));
+  raiz.appendChild(campo("O que ficou para depois ou o que o cliente precisa providenciar", serv.pend, v => serv.pend = v, { longo: true }));
+
+  // assinaturas: técnico (obrigatória) e cliente (opcional)
+  raiz.appendChild(el("h2", "secao", "Assinaturas"));
+  const pad = (rot, id, valor, aoMudar) => {
+    const w = el("div", "campo"); if (id) w.id = id;
+    w.appendChild(el("span", "", rot));
+    const cv = document.createElement("canvas"); cv.className = "assin";
+    const limpar = el("button", "laudo-link", "Limpar assinatura"); limpar.type = "button";
+    limpar.onclick = ligarPad(cv, valor, url => { aoMudar(url); mudouServ(); });
+    w.append(cv, limpar);
+    return w;
+  };
+  raiz.appendChild(pad(`Assinatura de quem fez o serviço (${nomeColaborador()}) *`, "sv-assin", serv.assin, url => serv.assin = url));
+  raiz.appendChild(campo("Nome de quem acompanhou pelo cliente (opcional)", serv.respCli, v => serv.respCli = v, { dica: "Ex.: Carlos, zelador" }));
+  raiz.appendChild(pad("Assinatura do cliente (opcional)", "", serv.assinCli, url => serv.assinCli = url));
+  const desc = el("button", "laudo-link perigo", "Descartar este relatório"); desc.type = "button";
+  desc.onclick = () => { if (confirm("Apagar tudo o que foi preenchido neste relatório de serviço?")) { limparServ(); atualizarBotao(); window.scrollTo(0, 0); } };
+  raiz.appendChild(desc);
+}
+
+function faltaServ() {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(serv.data || "")) return { texto: "Preencha a data" };
+  if (!serv.tipo) return { texto: "Escolha o tipo de serviço", alvo: "sv-tipo" };
+  if (serv.tipo === "Outro" && !(serv.tipoOutro || "").trim()) return { texto: "Escreva qual foi o serviço", alvo: "sv-tipo" };
+  if (!serv.sist.length) return { texto: "Marque os sistemas atendidos", alvo: "sv-sist" };
+  const semDesc = serv.ativ.findIndex(a => !a.desc.trim() && (a.antes.length || a.depois.length || a.local.trim()));
+  if (semDesc >= 0) return { texto: `Descreva a atividade ${semDesc + 1}`, alvo: "sv-at-" + serv.ativ[semDesc].id };
+  if (!serv.ativ.some(a => a.desc.trim())) return { texto: "Descreva o que foi feito", alvo: "sv-ativ" };
+  if (!serv.assin) return { texto: "Assine o relatório", alvo: "sv-assin" };
+  return null;
+}
+
+// PDF A4 no padrão dos laudos: dados, atividades com fotos antes/depois, materiais, pendências e assinaturas
+async function gerarServPDF(s, cli, autor) {
+  const jsPDF = window.jspdf?.jsPDF;
+  if (!jsPDF) throw new Error("a ferramenta de PDF não carregou (abra o app uma vez com internet)");
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const M = 15, L = 210 - 2 * M, AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59];
+  let y = 15;
+  const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; return true; } return false; };
+  const dataBR = dataBRde(s.data), endereco = (avcbDoCliente(cli)?.endereco || "").trim();
+  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18, "logo", "FAST"); } catch {}
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL);
+  doc.text("Relatório de Serviço", 210 - M, y + 7, { align: "right" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
+  doc.text(`Cliente: ${cli}`, 210 - M, y + 13, { align: "right" });
+  doc.text(`Data: ${dataBR}`, 210 - M, y + 18, { align: "right" });
+  y += 23;
+  doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y);
+  y += 8;
+  const secao = titulo => {
+    cabe(20);
+    doc.setFillColor(...AZUL); doc.rect(M, y, L, 8, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text(titulo.toUpperCase(), M + 3, y + 5.6);
+    y += 13;
+  };
+  const linha = (r, v) => {
+    doc.setFontSize(10);
+    const tr = doc.splitTextToSize(r, 46), tv = doc.splitTextToSize(String(v), L - 50);
+    const h = Math.max(tr.length, tv.length) * 4.6 + 2;
+    cabe(h);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(...CINZA); doc.text(tr, M, y);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tv, M + 50, y);
+    y += h;
+  };
+  const texto = (t, tam = 10, estilo = "normal", cor = TINTA, rec = 0) => {
+    doc.setFont("helvetica", estilo); doc.setFontSize(tam); doc.setTextColor(...cor);
+    const tx = doc.splitTextToSize(t, L - rec);
+    for (const l of tx) { cabe(5); doc.text(l, M + rec, y); y += tam * 0.45; }
+  };
+  const horario = s.chegada && s.saida ? `${s.chegada} às ${s.saida}` : s.chegada ? `Chegada às ${s.chegada}` : s.saida ? `Saída às ${s.saida}` : "";
+  secao("Identificação");
+  [["Cliente", cli], ["Endereço", endereco], ["Data", dataBR], ["Horário", horario], ["Equipe", s.equipe.join(", ")],
+   ["Tipo de serviço", tipoServTexto(s)], ["Sistemas atendidos", s.sist.join(", ")], ["Relatório emitido por", autor]]
+    .filter(([, v]) => (v || "").trim()).forEach(([r, v]) => linha(r, v));
+  y += 3;
+
+  // atividades
+  const ativs = s.ativ.filter(a => a.desc.trim());
+  secao(`Atividades realizadas (${ativs.length})`);
+  const fotos = async chaves => { const out = []; for (const k of chaves) { try { const b = await lerFotoLaudo(k); if (b) out.push(await fotoParaPdf(b)); } catch {} } return out; };
+  const lw = (L - 6) / 2, maxH = 62;
+  const desenharPar = (esq, dir) => {
+    const alt = [esq, dir].map(p => p ? Math.min(maxH, lw * p.h / p.w) : 0), h = Math.max(...alt, 10);
+    cabe(h + 5);
+    [esq, dir].forEach((p, k) => { if (p) { const w = alt[k] * p.w / p.h; doc.addImage(p.url, "JPEG", M + k * (lw + 6) + (lw - w) / 2, y, w, alt[k]); } });
+    y += h + 5;
+  };
+  // rótulo em cima das fotos; reserva espaço para a primeira linha de fotos, para o rótulo não ficar sozinho no fim da página
+  const rotulos = (a, b) => {
+    cabe(maxH + 12);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...CINZA);
+    if (b) { doc.text(a, M + lw / 2, y, { align: "center" }); doc.text(b, M + lw + 6 + lw / 2, y, { align: "center" }); }
+    else doc.text(a, 105, y, { align: "center" });
+    y += 3;
+  };
+  for (const [i, a] of ativs.entries()) {
+    cabe(16 + (a.antes.length || a.depois.length ? maxH + 12 : 0));   // título junto da primeira linha de fotos
+    texto(`${i + 1}. ${a.desc.trim()}`, 10.5, "bold");
+    if (a.local.trim()) texto("Local: " + a.local.trim(), 9.5, "normal", CINZA);
+    y += 2;
+    const [antes, depois] = [await fotos(a.antes), await fotos(a.depois)];
+    if (antes.length && depois.length) {                 // antes à esquerda, depois à direita
+      rotulos("ANTES", "DEPOIS");
+      for (let k = 0; k < Math.max(antes.length, depois.length); k++) desenharPar(antes[k], depois[k]);
+    } else {
+      const so = antes.length ? antes : depois;
+      if (so.length) { rotulos(antes.length ? "FOTOS - ANTES" : "FOTOS - DEPOIS"); for (let k = 0; k < so.length; k += 2) desenharPar(so[k], so[k + 1]); }
+    }
+    y += 3;
+    doc.setDrawColor(215, 222, 230); doc.setLineWidth(0.2); if (i < ativs.length - 1) { doc.line(M, y - 2, 210 - M, y - 2); y += 3; }
+  }
+
+  // materiais
+  if (s.mat.length) {
+    secao("Materiais utilizados");
+    const C = [M, M + 10, M + 140, M + 160, 210 - M];
+    cabe(10);
+    doc.setFillColor(236, 240, 245); doc.rect(M, y - 4.5, L, 7, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...CINZA);
+    ["Nº", "Material", "Qtd", "Un"].forEach((h, i) => doc.text(h, C[i] + 1.5, y));
+    y += 6;
+    s.mat.forEach((m, i) => {
+      const t = doc.splitTextToSize(m.desc, C[2] - C[1] - 3), h = t.length * 4.4 + 2;
+      cabe(h);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...TINTA);
+      doc.text(String(i + 1), C[0] + 1.5, y); doc.text(t, C[1] + 1.5, y); doc.text(m.qtd || "-", C[2] + 1.5, y); doc.text(m.un || "", C[3] + 1.5, y);
+      y += h;
+      doc.setDrawColor(215, 222, 230); doc.setLineWidth(0.2); doc.line(M, y - 3, 210 - M, y - 3);
+    });
+    y += 3;
+  }
+  if (s.pend.trim()) { secao("Pendências e recomendações"); texto(s.pend.trim(), 10); y += 3; }
+
+  // assinaturas
+  if (cabe(46)) y += 4;
+  y += 24;
+  const col = (L - 16) / 2;
+  const assinar = (img, x, nome, papel, k) => {
+    if (img) { try { const pr = doc.getImageProperties(img), w = Math.min(col - 8, 20 * pr.width / pr.height); doc.addImage(img, "PNG", x + (col - w) / 2, y - 22, w, w * pr.height / pr.width, "as" + k, "FAST"); } catch {} }
+    doc.setDrawColor(...TINTA); doc.setLineWidth(0.3); doc.line(x, y, x + col, y);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...TINTA); doc.text(nome, x + col / 2, y + 5, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...CINZA); doc.text(papel, x + col / 2, y + 10, { align: "center" });
+  };
+  assinar(s.assin, M, autor, "VPX Engenharia", 1);
+  assinar(s.assinCli, M + col + 16, s.respCli.trim() || " ", `Cliente - ${cli}`, 2);
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...CINZA);
+    doc.text(`VPX Engenharia  -  Relatório de Serviço  -  ${cli}  -  ${dataBR}  -  página ${p} de ${total}`, 105, 290, { align: "center" });
+  }
+  return doc.output("blob");
+}
+
 /* ---------- arquivos do cliente (projetos, plantas, material do cliente…) ----------
    Navega pela pasta do cliente no OneDrive. PDF e imagem abrem no visualizador do app (com zoom);
    o resto abre no OneDrive (com internet) ou em outro app do celular (sem internet, se estiver guardado).
@@ -4468,9 +4836,9 @@ async function limparArqCliente() {
    Fica guardado no celular (localStorage vpx_hist_<cliente>) para ver sem internet. */
 const TIPOS_HIST = {
   visita: { ico: "📷", rot: "Visita técnica" }, relvisita: { ico: "📝", rot: "Relatório de visita" },
-  laudo: { ico: "📋", rot: "Laudo" }, insp: { ico: "🔍", rot: "Inspeção" }, trein: { ico: "🎓", rot: "Treinamento" }, avcb: { ico: "🧾", rot: "AVCB" }
+  laudo: { ico: "📋", rot: "Laudo" }, insp: { ico: "🔍", rot: "Inspeção" }, trein: { ico: "🎓", rot: "Treinamento" }, serv: { ico: "🛠️", rot: "Relatório de serviço" }, avcb: { ico: "🧾", rot: "AVCB" }
 };
-const FILTROS_HIST = [["todos", "Todos"], ["visita", "Visitas"], ["laudo", "Laudos"], ["insp", "Inspeções"], ["trein", "Treinamentos"]];
+const FILTROS_HIST = [["todos", "Todos"], ["visita", "Visitas"], ["laudo", "Laudos"], ["insp", "Inspeções"], ["trein", "Treinamentos"], ["serv", "Serviços"]];
 let hist = null;                                   // { cliente, eventos, quando, online, filtro }
 const ehMidia = n => ehImgArq(n) || ehVideoArq(n);
 
@@ -4495,8 +4863,8 @@ async function idPastaHist(cli, pasta) {
 
 // junta os arquivos em eventos: fotos/vídeos do mesmo dia e da mesma pessoa viram uma "visita técnica"
 async function montarHistorico(cli) {
-  const pastas = [CONFIG.subpasta.replace("{data}", "").replace(/\/$/, ""), CONFIG.pastaLaudos, CONFIG.pastaInspecoes, CONFIG.pastaTreinamentos];
-  const [fotosP, laudosP, inspP, treinP] = await Promise.all(pastas.map(p => listarPastaHist(cli, p)));
+  const pastas = [CONFIG.subpasta.replace("{data}", "").replace(/\/$/, ""), CONFIG.pastaLaudos, CONFIG.pastaInspecoes, CONFIG.pastaTreinamentos, CONFIG.pastaServicos];
+  const [fotosP, laudosP, inspP, treinP, servP] = await Promise.all(pastas.map(p => listarPastaHist(cli, p)));
   const ev = [], grupos = new Map();
   const pdfEv = (i, tipo, titulo) => {
     const p = partesNome(i.name, i.lastModifiedDateTime);
@@ -4513,6 +4881,7 @@ async function montarHistorico(cli) {
   for (const i of laudosP.itens) if (ehPdfArq(i.name)) pdfEv(i, "laudo", (i.name.match(/Laudo[^_]*/) || [i.name.replace(/\.pdf$/i, "")])[0]);
   for (const i of inspP.itens) if (ehPdfArq(i.name)) pdfEv(i, "insp", "Relatório de inspeção");
   for (const i of treinP.itens) if (ehPdfArq(i.name)) pdfEv(i, "trein", (i.name.match(/Treinamento - [^_]*/) || ["Treinamento"])[0].replace("Treinamento - ", "Treinamento: "));
+  for (const i of servP.itens) if (ehPdfArq(i.name)) pdfEv(i, "serv", "Relatório de serviço");
   return ev;
 }
 
@@ -4557,7 +4926,7 @@ async function atualizarResumoHist() {
   linhas.innerHTML = "";
   if (!evs.length) { linhas.textContent = "Nenhum registro deste cliente ainda."; return; }
   const visita = evs.find(e => e.tipo === "visita" || e.tipo === "relvisita");
-  const doc = evs.find(e => e.tipo === "laudo" || e.tipo === "insp" || e.tipo === "trein");
+  const doc = evs.find(e => e.tipo === "laudo" || e.tipo === "insp" || e.tipo === "trein" || e.tipo === "serv");
   for (const [rot, e] of [["Última visita", visita], ["Último documento", doc]]) {
     if (!e) continue;
     const d = el("div", "hr-l");
@@ -4814,7 +5183,7 @@ function fecharCompHist(voltar = true) {
    continua sendo o compartilhamento do OneDrive. */
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
-  ["trein", "Brigada", "aba"], ["comp", "Comprovantes", "aba"],
+  ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
   ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
@@ -4823,10 +5192,14 @@ const emailDe = () => (conta?.username || "").toLowerCase();
 const ehAdminFixo = () => CONFIG.admins.includes(emailDe());
 let perm = lerLS("vpx_perm", null);                // última cópia do arquivo de permissões (para funcionar sem internet)
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
+// funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
+// (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
+const NOVAS_NO_PADRAO = ["serv"];
+const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
   if (ehAdmin() || !perm) return TODAS_FUNCOES;    // arquivo nunca carregado neste celular: tudo liberado (como antes)
   const u = perm.usuarios?.[emailDe()];
-  return u?.funcoes || perm.padrao || TODAS_FUNCOES;
+  return u?.funcoes || padraoDe(perm) || TODAS_FUNCOES;
 }
 const pode = f => funcoesDoUsuario().includes(f);
 
@@ -4900,7 +5273,7 @@ async function registrarUsuario() {
 
 /* tela de administração */
 let adm = null;                                    // { perm (cópia editável), lista: [{ email, nome, ultimo }], aberto, mudou }
-const copiaPerm = p => JSON.parse(JSON.stringify(p || { versao: 1, padrao: TODAS_FUNCOES.slice(), usuarios: {} }));
+const copiaPerm = p => { const c = JSON.parse(JSON.stringify(p || { versao: 1, padrao: TODAS_FUNCOES.slice(), usuarios: {} })); c.padrao = padraoDe(c) || c.padrao; return c; };
 
 async function abrirAdmin() {
   if (!ehAdmin()) return;
@@ -5033,6 +5406,7 @@ async function salvarPermissoes() {
   try {
     const { etag, ...dados } = adm.perm;
     dados.versao = 1; dados.atualizado = new Date().toISOString(); dados.por = conta.name || emailDe();
+    dados.funcoesConhecidas = TODAS_FUNCOES.slice();   // a partir daqui, o perfil padrão salvo vale como está
     const pasta = await pastaConfig(true);
     const item = await graph(`/drives/${CONFIG.driveId}/items/${pasta}:/permissoes.json:/content`, {
       method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dados, null, 2) });
@@ -5068,7 +5442,7 @@ const PASTA_TEC = [
 ];
 // documentos gerados pelo app que entram sozinhos: [seção, item, meses de validade (0 = sem validade)]
 const PT_AUTO = { hidrantes: ["05", "lHid", 12], eletrica: ["05", "lEle", 12], alarme: ["05", "lAla", 12], gas: ["05", "lGas", 12],
-  gerador: ["05", "lGer", 12], spda: ["05", "lSpda", 12], aterramento: ["05", "lAterr", 12], insp: ["08", "insp", 0], trein: ["06", "brigada", 12] };
+  gerador: ["05", "lGer", 12], spda: ["05", "lSpda", 12], aterramento: ["05", "lAterr", 12], insp: ["08", "insp", 0], serv: ["08", "manut", 0], trein: ["06", "brigada", 12] };
 const PDFLIB = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
 let pt = null;                                     // { cliente, dados: { arquivos: { secId: [...] }, na: [], quando }, online }
 const ptPasta = (cli, sec) => `${cli}/${CONFIG.pastaTecnica}${sec ? `/${sec.id} - ${sec.titulo}` : ""}`;
@@ -6553,7 +6927,7 @@ async function tentarPendentes() {
   if (!fila.length) return;
   const r = await enviarFila(fila, false);
   // o que chegou ao OneDrive sai da lista
-  for (const m of ["visita", "com", "laudo", "insp", "trein", "comp", "avcb", "pt", "pc", "ld"]) {
+  for (const m of ["visita", "com", "laudo", "insp", "trein", "serv", "comp", "avcb", "pt", "pc", "ld"]) {
     const l = listaDe(m);
     for (let i = l.length - 1; i >= 0; i--) if (l[i].st === "ok" && fila.includes(l[i])) { liberar(l[i]); l.splice(i, 1); }
   }
@@ -6600,9 +6974,9 @@ function novaVisita() {
    com "‹ Início" para voltar; a barra de baixo só aparece nas telas de navegação. */
 const MODOS_APP = [
   ["visita", "📷", "Visita técnica"], ["com", "💼", "Comercial"], ["laudo", "📋", "Laudo"],
-  ["insp", "🔍", "Inspeção"], ["trein", "🧯", "Brigada"], ["comp", "🧾", "Comprovante"]
+  ["insp", "🔍", "Inspeção"], ["trein", "🧯", "Brigada"], ["serv", "🛠️", "Serviço"], ["comp", "🧾", "Comprovante"]
 ];
-const NOME_MODO = { visita: "Visita técnica", com: "Comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", comp: "Comprovante" };
+const NOME_MODO = { visita: "Visita técnica", com: "Comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", serv: "Relatório de serviço", comp: "Comprovante" };
 const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", fin: "tela-fin", mais: "tela-mais" };
 let secao = "inicio", cliPagina = null, agendaDe = "inicio";   // agendaDe: seção que fica embaixo da Agenda            // seção atual ("trabalho" = formulário aberto) e cliente da página do cliente
 
@@ -6686,6 +7060,7 @@ function itensContinuar() {
     out.push({ m, cli: l.cli || guardadoDe(m).cliente, titulo: defDe(l).nome, sub: `${resp} de ${total} itens respondidos` });
   }
   if (pode("trein") && trein.modelo) out.push({ m: "trein", cli: guardadoDe("trein").cliente, titulo: "Treinamento · " + TREINAMENTOS[trein.modelo].curto, sub: `${trein.part?.length || 0} participante(s)` });
+  if (pode("serv") && servIniciado()) { const n = serv.ativ.filter(a => a.desc.trim()).length; out.push({ m: "serv", cli: guardadoDe("serv").cliente, titulo: "Relatório de serviço", sub: `${n} atividade${n === 1 ? "" : "s"} descrita${n === 1 ? "" : "s"}` }); }
   if (pode("com") && fichaPreenchida()) out.push({ m: "com", cli: guardadoDe("com").cliente, titulo: "Ficha comercial", sub: "Preenchimento em andamento" });
   for (const m of ["visita", "comp"]) {
     const n = listaDe(m).filter(f => !f.dest).length;
@@ -6900,6 +7275,8 @@ $("aba-comp").onclick = () => trocarModo("comp");
 montarFicha();
 montarLaudo();
 montarTrein();
+montarServ();
+$("aba-serv").onclick = () => trocarModo("serv");
 $("tipo-compra").onclick = () => escolherTipo("compra");
 $("tipo-reembolso").onclick = () => escolherTipo("reembolso");
 $("pag-cartao").onclick = () => escolherPagamento("cartao");
