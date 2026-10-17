@@ -3911,29 +3911,32 @@ async function desenharVisor() {
 const ZOOM_MAX_VISOR = 5;
 function ligarPinca() {
   const pags = $("visor-paginas");
-  let g = null;                                    // { d0, z0, z, mx, my, cx, cy }
+  // com dois dedos também arrasta: o ponto do documento que estava entre os dedos acompanha o meio dos dedos (pedido do Gustavo)
+  let g = null;                                    // { d0, z0, z, mx, my, nx, ny, cx, cy }
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  const meio = t => { const r = pags.getBoundingClientRect(); return [(t[0].clientX + t[1].clientX) / 2 - r.left, (t[0].clientY + t[1].clientY) / 2 - r.top]; };
   pags.addEventListener("touchstart", e => {
     if (e.touches.length !== 2 || !visor || (!visor.pdf && !visor.img)) return;
-    const r = pags.getBoundingClientRect();
-    const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left, my = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
-    g = { d0: dist(e.touches) || 1, z0: visor.zoom, z: visor.zoom, mx, my, cx: pags.scrollLeft + mx, cy: pags.scrollTop + my };
+    const [mx, my] = meio(e.touches);
+    g = { d0: dist(e.touches) || 1, z0: visor.zoom, z: visor.zoom, mx, my, nx: mx, ny: my, cx: pags.scrollLeft + mx, cy: pags.scrollTop + my };
     pags.style.transformOrigin = `${mx}px ${my}px`;
   }, { passive: true });
   pags.addEventListener("touchmove", e => {
     if (!g || e.touches.length !== 2) return;
     e.preventDefault();                            // o navegador não rola nem amplia a página inteira
     g.z = Math.min(ZOOM_MAX_VISOR, Math.max(1, g.z0 * dist(e.touches) / g.d0));
-    pags.style.transform = `scale(${g.z / g.z0})`;
+    [g.nx, g.ny] = meio(e.touches);
+    pags.style.transform = `translate(${g.nx - g.mx}px, ${g.ny - g.my}px) scale(${g.z / g.z0})`;
   }, { passive: false });
   const fim = () => {
     if (!g) return;
-    const { z0, z, mx, my, cx, cy } = g; g = null;
+    const { z0, z, nx, ny, cx, cy } = g; g = null;
     pags.style.transform = ""; pags.style.transformOrigin = "";
-    if (!visor || Math.abs(z - z0) < 0.05) return;
+    if (!visor) return;
+    if (Math.abs(z - z0) < 0.05) { pags.scrollLeft = cx - nx; pags.scrollTop = cy - ny; return; }   // só arrastou
     visor.zoom = Math.round(z * 100) / 100;
     const k = visor.zoom / z0;
-    desenharVisor().then(() => { pags.scrollLeft = cx * k - mx; pags.scrollTop = cy * k - my; });
+    desenharVisor().then(() => { pags.scrollLeft = cx * k - nx; pags.scrollTop = cy * k - ny; });
   };
   pags.addEventListener("touchend", e => { if (e.touches.length < 2) fim(); });
   pags.addEventListener("touchcancel", fim);
