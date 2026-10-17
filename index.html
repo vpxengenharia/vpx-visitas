@@ -88,8 +88,10 @@ button,input,label{font:inherit}
 #btn-its[hidden]{display:none}
 /* topo: só a fila e as iniciais; Agenda, AVCB, ITs, administração e o antigo menu ☰ ficam na barra de baixo */
 .topo-dir #btn-its,.topo-dir #btn-admin,.topo-dir #btn-agenda,.topo-dir #btn-avcb,.topo-dir #btn-menu{display:none!important}
-.topo-dir #btn-conta{width:40px;height:40px;background:var(--marinho);color:#fff;border:0;font-size:14px}
-.topo-dir #btn-conta[hidden]{display:none}
+/* logo no centro do topo; as iniciais saíram (a conta fica em Mais) e só o aviso da fila fica à direita */
+.topo{justify-content:center}
+.topo-dir{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 24px);bottom:12px}
+.topo-dir #btn-conta{display:none!important}
 .topo-fila{min-height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--warn-bg);color:var(--warn-tx);font-size:13px;font-weight:700;cursor:pointer}
 .topo-fila[hidden]{display:none}
 /* barra de baixo */
@@ -107,6 +109,9 @@ body.hub-on main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 /* Agenda aberta pela barra de baixo: vira uma seção como as outras (barra de baixo visível, sem "Voltar") */
 body.agenda-secao .nav{z-index:35}
 #tela-agenda.como-secao #agenda-voltar{display:none}
+#tela-agenda.como-secao{top:calc(env(safe-area-inset-top,0px) + 96px)}   /* o topo do app (logo) continua visível */
+#tela-agenda.como-secao .avcb-topo{background:transparent;border-bottom:0;padding:14px 18px 0;max-width:720px;width:100%;margin:0 auto}
+#tela-agenda.como-secao .avcb-topo strong{font-size:26px;color:var(--tinta)}
 #tela-agenda.como-secao .avcb-corpo{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .abas{display:none!important}   /* as abas antigas viraram os quadrados do Início */
 /* telas da barra de baixo */
