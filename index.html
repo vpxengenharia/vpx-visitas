@@ -86,8 +86,57 @@ button,input,label{font:inherit}
 .abas button[hidden],.avcb-acoes[hidden]{display:none}
 #pt-gerar{margin:4px 0 6px}
 #btn-its[hidden]{display:none}
-/* topo: ITs, administração e conta ficam no menu ☰ */
-.topo-dir #btn-its,.topo-dir #btn-admin,.topo-dir #btn-conta{display:none!important}
+/* topo: só a fila e as iniciais; Agenda, AVCB, ITs, administração e o antigo menu ☰ ficam na barra de baixo */
+.topo-dir #btn-its,.topo-dir #btn-admin,.topo-dir #btn-agenda,.topo-dir #btn-avcb,.topo-dir #btn-menu{display:none!important}
+.topo-dir #btn-conta{width:40px;height:40px;background:var(--marinho);color:#fff;border:0;font-size:14px}
+.topo-dir #btn-conta[hidden]{display:none}
+.topo-fila{min-height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--warn-bg);color:var(--warn-tx);font-size:13px;font-weight:700;cursor:pointer}
+.topo-fila[hidden]{display:none}
+/* barra de baixo */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--papel);border-top:1.5px solid var(--linha);padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
+.nav[hidden]{display:none}
+.nav button{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:56px;padding:6px 0 4px;border:0;background:none;color:var(--suave);font-size:12px;font-weight:600;cursor:pointer}
+.nav button[hidden]{display:none}
+.nav button svg{width:24px;height:24px}
+.nav button[aria-current="page"]{color:var(--marinho)}
+.nav button[aria-current="page"] svg{color:var(--laranja)}
+@media (prefers-color-scheme:dark){.nav button[aria-current="page"]{color:var(--tinta)}}
+.nav .avcb-qtd{top:2px;right:calc(50% - 22px)}
+.nav button:focus-visible{outline:3px solid var(--laranja);outline-offset:-3px;border-radius:10px}
+body.hub-on main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+.abas{display:none!important}   /* as abas antigas viraram os quadrados do Início */
+/* telas da barra de baixo */
+.hub-tit{font-size:26px;margin:4px 0 12px}
+.hub-saud{font-family:var(--titulo-fonte);font-weight:700;font-size:24px;margin:2px 2px 12px;color:var(--tinta)}
+.hub-rot{font-size:14px;color:var(--suave);margin:16px 2px 8px;font-weight:600}
+.hub-grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.hub-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:92px;padding:10px 4px;border-radius:14px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-size:14.5px;font-weight:700;line-height:1.15;text-align:center;cursor:pointer}
+.hub-tile span{font-size:28px;line-height:1}
+.hub-tile:focus-visible,.hub-linha:focus-visible,.hub-card:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.hub-card{display:block;width:100%;text-align:left;margin-bottom:10px;padding:12px 14px;border-radius:14px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-size:15px;line-height:1.35;cursor:pointer}
+.hub-card small{display:block;color:var(--suave);font-size:13.5px}
+.hub-card b{display:block;font-size:16px}
+.hub-card.continuar{border-left:6px solid var(--laranja)}
+.hub-card.crit{background:var(--crit-bg);border-color:transparent;color:var(--crit-tx)}
+.hub-card.warn{background:var(--warn-bg);border-color:transparent;color:var(--warn-tx)}
+.hub-card.okv{background:var(--okv-bg);border-color:transparent;color:var(--okv-tx)}
+.hub-lista{border:1.5px solid var(--linha);border-radius:14px;background:var(--papel);overflow:hidden;margin-bottom:10px}
+.hub-linha{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:8px 14px;border:0;border-bottom:1px solid var(--linha);background:none;color:var(--tinta);text-align:left;font-size:16px;cursor:pointer}
+.hub-linha:last-child{border-bottom:0}
+.hub-linha .ico{font-size:22px;width:28px;text-align:center;flex:none}
+.hub-linha .tx{flex:1;min-width:0}
+.hub-linha .tx small{display:block;font-size:13px;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hub-linha::after{content:"›";font-size:22px;color:var(--suave)}
+.hub-linha .qtd{background:var(--erro);color:#fff;border-radius:10px;font-size:12px;font-weight:700;padding:1px 7px}
+.hub-busca{margin-bottom:12px}
+.hub-voltar{background:none;border:0;color:var(--marinho);font-size:16px;font-weight:700;padding:6px 0;cursor:pointer;min-height:40px}
+@media (prefers-color-scheme:dark){.hub-voltar,.trab-voltar{color:var(--laranja)}}
+.hub-valor{font-family:var(--titulo-fonte);font-size:26px;font-weight:700;color:var(--marinho)}
+@media (prefers-color-scheme:dark){.hub-valor{color:var(--laranja)}}
+/* tela de trabalho (formulários): volta ao Início */
+.trab-topo{display:flex;align-items:center;gap:10px;margin:-6px 0 12px}
+.trab-voltar{flex:none;background:none;border:1.5px solid var(--linha);border-radius:999px;color:var(--marinho);font-size:15px;font-weight:700;padding:0 14px;min-height:40px;cursor:pointer}
+.trab-topo strong{font-family:var(--titulo-fonte);font-size:21px;color:var(--tinta);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .menu-btn{position:relative}
 .menu-btn[hidden]{display:none}
 .menu{position:fixed;z-index:30;top:calc(env(safe-area-inset-top,0px) + 74px);right:12px;min-width:250px;max-width:min(300px,calc(100vw - 24px));background:var(--papel);border:1.5px solid var(--linha);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column}
@@ -507,6 +556,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <header class="topo">
   <p class="marca"><img src="logo.png" alt="VPX Engenharia" width="100" height="56"></p>
   <div class="topo-dir">
+    <button class="topo-fila" id="topo-fila" hidden type="button"></button>
     <button class="agenda-btn" id="btn-agenda" hidden aria-label="Agenda">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="topo-rot">Agenda</span>
     </button>
@@ -544,6 +594,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   </section>
 
   <section id="tela-app" hidden>
+    <div class="trab-topo"><button class="trab-voltar" id="trab-voltar" type="button">‹ Início</button><strong id="trab-titulo"></strong></div>
     <p class="sem-acesso-msg" id="sem-acesso" hidden>Você ainda não tem acesso às funções do app.<br>Peça ao administrador para liberar.</p>
     <div class="abas" role="tablist">
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
@@ -610,9 +661,30 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       </button>
       <a class="btn sec" id="ok-link" target="_blank" rel="noopener">Abrir pasta no OneDrive</a>
       <button class="btn prim" id="btn-nova">Nova visita</button>
+      <button class="btn sec" id="ok-inicio">‹ Voltar ao início</button>
     </div>
   </section>
+
+  <!-- telas da barra de baixo (Início, Clientes, Financeiro, Mais) e a página do cliente; o conteúdo é montado pelo script -->
+  <section id="tela-inicio" class="hub" hidden></section>
+  <section id="tela-clientes" class="hub" hidden>
+    <h1 class="hub-tit">Clientes</h1>
+    <input class="busca hub-busca" id="cl-busca" type="search" placeholder="Buscar cliente" autocomplete="off">
+    <div id="cl-lista"></div>
+  </section>
+  <section id="tela-cliente" class="hub" hidden></section>
+  <section id="tela-fin" class="hub" hidden></section>
+  <section id="tela-mais" class="hub" hidden></section>
 </main>
+
+<!-- barra de baixo: o caminho para tudo do app -->
+<nav class="nav" id="nav" hidden aria-label="Menu principal">
+  <button data-s="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Início</button>
+  <button data-s="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16"/><path d="M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg>Clientes</button>
+  <button data-s="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
+  <button data-s="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M7 12h.01M17 12h.01"/></svg>Financeiro<span class="avcb-qtd" id="nav-fin-qtd" hidden></span></button>
+  <button data-s="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mais</button>
+</nav>
 
 <footer class="barra" id="barra" hidden>
   <div class="barra-in">
@@ -1005,9 +1077,14 @@ function aviso(msg, erro = false) {
   aviso.t = setTimeout(() => el.className = "aviso", erro ? 6000 : 3000);
 }
 function mostrar(tela) {
-  ["tela-config", "tela-login", "tela-app", "tela-ok"].forEach(t => $(t).hidden = t !== tela);
+  const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-fin", "tela-mais"];
+  ["tela-config", "tela-login", "tela-app", "tela-ok", ...hubs].forEach(t => $(t).hidden = t !== tela);
   $("barra").hidden = tela !== "tela-app";
-  if (tela !== "tela-app") $("ld-prog").hidden = true;   // barra do laudo só na tela principal
+  if (tela !== "tela-app") $("ld-prog").hidden = true;   // barra do laudo só no formulário
+  const hub = hubs.includes(tela);
+  $("nav").hidden = !hub;                          // barra de baixo só nas telas de navegação
+  document.body.classList.toggle("hub-on", hub);
+  if (tela === "tela-app" || tela === "tela-ok") secao = "trabalho";
 }
 const pad = n => String(n).padStart(2, "0");
 function dataISO(d = new Date()) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
@@ -3228,6 +3305,8 @@ function atualizar() {
   const k = todosItens().filter(f => f.dest && f.st !== "ok").length;
   const qtd = `${k} ${k > 1 ? "itens" : "item"}`;
   $("fila").hidden = !k;
+  $("topo-fila").hidden = !k || !conta;            // aviso da fila no topo, visível em qualquer tela
+  $("topo-fila").textContent = enviandoFundo ? `⏳ Enviando ${k}` : `⏳ ${k} na fila`;
   if (k) $("fila").textContent = enviandoFundo ? `⏳ Enviando ${qtd} da fila…`
     : !navigator.onLine ? `⏳ ${qtd} aguardando internet. ${k > 1 ? "Serão enviados" : "Será enviado"} sozinho${k > 1 ? "s" : ""} quando o sinal voltar, com o app aberto.`
     : `⏳ ${qtd} na fila de envio. O app tenta de novo sozinho.`;
@@ -4714,6 +4793,8 @@ function aplicarPermissoes() {
   if (abas.length && !abas.includes(modo) && !enviando) trocarModo(abas[0]);
   atualizar.cliHist = undefined;                   // refaz o resumo do histórico (pode ter sido liberado/bloqueado)
   atualizar();
+  atualizarNav();                                  // barra de baixo e a tela aberta seguem as permissões
+  if (TELA_SECAO[secao] && !$(TELA_SECAO[secao]).hidden) irPara(secao);
 }
 
 // pasta de configuração: pelo caminho no OneDrive do Gustavo ou, para a equipe, por "Compartilhados comigo"
@@ -5515,6 +5596,8 @@ function atualizarContadores() {
   const n = ehAdmin() ? Object.values(pedidos).filter(p => p.status === "aguardando").length : 0;
   $("menu-qtd").hidden = !n; $("menu-qtd").textContent = n;
   $("mn-pc-qtd").hidden = !n; $("mn-pc-qtd").textContent = n;
+  $("nav-fin-qtd").hidden = !n; $("nav-fin-qtd").textContent = n;   // barra de baixo: Financeiro
+  if (secao === "fin") desenharFin();
 }
 
 function abrirPedidos() {
@@ -6455,33 +6538,276 @@ function novaVisita() {
   window.scrollTo(0, 0);
 }
 
+/* ---------- navegação: barra de baixo (Início, Clientes, Agenda, Financeiro, Mais) ----------
+   Os formulários (visita, comercial, laudo, inspeção, brigada, comprovante) abrem em tela cheia ("trabalho"),
+   com "‹ Início" para voltar; a barra de baixo só aparece nas telas de navegação. */
+const MODOS_APP = [
+  ["visita", "📷", "Visita técnica"], ["com", "💼", "Comercial"], ["laudo", "📋", "Laudo"],
+  ["insp", "🔍", "Inspeção"], ["trein", "🧯", "Brigada"], ["comp", "🧾", "Comprovante"]
+];
+const NOME_MODO = { visita: "Visita técnica", com: "Comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", comp: "Comprovante" };
+const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", fin: "tela-fin", mais: "tela-mais" };
+let secao = "inicio", cliPagina = null;            // seção atual ("trabalho" = formulário aberto) e cliente da página do cliente
+
+function tile(ico, texto, fn) {
+  const b = el("button", "hub-tile"); b.type = "button";
+  b.append(el("span", "", ico), texto); b.onclick = fn;
+  return b;
+}
+function linha(ico, texto, sub, fn, qtd) {
+  const b = el("button", "hub-linha"); b.type = "button";
+  b.appendChild(el("span", "ico", ico));
+  const tx = el("span", "tx", texto); if (sub) tx.appendChild(el("small", "", sub));
+  b.appendChild(tx);
+  if (qtd) b.appendChild(el("span", "qtd", String(qtd)));
+  b.onclick = fn;
+  return b;
+}
+const podeFin = () => pode("comp") || Object.keys(TIPOS_PED).some(podeTipo);
+function atualizarNav() {
+  const nav = $("nav");
+  nav.querySelector('[data-s="agenda"]').hidden = !pode("agenda");
+  nav.querySelector('[data-s="fin"]').hidden = !podeFin();
+  const atual = secao === "cliente" ? "clientes" : secao;
+  nav.querySelectorAll("button").forEach(b => { if (b.dataset.s === atual) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+}
+
+// troca de seção pela barra de baixo (a Agenda abre por cima, como antes)
+function irPara(s) {
+  if (enviando) return;
+  if (s === "agenda") { abrirAgenda(); return; }
+  if (secao === "trabalho" && history.state?.trab) history.replaceState(null, "");   // saiu do formulário pela barra
+  if ($("dlg").open) $("dlg").close();
+  secao = s;
+  mostrar(TELA_SECAO[s]);
+  if (s === "inicio") desenharInicio();
+  if (s === "clientes") { $("cl-busca").value = ""; desenharClientesHub(); }
+  if (s === "cliente") desenharPaginaCliente();
+  if (s === "fin") desenharFin();
+  if (s === "mais") desenharMais();
+  atualizarNav();
+  window.scrollTo(0, 0);
+}
+
+// abre um formulário; cli = cliente já escolhido (página do cliente / continuar); sem cliente, pede logo
+function abrirTrabalho(m, cli) {
+  if (enviando || !pode(m)) return;
+  if (m !== modo) trocarModo(m);
+  if (cli && cli !== cliente) escolher(cli);
+  secao = "trabalho";
+  mostrar("tela-app"); aplicarModo(); atualizar();
+  $("trab-titulo").textContent = NOME_MODO[m] + (m === "laudo" && laudo.tipo ? " · " + defLaudo()?.nome.replace(/^Laudo de /, "") : "");
+  if (!history.state?.trab) history.pushState({ trab: true }, "");   // o "voltar" do celular volta ao Início
+  window.scrollTo(0, 0);
+  if (!cliente && m !== "comp") abrirDialogo();
+}
+function voltarInicio() {
+  if (history.state?.trab) history.back();         // o popstate leva ao Início
+  else irPara("inicio");
+}
+
+// "Continuar de onde parou": rascunhos e fotos ainda não salvas
+function itensContinuar() {
+  const out = [];
+  for (const m of ["laudo", "insp"]) {
+    const l = rascunhos[m];
+    if (!pode(m) || !l?.tipo || (m === "insp" && !l.sist?.length)) continue;
+    const blocos = blocosLaudo(l), total = blocos.reduce((n, b) => n + b.s.itens.length, 0);
+    const resp = blocos.reduce((n, b) => n + b.s.itens.filter(([id]) => l.r[chaveItem(b.uid, id)]?.st).length, 0);
+    if (!resp && !l.cli && !Object.values(l.med || {}).some(Boolean)) continue;   // tipo escolhido mas nada preenchido
+    out.push({ m, cli: l.cli || guardadoDe(m).cliente, titulo: defDe(l).nome, sub: `${resp} de ${total} itens respondidos` });
+  }
+  if (pode("trein") && trein.modelo) out.push({ m: "trein", cli: guardadoDe("trein").cliente, titulo: "Treinamento · " + TREINAMENTOS[trein.modelo].curto, sub: `${trein.part?.length || 0} participante(s)` });
+  if (pode("com") && fichaPreenchida()) out.push({ m: "com", cli: guardadoDe("com").cliente, titulo: "Ficha comercial", sub: "Preenchimento em andamento" });
+  for (const m of ["visita", "comp"]) {
+    const n = listaDe(m).filter(f => !f.dest).length;
+    if (pode(m) && n) out.push({ m, cli: guardadoDe(m).cliente, titulo: NOME_MODO[m], sub: `${n} ${n > 1 ? "fotos ainda não salvas" : "foto ainda não salva"}` });
+  }
+  return out;
+}
+const guardadoDe = m => m === modo ? { fotos, cliente } : guardado[m];
+
+function desenharInicio() {
+  const t = $("tela-inicio"); t.innerHTML = "";
+  const h = new Date().getHours(), nome = (conta?.name || "").split(/\s+/)[0];
+  t.appendChild(el("p", "hub-saud", `${h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite"}${nome ? ", " + nome : ""}`));
+  const cont = itensContinuar();
+  if (cont.length) {
+    t.appendChild(el("p", "hub-rot", "Continuar de onde parou"));
+    cont.forEach(c => {
+      const b = el("button", "hub-card continuar"); b.type = "button";
+      b.append(el("b", "", c.titulo + (c.cli ? " · " + c.cli : "")), el("small", "", c.sub));
+      b.onclick = () => abrirTrabalho(c.m, c.cli);
+      t.appendChild(b);
+    });
+  }
+  const modos = MODOS_APP.filter(([m]) => pode(m));
+  if (modos.length) {
+    t.appendChild(el("p", "hub-rot", "Novo registro"));
+    const g = el("div", "hub-grade");
+    modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => abrirTrabalho(m))));
+    t.appendChild(g);
+  } else t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
+  // agenda de hoje (da última agenda guardada; atualiza por trás)
+  if (pode("agenda")) {
+    const ag = lerLS(chaveAgenda(), null), hoje = chaveDia(Date.now());
+    const evs = (ag?.eventos || []).filter(e => !e.cancelado && chaveDia(e.ini) === hoje);
+    const b = el("button", "hub-card"); b.type = "button";
+    b.appendChild(el("small", "", "Hoje na agenda"));
+    if (!ag) b.appendChild(el("b", "", "Abrir a agenda"));
+    else if (!evs.length) b.appendChild(el("b", "", "Nenhum compromisso hoje"));
+    else evs.slice(0, 4).forEach(e => b.appendChild(el("b", "", `${e.diaTodo ? "Dia todo" : horaMin(e.ini)} · ${e.titulo}`)));
+    if (evs.length > 4) b.appendChild(el("small", "", `+ ${evs.length - 4} compromisso(s)`));
+    b.onclick = abrirAgenda;
+    t.appendChild(b);
+    if (navigator.onLine && conta && (!ag || Date.now() - ag.quando > 15 * 60000) && !desenharInicio.buscando) {
+      desenharInicio.buscando = true;
+      buscarAgenda().then(eventos => { gravarLS(chaveAgenda(), { quando: Date.now(), eventos }); if (secao === "inicio") desenharInicio(); })
+        .catch(() => {}).finally(() => { desenharInicio.buscando = false; });
+    }
+  }
+  // alerta de AVCB dos clientes
+  if (pode("avcb")) {
+    const sts = listaAvcb().filter(v => v.categoria === "cliente").map(situacaoAvcb);
+    const venc = sts.filter(s => s.cls === "crit").length, logo = sts.filter(s => s.cls === "warn").length;
+    const b = el("button", "hub-card " + (venc ? "crit" : logo ? "warn" : "okv")); b.type = "button";
+    b.appendChild(el("b", "", venc || logo ? [venc && `${venc} AVCB${venc > 1 ? "s" : ""} vencido${venc > 1 ? "s" : ""}`, logo && `${logo} vence${logo > 1 ? "m" : ""} em até 90 dias`].filter(Boolean).join(" · ") : "AVCBs dos clientes em dia"));
+    b.appendChild(el("small", "", "Validade AVCB / CLCB"));
+    b.onclick = abrirAvcb;
+    t.appendChild(b);
+  }
+}
+
+// Clientes: busca + recentes + todos; tocar abre a página do cliente
+function desenharClientesHub() {
+  const lista = $("cl-lista"); lista.innerHTML = "";
+  const q = semAcento($("cl-busca").value.trim());
+  if (pode("avcb") && !q) { const l = el("div", "hub-lista"); l.appendChild(linha("🛡️", "Validade AVCB / CLCB", "Lista de todos os clientes", abrirAvcb)); lista.appendChild(l); }
+  const sub = c => { const v = avcbDoCliente(c); return v ? situacaoAvcb(v).texto : ""; };
+  const grupo = (titulo, nomes) => {
+    if (!nomes.length) return;
+    lista.appendChild(el("p", "hub-rot", titulo));
+    const l = el("div", "hub-lista");
+    nomes.slice(0, 200).forEach(c => l.appendChild(linha("🏢", c, sub(c), () => abrirCliente(c))));
+    lista.appendChild(l);
+  };
+  if (!clientes.length) { lista.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando os clientes…" : "Sem internet e sem lista de clientes guardada.")); return; }
+  if (q) { grupo("Resultado", clientes.filter(c => semAcento(c).includes(q))); if (!clientes.some(c => semAcento(c).includes(q))) lista.appendChild(el("p", "avcb-nota", "Nenhum cliente encontrado. Para criar um cliente novo, comece um registro pelo Início.")); return; }
+  const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c));
+  grupo("Recentes", rec);
+  grupo("Todos", clientes);
+}
+function abrirCliente(c) { cliPagina = c; irPara("cliente"); }
+// usa as telas que já existem (arquivos, pasta técnica, histórico) para o cliente da página
+function comCliente(c, fn) { const ant = cliente; cliente = c; try { fn(); } finally { cliente = ant; } }
+function desenharPaginaCliente() {
+  const t = $("tela-cliente"), c = cliPagina; t.innerHTML = "";
+  const v = el("button", "hub-voltar", "‹ Clientes"); v.type = "button"; v.onclick = () => irPara("clientes");
+  t.append(v, el("h1", "hub-tit", c));
+  const av = avcbDoCliente(c);
+  if (av) { const s = situacaoAvcb(av); t.appendChild(el("p", "avcb-aviso " + s.cls, (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto)); }
+  const g = el("div", "hub-grade");
+  if (pode("arquivos")) g.appendChild(tile("📁", "Arquivos", () => comCliente(c, abrirArquivos)));
+  if (pode("pastaTec")) g.appendChild(tile("📂", "Pasta técnica", () => comCliente(c, abrirPastaTec)));
+  if (pode("hist")) g.appendChild(tile("🕘", "Histórico", () => comCliente(c, abrirHistorico)));
+  if (pode("laudo")) g.appendChild(tile("📋", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
+  if (g.children.length) { g.style.marginTop = "12px"; if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
+  const modos = MODOS_APP.filter(([m]) => m !== "comp" && pode(m));
+  if (modos.length) {
+    t.appendChild(el("p", "hub-rot", "Novo para este cliente"));
+    const g2 = el("div", "hub-grade");
+    modos.forEach(([m, ico, nome]) => g2.appendChild(tile(ico, nome, () => abrirTrabalho(m, c))));
+    t.appendChild(g2);
+  }
+}
+
+// Financeiro: comprovantes (total do mês) e pedidos
+function desenharFin() {
+  const t = $("tela-fin"); t.innerHTML = "";
+  t.appendChild(el("h1", "hub-tit", "Financeiro"));
+  if (pode("comp")) {
+    const mes = dataISO().slice(0, 7), eu = semAcento(nomeColaborador());
+    const cache = lerLS("vpx_comp_hist", null);
+    const meus = cache ? enviosComp(cache.arqs).filter(e => e.data.startsWith(mes) && (ehAdmin() || semAcento(e.autor) === eu)) : [];
+    const soma = tp => meus.filter(e => !tp || e.t === tp).reduce((s, e) => s + (e.valor || 0), 0);
+    const card = el("button", "hub-card"); card.type = "button";
+    card.appendChild(el("small", "", `${ehAdmin() ? "Comprovantes da equipe" : "Seus comprovantes"} em ${MESES[+mes.slice(5) - 1]}`));
+    card.appendChild(el("span", "hub-valor", cache ? "R$ " + moedaBR(soma()) : "—"));
+    card.appendChild(el("small", "", cache ? `Compras R$ ${moedaBR(soma("compra"))} · Reembolsos R$ ${moedaBR(soma("reembolso"))}` : "Toque para ver o histórico"));
+    card.onclick = abrirCompHist;
+    t.appendChild(card);
+    const g = el("div", "hub-grade"); g.style.gridTemplateColumns = "1fr 1fr";
+    g.append(tile("🧾", "Enviar comprovante", () => abrirTrabalho("comp")), tile("🕘", "Histórico", abrirCompHist));
+    t.appendChild(g);
+    if (navigator.onLine && conta && (!cache || Date.now() - cache.quando > 5 * 60000) && !desenharFin.buscando) {
+      desenharFin.buscando = true;
+      carregarCompHist(true).then(() => { if (secao === "fin") desenharFin(); }).catch(() => {}).finally(() => { desenharFin.buscando = false; });
+    }
+  }
+  const tipos = Object.keys(TIPOS_PED).filter(podeTipo);
+  if (tipos.length) {
+    t.appendChild(el("p", "hub-rot", "Pedidos"));
+    const l = el("div", "hub-lista");
+    tipos.forEach(tp => {
+      const aguard = ehAdmin() ? Object.values(pedidos).filter(p => tipoDe(p) === tp && p.status === "aguardando").length : 0;
+      const meusAbertos = meusPedidos().filter(p => tipoDe(p) === tp && TIPOS_PED[tp].abertos.includes(p.status)).length;
+      l.appendChild(linha(tp === "pag" ? "💳" : "🛒", tp === "pag" ? "Pedidos de pagamento" : "Pedidos de compra",
+        aguard ? `${aguard} aguardando sua aprovação` : meusAbertos ? `${meusAbertos} em aberto` : "Fazer e acompanhar pedidos",
+        () => { pcTipo = tp; abrirPedidos(); }, aguard));
+    });
+    t.appendChild(l);
+  }
+}
+
+// Mais: ITs, AVCB, administração e conta
+function desenharMais() {
+  const t = $("tela-mais"); t.innerHTML = "";
+  t.appendChild(el("h1", "hub-tit", "Mais"));
+  const l = el("div", "hub-lista");
+  if (pode("normas")) l.appendChild(linha("📘", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
+  if (pode("avcb")) l.appendChild(linha("🛡️", "Validade AVCB / CLCB", "Vencidos, a vencer e fotografar AVCB", abrirAvcb));
+  if (ehAdmin()) l.appendChild(linha("⚙️", "Administração", "Permissões da equipe", abrirAdmin));
+  if (l.children.length) t.appendChild(l);
+  const c = el("div", "hub-lista");
+  c.appendChild(linha("👤", conta?.name || "Conta", conta?.username || "", () => {}));
+  c.lastChild.style.cursor = "default";
+  c.appendChild(linha("↩️", "Sair da conta", "", sairConta));
+  t.appendChild(c);
+}
+function sairConta() {
+  if (enviando) return;
+  if (confirm(`Conectado como ${conta.username}.\n\nSair da conta?`)) msalApp.logoutRedirect({ account: conta });
+}
+
 /* ---------- início ---------- */
 async function iniciarApp() {
   const nome = conta.name || conta.username || "";
   const ini = nome.split(/\s+/).filter(Boolean).map(p => p[0]).slice(0, 2).join("").toUpperCase();
   $("btn-conta").textContent = ini || "?";
   $("btn-conta").hidden = false;
-  $("btn-avcb").hidden = false;
-  $("btn-agenda").hidden = false;
+  $("btn-conta").setAttribute("aria-label", "Conta e mais opções");
   atualizarBadgeAvcb();
-  mostrar("tela-app"); aplicarModo();
+  aplicarModo();
   aplicarPermissoes();                            // com a última cópia das permissões (funciona sem internet)
+  irPara("inicio");                               // o app abre no Início (barra de baixo)
   carregarPermissoes();                           // e confere se mudaram
   registrarUsuario();                             // aparece na lista da administração
-  $("btn-menu").hidden = false;
   sincronizarPedidos();                           // contador de pedidos aguardando aprovação (administrador)
-  carregarClientes();
-  sincronizarAvcb();                              // AVCBs fotografados pela equipe (contador do botão AVCB)
+  carregarClientes().then(() => { if (secao === "clientes") desenharClientesHub(); });
+  sincronizarAvcb();                              // AVCBs fotografados pela equipe
   await restaurarItens();                         // fotos guardadas no celular da última vez
+  if (secao === "inicio") desenharInicio();       // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
   if (lerLS("vpx_abrir_agenda", false)) { gravarLS("vpx_abrir_agenda", false); abrirAgenda(); }   // voltou da autorização da agenda
 }
 
 $("btn-entrar").onclick = () => msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "select_account" });
-$("btn-conta").onclick = () => {
-  if (enviando) return;
-  if (confirm(`Conectado como ${conta.username}.\n\nSair da conta?`)) msalApp.logoutRedirect({ account: conta });
-};
+$("btn-conta").onclick = () => irPara("mais");     // iniciais no topo: conta e mais opções
+$("nav").querySelectorAll("button").forEach(b => b.onclick = () => irPara(b.dataset.s));
+$("trab-voltar").onclick = voltarInicio;
+$("ok-inicio").onclick = () => { novaVisita(); voltarInicio(); };
+$("cl-busca").oninput = () => { clearTimeout(desenharClientesHub.t); desenharClientesHub.t = setTimeout(desenharClientesHub, 200); };
+$("topo-fila").onclick = () => aviso($("fila").textContent || "Itens aguardando envio.");
 $("btn-cliente").onclick = abrirDialogo;
 $("dlg-fechar").onclick = () => $("dlg").close();
 $("busca").oninput = desenharLista;
@@ -6531,6 +6857,12 @@ window.addEventListener("popstate", () => {
   if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
+  // "voltar" do celular no formulário (sem nada aberto por cima): volta ao Início
+  const porCima = cam || !$("menu").hidden || [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden);
+  if (!porCima && secao === "trabalho" && !history.state?.trab) {
+    if (enviando) { history.pushState({ trab: true }, ""); return; }   // enviando: fica no formulário
+    irPara("inicio"); return;
+  }
   if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharMenu();
 });
 $("btn-arq").onclick = abrirArquivos;
@@ -6558,7 +6890,7 @@ document.addEventListener("click", e => { if (!$("menu").hidden && !e.target.clo
 $("mn-its").onclick = () => { fecharMenu(); abrirNormas(); };
 $("mn-pc").onclick = abrirPedidos;
 $("mn-admin").onclick = () => { fecharMenu(); abrirAdmin(); };
-$("mn-sair").onclick = () => { fecharMenu(); $("btn-conta").onclick(); };
+$("mn-sair").onclick = () => { fecharMenu(); sairConta(); };
 $("pc-voltar").onclick = () => fecharPedidos();
 $("pc-novo-btn").onclick = abrirNovoPC;
 $("pc-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { pcTipo = b.dataset.t; pcAberto = null; desenharPedidos(); });
