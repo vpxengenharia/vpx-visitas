@@ -28,7 +28,7 @@ App web (PWA) da VPX Engenharia para a equipe de campo tirar fotos em visitas t�
 4. Antes de publicar, confira a sintaxe do JavaScript (por exemplo, extraindo o `<script>` e rodando `node --check`, se o Node estiver disponível) e revise o diff.
 5. Publicar = `git add`, `git commit` com mensagem curta em português descrevendo a melhoria, e `git push` para `main`. O GitHub Pages atualiza em 1 a 2 minutos; os celulares pegam a versão nova ao fechar e abrir o app.
 6. Não é possível testar o login daqui. Depois de publicar, peça ao Gustavo para abrir o site com Ctrl+F5 e testar a mudança.
-7. Interface pensada para celular, uso em obra, com uma mão: botões grandes, alto contraste. Cores da marca: azul `#1C3C61` e laranja `#EB9D2B`. Fontes Barlow / Barlow Semi Condensed.
+7. Interface pensada para celular, uso em obra, com uma mão: botões grandes, alto contraste. Sem zoom de dois toques (`touch-action: manipulation` em tudo) nem zoom ao tocar em campos no iPhone (`maximum-scale=1` no viewport) — pedido do Gustavo em 16/10/2026; o visualizador de PDF tem os próprios botões de zoom. Cores da marca: azul `#1C3C61` e laranja `#EB9D2B`. Fontes Barlow / Barlow Semi Condensed.
 
 ## Contexto útil
 

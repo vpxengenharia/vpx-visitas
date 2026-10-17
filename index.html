@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"><!-- maximum-scale: o iPhone não dá zoom ao tocar num campo -->
 <title>VPX Engenharia</title>
 <meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,7 +28,7 @@
 @media (prefers-color-scheme:dark){
   :root{--tinta:#E8EDF3;--fundo:#0E1A29;--papel:#162638;--linha:#2B3E55;--suave:#9AAABD;color-scheme:dark}
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;touch-action:manipulation}   /* sem zoom com dois toques (a assinatura e a câmera têm touch-action próprio) */
 html,body{height:100%;margin:0}
 body{font-family:var(--texto-fonte);font-size:17px;line-height:1.45;color:var(--tinta);background:var(--fundo);-webkit-tap-highlight-color:transparent}
 button,input,label{font:inherit}
