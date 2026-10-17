@@ -500,6 +500,11 @@ p{margin:0 0 14px;max-width:60ch}
 .visor-zoom[hidden]{display:none}
 .visor-zoom button{width:48px;height:48px;border-radius:50%;border:0;background:transparent;color:#fff;font-size:26px;cursor:pointer}
 .visor-zoom span{min-width:30px;text-align:center;font-weight:700}
+/* zoom com a pinça dos dedos (pedido do Gustavo): o app cuida do gesto; no celular os botões − / + somem */
+.visor-pdf{overflow:hidden}
+.visor-topo{position:relative;z-index:1}
+.visor-paginas{touch-action:pan-x pan-y}
+@media (pointer:coarse){.visor-zoom{display:none!important}}
 
 dialog{border:0;padding:0;width:100%;max-width:720px;height:100%;max-height:100%;margin:0 auto;background:var(--fundo);color:var(--tinta)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
@@ -3857,7 +3862,7 @@ async function desenharVisor() {
   const este = visor, pags = $("visor-paginas");
   const largura = Math.min(pags.clientWidth - 16, 900) * este.zoom;
   pags.classList.toggle("zoom", este.zoom > 1);
-  $("visor-zoom-n").textContent = este.zoom + "×";
+  $("visor-zoom-n").textContent = Math.round(este.zoom * 10) / 10 + "×";
   if (este.img) {
     pags.innerHTML = "";
     const im = document.createElement("img"); im.src = este.img; im.alt = este.titulo; im.style.width = largura + "px";
@@ -3901,9 +3906,42 @@ async function desenharVisor() {
   caixas.forEach(d => este.obs.observe(d));
   if (este.pagina) { caixas[este.pagina - 1]?.scrollIntoView({ block: "start" }); este.pagina = null; }
 }
+// pinça: durante o gesto a tela só é ampliada (CSS, rápido); ao soltar, redesenha nítido no novo zoom
+// e mantém embaixo dos dedos o mesmo ponto do documento. Zoom de 1× a 5×.
+const ZOOM_MAX_VISOR = 5;
+function ligarPinca() {
+  const pags = $("visor-paginas");
+  let g = null;                                    // { d0, z0, z, mx, my, cx, cy }
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  pags.addEventListener("touchstart", e => {
+    if (e.touches.length !== 2 || !visor || (!visor.pdf && !visor.img)) return;
+    const r = pags.getBoundingClientRect();
+    const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left, my = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+    g = { d0: dist(e.touches) || 1, z0: visor.zoom, z: visor.zoom, mx, my, cx: pags.scrollLeft + mx, cy: pags.scrollTop + my };
+    pags.style.transformOrigin = `${mx}px ${my}px`;
+  }, { passive: true });
+  pags.addEventListener("touchmove", e => {
+    if (!g || e.touches.length !== 2) return;
+    e.preventDefault();                            // o navegador não rola nem amplia a página inteira
+    g.z = Math.min(ZOOM_MAX_VISOR, Math.max(1, g.z0 * dist(e.touches) / g.d0));
+    pags.style.transform = `scale(${g.z / g.z0})`;
+  }, { passive: false });
+  const fim = () => {
+    if (!g) return;
+    const { z0, z, mx, my, cx, cy } = g; g = null;
+    pags.style.transform = ""; pags.style.transformOrigin = "";
+    if (!visor || Math.abs(z - z0) < 0.05) return;
+    visor.zoom = Math.round(z * 100) / 100;
+    const k = visor.zoom / z0;
+    desenharVisor().then(() => { pags.scrollLeft = cx * k - mx; pags.scrollTop = cy * k - my; });
+  };
+  pags.addEventListener("touchend", e => { if (e.touches.length < 2) fim(); });
+  pags.addEventListener("touchcancel", fim);
+  pags.addEventListener("gesturestart", e => e.preventDefault());   // iPhone: sem o zoom próprio do Safari por cima do nosso
+}
 function zoomVisor(d) {
   if (!visor || (!visor.pdf && !visor.img)) return;
-  const z = Math.min(4, Math.max(1, visor.zoom + d));
+  const z = Math.min(ZOOM_MAX_VISOR, Math.max(1, Math.round(visor.zoom) + d));
   if (z === visor.zoom) return;
   const pags = $("visor-paginas");
   const rx = (pags.scrollLeft + pags.clientWidth / 2) / (pags.scrollWidth || 1), ry = (pags.scrollTop + pags.clientHeight / 2) / (pags.scrollHeight || 1);
@@ -7384,6 +7422,7 @@ $("visor-menos").onclick = () => zoomVisor(-1);
 // celular girado com o visualizador aberto: redesenha na nova largura
 window.addEventListener("resize", () => { clearTimeout(desenharVisor.t); desenharVisor.t = setTimeout(() => { if (visor && (visor.pdf || visor.img)) desenharVisor(); }, 300); });
 $("visor-mais").onclick = () => zoomVisor(1);
+ligarPinca();
 // as fotos ficam guardadas no celular: só avisa ao fechar se houver envio em andamento
 window.addEventListener("beforeunload", e => {
   if (enviando || enviandoFundo) { e.preventDefault(); e.returnValue = ""; }
