@@ -126,6 +126,10 @@ body.agenda-secao .nav{z-index:35}
 .hub-card small{display:block;color:var(--suave);font-size:13.5px}
 .hub-card b{display:block;font-size:16px}
 .hub-card.continuar{border-left:6px solid var(--laranja)}
+.hub-card small.ag-dia-rot{font-weight:700;color:var(--marinho);margin-top:10px}
+.hub-card small.ag-dia-rot:first-child{margin-top:0}
+@media (prefers-color-scheme:dark){.hub-card small.ag-dia-rot{color:var(--laranja)}}
+.hub-card .ag-vazio-ini{display:block;color:var(--suave);font-size:14.5px}
 .hub-card.crit{background:var(--crit-bg);border-color:transparent;color:var(--crit-tx)}
 .hub-card.warn{background:var(--warn-bg);border-color:transparent;color:var(--warn-tx)}
 .hub-card.okv{background:var(--okv-bg);border-color:transparent;color:var(--okv-tx)}
@@ -6712,16 +6716,21 @@ function desenharInicio() {
     modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => abrirTrabalho(m))));
     t.appendChild(g);
   } else t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
-  // agenda de hoje (da última agenda guardada; atualiza por trás)
+  // agenda de hoje e de amanhã (da última agenda guardada; atualiza por trás)
   if (pode("agenda")) {
-    const ag = lerLS(chaveAgenda(), null), hoje = chaveDia(Date.now());
-    const evs = (ag?.eventos || []).filter(e => !e.cancelado && chaveDia(e.ini) === hoje);
+    const ag = lerLS(chaveAgenda(), null);
     const b = el("button", "hub-card"); b.type = "button";
-    b.appendChild(el("small", "", "Hoje na agenda"));
-    if (!ag) b.appendChild(el("b", "", "Abrir a agenda"));
-    else if (!evs.length) b.appendChild(el("b", "", "Nenhum compromisso hoje"));
-    else evs.slice(0, 4).forEach(e => b.appendChild(el("b", "", `${e.diaTodo ? "Dia todo" : horaMin(e.ini)} · ${e.titulo}`)));
-    if (evs.length > 4) b.appendChild(el("small", "", `+ ${evs.length - 4} compromisso(s)`));
+    if (!ag) { b.appendChild(el("small", "", "Agenda")); b.appendChild(el("b", "", "Abrir a agenda")); }
+    else {
+      const amanha = new Date(); amanha.setDate(amanha.getDate() + 1);
+      for (const [rot, t0, vazio] of [["Hoje", Date.now(), "Nenhum compromisso hoje"], ["Amanhã", amanha.getTime(), "Nenhum compromisso amanhã"]]) {
+        const dia = chaveDia(t0), evs = ag.eventos.filter(e => !e.cancelado && chaveDia(e.ini) === dia);
+        b.appendChild(el("small", "ag-dia-rot", `${rot} · ${new Date(t0).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" }).replace(".", "")}`));
+        if (!evs.length) b.appendChild(el("span", "ag-vazio-ini", vazio));
+        else evs.slice(0, 4).forEach(e => b.appendChild(el("b", "", `${e.diaTodo ? "Dia todo" : horaMin(e.ini)} · ${e.titulo}`)));
+        if (evs.length > 4) b.appendChild(el("small", "", `+ ${evs.length - 4} compromisso(s)`));
+      }
+    }
     b.onclick = () => irPara("agenda");
     t.appendChild(b);
     if (navigator.onLine && conta && (!ag || Date.now() - ag.quando > 15 * 60000) && !desenharInicio.buscando) {
