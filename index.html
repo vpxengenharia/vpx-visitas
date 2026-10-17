@@ -68,6 +68,24 @@ button,input,label{font:inherit}
 .cli-ac[hidden]{display:none}
 .cli-ac:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
 @media (prefers-color-scheme:dark){.cli-ac{color:var(--tinta)}}
+/* extintores e mangueiras */
+.eq-resumo{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.eq-resumo span{padding:6px 12px;border-radius:999px;font-size:14px;font-weight:700}
+.eq-resumo .crit,.eq-card.crit{background:var(--crit-bg);color:var(--crit-tx)}
+.eq-resumo .warn,.eq-card.warn{background:var(--warn-bg);color:var(--warn-tx)}
+.eq-resumo .ok,.eq-card.ok{background:var(--okv-bg);color:var(--okv-tx)}
+.eq-card{border-radius:14px;padding:12px 14px;margin-bottom:10px;border:1.5px solid transparent}
+.eq-card b{display:block;font-size:17px}
+.eq-card small{display:block;font-size:14px;line-height:1.4}
+.eq-card .eq-acoes{display:flex;gap:8px;margin-top:10px}
+.eq-card .eq-acoes button{flex:1;min-height:44px;border-radius:10px;border:1.5px solid currentColor;background:transparent;color:inherit;font-weight:700;font-size:14.5px;cursor:pointer}
+.eq-add{width:100%;margin:0 0 6px}
+.eq-form .eq-linha2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.eq-form .eq-botoes{display:flex;gap:8px;margin-top:6px}
+.eq-form .eq-botoes .btn{flex:1}
+.hub-linha.eq-crit .tx small{color:var(--crit-tx);font-weight:700}
+.hub-linha.eq-warn .tx small{color:var(--warn-tx);font-weight:700}
+.eqv-cli{margin:16px 2px 6px;font-family:var(--titulo-fonte);font-weight:700;font-size:17px;color:var(--tinta)}
 /* histórico de comprovantes */
 .ch-abrir{margin:0 0 14px}
 #ch-lista .arq-txt small{display:block}
@@ -848,6 +866,25 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   </div>
 </div>
 
+<div class="tela-avcb" id="tela-eq" hidden role="dialog" aria-label="Extintores e mangueiras do cliente">
+  <div class="avcb-topo"><button class="avcb-voltar" id="eq-voltar">‹ Voltar</button><strong id="eq-titulo">Extintores e mangueiras</strong></div>
+  <div class="avcb-corpo" id="eq-corpo"></div>
+</div>
+
+<div class="tela-avcb" id="tela-eqv" hidden role="dialog" aria-label="Vencimentos de extintores e mangueiras">
+  <div class="avcb-topo"><button class="avcb-voltar" id="eqv-voltar">‹ Voltar</button><strong>Extintores e mangueiras</strong></div>
+  <div class="avcb-corpo">
+    <div class="chips avcb-filtro" id="eqv-filtro" style="margin-top:4px">
+      <button type="button" data-f="crit" aria-pressed="true">Vencidos</button>
+      <button type="button" data-f="warn" aria-pressed="false">Vencem em 60 dias</button>
+      <button type="button" data-f="todos" aria-pressed="false">Todos</button>
+    </div>
+    <p class="avcb-nota" id="eqv-estado" style="margin-top:0"></p>
+    <div id="eqv-lista"></div>
+    <button class="btn sec" id="eqv-exportar" type="button" style="width:100%;margin-top:12px">⬇ Exportar planilha (Excel)</button>
+  </div>
+</div>
+
 <div class="tela-avcb" id="tela-admin" hidden role="dialog" aria-label="Administração">
   <div class="avcb-topo"><button class="avcb-voltar" id="adm-voltar">‹ Voltar</button><strong>Administração</strong></div>
   <div class="avcb-corpo">
@@ -1020,7 +1057,8 @@ const CONFIG = {
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
   subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
-  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i],
+  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i],
+  pastaEquip: "00 - Extintores e Mangueiras",  // dentro de 02 - Clientes: um .json por cliente com os grupos de extintores e mangueiras
   admins: ["gustavoponchio@vpxengenharia.com.br"],                     // administrador principal (área ⚙ e tudo liberado)
   pastaConfig: "VPX Visitas - Configuração",                           // na raiz do OneDrive do Gustavo: permissoes.json (equipe só lê)
   pastaUsuarios: "00 - Usuários do app",                              // em 02 - Clientes: registro de quem usa o app (para a administração)
@@ -5216,6 +5254,263 @@ function fecharCompHist(voltar = true) {
   if (voltar && history.state?.ch) history.back();
 }
 
+/* ---------- extintores e mangueiras (validade por grupo) ----------
+   Pedido do Gustavo em 17/10/2026: mesmo com o AVCB válido, extintores e mangueiras não podem estar vencidos.
+   Controle por grupo (ex.: "8 × Pó químico ABC 4 kg"), com mês da última recarga / teste. Prazos (NBR 12962 e 12779):
+   extintor recarga 12 meses e teste hidrostático 5 anos; mangueira teste/manutenção 12 meses. Vale até o fim do mês.
+   Um .json por cliente em 02 - Clientes › 00 - Extintores e Mangueiras (CONFIG.pastaEquip), lido por toda a equipe
+   (sincronizarEq, por eTag, cópia em localStorage vpx_eq) e gravado com If-Match (412 = outra pessoa mudou). */
+const TIPOS_EXT = ["Água pressurizada (AP)", "Pó químico BC", "Pó químico ABC", "CO₂", "Espuma mecânica"];
+const CAP_EXT = ["4 kg", "6 kg", "8 kg", "12 kg", "10 L", "9 L", "6 kg (CO₂)"];
+const DIAM_MANG = ['1 1/2"', '2 1/2"'], COMP_MANG = ["15 m", "20 m", "30 m"];
+const PRAZOS_EQ = { recarga: 12, hidro: 60, teste: 12 };          // meses
+let eqDados = lerLS("vpx_eq", {});                 // cliente → { ext: [], mang: [], etag, atualizado, por }
+let eq = null;                                     // tela do cliente aberta: { cliente, editando: { tipo, grupo } | null }
+const ymAtual = () => dataISO().slice(0, 7);
+const ymBR = ym => ym ? `${ym.slice(5, 7)}/${ym.slice(0, 4)}` : "";
+const somaMesesYM = (ym, m) => { const [a, mm] = ym.split("-").map(Number); const d = new Date(a, mm - 1 + m, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; };
+function sitVenc(ym) {                             // vale até o último dia do mês de vencimento
+  const [a, m] = ym.split("-").map(Number), dias = Math.ceil((new Date(a, m, 0, 23, 59) - Date.now()) / 86400000);
+  return dias < 0 ? "crit" : dias <= 60 ? "warn" : "ok";
+}
+const descGrupo = (t, g) => t === "ext" ? `${g.qtd} × ${g.tipo}${g.cap ? " " + g.cap : ""}` : `${g.qtd} × mangueira${g.qtd > 1 ? "s" : ""} ${g.diam || ""}${g.comp ? " × " + g.comp : ""}`.trim();
+// vencimentos de um grupo: [{ rot, ultima, vence, sit }]
+function vencGrupo(t, g) {
+  const out = [];
+  const add = (rot, ultima, meses) => { if (ultima) { const vence = somaMesesYM(ultima, meses); out.push({ rot, ultima, vence, sit: sitVenc(vence) }); } };
+  if (t === "ext") { add("Recarga", g.recarga, PRAZOS_EQ.recarga); add("Teste hidrostático", g.hidro, PRAZOS_EQ.hidro); }
+  else add("Teste/manutenção", g.teste, PRAZOS_EQ.teste);
+  return out;
+}
+const piorSit = vs => vs.some(v => v.sit === "crit") ? "crit" : vs.some(v => v.sit === "warn") ? "warn" : "ok";
+const gruposDe = d => [...(d?.ext || []).map(g => ["ext", g]), ...(d?.mang || []).map(g => ["mang", g])];
+const sitCliente = cli => { const vs = gruposDe(eqDados[cli]).flatMap(([t, g]) => vencGrupo(t, g)); return vs.length ? piorSit(vs) : null; };
+
+async function pastaEquip() { return garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaEquip]); }
+async function sincronizarEq() {
+  if (!conta || !navigator.onLine || sincronizarEq.rodando || !pode("equip")) return;
+  sincronizarEq.rodando = true;
+  try {
+    const pasta = await pastaEquip();
+    let url = `/drives/${CONFIG.driveId}/items/${pasta.id}/children?$top=999`;
+    const itens = [];
+    while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
+    const porEtag = new Map(Object.entries(eqDados).map(([c, d]) => [d.etag, c]));
+    const novo = {};
+    for (const i of itens.filter(i => i.file && /\.json$/i.test(i.name))) {
+      const velho = porEtag.has(i.eTag) ? eqDados[porEtag.get(i.eTag)] : null;
+      let d = velho;
+      if (!d) { try { d = await (await fetch(i["@microsoft.graph.downloadUrl"])).json(); } catch (e) { console.error(e); continue; } }
+      if (d?.cliente) novo[d.cliente] = { ...d, etag: i.eTag };
+    }
+    eqDados = novo;
+    gravarLS("vpx_eq", eqDados);
+  } catch (e) { console.error(e); }
+  finally { sincronizarEq.rodando = false; }
+  if (eq && !eq.editando) desenharEq();
+  if (!$("tela-eqv").hidden) desenharEqv();
+  if (secao === "inicio" && !$("tela-inicio").hidden) desenharInicio();
+}
+// grava a lista do cliente (precisa de internet); 412 = outra pessoa mudou antes: recarrega e pede para refazer
+async function gravarEq(cli, ext, mang) {
+  if (!navigator.onLine) throw new Error("Sem internet: para salvar, conecte o celular.");
+  const pasta = await pastaEquip();
+  const atual = eqDados[cli], corpo = { versao: 1, cliente: cli, ext, mang, atualizado: new Date().toISOString(), por: nomeColaborador() };
+  const headers = { "Content-Type": "application/json" };
+  if (atual?.etag) headers["If-Match"] = atual.etag;
+  try {
+    const it = await graph(`/drives/${CONFIG.driveId}/items/${pasta.id}:/${encodeURIComponent(limparNome(cli) + ".json")}:/content`, { method: "PUT", headers, body: JSON.stringify(corpo, null, 1) });
+    eqDados[cli] = { ...corpo, etag: it?.eTag };
+    gravarLS("vpx_eq", eqDados);
+  } catch (e) {
+    if (e.status === 412) { await sincronizarEq(); throw new Error("Outra pessoa alterou esta lista agora há pouco. A lista foi atualizada: confira e faça a mudança de novo."); }
+    throw e;
+  }
+}
+
+// tela do cliente
+function abrirEq(cli) {
+  if (!cli) return;
+  eq = { cliente: cli, editando: null };
+  $("eq-titulo").textContent = cli;
+  $("tela-eq").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ eq: true }, "");
+  desenharEq();
+  sincronizarEq();
+}
+function fecharEq(voltar = true) {
+  if ($("tela-eq").hidden) return;
+  $("tela-eq").hidden = true;
+  eq = null;
+  document.body.style.overflow = $("tela-eqv").hidden ? "" : "hidden";
+  if (voltar && history.state?.eq) history.back();
+  if (!$("tela-eqv").hidden) desenharEqv();
+}
+function desenharEq() {
+  if (!eq) return;
+  const c = $("eq-corpo"); c.innerHTML = "";
+  if (eq.editando) { c.appendChild(formEq()); return; }
+  const d = eqDados[eq.cliente] || { ext: [], mang: [] };
+  const todos = gruposDe(d).map(([t, g]) => piorSit(vencGrupo(t, g)));
+  if (todos.length) {
+    const r = el("div", "eq-resumo");
+    for (const [cls, rot] of [["crit", "vencido"], ["warn", "vence em 60 dias"], ["ok", "em dia"]]) {
+      const n = todos.filter(s => s === cls).length;
+      if (n) r.appendChild(el("span", cls, `${n} ${n > 1 && cls === "crit" ? "vencidos" : rot}`));
+    }
+    c.appendChild(r);
+  }
+  c.appendChild(el("p", "laudo-dica", "Prazos: extintor recarga 12 meses e teste hidrostático 5 anos; mangueira teste/manutenção 12 meses. Cada linha é um grupo (ex.: 8 extintores iguais)."));
+  for (const [t, titulo, rotAdd] of [["ext", "Extintores", "+ Adicionar extintores"], ["mang", "Mangueiras", "+ Adicionar mangueiras"]]) {
+    c.appendChild(el("h2", "secao", titulo));
+    const lista = d[t] || [];
+    if (!lista.length) c.appendChild(el("p", "avcb-nota", `Nenhum grupo de ${titulo.toLowerCase()} cadastrado.`));
+    lista.forEach(g => {
+      const vs = vencGrupo(t, g), card = el("div", "eq-card " + piorSit(vs));
+      card.appendChild(el("b", "", descGrupo(t, g)));
+      if (g.local) card.appendChild(el("small", "", "Local: " + g.local));
+      vs.forEach(v => card.appendChild(el("small", "", `${v.rot}: ${ymBR(v.ultima)} → ${v.sit === "crit" ? "venceu" : "vence"} em ${ymBR(v.vence)}`)));
+      const ac = el("div", "eq-acoes");
+      const feito = el("button", "", t === "ext" ? "✓ Recarga feita" : "✓ Teste feito"); feito.type = "button";
+      feito.onclick = async () => {
+        if (!confirm(`Marcar ${descGrupo(t, g)} como ${t === "ext" ? "recarregados" : "testadas"} em ${ymBR(ymAtual())}?`)) return;
+        const novo = JSON.parse(JSON.stringify(d)); const alvo = novo[t].find(x => x.id === g.id); alvo[t === "ext" ? "recarga" : "teste"] = ymAtual();
+        try { await gravarEq(eq.cliente, novo.ext || [], novo.mang || []); aviso("Atualizado."); } catch (e) { aviso(e.message, true); }
+        desenharEq();
+      };
+      const ed = el("button", "", "Editar"); ed.type = "button";
+      ed.onclick = () => { eq.editando = { tipo: t, grupo: { ...g } }; desenharEq(); };
+      ac.append(feito, ed); card.appendChild(ac);
+      c.appendChild(card);
+    });
+    const add = el("button", "btn sec eq-add", rotAdd); add.type = "button";
+    add.onclick = () => { eq.editando = { tipo: t, grupo: t === "ext" ? { tipo: "", cap: "", qtd: 1, local: "", recarga: "", hidro: "" } : { diam: "", comp: "", qtd: 1, local: "", teste: "" }, novo: true }; desenharEq(); };
+    c.appendChild(add);
+  }
+  const rodape = el("p", "avcb-nota", d.atualizado ? `Atualizado em ${new Date(d.atualizado).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}${d.por ? " por " + d.por : ""}.` : navigator.onLine ? "" : "Sem internet: mostrando a última lista guardada.");
+  c.appendChild(rodape);
+  if (todos.length) { const x = el("button", "laudo-link", "Exportar planilha deste cliente (Excel)"); x.type = "button"; x.onclick = () => exportarEq([eq.cliente]); c.appendChild(x); }
+}
+function formEq() {
+  const { tipo: t, grupo: g, novo } = eq.editando, f = el("div", "eq-form");
+  f.appendChild(el("h2", "secao", (novo ? "Novo grupo de " : "Editar ") + (t === "ext" ? "extintores" : "mangueiras")));
+  const chips = (rot, opcoes, chave) => {
+    const w = el("div", "campo"); w.appendChild(el("span", "", rot));
+    const ch = el("div", "chips");
+    opcoes.forEach(o => { const b = el("button", "", o); b.type = "button"; b.setAttribute("aria-pressed", String(g[chave] === o)); b.onclick = () => { g[chave] = o; ch.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.textContent === o))); }; ch.appendChild(b); });
+    w.appendChild(ch); return w;
+  };
+  const campo = (rot, chave, op = {}) => {
+    const w = el("label", "campo"); w.appendChild(el("span", "", rot));
+    const e = document.createElement("input");
+    if (op.tipo) e.type = op.tipo;
+    if (op.inputMode) e.inputMode = op.inputMode;
+    if (op.lista) { const id = "eq-dl-" + chave; e.setAttribute("list", id); const dl = document.createElement("datalist"); dl.id = id; op.lista.forEach(o => { const x = document.createElement("option"); x.value = o; dl.appendChild(x); }); w.appendChild(dl); }
+    e.value = g[chave] ?? ""; e.placeholder = op.dica || ""; e.autocomplete = "off";
+    e.oninput = () => { g[chave] = op.num ? Math.max(1, parseInt(e.value, 10) || 0) : e.value; };
+    w.appendChild(e); return w;
+  };
+  if (t === "ext") {
+    f.appendChild(chips("Tipo *", TIPOS_EXT, "tipo"));
+    const l2 = el("div", "eq-linha2"); l2.append(campo("Capacidade", "cap", { lista: CAP_EXT, dica: "Ex.: 4 kg" }), campo("Quantidade *", "qtd", { tipo: "number", inputMode: "numeric", num: true }));
+    f.appendChild(l2);
+    f.appendChild(campo("Local (opcional)", "local", { dica: "Ex.: Garagem e térreo" }));
+    f.appendChild(campo("Mês da última recarga *", "recarga", { tipo: "month" }));
+    f.appendChild(campo("Ano/mês do último teste hidrostático (opcional)", "hidro", { tipo: "month" }));
+  } else {
+    f.appendChild(chips("Diâmetro *", DIAM_MANG, "diam"));
+    const l2 = el("div", "eq-linha2"); l2.append(campo("Comprimento", "comp", { lista: COMP_MANG, dica: "Ex.: 15 m" }), campo("Quantidade *", "qtd", { tipo: "number", inputMode: "numeric", num: true }));
+    f.appendChild(l2);
+    f.appendChild(campo("Local / hidrante (opcional)", "local", { dica: "Ex.: Hidrantes do 1º ao 5º pavimento" }));
+    f.appendChild(campo("Mês do último teste/manutenção *", "teste", { tipo: "month" }));
+  }
+  const bt = el("div", "eq-botoes");
+  const salvarB = el("button", "btn prim", "Salvar"); salvarB.type = "button";
+  const cancelar = el("button", "btn sec", "Cancelar"); cancelar.type = "button";
+  cancelar.onclick = () => { eq.editando = null; desenharEq(); };
+  salvarB.onclick = async () => {
+    const falta = t === "ext" ? (!g.tipo ? "Escolha o tipo" : !(g.qtd > 0) ? "Informe a quantidade" : !g.recarga ? "Informe o mês da última recarga" : "")
+      : (!g.diam ? "Escolha o diâmetro" : !(g.qtd > 0) ? "Informe a quantidade" : !g.teste ? "Informe o mês do último teste" : "");
+    if (falta) { aviso(falta + ".", true); return; }
+    const d = JSON.parse(JSON.stringify(eqDados[eq.cliente] || { ext: [], mang: [] }));
+    d[t] ||= [];
+    if (novo) d[t].push({ ...g, id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5) });
+    else d[t] = d[t].map(x => x.id === g.id ? g : x);
+    salvarB.disabled = true; salvarB.textContent = "Salvando…";
+    try { await gravarEq(eq.cliente, d.ext || [], d.mang || []); eq.editando = null; aviso("Salvo."); }
+    catch (e) { aviso(e.message, true); }
+    desenharEq();
+  };
+  bt.append(cancelar, salvarB);
+  f.appendChild(bt);
+  if (!novo) {
+    const rm = el("button", "laudo-link perigo", "Excluir este grupo"); rm.type = "button";
+    rm.onclick = async () => {
+      if (!confirm(`Excluir ${descGrupo(t, g)}?`)) return;
+      const d = JSON.parse(JSON.stringify(eqDados[eq.cliente]));
+      d[t] = d[t].filter(x => x.id !== g.id);
+      try { await gravarEq(eq.cliente, d.ext || [], d.mang || []); eq.editando = null; aviso("Excluído."); } catch (e) { aviso(e.message, true); }
+      desenharEq();
+    };
+    f.appendChild(rm);
+  }
+  return f;
+}
+
+// todos os clientes: vencidos e a vencer
+let eqvFiltro = "crit";
+function linhasEq(clis = Object.keys(eqDados)) {
+  return clis.flatMap(cli => gruposDe(eqDados[cli]).flatMap(([t, g]) => vencGrupo(t, g).map(v => ({ cli, t, g, ...v }))));
+}
+function abrirEqv() {
+  $("tela-eqv").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ eqv: true }, "");
+  desenharEqv();
+  sincronizarEq();
+}
+function fecharEqv(voltar = true) {
+  if ($("tela-eqv").hidden) return;
+  $("tela-eqv").hidden = true;
+  document.body.style.overflow = "";
+  if (voltar && history.state?.eqv) history.back();
+}
+function desenharEqv() {
+  $("eqv-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === eqvFiltro)));
+  const lista = $("eqv-lista"); lista.innerHTML = "";
+  const linhas = linhasEq().filter(l => eqvFiltro === "todos" || l.sit === eqvFiltro).sort((a, b) => a.vence.localeCompare(b.vence));
+  $("eqv-estado").textContent = Object.keys(eqDados).length ? "" : "Nenhum cliente com extintores ou mangueiras cadastrados ainda. Cadastre pela página de cada cliente.";
+  $("eqv-exportar").hidden = !Object.keys(eqDados).length;
+  if (!linhas.length) { if (Object.keys(eqDados).length) lista.appendChild(el("p", "avcb-nota", eqvFiltro === "crit" ? "Nenhum item vencido." : "Nada neste filtro.")); return; }
+  const porCli = new Map();
+  linhas.forEach(l => { if (!porCli.has(l.cli)) porCli.set(l.cli, []); porCli.get(l.cli).push(l); });
+  for (const [cli, ls] of porCli) {
+    lista.appendChild(el("p", "eqv-cli", cli));
+    const l = el("div", "hub-lista");
+    ls.forEach(x => {
+      const b = linha(x.t === "ext" ? "🧯" : "🚒", descGrupo(x.t, x.g), `${x.rot}: ${x.sit === "crit" ? "venceu" : "vence"} em ${ymBR(x.vence)}${x.g.local ? " · " + x.g.local : ""}`, () => abrirEq(cli));
+      b.classList.add("eq-" + x.sit);
+      l.appendChild(b);
+    });
+    lista.appendChild(l);
+  }
+}
+async function exportarEq(clis) {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const linhasX = [["Cliente", "Equipamento", "Grupo", "Local", "Controle", "Último (mês/ano)", "Vence (mês/ano)", "Situação"]];
+    const nomeSit = { crit: "Vencido", warn: "Vence em até 60 dias", ok: "Em dia" };
+    linhasEq(clis).sort((a, b) => a.cli.localeCompare(b.cli, "pt-BR") || a.vence.localeCompare(b.vence))
+      .forEach(l => linhasX.push([l.cli, l.t === "ext" ? "Extintor" : "Mangueira", descGrupo(l.t, l.g), l.g.local || "", l.rot, ymBR(l.ultima), ymBR(l.vence), nomeSit[l.sit]]));
+    const ws = XLSX.utils.aoa_to_sheet(linhasX);
+    ws["!cols"] = [28, 12, 34, 26, 20, 14, 14, 20].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Extintores e mangueiras");
+    const nome = `Extintores e mangueiras - ${clis.length === 1 ? clis[0] : "clientes"} - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+
 /* ---------- permissões e administração ----------
    O administrador (CONFIG.admins) define o que cada pessoa vê no app. As permissões ficam em
    "VPX Visitas - Configuração/permissoes.json" no OneDrive do Gustavo (a equipe só lê; só ele altera).
@@ -5225,7 +5520,7 @@ function fecharCompHist(voltar = true) {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -5235,7 +5530,7 @@ let perm = lerLS("vpx_perm", null);                // última cópia do arquivo 
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
 // (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
-const NOVAS_NO_PADRAO = ["serv"];
+const NOVAS_NO_PADRAO = ["serv", "equip"];
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
   if (ehAdmin() || !perm) return TODAS_FUNCOES;    // arquivo nunca carregado neste celular: tudo liberado (como antes)
@@ -7165,6 +7460,16 @@ function desenharInicio() {
     b.onclick = abrirAvcb;
     t.appendChild(b);
   }
+  // extintores e mangueiras: clientes com algo vencido ou a vencer (só aparece se houver cadastro)
+  if (pode("equip") && Object.keys(eqDados).length) {
+    const sits = Object.keys(eqDados).map(sitCliente).filter(Boolean);
+    const venc = sits.filter(s => s === "crit").length, logo = sits.filter(s => s === "warn").length;
+    const b = el("button", "hub-card " + (venc ? "crit" : logo ? "warn" : "okv")); b.type = "button";
+    b.appendChild(el("b", "", venc || logo ? [venc && `${venc} cliente${venc > 1 ? "s" : ""} com extintor ou mangueira vencido`, logo && `${logo} com vencimento em 60 dias`].filter(Boolean).join(" · ") : "Extintores e mangueiras dos clientes em dia"));
+    b.appendChild(el("small", "", "Extintores e mangueiras"));
+    b.onclick = () => { eqvFiltro = venc ? "crit" : logo ? "warn" : "todos"; abrirEqv(); };
+    t.appendChild(b);
+  }
 }
 
 // Clientes: busca + recentes + todos; tocar abre a página do cliente
@@ -7172,7 +7477,10 @@ function desenharClientesHub() {
   const lista = $("cl-lista"); lista.innerHTML = "";
   const q = semAcento($("cl-busca").value.trim());
   if (pode("avcb") && !q) { const l = el("div", "hub-lista"); l.appendChild(linha("🛡️", "Validade AVCB / CLCB", "Lista de todos os clientes", abrirAvcb)); lista.appendChild(l); }
-  const sub = c => { const v = avcbDoCliente(c); return v ? situacaoAvcb(v).texto : ""; };
+  const sub = c => {
+    const v = avcbDoCliente(c), s = pode("equip") ? sitCliente(c) : null;
+    return [v ? situacaoAvcb(v).texto : "", s === "crit" ? "⚠ extintor/mangueira vencido" : s === "warn" ? "extintor/mangueira vence em 60 dias" : ""].filter(Boolean).join(" · ");
+  };
   const grupo = (titulo, nomes) => {
     if (!nomes.length) return;
     lista.appendChild(el("p", "hub-rot", titulo));
@@ -7199,6 +7507,7 @@ function desenharPaginaCliente() {
   if (pode("arquivos")) g.appendChild(tile("📁", "Arquivos", () => comCliente(c, abrirArquivos)));
   if (pode("pastaTec")) g.appendChild(tile("📂", "Pasta técnica", () => comCliente(c, abrirPastaTec)));
   if (pode("hist")) g.appendChild(tile("🕘", "Histórico", () => comCliente(c, abrirHistorico)));
+  if (pode("equip")) g.appendChild(tile("🧯", "Extintores e mangueiras", () => abrirEq(c)));
   if (pode("laudo")) g.appendChild(tile("📋", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
   if (g.children.length) { g.style.marginTop = "12px"; if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
   const modos = MODOS_APP.filter(([m]) => m !== "comp" && pode(m));
@@ -7255,6 +7564,7 @@ function desenharMais() {
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("📘", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
   if (pode("avcb")) l.appendChild(linha("🛡️", "Validade AVCB / CLCB", "Vencidos, a vencer e fotografar AVCB", abrirAvcb));
+  if (pode("equip")) l.appendChild(linha("🧯", "Extintores e mangueiras", "Vencimentos de todos os clientes", abrirEqv));
   if (ehAdmin()) l.appendChild(linha("⚙️", "Administração", "Permissões da equipe", abrirAdmin));
   if (l.children.length) t.appendChild(l);
   const c = el("div", "hub-lista");
@@ -7284,6 +7594,7 @@ async function iniciarApp() {
   sincronizarPedidos();                           // contador de pedidos aguardando aprovação (administrador)
   carregarClientes().then(() => { if (secao === "clientes") desenharClientesHub(); });
   sincronizarAvcb();                              // AVCBs fotografados pela equipe
+  sincronizarEq();                                // extintores e mangueiras dos clientes (alerta no Início)
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") desenharInicio();       // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
@@ -7347,6 +7658,7 @@ window.addEventListener("popstate", () => {
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
   if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
+  if (history.state?.eqv && !$("tela-eq").hidden) { fecharEq(false); return; }   // voltou de um cliente para a lista de vencimentos
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
   // "voltar" do celular no formulário (sem nada aberto por cima): volta ao Início
   const porCima = cam || !$("menu").hidden || [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden);
@@ -7354,8 +7666,12 @@ window.addEventListener("popstate", () => {
     if (enviando) { history.pushState({ trab: true }, ""); return; }   // enviando: fica no formulário
     irPara("inicio"); return;
   }
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharMenu();
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharMenu();
 });
+$("eq-voltar").onclick = () => { if (eq?.editando) { eq.editando = null; desenharEq(); } else fecharEq(); };
+$("eqv-voltar").onclick = () => fecharEqv();
+$("eqv-exportar").onclick = () => exportarEq(Object.keys(eqDados));
+$("eqv-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { eqvFiltro = b.dataset.f; desenharEqv(); });
 $("btn-arq").onclick = abrirArquivos;
 $("arq-voltar").onclick = voltarArq;
 $("arq-baixar").onclick = baixarPastaArq;
