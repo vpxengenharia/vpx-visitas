@@ -104,6 +104,10 @@ button,input,label{font:inherit}
 .nav .avcb-qtd{top:2px;right:calc(50% - 22px)}
 .nav button:focus-visible{outline:3px solid var(--laranja);outline-offset:-3px;border-radius:10px}
 body.hub-on main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+/* Agenda aberta pela barra de baixo: vira uma seção como as outras (barra de baixo visível, sem "Voltar") */
+body.agenda-secao .nav{z-index:35}
+#tela-agenda.como-secao #agenda-voltar{display:none}
+#tela-agenda.como-secao .avcb-corpo{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .abas{display:none!important}   /* as abas antigas viraram os quadrados do Início */
 /* telas da barra de baixo */
 .hub-tit{font-size:26px;margin:4px 0 12px}
@@ -6438,10 +6442,13 @@ function cartaoEvento(e) {
 
 const irParaHoje = () => $("ag-hoje")?.scrollIntoView({ block: "start" });
 
-async function abrirAgenda() {
+// comoSecao: aberta pela barra de baixo (fica com a barra visível, como Início/Clientes/Financeiro/Mais)
+async function abrirAgenda(comoSecao) {
   $("tela-agenda").hidden = false;
+  $("tela-agenda").classList.toggle("como-secao", !!comoSecao);
+  document.body.classList.toggle("agenda-secao", !!comoSecao);
   document.body.style.overflow = "hidden";
-  history.pushState({ agenda: true }, "");          // o "voltar" do Android fecha a tela
+  if (!comoSecao) history.pushState({ agenda: true }, "");   // o "voltar" do Android fecha a tela
   const guardada = lerLS(chaveAgenda(), null);
   const estado = $("agenda-estado");
   if (guardada) { desenharAgenda(guardada.eventos); irParaHoje(); }
@@ -6474,6 +6481,8 @@ function fecharAgenda(voltar = true) {
   if ($("tela-agenda").hidden) return;
   $("tela-agenda").hidden = true;
   document.body.style.overflow = "";
+  document.body.classList.remove("agenda-secao");
+  if (secao === "agenda") { secao = agendaDe; atualizarNav(); }   // volta a marcar a seção que estava embaixo
   if (voltar && history.state?.agenda) history.back();
 }
 
@@ -6547,7 +6556,7 @@ const MODOS_APP = [
 ];
 const NOME_MODO = { visita: "Visita técnica", com: "Comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", comp: "Comprovante" };
 const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", fin: "tela-fin", mais: "tela-mais" };
-let secao = "inicio", cliPagina = null;            // seção atual ("trabalho" = formulário aberto) e cliente da página do cliente
+let secao = "inicio", cliPagina = null, agendaDe = "inicio";   // agendaDe: seção que fica embaixo da Agenda            // seção atual ("trabalho" = formulário aberto) e cliente da página do cliente
 
 function tile(ico, texto, fn) {
   const b = el("button", "hub-tile"); b.type = "button";
@@ -6575,7 +6584,14 @@ function atualizarNav() {
 // troca de seção pela barra de baixo (a Agenda abre por cima, como antes)
 function irPara(s) {
   if (enviando) return;
-  if (s === "agenda") { abrirAgenda(); return; }
+  if (s === "agenda") {                            // abre por cima da seção atual, mas com a barra de baixo visível
+    if (secao === "agenda") return;
+    agendaDe = TELA_SECAO[secao] ? secao : "inicio";
+    secao = "agenda"; atualizarNav();
+    abrirAgenda(true);
+    return;
+  }
+  if (secao === "agenda") fecharAgenda(false);
   if (secao === "trabalho" && history.state?.trab) history.replaceState(null, "");   // saiu do formulário pela barra
   if ($("dlg").open) $("dlg").close();
   secao = s;
@@ -6658,7 +6674,7 @@ function desenharInicio() {
     else if (!evs.length) b.appendChild(el("b", "", "Nenhum compromisso hoje"));
     else evs.slice(0, 4).forEach(e => b.appendChild(el("b", "", `${e.diaTodo ? "Dia todo" : horaMin(e.ini)} · ${e.titulo}`)));
     if (evs.length > 4) b.appendChild(el("small", "", `+ ${evs.length - 4} compromisso(s)`));
-    b.onclick = abrirAgenda;
+    b.onclick = () => irPara("agenda");
     t.appendChild(b);
     if (navigator.onLine && conta && (!ag || Date.now() - ag.quando > 15 * 60000) && !desenharInicio.buscando) {
       desenharInicio.buscando = true;
@@ -6798,7 +6814,7 @@ async function iniciarApp() {
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") desenharInicio();       // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
-  if (lerLS("vpx_abrir_agenda", false)) { gravarLS("vpx_abrir_agenda", false); abrirAgenda(); }   // voltou da autorização da agenda
+  if (lerLS("vpx_abrir_agenda", false)) { gravarLS("vpx_abrir_agenda", false); irPara("agenda"); }   // voltou da autorização da agenda
 }
 
 $("btn-entrar").onclick = () => msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "select_account" });
@@ -6906,7 +6922,7 @@ $("pt-atualizar").onclick = () => recarregarPT(true);
 $("hist-voltar").onclick = () => fecharHistorico();
 $("hist-atualizar").onclick = () => hist && recarregarHistorico(true);
 $("hist-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { if (!hist) return; hist.filtro = b.dataset.f; $("hist-filtro").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); desenharHistorico(); });
-$("btn-agenda").onclick = abrirAgenda;
+$("btn-agenda").onclick = () => irPara("agenda");
 $("agenda-voltar").onclick = () => fecharAgenda();
 $("agenda-hoje").onclick = irParaHoje;
 $("btn-avcb").onclick = abrirAvcb;
