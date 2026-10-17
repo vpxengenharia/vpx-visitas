@@ -1673,6 +1673,37 @@ const LAUDOS = {
       ["doc", "Sinalização/documentação do SPDA disponível"],
       ["danos", "Sem danos causados por descargas"]
     ] }
+  ] },
+  // pedido do Gustavo em 16/10/2026 (itens propostos pelo Claude)
+  aterramento: { curto: "Aterramento", nome: "Laudo de Aterramento", norma: "ABNT NBR 5410, NBR 5419-3 e NBR 15749 (medição)", secoes: [
+    { id: "ident", titulo: "Identificação do sistema", itens: [], medidas: [
+      ["esquema", "Esquema de aterramento (TN-S, TN-C-S, TT)"], ["metodo", "Método de medição (ex.: queda de potencial)"],
+      ["equip", "Terrômetro utilizado (modelo e nº de série)"], ["solo", "Condição do solo na medição (seco/úmido)"]] },
+    { id: "eletr", titulo: "Eletrodos e pontos de medição", repetir: "Ponto de medição", itens: [
+      ["caixa", "Caixa de inspeção acessível, identificada e com tampa"],
+      ["haste", "Haste/eletrodo sem corrosão e com conexão firme"],
+      ["conector", "Conectores ou soldas exotérmicas em bom estado"],
+      ["condutor", "Condutor de aterramento íntegro e com seção adequada"]
+    ], medidas: [["res", "Resistência de aterramento (ohms)"]] },
+    { id: "bep", titulo: "Equipotencialização (BEP)", itens: [
+      ["bep", "Barramento de equipotencialização (BEP) instalado, acessível e identificado"],
+      ["lig", "SPDA, quadro geral, tubulações metálicas e estruturas ligados ao BEP"],
+      ["conex", "Conexões firmes e sem oxidação"],
+      ["cont", "Continuidade entre o BEP e a malha de aterramento"]
+    ], medidas: [["cont", "Continuidade BEP - malha (ohms)"]] },
+    { id: "quad", titulo: "Quadros e condutor de proteção (PE)", itens: [
+      ["pe", "Condutor de proteção (PE) presente nos circuitos"],
+      ["barra", "Barramento de terra nos quadros, separado do neutro (após o quadro geral)"],
+      ["cor", "Condutor PE identificado (verde ou verde-amarelo)"],
+      ["tomadas", "Tomadas com o pino terra ligado"],
+      ["massas", "Massas metálicas (quadros, equipamentos, eletrocalhas) aterradas"],
+      ["dps", "DPS ligados ao terra"]
+    ], medidas: [["tensaoNT", "Tensão entre neutro e terra (V)"]] },
+    { id: "geral", titulo: "Geral", itens: [
+      ["unico", "Aterramentos interligados (elétrico, SPDA e telecomunicações)"],
+      ["doc", "Projeto ou documentação do aterramento disponível"],
+      ["anteriores", "Medições anteriores registradas"]
+    ] }
   ] }
 };
 /* inspeções (aba "Inspeções"): relatório para o cliente, sem ser laudo. Usa o mesmo formulário e PDF dos laudos;
@@ -1844,7 +1875,14 @@ const SERVICOS = {
   "hidrantes:bombas.manometro": ["Substituição de manômetro", "un"], "alarme:disp.fumaca": ["Substituição de detector de fumaça", "un"],
   "alarme:disp.acion": ["Manutenção/substituição de acionador manual", "un"], "alarme:central.bateria": ["Substituição de bateria da central", "un"],
   "eletrica:qd.dr": ["Instalação de dispositivo DR", "un"], "eletrica:qd.dps": ["Instalação/substituição de DPS", "un"], "eletrica:qd.ident": ["Identificação de circuitos do quadro", "un"],
-  "gerador:insp.bateria": ["Substituição de bateria do gerador", "un"], "spda:aterr.caixas": ["Adequação de caixa de inspeção", "un"]
+  "gerador:insp.bateria": ["Substituição de bateria do gerador", "un"], "spda:aterr.caixas": ["Adequação de caixa de inspeção", "un"],
+  "aterramento:eletr.caixa": ["Adequação/instalação de caixa de inspeção de aterramento", "un"], "aterramento:eletr.haste": ["Instalação/substituição de haste de aterramento", "un"],
+  "aterramento:eletr.conector": ["Substituição de conector ou solda exotérmica", "un"], "aterramento:eletr.condutor": ["Substituição de condutor de aterramento", "m"],
+  "aterramento:bep.bep": ["Instalação de barramento de equipotencialização (BEP)", "un"], "aterramento:bep.lig": ["Interligação ao BEP", "un"],
+  "aterramento:bep.conex": ["Limpeza e reaperto de conexões do BEP", "vb"], "aterramento:quad.pe": ["Instalação de condutor de proteção (PE)", "m"],
+  "aterramento:quad.barra": ["Instalação de barramento de terra em quadro", "un"], "aterramento:quad.tomadas": ["Adequação de tomada (ligação do terra)", "un"],
+  "aterramento:quad.massas": ["Aterramento de massa metálica", "un"], "aterramento:quad.dps": ["Ligação/instalação de DPS", "un"],
+  "aterramento:geral.unico": ["Interligação dos sistemas de aterramento", "vb"]
 };
 function sugestaoServico(uid, id, texto) {
   const sec = uid.split("#")[0];
@@ -2165,6 +2203,7 @@ function descartarLaudo() {
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
 
 function montarLaudo() {
+  if (secao === "trabalho") tituloTrabalho();
   const raiz = $("form-laudo");
   raiz.innerHTML = "";
   const insp = ehInsp();
@@ -2227,7 +2266,7 @@ function montarLaudo() {
       };
       raiz.appendChild(add);
     } else {
-      raiz.appendChild(botaoTudoConforme(s, s.id));
+      if (s.itens.length) raiz.appendChild(botaoTudoConforme(s, s.id));   // seção só de medidas (ex.: identificação) não tem
       s.itens.forEach(([id, txt]) => raiz.appendChild(itemLaudo(s.id, id, txt)));
       (s.medidas || []).forEach(([id, r]) => raiz.appendChild(campoMedida(`${s.id}.${id}`, r)));
     }
@@ -5016,7 +5055,7 @@ const PASTA_TEC = [
   { id: "03", titulo: "AVCB e CLCB", itens: [["avcbAnt", "AVCB ou CLCB anterior"], ["protocolo", "Protocolo da solicitação de vistoria"]] },
   { id: "04", titulo: "ARTs", itens: [["artExec", "ART de execução dos sistemas"], ["artManut", "ART de manutenção"], ["artLaudos", "ARTs dos laudos"]] },
   { id: "05", titulo: "Laudos técnicos", itens: [["lHid", "Laudo de hidrantes"], ["lEle", "Laudo de instalações elétricas"], ["lAla", "Laudo do sistema de alarme"],
-    ["lGas", "Laudo de instalações de gás"], ["lGer", "Laudo do grupo gerador"], ["lSpda", "Laudo de SPDA"]] },
+    ["lGas", "Laudo de instalações de gás"], ["lGer", "Laudo do grupo gerador"], ["lSpda", "Laudo de SPDA"], ["lAterr", "Laudo de aterramento"]] },
   { id: "06", titulo: "Brigada de incêndio", itens: [["brigada", "Lista de presença e certificados da brigada"], ["atestado", "Atestado de brigada"]] },
   { id: "07", titulo: "Certificados e notas fiscais", itens: [["ext", "Recarga e manutenção de extintores"], ["mangueiras", "Teste hidrostático das mangueiras"],
     ["portas", "Certificado das portas corta-fogo"], ["cmar", "Certificado de materiais de acabamento (CMAR)"], ["ilum", "Iluminação de emergência (nota ou certificado)"]] },
@@ -5025,7 +5064,7 @@ const PASTA_TEC = [
 ];
 // documentos gerados pelo app que entram sozinhos: [seção, item, meses de validade (0 = sem validade)]
 const PT_AUTO = { hidrantes: ["05", "lHid", 12], eletrica: ["05", "lEle", 12], alarme: ["05", "lAla", 12], gas: ["05", "lGas", 12],
-  gerador: ["05", "lGer", 12], spda: ["05", "lSpda", 12], insp: ["08", "insp", 0], trein: ["06", "brigada", 12] };
+  gerador: ["05", "lGer", 12], spda: ["05", "lSpda", 12], aterramento: ["05", "lAterr", 12], insp: ["08", "insp", 0], trein: ["06", "brigada", 12] };
 const PDFLIB = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
 let pt = null;                                     // { cliente, dados: { arquivos: { secId: [...] }, na: [], quando }, online }
 const ptPasta = (cli, sec) => `${cli}/${CONFIG.pastaTecnica}${sec ? `/${sec.id} - ${sec.titulo}` : ""}`;
@@ -6617,10 +6656,14 @@ function abrirTrabalho(m, cli) {
   if (cli && cli !== cliente) escolher(cli);
   secao = "trabalho";
   mostrar("tela-app"); aplicarModo(); atualizar();
-  $("trab-titulo").textContent = NOME_MODO[m] + (m === "laudo" && laudo.tipo ? " · " + defLaudo()?.nome.replace(/^Laudo de /, "") : "");
+  tituloTrabalho();
   if (!history.state?.trab) history.pushState({ trab: true }, "");   // o "voltar" do celular volta ao Início
   window.scrollTo(0, 0);
   if (!cliente && m !== "comp") abrirDialogo();
+}
+// título do formulário (ex.: "Laudo · Aterramento"); refeito quando o tipo de laudo muda
+function tituloTrabalho() {
+  $("trab-titulo").textContent = (NOME_MODO[modo] || "") + (modo === "laudo" && LAUDOS[laudo.tipo] ? " · " + LAUDOS[laudo.tipo].curto : "");
 }
 function voltarInicio() {
   if (history.state?.trab) history.back();         // o popstate leva ao Início
