@@ -78,7 +78,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Pedidos de compra e de pagamento**, com aprovação, acompanhamento e planilha.
 
 ### Outros
-- **Agenda do Outlook:** leitura apenas.
+- **Agenda do Outlook:** ver a agenda; criar compromissos com convidados e link do Teams; editar e cancelar os que a pessoa criou; compartilhar pelo WhatsApp.
 - **Validade AVCB/CLCB:** fotografar o AVCB com leitura automática do texto.
 - **ITs do CBM-BA:** funcionam sem internet, com busca por palavra.
 - **Arquivos e histórico do cliente.**
@@ -108,6 +108,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Navegação:** barra de baixo; cada quadrado do Início abre primeiro a página do assunto.
 - **Topo:** só a logo no centro, sem as iniciais. A Agenda fica como as outras seções.
 - **Contatos no aviso ao cliente:** WhatsApp (71) 99194-9900, contato@vpxengenharia.com.br e Instagram @vpxengenharia.
+- **Agenda:** todos que têm a Agenda podem criar compromissos; cada um edita e cancela só os que criou; compartilhar = convite do Outlook e também WhatsApp/outros apps.
 
 ---
 
@@ -118,15 +119,13 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Extintores e mangueiras:** primeiro cadastro real. Conferir se a pasta `00 - Extintores e Mangueiras` foi criada.
 - **Páginas de cada assunto:** a lista "Últimos gerados" usa a busca do OneDrive. Ela pode demorar alguns minutos para achar arquivos novos e não foi testada com os arquivos reais.
 - **Relatório de serviço e Aviso ao cliente:** envio e compartilhamento reais.
+- **Agenda (criar compromisso):** no primeiro uso, autorizar a permissão `Calendars.ReadWrite` marcando "Consentir em nome da organização". Depois, criar um compromisso com convidado e link do Teams, editar e cancelar.
 
 ### Configurar
 - Em **Mais › Administração**, ligar **"Criar ordens de serviço"** para quem do escritório vai abrir OS.
 - Os técnicos precisam abrir o app pelo menos uma vez para aparecer na lista de "Direcionar a" das OS.
 
 ### Combinado para depois
-- **Agenda: criar compromissos e convidar colaboradores.**
-  - Precisa da permissão **Calendars.ReadWrite** no Microsoft Entra (ou consentir no primeiro uso).
-  - Faltam as decisões sobre: editar e cancelar compromissos; o que é "compartilhar"; quem pode criar.
 - **"Pausar" no Relatório de Serviço:** continuar outro dia ou em outro celular, como nos laudos.
 
 ### Ideias sugeridas (ainda não pedidas)

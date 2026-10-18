@@ -345,6 +345,19 @@ body.agenda-secao .nav{z-index:35}
 .ag-det a{color:var(--marinho);font-weight:600}
 @media (prefers-color-scheme:dark){.ag-det a{color:var(--laranja)}}
 .ag-autorizar{margin-top:12px}
+/* novo compromisso / editar */
+.ag-novo{margin:0 0 10px}
+.ag-novo[hidden],.ag-form[hidden],#agenda-hoje[hidden]{display:none}
+.ag-form .ag-linha2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ag-form .ag-mais{display:flex;gap:8px}
+.ag-form .ag-mais input{flex:1;min-width:0}
+.ag-form .ag-mais .btn{flex:none;width:auto;min-height:52px;padding:0 16px}
+.ag-form .chips button.ag-x::after{content:" ✕";font-weight:700}
+.ag-form .btn{margin-top:6px}
+.ag-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.ag-acoes button{flex:1 1 auto;min-height:44px;padding:0 14px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--marinho);font-weight:700;font-size:14.5px;cursor:pointer}
+.ag-acoes button.perigo{color:var(--erro)}
+@media (prefers-color-scheme:dark){.ag-acoes button{color:var(--tinta)}}
 
 main{padding:calc(env(safe-area-inset-top,0px) + 96px + 18px) 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
 h1{font-family:var(--titulo-fonte);font-weight:700;font-size:30px;line-height:1.1;margin:24px 0 10px}
@@ -1007,8 +1020,10 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <button class="avcb-voltar agenda-hoje" id="agenda-hoje">Hoje</button>
   </div>
   <div class="avcb-corpo" id="agenda-corpo">
+    <button class="btn prim ag-novo" id="agenda-novo" type="button">+ Novo compromisso</button>
     <p class="avcb-nota" id="agenda-estado"></p>
     <div id="agenda-lista"></div>
+    <div class="ag-form" id="agenda-form" hidden></div>
   </div>
 </div>
 
@@ -7570,14 +7585,15 @@ async function salvarAvcb() {
    Permissão delegada Calendars.Read, pedida à parte (só quando a agenda é aberta), para não atrapalhar o login
    e o envio de fotos. Mostra de 30 dias atrás a 30 dias à frente; a última agenda fica guardada no celular. */
 const ESCOPOS_AGENDA = ["Calendars.Read"];
+const ESCOPOS_AGENDA_ESC = ["Calendars.ReadWrite"];   // criar, editar e cancelar compromissos (pedida só quando a pessoa vai criar)
 const chaveAgenda = () => "vpx_agenda_" + (conta?.username || "");
 
-async function tokenAgenda(interativo) {
-  try { return (await msalApp.acquireTokenSilent({ scopes: ESCOPOS_AGENDA, account: conta })).accessToken; }
+async function tokenAgenda(interativo, escopos = ESCOPOS_AGENDA) {
+  try { return (await msalApp.acquireTokenSilent({ scopes: escopos, account: conta })).accessToken; }
   catch (e) {
     if (interativo && e instanceof msal.InteractionRequiredAuthError) {
       gravarLS("vpx_abrir_agenda", true);           // volta direto para a agenda depois de autorizar
-      await msalApp.acquireTokenRedirect({ scopes: ESCOPOS_AGENDA, account: conta });
+      await msalApp.acquireTokenRedirect({ scopes: escopos, account: conta });
     }
     throw e;
   }
@@ -7595,17 +7611,20 @@ async function buscarAgenda() {
   const fim = new Date(); fim.setHours(0, 0, 0, 0); fim.setDate(fim.getDate() + 31);
   const tk = await tokenAgenda(false);
   let url = `${GRAPH}/me/calendarView?startDateTime=${ini.toISOString()}&endDateTime=${fim.toISOString()}`
-    + "&$select=subject,start,end,isAllDay,location,bodyPreview,organizer,webLink,isCancelled,onlineMeeting&$orderby=start/dateTime&$top=200";
+    + "&$select=id,type,isOrganizer,subject,start,end,isAllDay,location,bodyPreview,organizer,attendees,webLink,isCancelled,onlineMeeting,isOnlineMeeting,isReminderOn,reminderMinutesBeforeStart&$orderby=start/dateTime&$top=200";
   const eventos = [];
   while (url) {
     const r = await fetch(url, { headers: { Authorization: "Bearer " + tk } });
     if (!r.ok) { const e = new Error("Erro " + r.status); e.status = r.status; throw e; }
     const j = await r.json();
     for (const e of j.value) eventos.push({
+      id: e.id, meu: !!e.isOrganizer, unico: e.type === "singleInstance",
       titulo: e.subject || "(sem título)", diaTodo: !!e.isAllDay,
       ini: horarioAgenda(e.start, e.isAllDay), fim: horarioAgenda(e.end, e.isAllDay),
       local: e.location?.displayName || "", resumo: (e.bodyPreview || "").trim(), org: e.organizer?.emailAddress?.name || "",
-      link: e.webLink || "", online: e.onlineMeeting?.joinUrl || "", cancelado: !!e.isCancelled
+      link: e.webLink || "", online: e.onlineMeeting?.joinUrl || "", teams: !!e.isOnlineMeeting, cancelado: !!e.isCancelled,
+      lembrete: e.isReminderOn ? e.reminderMinutesBeforeStart : -1,
+      conv: (e.attendees || []).filter(a => a.type !== "resource").map(a => ({ nome: a.emailAddress?.name || "", email: (a.emailAddress?.address || "").toLowerCase(), resp: a.status?.response || "none" }))
     });
     url = j["@odata.nextLink"];
   }
@@ -7676,11 +7695,21 @@ function cartaoEvento(e) {
       }
     }
     if (e.org) linha("Organizador", e.org);
+    if (e.conv?.length) linha("Convidados", e.conv.map(c => `${c.nome || c.email} (${RESP_AG[c.resp] || "sem resposta"})`).join(", "));
     if (e.resumo) linha("Observações", e.resumo);
     const links = document.createElement("p");
     if (e.online) { const a = document.createElement("a"); a.textContent = "Entrar na reunião"; a.href = e.online; a.target = "_blank"; a.rel = "noopener"; links.append(a, "  ·  "); }
     if (e.link) { const a = document.createElement("a"); a.textContent = "Abrir no Outlook"; a.href = e.link; a.target = "_blank"; a.rel = "noopener"; links.appendChild(a); }
     if (links.childNodes.length) det.appendChild(links);
+    // ações: compartilhar (todos); editar e cancelar só os criados pela pessoa (os que se repetem ficam para o Outlook)
+    const ac = el("div", "ag-acoes");
+    const bt = (rot, fn, cls) => { const x = el("button", cls || "", rot); x.type = "button"; x.onclick = fn; ac.appendChild(x); };
+    if (!e.cancelado) bt("📤 Compartilhar", () => compartilharEvento(e));
+    if (e.meu && e.id && !e.cancelado && pode("agenda")) {
+      if (e.unico) { bt("✏️ Editar", () => abrirFormAgenda(e)); bt("Cancelar compromisso", () => cancelarEvento(e), "perigo"); }
+      else det.appendChild(el("p", "", "Compromisso que se repete: para alterar, use o Outlook."));
+    }
+    if (ac.children.length) det.appendChild(ac);
     b.appendChild(det);
     b.setAttribute("aria-expanded", "true");
   };
@@ -7696,9 +7725,16 @@ async function abrirAgenda(comoSecao) {
   document.body.classList.toggle("agenda-secao", !!comoSecao);
   document.body.style.overflow = "hidden";
   if (!comoSecao) history.pushState({ agenda: true }, "");   // o "voltar" do Android fecha a tela
+  fecharFormAgenda(false);
+  $("agenda-novo").hidden = !pode("agenda");
+  const rasc = lerLS("vpx_ag_rasc", null);               // voltou da autorização: continua o compromisso que estava preenchendo
+  if (rasc) { gravarLS("vpx_ag_rasc", null); abrirFormAgenda(null, rasc); }
+  await carregarAgenda();
+}
+async function carregarAgenda() {
   const guardada = lerLS(chaveAgenda(), null);
   const estado = $("agenda-estado");
-  if (guardada) { desenharAgenda(guardada.eventos); irParaHoje(); }
+  if (guardada) { desenharAgenda(guardada.eventos); if (!agForm) irParaHoje(); }
   estado.textContent = guardada ? "Atualizando…" : "Carregando a agenda…";
   if (!navigator.onLine) {
     estado.textContent = guardada ? `Sem internet: mostrando a agenda salva em ${new Date(guardada.quando).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}.` : "Sem internet e ainda sem agenda salva no celular.";
@@ -7708,7 +7744,7 @@ async function abrirAgenda(comoSecao) {
     const eventos = await buscarAgenda();
     gravarLS(chaveAgenda(), { quando: Date.now(), eventos });
     desenharAgenda(eventos);
-    irParaHoje();
+    if (!agForm) irParaHoje();
     estado.textContent = `Sua agenda do Outlook, de 30 dias atrás a 30 dias à frente. Atualizada às ${horaMin(Date.now())}.`;
   } catch (e) {
     console.error(e);
@@ -7726,11 +7762,253 @@ async function abrirAgenda(comoSecao) {
 }
 function fecharAgenda(voltar = true) {
   if ($("tela-agenda").hidden) return;
+  // formulário aberto: tira também o passo dele do histórico (o popstate não faz nada, por causa do agVoltando)
+  let n = agForm && history.state?.agform ? 1 : 0;
+  if (voltar && (n ? !$("tela-agenda").classList.contains("como-secao") : history.state?.agenda)) n++;
+  fecharFormAgenda(false);
   $("tela-agenda").hidden = true;
   document.body.style.overflow = "";
   document.body.classList.remove("agenda-secao");
   if (secao === "agenda") { secao = agendaDe; atualizarNav(); }   // volta a marcar a seção que estava embaixo
-  if (voltar && history.state?.agenda) history.back();
+  if (n) { agVoltando = true; history.go(-n); }
+}
+
+/* ---------- novo compromisso / editar / cancelar (Calendars.ReadWrite) ----------
+   Cada um cria, edita e cancela os compromissos que criou; os convidados recebem o convite do Outlook
+   (e a atualização ou o cancelamento). Horários enviados em UTC; dia todo no fuso de Brasília/Bahia. */
+const RESP_AG = { accepted: "aceitou", declined: "recusou", tentativelyAccepted: "talvez", organizer: "organizador" };
+const LEMBRETES_AG = [[-1, "Nenhum"], [15, "15 min antes"], [60, "1 h antes"], [1440, "1 dia antes"]];
+const FUSO_DIA_TODO = "E. South America Standard Time";
+let agForm = null, agVoltando = false;
+
+const somaHora = (hm, min) => { const [h, m] = hm.split(":").map(Number); const t = Math.min(h * 60 + m + min, 23 * 60 + 59); return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`; };
+function novoFormAgenda() {
+  const d = new Date(); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1);
+  if (d.getHours() >= 23 || d.getHours() < 7) { if (d.getHours() >= 23) d.setDate(d.getDate() + 1); d.setHours(8); }   // fora do expediente: amanhã (ou hoje) às 8h
+  const hIni = horaMin(d.getTime());
+  return { titulo: "", cliente: "", data: chaveDia(d.getTime()), diaTodo: false, hIni, hFim: somaHora(hIni, 60), local: "", teams: false, conv: [], lembrete: 15, obs: "" };
+}
+function formDeEvento(e) {
+  return { id: e.id, titulo: e.titulo === "(sem título)" ? "" : e.titulo, cliente: "", data: chaveDia(e.ini), diaTodo: e.diaTodo,
+    hIni: e.diaTodo ? "08:00" : horaMin(e.ini), hFim: e.diaTodo ? "09:00" : horaMin(e.fim), local: e.local, teams: e.teams, eraTeams: e.teams,
+    conv: (e.conv || []).map(c => ({ nome: c.nome, email: c.email })), lembrete: e.lembrete ?? 15, obs: e.resumo, obsOrig: e.resumo };
+}
+
+// confere a permissão de escrever na agenda antes de abrir o formulário (pedir depois apagaria o que foi preenchido)
+async function abrirFormAgenda(e, rascunho) {
+  if (!rascunho) {
+    if (!navigator.onLine) { aviso("Sem internet: para criar ou editar compromissos, conecte-se.", true); return; }
+    try { await tokenAgenda(false, ESCOPOS_AGENDA_ESC); }
+    catch (err) {
+      if (!(err instanceof msal.InteractionRequiredAuthError)) { aviso("Não foi possível falar com a Microsoft agora: " + err.message, true); return; }
+      if (!confirm("Para criar compromissos e mandar convites, o app precisa da sua autorização para escrever na agenda do Outlook.\n\nA Microsoft vai abrir uma tela pedindo para você aceitar. Depois você volta para a agenda.\n\nAutorizar agora?")) return;
+      gravarLS("vpx_ag_rasc", e ? formDeEvento(e) : novoFormAgenda());   // volta com o formulário aberto
+      try { await tokenAgenda(true, ESCOPOS_AGENDA_ESC); } catch (x) { if (!(x instanceof msal.InteractionRequiredAuthError)) aviso("Não foi possível autorizar: " + x.message, true); }
+      return;
+    }
+  }
+  agForm = rascunho || (e ? formDeEvento(e) : novoFormAgenda());
+  if (!history.state?.agform) history.pushState({ agform: true }, "");   // o "voltar" do celular fecha só o formulário
+  ["agenda-novo", "agenda-estado", "agenda-lista", "agenda-hoje"].forEach(id => $(id).hidden = true);
+  $("agenda-form").hidden = false;
+  desenharFormAgenda();
+  $("agenda-corpo").scrollTop = 0;
+  if (!lerLS("vpx_usuarios_app", []).length) carregarUsuariosApp().then(l => { if (l.length && agForm) desenharFormAgenda(); });
+}
+function fecharFormAgenda(voltar = true) {
+  if (!agForm) return;
+  agForm = null;
+  $("agenda-form").hidden = true; $("agenda-form").innerHTML = "";
+  ["agenda-estado", "agenda-lista", "agenda-hoje"].forEach(id => $(id).hidden = false);
+  $("agenda-novo").hidden = !pode("agenda");
+  if (voltar && history.state?.agform) { agVoltando = true; history.back(); }
+}
+
+function desenharFormAgenda() {
+  const f = agForm, c = $("agenda-form");
+  c.innerHTML = "";
+  const v = el("button", "hub-voltar", "‹ Cancelar"); v.type = "button"; v.onclick = () => fecharFormAgenda(); c.appendChild(v);
+  c.appendChild(el("h2", "secao", f.id ? "Editar compromisso" : "Novo compromisso"));
+  const campo = (rot, tag, chave, op = {}) => {
+    const w = el("label", "campo"); w.appendChild(el("span", "", rot));
+    const i = document.createElement(tag); if (tag === "input") i.type = op.tipo || "text";
+    i.value = f[chave] || ""; if (op.ph) i.placeholder = op.ph; if (op.max) i.maxLength = op.max;
+    i.oninput = () => { f[chave] = i.value; };
+    w.appendChild(i); return w;
+  };
+  // cliente (opcional): preenche o local com o endereço do AVCB e sugere o título
+  if (!f.id) {
+    const bc = el("button", "cliente" + (f.cliente ? "" : " vazio")); bc.type = "button"; bc.style.marginBottom = "12px";
+    bc.append(el("small", "", "Cliente (opcional)"), el("strong", "", f.cliente || "Escolher cliente"));
+    bc.onclick = () => abrirDialogo(nome => {
+      f.cliente = nome;
+      if (!f.titulo.trim()) f.titulo = `Visita técnica - ${nome}`;
+      if (!f.local.trim()) f.local = avcbDoCliente(nome)?.endereco || "";
+      desenharFormAgenda();
+    });
+    c.appendChild(bc);
+  }
+  c.appendChild(campo("Título *", "input", "titulo", { ph: "Ex.: Visita técnica - Tribeca", max: 200 }));
+  c.appendChild(campo("Data *", "input", "data", { tipo: "date" }));
+  const chips = (rot, opcoes, chave, aoMudar) => {
+    const w = el("div", "campo"); if (rot) w.appendChild(el("span", "", rot));
+    const ch = el("div", "chips");
+    opcoes.forEach(([val, txt]) => { const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-pressed", String(f[chave] === val)); b.onclick = () => { f[chave] = val; aoMudar ? aoMudar() : ch.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); }; ch.appendChild(b); });
+    w.appendChild(ch); return w;
+  };
+  c.appendChild(chips("Horário", [[false, "Com horário"], [true, "Dia todo"]], "diaTodo", desenharFormAgenda));
+  if (!f.diaTodo) {
+    const l2 = el("div", "ag-linha2");
+    const ini = campo("Início *", "input", "hIni", { tipo: "time" }), fim = campo("Fim *", "input", "hFim", { tipo: "time" });
+    // mudar o início leva o fim junto (mesma duração)
+    const iIni = ini.querySelector("input"), iFim = fim.querySelector("input");
+    iIni.oninput = () => {
+      const dur = f.hIni && f.hFim ? Math.max((+f.hFim.slice(0, 2) * 60 + +f.hFim.slice(3)) - (+f.hIni.slice(0, 2) * 60 + +f.hIni.slice(3)), 15) : 60;
+      f.hIni = iIni.value; if (f.hIni) { f.hFim = somaHora(f.hIni, dur); iFim.value = f.hFim; }
+    };
+    l2.append(ini, fim); c.appendChild(l2);
+  }
+  c.appendChild(campo("Local", "input", "local", { ph: "Endereço ou sala", max: 250 }));
+  // reunião no Teams (depois de criada, não dá para tirar pelo app)
+  if (f.eraTeams) c.appendChild(el("p", "laudo-dica", "💻 Este compromisso tem reunião no Teams."));
+  else c.appendChild(chips("Reunião online", [[false, "Presencial"], [true, "💻 Com link do Teams"]], "teams"));
+  // convidados: quem usa o app (um toque) e qualquer outro e-mail
+  const wc = el("div", "campo"); wc.appendChild(el("span", "", "Convidados (recebem o convite do Outlook)"));
+  const ch = el("div", "chips");
+  const tem = em => f.conv.some(x => x.email === em);
+  const equipe = lerLS("vpx_usuarios_app", []).filter(u => u.email && u.email !== emailDe());
+  equipe.forEach(u => {
+    const b = el("button", "", u.nome || u.email); b.type = "button"; b.setAttribute("aria-pressed", String(tem(u.email)));
+    b.onclick = () => { if (tem(u.email)) f.conv = f.conv.filter(x => x.email !== u.email); else f.conv.push({ nome: u.nome || "", email: u.email }); desenharFormAgenda(); };   // redesenha: o botão final muda para "enviar convites"
+    ch.appendChild(b);
+  });
+  f.conv.filter(x => !equipe.some(u => u.email === x.email)).forEach(x => {
+    const b = el("button", "ag-x", x.nome || x.email); b.type = "button"; b.setAttribute("aria-pressed", "true"); b.setAttribute("aria-label", `Tirar ${x.nome || x.email}`);
+    b.onclick = () => { f.conv = f.conv.filter(y => y.email !== x.email); desenharFormAgenda(); };
+    ch.appendChild(b);
+  });
+  if (!ch.children.length) ch.appendChild(el("small", "laudo-dica", navigator.onLine ? "Carregando a equipe…" : "Digite o e-mail de quem convidar."));
+  wc.appendChild(ch);
+  const mais = el("div", "ag-mais"); mais.style.marginTop = "8px";
+  const im = document.createElement("input"); im.type = "email"; im.placeholder = "Outro e-mail"; im.autocomplete = "off"; im.setAttribute("aria-label", "Outro e-mail para convidar");
+  const ba = el("button", "btn sec", "Adicionar"); ba.type = "button";
+  ba.onclick = () => {
+    const em = im.value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { aviso("Digite um e-mail válido.", true); return; }
+    if (!tem(em)) f.conv.push({ nome: "", email: em });
+    desenharFormAgenda();
+  };
+  im.onkeydown = ev => { if (ev.key === "Enter") { ev.preventDefault(); ba.click(); } };
+  mais.append(im, ba); wc.appendChild(mais); c.appendChild(wc);
+  c.appendChild(chips("Lembrete", LEMBRETES_AG.some(([m]) => m === f.lembrete) ? LEMBRETES_AG : [...LEMBRETES_AG, [f.lembrete, `${f.lembrete} min antes`]], "lembrete"));
+  // observação longa ou com o bloco do Teams: o app só vê o começo do texto, então não deixa reescrever (apagaria o resto)
+  if (f.id && (f.eraTeams || (f.obsOrig || "").length >= 240)) c.appendChild(el("p", "laudo-dica", "Para mudar as observações deste compromisso, use o Outlook."));
+  else c.appendChild(campo("Observações", "textarea", "obs", { ph: "Ex.: levar o terrômetro; falar com o síndico" }));
+  const ok = el("button", "btn prim", f.id ? "Salvar alterações" : f.conv.length ? "Criar e enviar convites" : "Criar compromisso"); ok.type = "button";
+  ok.onclick = () => salvarEvento(ok);
+  c.appendChild(ok);
+  if (f.conv.length || f.id) c.appendChild(el("p", "laudo-dica", f.id ? "Os convidados recebem a atualização pelo Outlook." : "Cada convidado recebe o convite no e-mail e na agenda, e pode aceitar ou recusar."));
+}
+
+async function graphAgenda(metodo, caminho, corpo) {
+  const tk = await tokenAgenda(false, ESCOPOS_AGENDA_ESC);
+  const r = await fetch(GRAPH + caminho, { method: metodo, headers: { Authorization: "Bearer " + tk, "Content-Type": "application/json" }, body: corpo ? JSON.stringify(corpo) : undefined });
+  if (!r.ok) {
+    let msg = ""; try { msg = (await r.json()).error?.message || ""; } catch {}
+    const e = new Error(`Erro ${r.status}${msg ? ": " + msg : ""}`); e.status = r.status; throw e;
+  }
+  const t = await r.text();                       // cancelar/apagar respondem sem corpo
+  return t ? JSON.parse(t) : null;
+}
+function corpoEvento(f) {
+  const ev = {
+    subject: f.titulo.trim(), location: { displayName: f.local.trim() }, isAllDay: f.diaTodo,
+    isReminderOn: f.lembrete >= 0, reminderMinutesBeforeStart: Math.max(f.lembrete, 0),
+    attendees: f.conv.map(x => ({ emailAddress: { address: x.email, name: x.nome || x.email }, type: "required" }))
+  };
+  if (f.diaTodo) {
+    const [a, m, d] = f.data.split("-").map(Number), dep = new Date(a, m - 1, d + 1);
+    ev.start = { dateTime: `${f.data}T00:00:00`, timeZone: FUSO_DIA_TODO };
+    ev.end = { dateTime: `${chaveDia(dep.getTime())}T00:00:00`, timeZone: FUSO_DIA_TODO };
+  } else {
+    const utc = hm => ({ dateTime: new Date(`${f.data}T${hm}`).toISOString().slice(0, 19), timeZone: "UTC" });   // "AAAA-MM-DDTHH:MM" sem fuso = hora local
+    ev.start = utc(f.hIni); ev.end = utc(f.hFim);
+  }
+  if (f.teams && !f.eraTeams) { ev.isOnlineMeeting = true; ev.onlineMeetingProvider = "teamsForBusiness"; }
+  if (!f.id || f.obs !== f.obsOrig) ev.body = { contentType: "text", content: f.obs || "" };
+  return ev;
+}
+async function salvarEvento(botao) {
+  const f = agForm;
+  const falta = !f.titulo.trim() ? "Escreva o título" : !f.data ? "Escolha a data" : !f.diaTodo && (!f.hIni || !f.hFim) ? "Preencha o horário" : !f.diaTodo && f.hFim <= f.hIni ? "O fim precisa ser depois do início" : "";
+  if (falta) { aviso(falta + ".", true); return; }
+  if (!navigator.onLine) { aviso("Sem internet: o compromisso não foi salvo. Tente de novo quando conectar.", true); return; }
+  const rot = botao.textContent;
+  botao.disabled = true; botao.textContent = "Salvando…";
+  try {
+    if (f.id) await graphAgenda("PATCH", `/me/events/${encodeURIComponent(f.id)}`, corpoEvento(f));
+    else await graphAgenda("POST", "/me/events", corpoEvento(f));
+  } catch (e) {
+    console.error(e);
+    if (e instanceof msal.InteractionRequiredAuthError) {   // a autorização caiu: guarda o que foi preenchido e pede de novo
+      gravarLS("vpx_ag_rasc", f);
+      try { await tokenAgenda(true, ESCOPOS_AGENDA_ESC); } catch {}
+      return;
+    }
+    aviso("Não foi possível salvar: " + e.message, true);
+    botao.disabled = false; botao.textContent = rot; return;
+  }
+  aviso(f.id ? "Compromisso atualizado." : f.conv.length ? `Compromisso criado. Convite enviado para ${f.conv.length} pessoa${f.conv.length > 1 ? "s" : ""}.` : "Compromisso criado na sua agenda.");
+  const dia = f.data;
+  fecharFormAgenda();
+  await carregarAgenda();
+  document.querySelectorAll("#agenda-lista .ag-dia").forEach(h => { if (h.textContent === nomeDia(dia)) h.scrollIntoView({ block: "start" }); });
+  if (!$("tela-inicio").hidden) desenharInicio();
+}
+async function cancelarEvento(e) {
+  if (!navigator.onLine) { aviso("Sem internet: conecte-se para cancelar.", true); return; }
+  let msg = "";
+  if (e.conv?.length) {
+    msg = prompt(`Cancelar "${e.titulo}"?\nOs ${e.conv.length} convidado(s) recebem o aviso de cancelamento.\n\nMensagem para eles (opcional):`, "");
+    if (msg === null) return;
+  } else if (!confirm(`Cancelar "${e.titulo}" e tirar da sua agenda?`)) return;
+  try {
+    await tokenAgenda(false, ESCOPOS_AGENDA_ESC).catch(async err => {
+      if (!(err instanceof msal.InteractionRequiredAuthError)) throw err;
+      if (confirm("Para cancelar pelo app, ele precisa da sua autorização para escrever na agenda do Outlook. Autorizar agora?")) await tokenAgenda(true, ESCOPOS_AGENDA_ESC);
+      throw new Error("sem autorização");
+    });
+    if (e.conv?.length) await graphAgenda("POST", `/me/events/${encodeURIComponent(e.id)}/cancel`, { Comment: msg || "" });
+    else await graphAgenda("DELETE", `/me/events/${encodeURIComponent(e.id)}`);
+  } catch (err) {
+    if (err.message !== "sem autorização") aviso("Não foi possível cancelar: " + err.message, true);
+    return;
+  }
+  aviso(e.conv?.length ? "Compromisso cancelado. Os convidados foram avisados." : "Compromisso cancelado.");
+  await carregarAgenda();
+  if (!$("tela-inicio").hidden) desenharInicio();
+}
+// compartilhar os dados do compromisso (WhatsApp ou outro app), inclusive para quem não é da VPX
+function textoEvento(e) {
+  const quando = new Date(e.ini).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+  const l = [`📅 ${e.titulo}`, `🗓️ ${quando.charAt(0).toUpperCase() + quando.slice(1)}${e.diaTodo ? ", dia todo" : `, ${horaMin(e.ini)} às ${horaMin(e.fim)}`}`];
+  if (e.local) {
+    l.push(`📍 ${e.local}`);
+    if (!/teams|zoom|meet|online|reuni[aã]o/i.test(e.local)) l.push("Mapa: https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(e.local));
+  }
+  if (e.online) l.push(`💻 Reunião online: ${e.online}`);
+  if (e.resumo) l.push("", e.resumo);
+  l.push("", `${nomeColaborador()} - VPX Engenharia`);
+  return l.join("\n");
+}
+async function compartilharEvento(e) {
+  const texto = textoEvento(e);
+  if (navigator.share) {
+    try { await navigator.share({ title: e.titulo, text: texto }); return; }
+    catch (x) { if (x.name === "AbortError") return; }
+  }
+  try { await navigator.clipboard.writeText(texto); aviso("Dados do compromisso copiados. Cole no WhatsApp ou no e-mail."); }
+  catch { window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank", "noopener"); }
 }
 
 function fecharVisor(voltar = true) {
@@ -8287,7 +8565,9 @@ document.querySelectorAll("#cam-modos button").forEach(b => b.onclick = () => de
 $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
 window.addEventListener("popstate", () => {
+  if (agVoltando) { agVoltando = false; return; }                  // o próprio app tirou o passo do formulário da agenda
   if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
+  if (agForm && !history.state?.agform) { fecharFormAgenda(false); return; }   // "voltar" no formulário da agenda: volta para a lista
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
   if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes
@@ -8354,6 +8634,7 @@ $("hist-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { if 
 $("btn-agenda").onclick = () => irPara("agenda");
 $("agenda-voltar").onclick = () => fecharAgenda();
 $("agenda-hoje").onclick = irParaHoje;
+$("agenda-novo").onclick = () => abrirFormAgenda(null);
 $("btn-avcb").onclick = abrirAvcb;
 $("avcb-voltar").onclick = () => fecharAvcb();
 $("avcb-busca").oninput = desenharAvcb;
