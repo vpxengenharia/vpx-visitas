@@ -741,7 +741,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       </button>
       <a class="btn sec" id="ok-link" target="_blank" rel="noopener">Abrir pasta no OneDrive</a>
       <button class="btn prim" id="btn-nova">Nova visita</button>
-      <button class="btn sec" id="ok-inicio">‹ Voltar ao início</button>
+      <button class="btn sec" id="ok-inicio">‹ Voltar</button>
     </div>
   </section>
 
@@ -753,6 +753,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <div id="cl-lista"></div>
   </section>
   <section id="tela-cliente" class="hub" hidden></section>
+  <section id="tela-mod" class="hub" hidden></section>
   <section id="tela-fin" class="hub" hidden></section>
   <section id="tela-mais" class="hub" hidden></section>
 </main>
@@ -1190,7 +1191,7 @@ function aviso(msg, erro = false) {
   aviso.t = setTimeout(() => el.className = "aviso", erro ? 6000 : 3000);
 }
 function mostrar(tela) {
-  const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-fin", "tela-mais"];
+  const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-mod", "tela-fin", "tela-mais"];
   ["tela-config", "tela-login", "tela-app", "tela-ok", ...hubs].forEach(t => $(t).hidden = t !== tela);
   $("barra").hidden = tela !== "tela-app";
   if (tela !== "tela-app") $("ld-prog").hidden = true;   // barra do laudo só no formulário
@@ -7801,7 +7802,8 @@ const MODOS_APP = [
   ["insp", "🔍", "Inspeção"], ["trein", "🧯", "Brigada"], ["serv", "🛠️", "Serviço"], ["comp", "🧾", "Comprovante"]
 ];
 const NOME_MODO = { visita: "Visita técnica", com: "Comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", serv: "Relatório de serviço", comp: "Comprovante" };
-const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", fin: "tela-fin", mais: "tela-mais" };
+const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", mod: "tela-mod", fin: "tela-fin", mais: "tela-mais" };
+let trabDe = "inicio";                             // de onde o formulário foi aberto: o "voltar" leva para lá
 let secao = "inicio", cliPagina = null, agendaDe = "inicio";   // agendaDe: seção que fica embaixo da Agenda            // seção atual ("trabalho" = formulário aberto) e cliente da página do cliente
 
 function tile(ico, texto, fn) {
@@ -7823,7 +7825,7 @@ function atualizarNav() {
   const nav = $("nav");
   nav.querySelector('[data-s="agenda"]').hidden = !pode("agenda");
   nav.querySelector('[data-s="fin"]').hidden = !podeFin();
-  const atual = secao === "cliente" ? "clientes" : secao;
+  const atual = secao === "cliente" ? "clientes" : secao === "mod" ? "inicio" : secao;
   nav.querySelectorAll("button").forEach(b => { if (b.dataset.s === atual) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
 }
 
@@ -7845,6 +7847,7 @@ function irPara(s) {
   if (s === "inicio") desenharInicio();
   if (s === "clientes") { $("cl-busca").value = ""; desenharClientesHub(); }
   if (s === "cliente") desenharPaginaCliente();
+  if (s === "mod") desenharModulo();
   if (s === "fin") desenharFin();
   if (s === "mais") desenharMais();
   atualizarNav();
@@ -7854,6 +7857,7 @@ function irPara(s) {
 // abre um formulário; cli = cliente já escolhido (página do cliente / continuar); sem cliente, pede logo
 function abrirTrabalho(m, cli) {
   if (enviando || !pode(m)) return;
+  if (secao !== "trabalho" && secao !== "agenda") trabDe = TELA_SECAO[secao] ? secao : "inicio";
   if (m !== modo) trocarModo(m);
   if (cli && cli !== cliente) escolher(cli);
   secao = "trabalho";
@@ -7866,10 +7870,130 @@ function abrirTrabalho(m, cli) {
 // título do formulário (ex.: "Laudo · Aterramento"); refeito quando o tipo de laudo muda
 function tituloTrabalho() {
   $("trab-titulo").textContent = (NOME_MODO[modo] || "") + (modo === "laudo" && LAUDOS[laudo.tipo] ? " · " + LAUDOS[laudo.tipo].curto : "");
+  $("trab-voltar").textContent = "‹ " + ({ mod: MOD_INFO[modAtual]?.tit, cliente: "Cliente", clientes: "Clientes", fin: "Financeiro", mais: "Mais" }[trabDe] || "Início");
 }
+// volta para a tela de onde o formulário foi aberto (página do assunto, cliente, Financeiro ou Início)
 function voltarInicio() {
-  if (history.state?.trab) history.back();         // o popstate leva ao Início
-  else irPara("inicio");
+  if (history.state?.trab) history.back();         // o popstate leva de volta
+  else irPara(trabDe || "inicio");
+}
+
+/* ---------- página de cada assunto (pedido do Gustavo em 18/10/2026) ----------
+   O quadrado do Início abre primeiro a página do assunto: "+ Novo…", o que está em andamento, as OS abertas
+   daquele tipo e os últimos documentos gerados (de todos os clientes). Só o "+ Novo" abre o formulário. */
+const pastaFotosNome = () => CONFIG.subpasta.replace("{data}", "").replace(/\/$/, "");
+const MOD_INFO = {
+  visita: { ico: "📷", tit: "Visitas técnicas", novo: "Nova visita técnica", busca: { q: "Fotos e Visitas Técnicas", pasta: () => pastaFotosNome(), pastas: true } },
+  com: { ico: "💼", tit: "Comercial", novo: "Nova ficha comercial", busca: { q: "Relatório de Visita", pasta: () => pastaFotosNome(), filtro: /Relatório de Visita/i } },
+  laudo: { ico: "📋", tit: "Laudos", novo: "Novo laudo", busca: { q: "Laudo", pasta: () => CONFIG.pastaLaudos, filtro: /Laudo d/i } },
+  insp: { ico: "🔍", tit: "Inspeções", novo: "Nova inspeção", busca: { q: "Relatório de Inspeção", pasta: () => CONFIG.pastaInspecoes } },
+  trein: { ico: "🧯", tit: "Brigada", novo: "Novo treinamento", busca: { q: "Treinamento", pasta: () => CONFIG.pastaTreinamentos } },
+  serv: { ico: "🛠️", tit: "Relatórios de serviço", novo: "Novo relatório de serviço", busca: { q: "Relatório de Serviço", pasta: () => CONFIG.pastaServicos } }
+};
+let modAtual = "laudo";
+function abrirModulo(m) { modAtual = m; irPara("mod"); }
+function desenharModulo() {
+  const m = modAtual, info = MOD_INFO[m], t = $("tela-mod"); t.innerHTML = "";
+  const v = el("button", "hub-voltar", "‹ Início"); v.type = "button"; v.onclick = () => irPara("inicio");
+  t.append(v, el("h1", "hub-tit", `${info.ico} ${info.tit}`));
+  const n = el("button", "btn prim", "+ " + info.novo); n.type = "button"; n.style.marginBottom = "14px"; n.onclick = () => novoDoModulo(m);
+  t.appendChild(n);
+  // em andamento neste celular
+  itensContinuar().filter(c => c.m === m).forEach(c => {
+    const b = el("button", "hub-card continuar"); b.type = "button";
+    b.append(el("small", "", "Em andamento"), el("b", "", c.titulo + (c.cli ? " · " + c.cli : "")), el("small", "", c.sub));
+    b.onclick = () => abrirTrabalho(m, c.cli);
+    t.appendChild(b);
+  });
+  if (m === "laudo" || m === "insp") t.appendChild(el("p", "laudo-dica", `${m === "laudo" ? "Laudos" : "Inspeções"} pausados ou concluídos para reabrir: abra o cliente e toque em "Laudos salvos", ou toque em "+ ${info.novo}" e use o botão 📋 Salvos.`));
+  // ordens de serviço abertas deste tipo
+  if (pode("os")) {
+    const oss = Object.values(osDados).filter(o => (TIPOS_OS[o.tipo] || TIPOS_OS.outro).modo === m && (o.status === "aberta" || o.status === "andamento")).sort(ordemOS);
+    if (oss.length) { t.appendChild(el("p", "hub-rot", "Ordens de serviço abertas")); oss.forEach(o => t.appendChild(cartaoOS(o, () => abrirOS({ aberta: o.numero })))); }
+  }
+  // últimos documentos gerados (de todos os clientes)
+  t.appendChild(el("p", "hub-rot", m === "visita" ? "Últimas visitas (pastas de fotos)" : "Últimos gerados"));
+  const cache = lerLS("vpx_mod_" + m, null), lista = el("div");
+  t.appendChild(lista);
+  const pintar = c => {
+    lista.innerHTML = "";
+    if (!c) { lista.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando…" : "Sem internet: a lista aparece quando houver conexão.")); return; }
+    if (!c.itens.length) { lista.appendChild(el("p", "avcb-nota", c.erro ? "Não foi possível carregar a lista agora." : "Nenhum documento encontrado ainda.")); return; }
+    const l = el("div", "hub-lista");
+    c.itens.forEach(x => l.appendChild(linha(x.pasta ? "📁" : "📄", x.cli || x.nome, [x.titulo, x.data && dataBRde(x.data), x.autor].filter(Boolean).join(" · "), () => abrirDocModulo(x))));
+    lista.appendChild(l);
+    if (c.parcial) lista.appendChild(el("p", "avcb-nota", "Mostrando os clientes usados recentemente. Os outros ficam no Histórico de cada cliente."));
+  };
+  pintar(cache);
+  if (navigator.onLine && conta && (!cache || Date.now() - cache.quando > 120000) && !desenharModulo.buscando) {
+    desenharModulo.buscando = true;
+    buscarDocsModulo(m).then(r => { gravarLS("vpx_mod_" + m, r); if (secao === "mod" && modAtual === m) pintar(r); })
+      .catch(e => { console.error(e); if (!cache && secao === "mod" && modAtual === m) pintar({ itens: [], erro: true }); })
+      .finally(() => { desenharModulo.buscando = false; });
+  }
+}
+// "+ Novo": se já houver um em andamento, pergunta antes de apagar; o formulário pede o cliente
+function novoDoModulo(m) {
+  const andamento = itensContinuar().find(c => c.m === m);
+  if (andamento && m !== "visita") {
+    if (!confirm(`Já existe um ${NOME_MODO[m].toLowerCase()} em andamento (${andamento.titulo}${andamento.cli ? " · " + andamento.cli : ""}).\n\nComeçar um novo apaga o que está em andamento. Para guardar, toque nele e use "Pausar e continuar depois".\n\nComeçar um novo?`)) return;
+    if (m === "laudo" || m === "insp") {
+      todasFotosLaudo(rascunhos[m]).forEach(apagarFotoLaudo);
+      rascunhos[m] = m === "insp" ? inspVazio() : laudoVazio(); gravarLS("vpx_" + m, rascunhos[m]);
+      if (modo === m) { laudo = rascunhos[m]; montarLaudo(); }
+    } else if (m === "serv") limparServ();
+    else if (m === "trein") limparTrein();
+    else if (m === "com") limparFicha();
+    if (osAtiva?.modo === m) { osAtiva = null; gravarLS("vpx_os_ativa", null); }
+  }
+  // documento novo começa sem cliente (visita técnica com fotos ainda não salvas continua com o cliente delas)
+  if (!(m === "visita" && andamento)) { if (m === modo) cliente = null; else guardado[m].cliente = null; }
+  abrirTrabalho(m);
+}
+// procura no OneDrive os documentos deste tipo em todos os clientes; se a busca falhar, usa os clientes recentes
+async function buscarDocsModulo(m) {
+  const b = MOD_INFO[m].busca, pasta = b.pasta(), out = [];
+  const add = (i, cli) => {
+    if (b.pastas) { out.push({ id: i.id, nome: i.name, cli, titulo: "Fotos e visitas", data: (i.lastModifiedDateTime || "").slice(0, 10), mod: i.lastModifiedDateTime, pasta: true }); return; }
+    const p = partesNome(i.name, i.lastModifiedDateTime);
+    out.push({ id: i.id, nome: i.name, cli, titulo: m === "laudo" ? (i.name.match(/Laudo d[^_]*/i) || ["Laudo"])[0] : MOD_INFO[m].busca.q, data: p.data, autor: p.autor, mod: i.lastModifiedDateTime });
+  };
+  const serve = i => b.pastas ? !!i.folder && i.name === pasta : !!i.file && /\.pdf$/i.test(i.name) && (!b.filtro || b.filtro.test(i.name));
+  try {
+    let url = `/drives/${CONFIG.driveId}/root/search(q='${encodeURIComponent(b.q.replace(/'/g, "''"))}')?$top=200`, pags = 0;
+    while (url && pags++ < 3) {
+      const r = await graph(url);
+      for (const i of r.value) {
+        if (!serve(i)) continue;
+        const partes = decodeURIComponent((i.parentReference?.path || "").replace(/^[^:]*:/, "")).split("/").filter(Boolean);
+        const ic = partes.indexOf(CONFIG.pastaClientesNome.split(" › ").pop());
+        if (b.pastas) { if (ic >= 0 && partes.length === ic + 2) add(i, partes[ic + 1]); continue; }
+        if (partes[partes.length - 1] !== pasta || ic < 0) continue;   // fora da pasta do tipo (ex.: cópias da pasta técnica)
+        add(i, partes[ic + 1]);
+      }
+      url = r["@odata.nextLink"];
+    }
+    if (out.length) return { quando: Date.now(), itens: out.sort((a, b) => (b.mod || "").localeCompare(a.mod || "")).slice(0, 40) };
+  } catch (e) { console.error("busca:", e); }
+  // reserva: lista a pasta do tipo nos clientes usados recentemente
+  const clis = [...new Set([...lerLS("vpx_recentes", []), ...Object.values(osDados).map(o => o.cliente)])].filter(c => clientes.includes(c)).slice(0, 8);
+  for (const cli of clis) {
+    try {
+      if (b.pastas) { const id = await idPastaHist(cli, pasta); if (id) { const it = await graph(`/drives/${CONFIG.driveId}/items/${id}?$select=id,name,lastModifiedDateTime`); add(it, cli); } continue; }
+      (await listarPastaHist(cli, pasta)).itens.filter(serve).forEach(i => add(i, cli));
+    } catch (e) { console.error(e); }
+  }
+  return { quando: Date.now(), parcial: true, itens: out.sort((a, b) => (b.mod || "").localeCompare(a.mod || "")).slice(0, 40) };
+}
+async function abrirDocModulo(x) {
+  if (x.pasta) { comCliente(x.cli, () => abrirArquivos({ id: x.id, nome: x.nome })); return; }
+  if (!navigator.onLine) { aviso("Os documentos abrem com internet.", true); return; }
+  aviso("Abrindo…");
+  try {
+    const it = await graph(`/drives/${CONFIG.driveId}/items/${x.id}`);
+    const blob = await (await fetch(it["@microsoft.graph.downloadUrl"])).blob();
+    abrirVisor(new File([blob], x.nome, { type: "application/pdf" }), x.titulo || x.nome, `${x.titulo || x.nome} - ${x.cli || ""}`);
+  } catch (e) { console.error(e); aviso("Não foi possível abrir: " + e.message, true); }
 }
 
 // "Continuar de onde parou": rascunhos e fotos ainda não salvas
@@ -7920,11 +8044,12 @@ function desenharInicio() {
     t.appendChild(b);
   }
   const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (modos.length || pode("osCriar")) {
-    t.appendChild(el("p", "hub-rot", "Novo registro"));
+  if (modos.length || pode("os")) {
+    t.appendChild(el("p", "hub-rot", "Registros"));
     const g = el("div", "hub-grade");
-    if (pode("osCriar")) g.appendChild(tile("🧰", "OS", () => abrirOS({ nova: {} })));   // nova ordem de serviço: pergunta o cliente e os dados
-    modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => abrirTrabalho(m))));
+    // cada quadrado abre primeiro a página do assunto (lista + "Novo"); o formulário só abre pelo "+ Novo"
+    if (pode("os")) g.appendChild(tile("🧰", "OS", () => abrirOS()));
+    modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
     t.appendChild(g);
   } else t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
   // agenda de hoje e de amanhã (da última agenda guardada; atualiza por trás)
@@ -8173,7 +8298,7 @@ window.addEventListener("popstate", () => {
   const porCima = cam || !$("menu").hidden || [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden);
   if (!porCima && secao === "trabalho" && !history.state?.trab) {
     if (enviando) { history.pushState({ trab: true }, ""); return; }   // enviando: fica no formulário
-    irPara("inicio"); return;
+    irPara(trabDe || "inicio"); return;
   }
   if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOS(false); fecharMenu();
 });
