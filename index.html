@@ -68,6 +68,29 @@ button,input,label{font:inherit}
 .cli-ac[hidden]{display:none}
 .cli-ac:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
 @media (prefers-color-scheme:dark){.cli-ac{color:var(--tinta)}}
+/* ordens de serviço */
+.os-card{display:block;width:100%;text-align:left;margin-bottom:10px;padding:12px 14px;border-radius:14px;border:1.5px solid var(--linha);border-left:6px solid var(--linha);background:var(--papel);color:var(--tinta);font-size:15px;line-height:1.35;cursor:pointer}
+.os-card.urg{border-left-color:var(--erro)}
+.os-card.atr{border-left-color:var(--laranja)}
+.os-card b{display:block;font-size:17px}
+.os-card small{display:block;color:var(--suave);font-size:13.5px}
+.os-num{font-family:var(--titulo-fonte);font-weight:700;color:var(--marinho);font-size:14px}
+@media (prefers-color-scheme:dark){.os-num{color:var(--laranja)}}
+.os-st{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.os-st.aberta{background:var(--warn-bg);color:var(--warn-tx)}
+.os-st.andamento{background:var(--brand-tint,#E0E9F3);color:var(--marinho)}
+.os-st.concluida{background:var(--okv-bg);color:var(--okv-tx)}
+.os-st.cancelada{background:var(--linha);color:var(--suave)}
+.os-st.urgente{background:var(--crit-bg);color:var(--crit-tx)}
+.os-det dl{margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:15px}
+.os-det dt{color:var(--suave)}
+.os-det dd{margin:0}
+.os-acoes{display:grid;gap:8px;margin:12px 0}
+.os-hist{list-style:none;margin:0;padding:0;font-size:13.5px;color:var(--suave)}
+.os-hist li{padding:6px 0;border-bottom:1px solid var(--linha)}
+.os-faixa{margin:-4px 0 12px;padding:10px 12px;border-radius:10px;background:var(--warn-bg);color:var(--warn-tx);font-size:14.5px;font-weight:600}
+.os-faixa[hidden]{display:none}
+.os-form select{width:100%;min-height:52px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 14px;font-size:17px}
 /* extintores e mangueiras */
 .eq-resumo{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .eq-resumo span{padding:6px 12px;border-radius:999px;font-size:14px;font-weight:700}
@@ -649,6 +672,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 
   <section id="tela-app" hidden>
     <div class="trab-topo"><button class="trab-voltar" id="trab-voltar" type="button">‹ Início</button><strong id="trab-titulo"></strong></div>
+    <p class="os-faixa" id="os-faixa" hidden></p>
     <p class="sem-acesso-msg" id="sem-acesso" hidden>Você ainda não tem acesso às funções do app.<br>Peça ao administrador para liberar.</p>
     <div class="abas" role="tablist">
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
@@ -877,6 +901,11 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <div class="avcb-corpo" id="eq-corpo"></div>
 </div>
 
+<div class="tela-avcb" id="tela-os" hidden role="dialog" aria-label="Ordens de serviço">
+  <div class="avcb-topo"><button class="avcb-voltar" id="os-voltar">‹ Voltar</button><strong id="os-titulo">Ordens de serviço</strong></div>
+  <div class="avcb-corpo" id="os-corpo"></div>
+</div>
+
 <div class="tela-avcb" id="tela-eqv" hidden role="dialog" aria-label="Vencimentos de extintores e mangueiras">
   <div class="avcb-topo"><button class="avcb-voltar" id="eqv-voltar">‹ Voltar</button><strong>Extintores e mangueiras</strong></div>
   <div class="avcb-corpo">
@@ -1063,7 +1092,8 @@ const CONFIG = {
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
   subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
-  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i],
+  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i],
+  pastaOS: "00 - Ordens de Serviço",           // dentro de 02 - Clientes: um .json por ordem de serviço (OS-0001.json…)
   pastaEquip: "00 - Extintores e Mangueiras",  // dentro de 02 - Clientes: um .json por cliente com os grupos de extintores e mangueiras
   admins: ["gustavoponchio@vpxengenharia.com.br"],                     // administrador principal (área ⚙ e tudo liberado)
   contatoVPX: "",                                                      // telefone/e-mail/site no fim do aviso ao cliente (ex.: "(71) 99999-9999 · contato@vpxengenharia.com.br")
@@ -3396,6 +3426,7 @@ function atualizar() {
   $("btn-ldsalvos").hidden = !(modo === "laudo" || modo === "insp") || !cliente;   // laudos/relatórios pausados e concluídos do cliente
   $("btn-hist").hidden = comp || !cliente || !pode("hist");
   desenharRecentes();
+  pintarFaixaOS();
   if (cliente !== atualizar.cliSalvos || modo !== atualizar.modoSalvos) { atualizar.cliSalvos = cliente; atualizar.modoSalvos = modo; $("ld-salvos").hidden = true; }
   if (cliente !== atualizar.cliHist || comp !== atualizar.compHist) { atualizar.cliHist = cliente; atualizar.compHist = comp; atualizarResumoHist(); }   // resumo do histórico ao trocar de cliente
 
@@ -3774,6 +3805,8 @@ async function salvar() {
     limparFicha();                                // o PDF já está guardado no celular: a ficha pode ser zerada
     relatorio = { item, cliente, titulo: "Relatório de Visita" };   // fica disponível para ver/compartilhar na tela final
   }
+  // documento de uma OS em execução: a OS é concluída (agora ou quando a internet voltar)
+  if (relatorio && ["laudo", "insp", "trein", "serv"].includes(modo)) registrarBaixaOS(relatorio.titulo, relatorio.item.prefixo);
   // congela o destino e o nome de cada item novo: se não der para enviar agora, ele vai depois para o lugar certo
   if (novos.length) {
     const d = destinoAtual();
@@ -5641,6 +5674,324 @@ async function pdfSituacao(cli) {
   } catch (e) { console.error(e); aviso("Não foi possível gerar o PDF: " + e.message, true); }
 }
 
+/* ---------- ordens de serviço (fila de serviços fechados com o cliente) ----------
+   Pedido do Gustavo em 17/10/2026. O escritório (função osCriar) cria a OS; ela entra na fila; o técnico pega,
+   executa e a baixa acontece sozinha quando o documento do serviço é gerado (relatório de serviço, laudo, inspeção
+   ou treinamento, conforme o tipo). Decisões dele: só quem tem osCriar cria; a OS pode ser direcionada a um técnico
+   ou ficar para qualquer um; baixa pelo documento; recarga/troca/teste atualiza o controle de extintores e mangueiras.
+   Um .json por OS em 02 - Clientes › 00 - Ordens de Serviço (OS-0001.json…), sincronizado por eTag (cache vpx_os) e
+   alterado com If-Match (como os pedidos). Baixa sem internet fica em vpx_os_baixas e é enviada depois. */
+const TIPOS_OS = {
+  recarga: { rot: "Recarga/manutenção de extintores", ico: "🧯", modo: "serv", serv: { tipo: "Manutenção preventiva", sist: ["Extintores"] }, eq: "ext" },
+  troca: { rot: "Troca de extintores", ico: "🧯", modo: "serv", serv: { tipo: "Instalação", sist: ["Extintores"] }, eq: "ext" },
+  mangueiras: { rot: "Teste de mangueiras", ico: "🚒", modo: "serv", serv: { tipo: "Teste/inspeção", sist: ["Hidrantes"] }, eq: "mang" },
+  laudo: { rot: "Laudo", ico: "📋", modo: "laudo" },
+  insp: { rot: "Inspeção", ico: "🔍", modo: "insp" },
+  trein: { rot: "Treinamento de brigada", ico: "🎓", modo: "trein" },
+  outro: { rot: "Outro serviço", ico: "🛠️", modo: "serv", serv: {} }
+};
+const ST_OS = { aberta: "Aberta", andamento: "Em andamento", concluida: "Concluída", cancelada: "Cancelada" };
+let osDados = lerLS("vpx_os", {});                 // "OS-0042" → { ...json, etag, itemId }
+let osAtiva = lerLS("vpx_os_ativa", null);         // OS em execução neste celular: { numero, modo, cliente }
+let osTela = null;                                 // { filtro, aberta, nova }
+const pastaOS = () => garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaOS]);
+const numOS = n => "OS-" + String(n).padStart(4, "0");
+const descTipoOS = o => o.tipo === "laudo" && LAUDOS[o.laudoTipo] ? LAUDOS[o.laudoTipo].nome : TIPOS_OS[o.tipo]?.rot || o.tipo;
+const atrasadaOS = o => !!o.prevista && (o.status === "aberta" || o.status === "andamento") && o.prevista < dataISO();
+const comigoOS = o => o.status === "andamento" ? o.tecnico?.email === emailDe() : o.status === "aberta" && o.para?.email === emailDe();
+const naFilaOS = o => o.status === "aberta" && (!o.para || o.para.email === emailDe() || pode("osCriar"));
+const eu = () => ({ nome: nomeColaborador(), email: emailDe() });
+const listaOS = () => Object.values(osDados);
+
+async function sincronizarOS() {
+  if (!conta || !navigator.onLine || sincronizarOS.rodando || !pode("os")) return;
+  sincronizarOS.rodando = true; sincronizarOS.quando = Date.now();
+  try {
+    const pasta = await pastaOS();
+    let url = `/drives/${CONFIG.driveId}/items/${pasta.id}/children?$top=999`;
+    const itens = [];
+    while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
+    const novo = {};
+    for (const i of itens.filter(i => i.file && /^OS-\d+\.json$/i.test(i.name))) {
+      const chave = i.name.replace(/\.json$/i, "").toUpperCase(), velho = osDados[chave];
+      let d = velho && velho.etag === i.eTag ? velho : null;
+      if (!d) { try { d = await (await fetch(i["@microsoft.graph.downloadUrl"])).json(); } catch (e) { console.error(e); if (velho) d = velho; else continue; } }
+      novo[chave] = { ...d, numero: chave, etag: i.eTag, itemId: i.id };
+    }
+    osDados = novo;
+    gravarLS("vpx_os", osDados);
+    await processarBaixasOS(false);
+  } catch (e) { console.error(e); }
+  finally { sincronizarOS.rodando = false; }
+  if (osTela) desenharOS();
+  if (!$("tela-inicio").hidden) desenharInicio();
+  if (!$("tela-cliente").hidden) desenharPaginaCliente();
+}
+// cria a OS com o próximo número livre (conflictBehavior=fail: se outra pessoa usou o número ao mesmo tempo, tenta o seguinte)
+async function criarOS(d) {
+  if (!navigator.onLine) throw new Error("Sem internet: para criar a OS, conecte o celular.");
+  await sincronizarOS();
+  const pasta = await pastaOS();
+  let n = Math.max(0, ...listaOS().map(o => +o.numero.replace(/\D/g, "")).filter(Number.isFinite)) + 1;
+  for (let tent = 0; tent < 5; tent++, n++) {
+    const numero = numOS(n), agora = new Date().toISOString();
+    const corpo = { versao: 1, numero, ...d, status: "aberta", criadoEm: agora, criadoPor: eu(), historico: [{ em: agora, por: nomeColaborador(), acao: "OS criada" }] };
+    try {
+      const it = await graph(`/drives/${CONFIG.driveId}/items/${pasta.id}:/${numero}.json:/content?@microsoft.graph.conflictBehavior=fail`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo, null, 1) });
+      osDados[numero] = { ...corpo, etag: it?.eTag, itemId: it?.id };
+      gravarLS("vpx_os", osDados);
+      return numero;
+    } catch (e) { if (e.status !== 409) throw e; }
+  }
+  throw new Error("Não foi possível reservar um número de OS. Tente de novo.");
+}
+// altera a OS no OneDrive: lê a versão mais nova, aplica a mudança (fn devolve texto de erro para desistir) e grava com If-Match
+async function alterarOS(numero, fn, acao) {
+  if (!navigator.onLine) throw new Error("Sem internet: para alterar a OS, conecte o celular.");
+  const o = osDados[numero]; if (!o?.itemId) throw new Error("OS não encontrada. Atualize a lista.");
+  const item = await graph(`/drives/${CONFIG.driveId}/items/${o.itemId}`);
+  const atual = await (await fetch(item["@microsoft.graph.downloadUrl"])).json();
+  const erro = fn(atual);
+  if (erro) { osDados[numero] = { ...atual, numero, etag: item.eTag, itemId: o.itemId }; gravarLS("vpx_os", osDados); throw new Error(erro); }
+  (atual.historico ||= []).push({ em: new Date().toISOString(), por: nomeColaborador(), acao });
+  try {
+    const r = await graph(`/drives/${CONFIG.driveId}/items/${o.itemId}/content`, { method: "PUT", headers: { "Content-Type": "application/json", "If-Match": item.eTag }, body: JSON.stringify(atual, null, 1) });
+    osDados[numero] = { ...atual, numero, etag: r?.eTag, itemId: o.itemId };
+    gravarLS("vpx_os", osDados);
+  } catch (e) {
+    if (e.status === 412) { sincronizarOS(); throw new Error("Outra pessoa alterou esta OS agora há pouco. A lista foi atualizada: confira e tente de novo."); }
+    throw e;
+  }
+}
+async function acaoOS(numero, fn, acao, ok) {
+  try { await alterarOS(numero, fn, acao); if (ok) aviso(ok); }
+  catch (e) { aviso(e.message, true); }
+  desenharOS();
+}
+const pegarOS = n => acaoOS(n, a => a.status !== "aberta" ? "Esta OS já foi pega por " + (a.tecnico?.nome || "outra pessoa") + "." : (a.status = "andamento", a.tecnico = eu(), ""), "Pegou a OS", `${n} está com você.`);
+const devolverOS = n => acaoOS(n, a => (a.status = "aberta", a.tecnico = null, ""), "Devolveu para a fila", `${n} voltou para a fila.`);
+async function cancelarOS(n) {
+  const motivo = prompt(`Cancelar a ${n}? Motivo (opcional):`, ""); if (motivo === null) return;
+  await acaoOS(n, a => a.status === "concluida" ? "Esta OS já foi concluída." : (a.status = "cancelada", a.cancelamento = { em: new Date().toISOString(), por: nomeColaborador(), motivo: motivo.trim() }, ""), "Cancelou" + (motivo.trim() ? ": " + motivo.trim() : ""), `${n} cancelada.`);
+}
+
+// executar: pega (se precisar), prepara o documento do tipo da OS já com o cliente e a descrição, e abre o formulário
+async function executarOS(numero) {
+  let o = osDados[numero];
+  if (o.status === "aberta") { try { await alterarOS(numero, a => a.status !== "aberta" ? "Esta OS já foi pega por " + (a.tecnico?.nome || "outra pessoa") + "." : (a.status = "andamento", a.tecnico = eu(), ""), "Pegou a OS"); } catch (e) { aviso(e.message, true); desenharOS(); return; } o = osDados[numero]; }
+  const t = TIPOS_OS[o.tipo] || TIPOS_OS.outro, m = t.modo;
+  if (!pode(m)) { aviso("Você não tem acesso a este tipo de documento. Peça ao administrador.", true); return; }
+  const jaEsta = osAtiva?.numero === numero && osAtiva.modo === m;
+  if (!jaEsta) {
+    const ocupado = m === "serv" ? servIniciado() : m === "trein" ? !!trein.modelo : (rascunhos[m]?.tipo && (m !== "insp" || rascunhos[m].sist?.length));
+    if (ocupado && !confirm(`Já existe um ${NOME_MODO[m].toLowerCase()} em andamento neste celular. Ele será apagado para começar o da ${numero}. Continuar?`)) return;
+    if (m === "serv") {
+      fotosServ().forEach(apagarFotoLaudo);
+      serv = { ...servVazio(), ...(t.serv?.tipo ? { tipo: t.serv.tipo } : {}), sist: [...(t.serv?.sist || [])] };
+      serv.ativ[0].desc = o.descricao || "";
+      gravarServ();
+    } else if (m === "trein") { trein = treinVazio(); gravarTrein(); montarTrein(); }
+    else {
+      todasFotosLaudo(rascunhos[m]).forEach(apagarFotoLaudo);
+      let l = m === "insp" ? inspVazio() : laudoVazio(o.laudoTipo && LAUDOS[o.laudoTipo] ? o.laudoTipo : "");
+      if (m === "laudo" && l.tipo) for (const s of LAUDOS[l.tipo].secoes) if (s.repetir) l.rep[s.id] = [s.id + "#1"];
+      l.cli = o.cliente;
+      rascunhos[m] = l; gravarLS("vpx_" + m, l);
+      if (modo === m) { laudo = l; montarLaudo(); }
+    }
+    osAtiva = { numero, modo: m, cliente: o.cliente };
+    gravarLS("vpx_os_ativa", osAtiva);
+  }
+  fecharOS(false);
+  if (history.state?.os) history.replaceState(null, "");
+  abrirTrabalho(m, o.cliente);
+  if (m === "laudo" || m === "insp") { laudo = rascunhos[m]; montarLaudo(); }
+  aviso(`${numero}: ao gerar o PDF, a OS é concluída sozinha.`);
+}
+// chamado pelo salvar() quando o documento da OS em execução é gerado: guarda a baixa e envia (agora ou depois)
+function registrarBaixaOS(titulo, prefixo) {
+  if (!osAtiva || osAtiva.modo !== modo || osAtiva.cliente !== cliente) return;
+  const b = { numero: osAtiva.numero, documento: titulo, arquivo: prefixo, caminho: (fotos.find(f => f.prefixo === prefixo)?.dest?.caminho) || "", em: new Date().toISOString(), por: eu() };
+  gravarLS("vpx_os_baixas", [...lerLS("vpx_os_baixas", []), b]);
+  osAtiva = null; gravarLS("vpx_os_ativa", null);
+  setTimeout(() => processarBaixasOS(true), 400);
+}
+async function processarBaixasOS(interativo) {
+  const fila = lerLS("vpx_os_baixas", []);
+  if (!fila.length || !navigator.onLine || !conta || processarBaixasOS.rodando) return;
+  processarBaixasOS.rodando = true;
+  const resto = [];
+  for (const b of fila) {
+    try {
+      await alterarOS(b.numero, a => a.status === "cancelada" ? "" : (a.status = "concluida", a.concluida = { em: b.em, por: b.por, documento: b.documento, arquivo: b.arquivo, caminho: b.caminho }, ""), `Concluída: ${b.documento}`);
+      if (interativo) { aviso(`${b.numero} concluída.`); await atualizarEqPelaOS(osDados[b.numero]); }
+    } catch (e) { console.error(e); if (osDados[b.numero]) resto.push(b); }   // OS apagada do OneDrive: descarta a baixa
+  }
+  gravarLS("vpx_os_baixas", resto);
+  processarBaixasOS.rodando = false;
+  if (osTela) desenharOS();
+}
+// recarga/troca de extintores ou teste de mangueiras: oferece atualizar o controle do cliente para este mês
+async function atualizarEqPelaOS(o) {
+  const t = TIPOS_OS[o?.tipo]; if (!t?.eq || !pode("equip")) return;
+  const d = eqDados[o.cliente], grupos = d?.[t.eq] || [];
+  if (!grupos.length) return;
+  const qual = t.eq === "ext" ? "extintores" : "mangueiras", campo = t.eq === "ext" ? "recarga" : "teste";
+  if (!confirm(`Atualizar o controle de ${qual} do ${o.cliente}?\nTodos os ${grupos.length} grupo(s) de ${qual} ficam com ${t.eq === "ext" ? "recarga" : "teste"} feito em ${ymBR(ymAtual())}.`)) return;
+  const novo = JSON.parse(JSON.stringify(d));
+  novo[t.eq].forEach(g => g[campo] = ymAtual());
+  try { await gravarEq(o.cliente, novo.ext || [], novo.mang || []); aviso(`Controle de ${qual} atualizado.`); } catch (e) { aviso(e.message, true); }
+}
+
+// tela das OS: lista (filtros), detalhe e nova OS
+function abrirOS(op = {}) {
+  osTela = { filtro: op.filtro || (listaOS().some(comigoOS) ? "minhas" : "fila"), aberta: op.aberta || null, nova: op.nova || null };
+  $("tela-os").hidden = false;
+  document.body.style.overflow = "hidden";
+  history.pushState({ os: true }, "");
+  desenharOS();
+  sincronizarOS();
+}
+function fecharOS(voltar = true) {
+  if ($("tela-os").hidden) return;
+  $("tela-os").hidden = true;
+  document.body.style.overflow = "";
+  osTela = null;
+  if (voltar && history.state?.os) history.back();
+  if (!$("tela-inicio").hidden) desenharInicio();
+}
+const ordemOS = (a, b) => (b.prioridade === "urgente") - (a.prioridade === "urgente") || atrasadaOS(b) - atrasadaOS(a) || (a.prevista || "9").localeCompare(b.prevista || "9") || a.numero.localeCompare(b.numero);
+function cartaoOS(o, onclick) {
+  const b = el("button", "os-card" + (o.prioridade === "urgente" && o.status !== "concluida" ? " urg" : atrasadaOS(o) ? " atr" : "")); b.type = "button";
+  const l1 = el("span", "os-num", o.numero);
+  const st = el("span", "os-st " + o.status, ST_OS[o.status] || o.status); l1.appendChild(st);
+  if (o.prioridade === "urgente" && o.status !== "concluida" && o.status !== "cancelada") l1.appendChild(el("span", "os-st urgente", "Urgente"));
+  b.appendChild(l1);
+  b.appendChild(el("b", "", o.cliente));
+  b.appendChild(el("small", "", `${TIPOS_OS[o.tipo]?.ico || "🛠️"} ${descTipoOS(o)}`));
+  const quem = o.status === "andamento" ? `Com ${o.tecnico?.nome || "-"}` : o.status === "aberta" ? (o.para ? `Para ${o.para.nome}` : "Para qualquer técnico") : o.status === "concluida" ? `Concluída por ${o.concluida?.por?.nome || "-"} em ${o.concluida?.em ? dataBRde(o.concluida.em.slice(0, 10)) : "-"}` : "";
+  b.appendChild(el("small", "", [quem, o.prevista && `Prevista ${dataBRde(o.prevista)}${atrasadaOS(o) ? " (atrasada)" : ""}`].filter(Boolean).join(" · ")));
+  b.onclick = onclick || (() => { osTela.aberta = o.numero; desenharOS(); });
+  return b;
+}
+function desenharOS() {
+  if (!osTela) return;
+  const c = $("os-corpo"); c.innerHTML = "";
+  $("os-titulo").textContent = osTela.nova ? "Nova ordem de serviço" : osTela.aberta || "Ordens de serviço";
+  if (osTela.nova) { c.appendChild(formOS()); return; }
+  if (osTela.aberta) { c.appendChild(detalheOS(osDados[osTela.aberta])); return; }
+  if (pode("osCriar")) { const n = el("button", "btn prim", "+ Nova ordem de serviço"); n.type = "button"; n.style.marginBottom = "12px"; n.onclick = () => { osTela.nova = {}; desenharOS(); }; c.appendChild(n); }
+  const filtros = [["fila", "Fila"], ["minhas", "Minhas"], ["andamento", "Em andamento"], ["concluidas", "Concluídas"]];
+  const ch = el("div", "chips avcb-filtro");
+  const contar = f => listaOS().filter(filtroOS(f)).length;
+  filtros.forEach(([f, rot]) => { const b = el("button", "", f === "concluidas" ? rot : `${rot} (${contar(f)})`); b.type = "button"; b.setAttribute("aria-pressed", String(osTela.filtro === f)); b.onclick = () => { osTela.filtro = f; desenharOS(); }; ch.appendChild(b); });
+  c.appendChild(ch);
+  const lista = listaOS().filter(filtroOS(osTela.filtro)).sort(osTela.filtro === "concluidas" ? (a, b) => (b.concluida?.em || b.criadoEm || "").localeCompare(a.concluida?.em || a.criadoEm || "") : ordemOS);
+  const pend = lerLS("vpx_os_baixas", []).length;
+  if (pend) c.appendChild(el("p", "ld-aviso", `⏳ ${pend} baixa${pend > 1 ? "s" : ""} aguardando internet para ser enviada${pend > 1 ? "s" : ""}.`));
+  if (!lista.length) c.appendChild(el("p", "avcb-nota", { fila: "Nenhuma OS na fila.", minhas: "Nenhuma OS com você agora.", andamento: "Nenhuma OS em andamento.", concluidas: "Nenhuma OS concluída ainda." }[osTela.filtro]));
+  lista.slice(0, osTela.filtro === "concluidas" ? 60 : 500).forEach(o => c.appendChild(cartaoOS(o)));
+  if (!navigator.onLine) c.appendChild(el("p", "avcb-nota", "Sem internet: mostrando a última lista guardada."));
+}
+const filtroOS = f => f === "fila" ? naFilaOS : f === "minhas" ? comigoOS : f === "andamento" ? (o => o.status === "andamento") : (o => o.status === "concluida" || o.status === "cancelada");
+function detalheOS(o) {
+  const w = el("div", "os-det");
+  const v = el("button", "hub-voltar", "‹ Lista"); v.type = "button"; v.onclick = () => { osTela.aberta = null; desenharOS(); }; w.appendChild(v);
+  if (!o) { w.appendChild(el("p", "avcb-nota", "OS não encontrada.")); return w; }
+  w.appendChild(cartaoOS(o, () => {}));
+  const dl = el("dl");
+  const par = (k, val) => { if (!val) return; dl.append(el("dt", "", k), el("dd", "", val)); };
+  par("Cliente", o.cliente); par("Serviço", descTipoOS(o)); par("O que foi fechado", o.descricao);
+  par("Prioridade", o.prioridade === "urgente" ? "Urgente" : "Normal"); par("Prevista", o.prevista && dataBRde(o.prevista));
+  par("Direcionada a", o.para ? o.para.nome : "Qualquer técnico"); par("Criada por", `${o.criadoPor?.nome || "-"} em ${o.criadoEm ? new Date(o.criadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-"}`);
+  if (o.concluida) par("Documento", `${o.concluida.documento}${o.concluida.caminho ? " (" + o.concluida.caminho.split("/").slice(1).join(" › ") + ")" : ""}`);
+  if (o.cancelamento) par("Cancelamento", `${o.cancelamento.por}${o.cancelamento.motivo ? ": " + o.cancelamento.motivo : ""}`);
+  w.appendChild(dl);
+  const ac = el("div", "os-acoes");
+  const bt = (rot, cls, fn) => { const b = el("button", "btn " + cls, rot); b.type = "button"; b.onclick = fn; ac.appendChild(b); };
+  const meu = o.tecnico?.email === emailDe(), podeEu = !o.para || o.para.email === emailDe() || pode("osCriar");
+  if (o.status === "aberta" && podeEu) { bt("▶ Executar agora", "prim", () => executarOS(o.numero)); bt("Pegar esta OS", "sec", () => pegarOS(o.numero)); }
+  if (o.status === "andamento" && (meu || pode("osCriar"))) { if (meu) bt("▶ Executar", "prim", () => executarOS(o.numero)); bt("Devolver para a fila", "sec", () => devolverOS(o.numero)); }
+  if ((o.status === "aberta" || o.status === "andamento") && pode("osCriar")) bt("Cancelar OS", "sec", () => cancelarOS(o.numero));
+  if (o.status === "andamento" && meu && osAtiva?.numero === o.numero) ac.appendChild(el("p", "laudo-dica", "Esta OS está em execução neste celular: gere o PDF do documento para concluir."));
+  if (ac.children.length) w.appendChild(ac);
+  w.appendChild(el("h2", "secao", "Histórico"));
+  const h = el("ul", "os-hist");
+  (o.historico || []).slice().reverse().forEach(x => h.appendChild(el("li", "", `${new Date(x.em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} · ${x.por} · ${x.acao}`)));
+  w.appendChild(h);
+  return w;
+}
+function formOS() {
+  const n = osTela.nova; n.prioridade ||= "normal";
+  const f = el("div", "os-form");
+  const v = el("button", "hub-voltar", "‹ Cancelar"); v.type = "button"; v.onclick = () => { osTela.nova = null; desenharOS(); }; f.appendChild(v);
+  // cliente (lista dos clientes do OneDrive)
+  const wc = el("label", "campo"); wc.appendChild(el("span", "", "Cliente *"));
+  const ic = document.createElement("input"); ic.setAttribute("list", "os-dl-cli"); ic.value = n.cliente || ""; ic.placeholder = "Digite para buscar"; ic.autocomplete = "off";
+  const dl = document.createElement("datalist"); dl.id = "os-dl-cli"; clientes.forEach(c => { const o = document.createElement("option"); o.value = c; dl.appendChild(o); });
+  ic.oninput = () => { n.cliente = ic.value; };
+  wc.append(ic, dl); f.appendChild(wc);
+  const chips = (rot, opcoes, chave, aoMudar) => {
+    const w = el("div", "campo"); w.appendChild(el("span", "", rot));
+    const ch = el("div", "chips");
+    opcoes.forEach(([val, txt]) => { const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-pressed", String(n[chave] === val)); b.onclick = () => { n[chave] = val; aoMudar ? aoMudar() : ch.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); }; ch.appendChild(b); });
+    w.appendChild(ch); return w;
+  };
+  f.appendChild(chips("Serviço *", Object.entries(TIPOS_OS).map(([k, t]) => [k, `${t.ico} ${t.rot}`]), "tipo", () => desenharOS()));
+  if (n.tipo === "laudo") f.appendChild(chips("Tipo de laudo *", Object.entries(LAUDOS).map(([k, l]) => [k, l.curto]), "laudoTipo"));
+  const wd = el("label", "campo"); wd.appendChild(el("span", "", "O que foi fechado com o cliente *"));
+  const td = document.createElement("textarea"); td.value = n.descricao || ""; td.placeholder = "Ex.: Recarga dos 8 extintores PQS 4 kg do térreo e garagem"; td.oninput = () => { n.descricao = td.value; };
+  wd.appendChild(td); f.appendChild(wd);
+  f.appendChild(chips("Prioridade", [["normal", "Normal"], ["urgente", "Urgente"]], "prioridade"));
+  const wp = el("label", "campo"); wp.appendChild(el("span", "", "Data prevista (opcional)"));
+  const ip = document.createElement("input"); ip.type = "date"; ip.value = n.prevista || ""; ip.oninput = () => { n.prevista = ip.value; };
+  wp.appendChild(ip); f.appendChild(wp);
+  // direcionar a um técnico (lista de quem usa o app) ou deixar para qualquer um
+  const wt = el("label", "campo"); wt.appendChild(el("span", "", "Direcionar a"));
+  const sel = document.createElement("select");
+  const opc = (val, txt) => { const o = document.createElement("option"); o.value = val; o.textContent = txt; sel.appendChild(o); };
+  opc("", "Qualquer técnico (fila geral)");
+  (lerLS("vpx_usuarios_app", [])).forEach(u => opc(u.email, `${u.nome || u.email}`));
+  sel.value = n.para?.email || "";
+  sel.onchange = () => { const u = lerLS("vpx_usuarios_app", []).find(x => x.email === sel.value); n.para = u ? { nome: u.nome || u.email, email: u.email } : null; };
+  wt.appendChild(sel); f.appendChild(wt);
+  if (!lerLS("vpx_usuarios_app", []).length) carregarUsuariosApp().then(l => { if (l.length && osTela?.nova === n) desenharOS(); });
+  const criar = el("button", "btn prim", "Criar ordem de serviço"); criar.type = "button";
+  criar.onclick = async () => {
+    const cli = clientes.find(c => semAcento(c) === semAcento((n.cliente || "").trim()));
+    const falta = !cli ? "Escolha um cliente da lista" : !n.tipo ? "Escolha o serviço" : n.tipo === "laudo" && !n.laudoTipo ? "Escolha o tipo de laudo" : !(n.descricao || "").trim() ? "Escreva o que foi fechado" : "";
+    if (falta) { aviso(falta + ".", true); return; }
+    criar.disabled = true; criar.textContent = "Criando…";
+    try {
+      const numero = await criarOS({ cliente: cli, tipo: n.tipo, laudoTipo: n.tipo === "laudo" ? n.laudoTipo : undefined, descricao: n.descricao.trim(), prioridade: n.prioridade, prevista: n.prevista || "", para: n.para || null });
+      aviso(`${numero} criada e enviada para a fila.`);
+      osTela.nova = null; osTela.aberta = numero;
+    } catch (e) { aviso(e.message, true); criar.disabled = false; criar.textContent = "Criar ordem de serviço"; return; }
+    desenharOS();
+  };
+  f.appendChild(criar);
+  return f;
+}
+// lista de quem usa o app (mesma pasta da administração), para direcionar a OS
+async function carregarUsuariosApp() {
+  if (!navigator.onLine) return lerLS("vpx_usuarios_app", []);
+  try {
+    const pasta = await garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaUsuarios]);
+    const r = await graph(`/drives/${CONFIG.driveId}/items/${pasta.id}/children?$top=999&$select=name,lastModifiedBy`);
+    const lista = r.value.filter(i => /\.json$/i.test(i.name)).map(i => ({ email: i.name.replace(/\.json$/i, "").toLowerCase(), nome: perm?.usuarios?.[i.name.replace(/\.json$/i, "").toLowerCase()]?.nome || i.lastModifiedBy?.user?.displayName || "" }))
+      .sort((a, b) => (a.nome || a.email).localeCompare(b.nome || b.email, "pt-BR"));
+    gravarLS("vpx_usuarios_app", lista);
+    return lista;
+  } catch (e) { console.error(e); return lerLS("vpx_usuarios_app", []); }
+}
+// faixa no formulário quando ele é de uma OS em execução
+function pintarFaixaOS() {
+  const f = $("os-faixa"), a = osAtiva;
+  const on = !!a && a.modo === modo && a.cliente === cliente && secao === "trabalho";
+  f.hidden = !on;
+  if (on) f.textContent = `🧰 ${a.numero} · ${descTipoOS(osDados[a.numero] || {})}: ao gerar o PDF, a OS é concluída sozinha.`;
+}
+
 /* ---------- permissões e administração ----------
    O administrador (CONFIG.admins) define o que cada pessoa vê no app. As permissões ficam em
    "VPX Visitas - Configuração/permissoes.json" no OneDrive do Gustavo (a equipe só lê; só ele altera).
@@ -5650,7 +6001,7 @@ async function pdfSituacao(cli) {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -5660,7 +6011,7 @@ let perm = lerLS("vpx_perm", null);                // última cópia do arquivo 
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
 // (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
-const NOVAS_NO_PADRAO = ["serv", "equip"];
+const NOVAS_NO_PADRAO = ["serv", "equip", "os"];   // "osCriar" não: só quem o Gustavo liberar
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
   if (ehAdmin() || !perm) return TODAS_FUNCOES;    // arquivo nunca carregado neste celular: tudo liberado (como antes)
@@ -7550,6 +7901,17 @@ function desenharInicio() {
       t.appendChild(b);
     });
   }
+  // ordens de serviço: fila e as que estão com a pessoa
+  if (pode("os")) {
+    const os = Object.values(osDados), fila = os.filter(naFilaOS), minhas = os.filter(comigoOS);
+    const urg = [...fila, ...minhas].some(o => o.prioridade === "urgente" || atrasadaOS(o));
+    const b = el("button", "hub-card" + (urg ? " crit" : "")); b.type = "button";
+    b.appendChild(el("small", "", "🧰 Ordens de serviço"));
+    b.appendChild(el("b", "", fila.length || minhas.length ? [fila.length && `${fila.length} na fila`, minhas.length && `${minhas.length} com você`].filter(Boolean).join(" · ") : "Nenhuma OS aberta"));
+    if (urg) b.appendChild(el("small", "", "Há OS urgente ou atrasada"));
+    b.onclick = () => abrirOS();
+    t.appendChild(b);
+  }
   const modos = MODOS_APP.filter(([m]) => pode(m));
   if (modos.length) {
     t.appendChild(el("p", "hub-rot", "Novo registro"));
@@ -7641,6 +8003,13 @@ function desenharPaginaCliente() {
   if (pode("laudo")) g.appendChild(tile("📋", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
   if (g.children.length) { g.style.marginTop = "12px"; if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
   if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
+  // ordens de serviço abertas deste cliente e "Nova OS"
+  if (pode("os")) {
+    const abertas = Object.values(osDados).filter(o => o.cliente === c && (o.status === "aberta" || o.status === "andamento")).sort(ordemOS);
+    if (abertas.length || pode("osCriar")) t.appendChild(el("p", "hub-rot", "Ordens de serviço"));
+    abertas.forEach(o => t.appendChild(cartaoOS(o, () => abrirOS({ aberta: o.numero }))));
+    if (pode("osCriar")) { const n = el("button", "btn sec", "🧰 Nova OS para este cliente"); n.type = "button"; n.style.width = "100%"; n.onclick = () => abrirOS({ nova: { cliente: c } }); t.appendChild(n); }
+  }
   const modos = MODOS_APP.filter(([m]) => m !== "comp" && pode(m));
   if (modos.length) {
     t.appendChild(el("p", "hub-rot", "Novo para este cliente"));
@@ -7726,6 +8095,7 @@ async function iniciarApp() {
   carregarClientes().then(() => { if (secao === "clientes") desenharClientesHub(); });
   sincronizarAvcb();                              // AVCBs fotografados pela equipe
   sincronizarEq();                                // extintores e mangueiras dos clientes (alerta no Início)
+  sincronizarOS();                                // ordens de serviço (fila no Início) e baixas que ficaram sem internet
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") desenharInicio();       // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
@@ -7797,9 +8167,10 @@ window.addEventListener("popstate", () => {
     if (enviando) { history.pushState({ trab: true }, ""); return; }   // enviando: fica no formulário
     irPara("inicio"); return;
   }
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharMenu();
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOS(false); fecharMenu();
 });
-$("eq-voltar").onclick = () => { if (eq?.editando) { eq.editando = null; desenharEq(); } else fecharEq(); };
+$("os-voltar").onclick = () => { if (osTela?.nova || osTela?.aberta) { osTela.nova = null; osTela.aberta = null; desenharOS(); } else fecharOS(); };
+$("eq-voltar").onclick =() => { if (eq?.editando) { eq.editando = null; desenharEq(); } else fecharEq(); };
 $("eqv-voltar").onclick = () => fecharEqv();
 $("eqv-exportar").onclick = () => exportarEq(Object.keys(eqDados));
 $("eqv-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { eqvFiltro = b.dataset.f; desenharEqv(); });
@@ -7815,6 +8186,9 @@ $("adm-add").onclick = adicionarUsuarioAdmin;
 $("adm-email").onkeydown = e => { if (e.key === "Enter") adicionarUsuarioAdmin(); };
 // permissões alteradas pelo administrador: confere ao voltar para o app (no máximo 1 vez por minuto)
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (carregarPermissoes.quando || 0) > 60000) carregarPermissoes(); });
+// ordens de serviço: novas OS da fila aparecem ao voltar para o app (no máximo 1 vez por minuto)
+document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (sincronizarOS.quando || 0) > 60000) sincronizarOS(); });
+window.addEventListener("online", () => processarBaixasOS(false));
 $("hist-resumo").onclick = abrirHistorico;
 $("btn-pt").onclick = abrirPastaTec;
 $("btn-ldsalvos").onclick = abrirSalvos;
