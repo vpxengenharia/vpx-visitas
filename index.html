@@ -1328,8 +1328,11 @@ function desenharLista() {
   }
 }
 
-function abrirDialogo() {
+// aoEscolher (opcional): usa a mesma lista de clientes para outra tela (ex.: nova OS) sem mudar o cliente do formulário
+let escolhaCliente = null;
+function abrirDialogo(aoEscolher) {
   if (enviando) return;
+  escolhaCliente = typeof aoEscolher === "function" ? aoEscolher : null;   // vindo de um onclick, o parâmetro é o evento
   $("busca").value = "";
   desenharLista();
   $("dlg").showModal();
@@ -1362,11 +1365,12 @@ function desenharRecentes() {
 }
 
 function escolher(nome) {
-  cliente = nome;
   if (nome && clientes.includes(nome)) {
     const rec = [nome, ...lerLS("vpx_recentes", []).filter(c => c !== nome)].slice(0, 4);
     gravarLS("vpx_recentes", rec);
   }
+  if (escolhaCliente && $("dlg").open) { const f = escolhaCliente; escolhaCliente = null; $("dlg").close(); f(nome); return; }
+  cliente = nome;
   $("dlg").close();
   atualizar();
 }
@@ -5929,12 +5933,11 @@ function formOS() {
   const n = osTela.nova; n.prioridade ||= "normal";
   const f = el("div", "os-form");
   const v = el("button", "hub-voltar", "‹ Cancelar"); v.type = "button"; v.onclick = () => { osTela.nova = null; desenharOS(); }; f.appendChild(v);
-  // cliente (lista dos clientes do OneDrive)
-  const wc = el("label", "campo"); wc.appendChild(el("span", "", "Cliente *"));
-  const ic = document.createElement("input"); ic.setAttribute("list", "os-dl-cli"); ic.value = n.cliente || ""; ic.placeholder = "Digite para buscar"; ic.autocomplete = "off";
-  const dl = document.createElement("datalist"); dl.id = "os-dl-cli"; clientes.forEach(c => { const o = document.createElement("option"); o.value = c; dl.appendChild(o); });
-  ic.oninput = () => { n.cliente = ic.value; };
-  wc.append(ic, dl); f.appendChild(wc);
+  // cliente: toca e escolhe na mesma lista de clientes do resto do app (com busca e recentes)
+  const bc = el("button", "cliente" + (n.cliente ? "" : " vazio")); bc.type = "button"; bc.style.marginBottom = "12px";
+  bc.append(el("small", "", "Cliente *"), el("strong", "", n.cliente || "Escolher cliente"));
+  bc.onclick = () => abrirDialogo(nome => { n.cliente = nome; desenharOS(); });
+  f.appendChild(bc);
   const chips = (rot, opcoes, chave, aoMudar) => {
     const w = el("div", "campo"); w.appendChild(el("span", "", rot));
     const ch = el("div", "chips");
