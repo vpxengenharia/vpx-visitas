@@ -7917,9 +7917,10 @@ function desenharInicio() {
     t.appendChild(b);
   }
   const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (modos.length) {
+  if (modos.length || pode("osCriar")) {
     t.appendChild(el("p", "hub-rot", "Novo registro"));
     const g = el("div", "hub-grade");
+    if (pode("osCriar")) g.appendChild(tile("🧰", "OS", () => abrirOS({ nova: {} })));   // nova ordem de serviço: pergunta o cliente e os dados
     modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => abrirTrabalho(m))));
     t.appendChild(g);
   } else t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
