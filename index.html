@@ -1096,7 +1096,11 @@ const CONFIG = {
   pastaOS: "00 - Ordens de Serviço",           // dentro de 02 - Clientes: um .json por ordem de serviço (OS-0001.json…)
   pastaEquip: "00 - Extintores e Mangueiras",  // dentro de 02 - Clientes: um .json por cliente com os grupos de extintores e mangueiras
   admins: ["gustavoponchio@vpxengenharia.com.br"],                     // administrador principal (área ⚙ e tudo liberado)
-  contatoVPX: "",                                                      // telefone/e-mail/site no fim do aviso ao cliente (ex.: "(71) 99999-9999 · contato@vpxengenharia.com.br")
+  contatoVPX: [                                                        // no fim do aviso ao cliente (mensagem e PDF); tirados do site da VPX
+    "WhatsApp: (71) 99194-9900",
+    "E-mail: contato@vpxengenharia.com.br",
+    "Instagram: @vpxengenharia - instagram.com/vpxengenharia"
+  ],
   pastaConfig: "VPX Visitas - Configuração",                           // na raiz do OneDrive do Gustavo: permissoes.json (equipe só lê)
   pastaUsuarios: "00 - Usuários do app",                              // em 02 - Clientes: registro de quem usa o app (para a administração)
   pastaAvcb: "00 - Validade AVCB",            // dentro de 02 - Clientes: fotos e dados dos AVCBs fotografados pela equipe
@@ -5562,7 +5566,7 @@ function itensAviso(cli) {
   const linhas = linhasEq([cli]).filter(l => eqDados[cli]);
   return { av: avcbDoCliente(cli), venc: linhas.filter(l => l.sit !== "ok").sort((a, b) => a.vence.localeCompare(b.vence)), todas: linhas };
 }
-const assinaturaVPX = () => [`${nomeColaborador()} - VPX Engenharia`, CONFIG.contatoVPX].filter(Boolean).join("\n");
+const assinaturaVPX = () => [`${nomeColaborador()} - VPX Engenharia`, ...(CONFIG.contatoVPX || [])].filter(Boolean).join("\n");
 function textoAviso(cli) {
   const { av, venc } = itensAviso(cli);
   const l = [`Olá! Aqui é da VPX Engenharia. Segue a situação da segurança contra incêndio do ${cli}:`, ""];
