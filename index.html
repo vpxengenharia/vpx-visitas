@@ -8324,17 +8324,9 @@ function desenharInicio() {
     b.onclick = () => abrirOS();
     t.appendChild(b);
   }
-  const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (modos.length || pode("os")) {
-    t.appendChild(el("p", "hub-rot", "Registros"));
-    const g = el("div", "hub-grade");
-    // cada quadrado abre primeiro a página do assunto (lista + "Novo"); o formulário só abre pelo "+ Novo"
-    if (pode("os")) g.appendChild(tile("🧰", "OS", () => abrirOS()));
-    modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
-    t.appendChild(g);
-  } else t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
-  // agenda de hoje e de amanhã (da última agenda guardada; atualiza por trás)
+  // agenda de hoje e de amanhã, acima dos registros (pedido do Gustavo em 19/10/2026); vem da última agenda guardada e atualiza por trás
   if (pode("agenda")) {
+    t.appendChild(el("p", "hub-rot", "Agenda"));
     const ag = lerLS(chaveAgenda(), null);
     const b = el("button", "hub-card"); b.type = "button";
     if (!ag) { b.appendChild(el("small", "", "Agenda")); b.appendChild(el("b", "", "Abrir a agenda")); }
@@ -8356,6 +8348,15 @@ function desenharInicio() {
         .catch(() => {}).finally(() => { desenharInicio.buscando = false; });
     }
   }
+  const modos = MODOS_APP.filter(([m]) => pode(m));
+  if (modos.length || pode("os")) {
+    t.appendChild(el("p", "hub-rot", "Registros"));
+    const g = el("div", "hub-grade");
+    // cada quadrado abre primeiro a página do assunto (lista + "Novo"); o formulário só abre pelo "+ Novo"
+    if (pode("os")) g.appendChild(tile("🧰", "OS", () => abrirOS()));
+    modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
+    t.appendChild(g);
+  } else t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
   // alerta de AVCB dos clientes
   if (pode("avcb")) {
     const sts = listaAvcb().filter(v => v.categoria === "cliente").map(situacaoAvcb);
