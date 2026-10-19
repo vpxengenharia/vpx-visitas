@@ -8507,10 +8507,11 @@ function desenharReg() {
   const t = $("tela-reg"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Registros"));
   const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (!modos.length && !pode("os")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
+  if (!modos.length && !pode("os") && !pode("avcb")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
   const g = el("div", "hub-grade");
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
+  if (pode("avcb")) g.appendChild(tile("escudo", "Validade AVCB / CLCB", abrirAvcb));   // saiu do Mais (pedido do Gustavo em 19/10/2026)
   t.appendChild(g);
 }
 
@@ -8565,7 +8566,6 @@ function desenharMais() {
   }
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
-  if (pode("avcb")) l.appendChild(linha("escudo", "Validade AVCB / CLCB", "Vencidos, a vencer e fotografar AVCB", abrirAvcb));
   if (pode("equip")) l.appendChild(linha("extintor", "Extintores e mangueiras", "Vencimentos de todos os clientes", abrirEqv));
   if (ehAdmin()) l.appendChild(linha("ajustes", "Administração", "Permissões da equipe", abrirAdmin));
   if (l.children.length) t.appendChild(l);
