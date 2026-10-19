@@ -628,6 +628,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .cam-zoom button{width:40px;height:40px;border-radius:50%;border:0;background:rgba(40,40,40,.75);color:#fff;font:600 13px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;padding:0;cursor:pointer;transition:transform .15s}
 .cam-zoom button[aria-pressed="true"]{color:#FFD60A;font-size:14px;transform:scale(1.12)}
 .cam-msg{position:absolute;left:24px;right:24px;top:42%;margin:0 auto;text-align:center;color:#fff}
+.cam-nativa{position:absolute;left:50%;top:calc(42% + 88px);transform:translateX(-50%);display:flex;align-items:center;justify-content:center;min-height:52px;padding:0 22px;border-radius:999px;background:var(--laranja);color:var(--marinho);font-weight:700;font-size:17px;white-space:nowrap;cursor:pointer}
+.cam-nativa[hidden]{display:none}
 .cam-flash{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .18s}
 .cam-flash.ver{opacity:.85;transition:none}
 .cam-base{flex:none;padding:10px 22px calc(18px + env(safe-area-inset-bottom,0px))}
@@ -894,6 +896,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <video id="cam-video" playsinline muted autoplay></video>
     <div class="cam-flash" id="cam-flash"></div>
     <p class="cam-msg" id="cam-msg"></p>
+    <label class="cam-nativa" id="cam-nativa" hidden>Abrir a câmera do celular<input class="oculto" type="file" accept="image/*" capture="environment" id="in-cam-nativa"></label>
     <div class="cam-zoom" id="cam-zoom" hidden></div>
   </div>
   <div class="cam-base">
@@ -3183,23 +3186,61 @@ function abrirCamera() {
   ligarCamera();
 }
 
+// Em alguns iPhones (relatado num 13 Pro Max em 20/10/2026) pedir 4096×3072 deixa o visor preto. O app confere se a
+// imagem chegou e, se ficar preta, tenta resoluções menores; a que resolveu fica guardada no celular (vpx_cam_nivel).
+// null = resolução normal da foto/vídeo; {} = o que a câmera quiser.
+const NIVEIS_CAM = [null, { width: { ideal: 1920 }, height: { ideal: 1440 } }, {}];
+async function imagemCamOk(v) {
+  const ate = Date.now() + 2500;
+  while (Date.now() < ate && !(v.videoWidth && v.currentTime > 0)) await espera(100);
+  if (!v.videoWidth) return false;
+  await espera(300);                               // o primeiro quadro pode vir escuro enquanto a câmera ajusta a luz
+  try {
+    const cv = document.createElement("canvas"); cv.width = 32; cv.height = 24;
+    const g = cv.getContext("2d", { willReadFrequently: true });
+    g.drawImage(v, 0, 0, 32, 24);
+    const d = g.getImageData(0, 0, 32, 24).data;
+    let max = 0;
+    for (let i = 0; i < d.length; i += 4) max = Math.max(max, d[i], d[i + 1], d[i + 2]);
+    return max > 8;                                // tudo preto (0) = a câmera não está mandando imagem
+  } catch { return true; }
+}
+
 async function ligarCamera() {
   const c = cam;
   if (!c) return;
   $("cam-msg").textContent = "Abrindo a câmera…"; $("cam-msg").hidden = false;
+  $("cam-nativa").hidden = true;
   $("cam-disparo").disabled = true; $("cam-luz").hidden = true;
-  // no Chrome, "zoom: true" libera o zoom da própria câmera
-  const res = { ...(c.modo === "video" ? RES_VIDEO : RES_FOTO), ...("ImageCapture" in window ? { zoom: true } : {}) };
+  const v = $("cam-video");
+  const inicio = c.modo === "video" ? 0 : Math.min(lerLS("vpx_cam_nivel", 0), NIVEIS_CAM.length - 1);
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, ...res } });
-    if (cam !== c) { stream.getTracks().forEach(t => t.stop()); return; }
-    c.stream = stream;
-    c.track = stream.getVideoTracks()[0];
-    c.captura = "ImageCapture" in window ? new ImageCapture(c.track) : null;
-    c.luz = false;
-    const v = $("cam-video");
-    v.srcObject = stream;
-    await v.play().catch(() => {});
+    for (let n = inicio; n < NIVEIS_CAM.length; n++) {
+      // no Chrome, "zoom: true" libera o zoom da própria câmera
+      const res = { ...(NIVEIS_CAM[n] || (c.modo === "video" ? RES_VIDEO : RES_FOTO)), ...("ImageCapture" in window ? { zoom: true } : {}) };
+      let stream;
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, ...res } }); }
+      catch (e) { if (e.name === "NotAllowedError" || e.name === "SecurityError" || n === NIVEIS_CAM.length - 1) throw e; continue; }
+      if (cam !== c) { stream.getTracks().forEach(t => t.stop()); return; }
+      c.stream = stream;
+      c.track = stream.getVideoTracks()[0];
+      c.captura = "ImageCapture" in window ? new ImageCapture(c.track) : null;
+      c.luz = false;
+      c.nivel = n;
+      v.srcObject = stream;
+      await v.play().catch(() => {});
+      const ok = await imagemCamOk(v);
+      if (cam !== c) return;
+      if (ok) { if (n > inicio && c.modo !== "video") gravarLS("vpx_cam_nivel", n); break; }
+      if (n === NIVEIS_CAM.length - 1) {           // preta em todas: deixa ligada (pode ser só um lugar escuro) e oferece a câmera do celular
+        $("cam-msg").textContent = "A imagem da câmera está preta. Se continuar assim, use a câmera do celular:";
+        $("cam-nativa").hidden = false;
+        $("cam-disparo").disabled = false;
+        return;
+      }
+      desligarCamera(c);                           // tenta de novo com uma resolução menor
+      $("cam-msg").textContent = "Ajustando a câmera…";
+    }
     $("cam-msg").hidden = true;
     $("cam-disparo").disabled = false;
     $("cam-luz").hidden = !c.track.getCapabilities?.().torch;
@@ -3209,8 +3250,9 @@ async function ligarCamera() {
     if (cam !== c) return;
     const negado = e.name === "NotAllowedError" || e.name === "SecurityError";
     $("cam-msg").textContent = negado
-      ? "O app não tem permissão para usar a câmera. Libere a câmera nas configurações do navegador e tente de novo."
-      : "Não foi possível abrir a câmera. Feche e tente de novo, ou use o botão Galeria.";
+      ? "O app não tem permissão para usar a câmera. Libere a câmera nas configurações do navegador e tente de novo, ou use a câmera do celular:"
+      : "Não foi possível abrir a câmera do app. Use a câmera do celular:";
+    $("cam-nativa").hidden = false;
   }
 }
 
@@ -3251,7 +3293,7 @@ async function definirModo(m) {
   if (!c.track) return;
   // o zoom digital (iPhone) não entra na gravação: em vídeo ele fica em 1×
   if (!c.zoomHw) { if (m === "video") definirZoom(1); $("cam-zoom").hidden = m === "video" || c.zoomMax <= c.zoomMin; }
-  try { await c.track.applyConstraints(m === "video" ? RES_VIDEO : RES_FOTO); } catch {}
+  try { await c.track.applyConstraints(m === "video" ? RES_VIDEO : (NIVEIS_CAM[c.nivel] || RES_FOTO)); } catch {}
   if (c.zoomHw) aplicarZoomHw(c);
   if (c.luz) try { await c.track.applyConstraints({ advanced: [{ torch: true }] }); } catch {}
 }
@@ -8626,6 +8668,8 @@ $("busca").onkeydown = e => {
   if (e.key === "Enter") { const b = $("lista").querySelector(".item"); if (b) b.click(); }
 };
 $("in-gal").onchange = e => { adicionar(e.target.files); e.target.value = ""; };
+// câmera do próprio celular, quando a do app não mostra imagem: fecha a do app (com as fotos já tiradas) e junta a nova
+$("in-cam-nativa").onchange = e => { const f = [...e.target.files]; e.target.value = ""; fecharCamera(); if (f.length) adicionar(f); };
 $("aba-visita").onclick = () => trocarModo("visita");
 $("aba-com").onclick = () => trocarModo("com");
 $("aba-laudo").onclick = () => trocarModo("laudo");
