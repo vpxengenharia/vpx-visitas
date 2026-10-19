@@ -109,7 +109,8 @@ button,input,label{font:inherit}
 .hub-linha.eq-crit .tx small{color:var(--crit-tx);font-weight:700}
 .hub-linha.eq-warn .tx small{color:var(--warn-tx);font-weight:700}
 .eq-aviso{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.eq-aviso .btn{min-height:50px;font-size:15.5px;padding:0 8px}
+.eq-aviso .btn{min-height:50px;font-size:15.5px;padding:0 6px;display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.eq-aviso .btn .ic.in{margin:0 6px 0 0;width:18px;height:18px}
 .eq-aviso .btn.prim{font-family:var(--texto-fonte);font-weight:700}
 .eqv-cab{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .eqv-avisar{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--linha);background:var(--papel);color:var(--marinho);font-weight:700;font-size:14px;cursor:pointer;margin-top:10px}
@@ -168,6 +169,21 @@ body.agenda-secao .nav{z-index:35}
 .hub-grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .hub-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:92px;padding:10px 4px;border-radius:14px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-size:14.5px;font-weight:700;line-height:1.15;text-align:center;cursor:pointer}
 .hub-tile span{font-size:28px;line-height:1}
+/* ícones do app (desenho próprio no lugar dos emojis): traço azul com detalhe laranja, numa caixinha azul-clara */
+.ic{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;--ic-ac:var(--laranja);vertical-align:middle;overflow:visible}
+.ic-caixa{width:46px;height:46px;border-radius:13px;background:#EAF0F7;color:var(--marinho);display:grid;place-items:center;flex:none}
+.ic-caixa .ic{width:26px;height:26px}
+.hub-tile{gap:8px}
+.hub-linha .ic-caixa{width:38px;height:38px;border-radius:11px}
+.hub-linha .ic-caixa .ic{width:22px;height:22px}
+.hub-linha .ico:has(.ic-caixa){width:38px}
+.cli-ac .ic,.arq-ico .ic{width:26px;height:26px;color:var(--marinho)}
+.ic.in{width:20px;height:20px;margin:-3px 7px 0 0}
+.btn.prim .ic,[aria-pressed="true"] .ic,[aria-selected="true"] .ic{--ic-ac:currentColor}   /* sobre o laranja, o detalhe laranja sumiria */
+small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5px 0 0}
+.hub-tit .ic-caixa{display:inline-grid;vertical-align:middle;margin:-6px 10px 0 0;width:40px;height:40px;border-radius:12px}
+.hub-tit .ic-caixa .ic{width:24px;height:24px}
+@media (prefers-color-scheme:dark){.ic-caixa{background:rgba(255,255,255,.07);color:var(--tinta)}.cli-ac .ic,.arq-ico .ic{color:var(--tinta)}}
 .hub-tile:focus-visible,.hub-linha:focus-visible,.hub-card:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
 .hub-card{display:block;width:100%;text-align:left;margin-bottom:10px;padding:12px 14px;border-radius:14px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-size:15px;line-height:1.35;cursor:pointer}
 .hub-card small{display:block;color:var(--suave);font-size:13.5px}
@@ -271,7 +287,7 @@ body.agenda-secao .nav{z-index:35}
 .hist-resumo .hr-linhas{display:block;color:var(--suave)}
 .hist-resumo .hr-l b{color:var(--tinta);font-weight:600}
 .hist-resumo .hr-total{display:block;margin-top:4px;font-weight:700;color:var(--marinho)}
-.hist-resumo .hr-total::before{content:"🕘 "}
+.hist-resumo .hr-total::before{content:none}
 @media (prefers-color-scheme:dark){.hist-resumo .hr-total{color:var(--laranja)}}
 @media (prefers-color-scheme:dark){.btn-arq{color:var(--tinta)}}
 .arq-trilha{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-bottom:6px;color:var(--suave);font-size:14px}
@@ -646,6 +662,47 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </style>
 </head>
 <body>
+<!-- ícones do app (desenho próprio, traço fino; o detalhe em laranja usa --ic-ac). Uso: <svg class="ic"><use href="#i-nome"/></svg> ou ic("nome") no script -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.5A1.5 1.5 0 0 1 5 7h2.2l1.6-2.5h6.4L16.8 7H19a1.5 1.5 0 0 1 1.5 1.5v9.5A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18z"/><circle style="stroke:var(--ic-ac)" cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-maleta" viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5V5.8A1.3 1.3 0 0 1 10.3 4.5h3.4A1.3 1.3 0 0 1 15 5.8v1.7"/><path style="stroke:var(--ic-ac)" d="M3.5 12.5h17M10.5 12.5v1.5h3v-1.5"/></symbol>
+  <symbol id="i-laudo" viewBox="0 0 24 24"><path d="M14 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3.5V8h4.5"/><path style="stroke:var(--ic-ac)" d="m9 14 2.2 2.2 4-4.4"/></symbol>
+  <symbol id="i-inspecao" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.3 15.3 5.2 5.2"/><path style="stroke:var(--ic-ac)" d="m7.8 10.6 1.9 1.9 3.6-3.8"/></symbol>
+  <symbol id="i-chama" viewBox="0 0 24 24"><path d="M12 3c.6 3 2.4 4.6 4 6.4 1.3 1.5 2.2 3.1 2.2 5.1a6.2 6.2 0 0 1-12.4 0c0-2.4 1.2-4.2 2.7-5.6.2 1.6 1 2.6 2.1 3.1C10 9 10.6 5.8 12 3z"/><path style="stroke:var(--ic-ac)" d="M12 20.7a2.6 2.6 0 0 1-2.6-2.6c0-1.5 1.1-2.6 2.6-4 1.5 1.4 2.6 2.5 2.6 4a2.6 2.6 0 0 1-2.6 2.6z"/></symbol>
+  <symbol id="i-chave" viewBox="0 0 24 24"><path d="M14.2 9.8 5.4 18.6a1.4 1.4 0 0 0 2 2l8.8-8.8"/><path d="M16.2 11.8a4.5 4.5 0 0 0 4-5.6l-2.6 2.6-2.4-.4-.4-2.4 2.6-2.6a4.5 4.5 0 0 0-5.6 4"/></symbol>
+  <symbol id="i-recibo" viewBox="0 0 24 24"><path d="M6 3.5h12v17l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3z"/><path style="stroke:var(--ic-ac)" d="M9 8.5h6M9 12h6M9 15.5h3.5"/></symbol>
+  <symbol id="i-os" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16" rx="2"/><path d="M9 4.5V3.8a.8.8 0 0 1 .8-.8h4.4a.8.8 0 0 1 .8.8v.7"/><path style="stroke:var(--ic-ac)" d="M8.5 10h1M12 10h3.5M8.5 13.5h1M12 13.5h3.5M8.5 17h1M12 17h3.5"/></symbol>
+  <symbol id="i-pasta" viewBox="0 0 24 24"><path d="M3.5 7A1.5 1.5 0 0 1 5 5.5h4l2 2.2h8a1.5 1.5 0 0 1 1.5 1.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/><path style="stroke:var(--ic-ac)" d="M3.5 10.5h17"/></symbol>
+  <symbol id="i-pastatec" viewBox="0 0 24 24"><path d="M3.5 7A1.5 1.5 0 0 1 5 5.5h4l2 2.2h8a1.5 1.5 0 0 1 1.5 1.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/><path style="stroke:var(--ic-ac)" d="m9.3 13.6 2 2 3.6-3.8"/></symbol>
+  <symbol id="i-historico" viewBox="0 0 24 24"><path d="M4.2 13A8 8 0 1 0 6.3 6.4"/><path d="M4.5 3.8v3.7h3.7"/><path style="stroke:var(--ic-ac)" d="M12 8.2v4.3l2.9 1.8"/></symbol>
+  <symbol id="i-salvo" viewBox="0 0 24 24"><path d="M7 3.5h10A1.5 1.5 0 0 1 18.5 5v15.5L12 16.6l-6.5 3.9V5A1.5 1.5 0 0 1 7 3.5z"/><path style="stroke:var(--ic-ac)" d="m9.3 9.6 1.9 1.9 3.5-3.6"/></symbol>
+  <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3.3 19 6v5.6c0 4.3-2.9 7.6-7 9.1-4.1-1.5-7-4.8-7-9.1V6z"/><path style="stroke:var(--ic-ac)" d="m9 12 2.1 2.1 3.9-4.2"/></symbol>
+  <symbol id="i-livro" viewBox="0 0 24 24"><path d="M12 6.8C10 5.2 7 4.6 3.5 5v13.6c3.5-.4 6.5.2 8.5 1.8 2-1.6 5-2.2 8.5-1.8V5C17 4.6 14 5.2 12 6.8z"/><path style="stroke:var(--ic-ac)" d="M12 6.8v13.6"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 7h8.5M18 7h2M4 17h2.5M12 17h8"/><circle style="stroke:var(--ic-ac)" cx="15.2" cy="7" r="2.4"/><circle style="stroke:var(--ic-ac)" cx="9.2" cy="17" r="2.4"/></symbol>
+  <symbol id="i-pessoa" viewBox="0 0 24 24"><circle cx="12" cy="8.3" r="3.8"/><path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/></symbol>
+  <symbol id="i-predio" viewBox="0 0 24 24"><path d="M5.5 20.5V5A1.5 1.5 0 0 1 7 3.5h7A1.5 1.5 0 0 1 15.5 5v15.5"/><path d="M15.5 9.5H18a1.5 1.5 0 0 1 1.5 1.5v9.5M3.5 20.5h17"/><path style="stroke:var(--ic-ac)" d="M9 7.5h3M9 11h3M9 14.5h3"/></symbol>
+  <symbol id="i-carrinho" viewBox="0 0 24 24"><path d="M3.5 4.5h2.2l2.1 10.3a1.5 1.5 0 0 0 1.5 1.2h8.2a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6.6"/><circle style="stroke:var(--ic-ac)" cx="9.5" cy="19.5" r="1.3"/><circle style="stroke:var(--ic-ac)" cx="17" cy="19.5" r="1.3"/></symbol>
+  <symbol id="i-cartao" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 9.8h18"/><path style="stroke:var(--ic-ac)" d="M6.5 14.5h4"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3.5V8h4.5"/><path style="stroke:var(--ic-ac)" d="M9 12.5h6M9 16h4"/></symbol>
+  <symbol id="i-imagem" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle style="stroke:var(--ic-ac)" cx="9" cy="9.7" r="1.7"/><path d="m4 17.5 5-4.5 3.5 3 3-2.5 4.5 4"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6.5" width="12.5" height="11" rx="2"/><path style="stroke:var(--ic-ac)" d="m15.5 10.5 5-2.8v8.6l-5-2.8z"/></symbol>
+  <symbol id="i-clipe" viewBox="0 0 24 24"><path d="m18.5 11-7 7a4.6 4.6 0 0 1-6.5-6.5l7.4-7.4a3 3 0 0 1 4.3 4.3l-7.3 7.3a1.5 1.5 0 0 1-2.1-2.1l6.6-6.6"/></symbol>
+  <symbol id="i-megafone" viewBox="0 0 24 24"><path d="M3.5 10v4a1 1 0 0 0 1 1h2.5l8 4.5v-15l-8 4.5H4.5a1 1 0 0 0-1 1z"/><path d="M7 15l1 4.5"/><path style="stroke:var(--ic-ac)" d="M18.2 8.6a5 5 0 0 1 0 6.8"/></symbol>
+  <symbol id="i-compartilhar" viewBox="0 0 24 24"><path d="M12 14.5V3.5M8 7.3l4-3.8 4 3.8"/><path d="M8.5 10.5H7A1.5 1.5 0 0 0 5.5 12v7A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5h-1.5"/></symbol>
+  <symbol id="i-lapis" viewBox="0 0 24 24"><path d="M15.6 4.4a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/><path style="stroke:var(--ic-ac)" d="m13.6 6.4 3 3"/></symbol>
+  <symbol id="i-impressora" viewBox="0 0 24 24"><path d="M7 8.5v-5h10v5"/><path d="M7 17H5a1.5 1.5 0 0 1-1.5-1.5V10A1.5 1.5 0 0 1 5 8.5h14a1.5 1.5 0 0 1 1.5 1.5v5.5A1.5 1.5 0 0 1 19 17h-2"/><path style="stroke:var(--ic-ac)" d="M7 13.5h10v7H7z"/></symbol>
+  <symbol id="i-pausa" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></symbol>
+  <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.8h17M8 3v4M16 3v4"/><path style="stroke:var(--ic-ac)" d="M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 17h.01M12 17h.01"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle style="stroke:var(--ic-ac)" cx="12" cy="10" r="2.3"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
+  <symbol id="i-capelo" viewBox="0 0 24 24"><path d="m2.5 9 9.5-4.5L21.5 9 12 13.5z"/><path d="M6.5 11.2v4.3c1.5 1.4 3.5 2.1 5.5 2.1s4-.7 5.5-2.1v-4.3"/><path style="stroke:var(--ic-ac)" d="M21.5 9v5"/></symbol>
+  <symbol id="i-extintor" viewBox="0 0 24 24"><path d="M7 11a3.5 3.5 0 0 1 7 0v8.5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z"/><path d="M9.5 7.5V4.5h2v3M8 4.5h6.5M11.5 5.8h3.2A2.3 2.3 0 0 1 17 8.1V15"/><path style="stroke:var(--ic-ac)" d="M7 14h7"/></symbol>
+  <symbol id="i-mangueira" viewBox="0 0 24 24"><circle cx="10.5" cy="12" r="7"/><circle style="stroke:var(--ic-ac)" cx="10.5" cy="12" r="2.6"/><path d="M17.5 12h3v6.5"/></symbol>
+  <symbol id="i-lupa" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.3 15.3 5.2 5.2"/></symbol>
+  <symbol id="i-dinheiro" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle style="stroke:var(--ic-ac)" cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-sair" viewBox="0 0 24 24"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5"/><path style="stroke:var(--ic-ac)" d="M9.5 8 5.5 12l4 4M5.5 12h9"/></symbol>
+</svg>
 <header class="topo">
   <p class="marca"><img src="logo.png" alt="VPX Engenharia" width="100" height="56"></p>
   <div class="topo-dir">
@@ -700,7 +757,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
       <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
     <div id="form-comp" hidden>
-      <button class="btn-arq ch-abrir" id="btn-comphist" type="button"><span>🧾 Histórico de comprovantes</span><small>enviados</small></button>
+      <button class="btn-arq ch-abrir" id="btn-comphist" type="button"><span><svg class="ic in" aria-hidden="true"><use href="#i-historico"/></svg>Histórico de comprovantes</span><small>enviados</small></button>
       <div class="tipos">
         <button id="tipo-compra" aria-pressed="false">Compra<small>nota fiscal</small></button>
         <button id="tipo-reembolso" aria-pressed="false">Reembolso<small>gasto pago por você</small></button>
@@ -725,10 +782,10 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <p class="avcb-aviso" id="avcb-aviso" hidden></p>
     <!-- atalhos do cliente: uma linha de ícones (os que a pessoa não pode usar ficam escondidos) -->
     <div class="cli-acoes" id="cli-acoes">
-      <button class="cli-ac" id="btn-arq" hidden><span aria-hidden="true">📁</span>Arquivos</button>
-      <button class="cli-ac" id="btn-pt" hidden><span aria-hidden="true">📂</span>Pasta técnica</button>
-      <button class="cli-ac" id="btn-ldsalvos" hidden><span aria-hidden="true">📋</span>Salvos</button>
-      <button class="cli-ac" id="btn-hist" hidden><span aria-hidden="true">🕘</span><b id="hist-txt">Histórico</b></button>
+      <button class="cli-ac" id="btn-arq" hidden><svg class="ic" aria-hidden="true"><use href="#i-pasta"/></svg>Arquivos</button>
+      <button class="cli-ac" id="btn-pt" hidden><svg class="ic" aria-hidden="true"><use href="#i-pastatec"/></svg>Pasta técnica</button>
+      <button class="cli-ac" id="btn-ldsalvos" hidden><svg class="ic" aria-hidden="true"><use href="#i-salvo"/></svg>Salvos</button>
+      <button class="cli-ac" id="btn-hist" hidden><svg class="ic" aria-hidden="true"><use href="#i-historico"/></svg><b id="hist-txt">Histórico</b></button>
     </div>
     <div id="ld-salvos" hidden></div>
     <button class="hist-resumo" id="hist-resumo" hidden><span class="hr-linhas"></span><span class="hr-total">Ver histórico</span></button>
@@ -860,9 +917,9 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </div>
 
 <div class="menu" id="menu" hidden role="menu">
-  <button id="mn-its" role="menuitem">📘 ITs do CBM-BA</button>
-  <button id="mn-pc" role="menuitem">🧾 Pedidos (compra e pagamento) <span class="mn-qtd" id="mn-pc-qtd" hidden></span></button>
-  <button id="mn-admin" role="menuitem">⚙ Administração</button>
+  <button id="mn-its" role="menuitem"><svg class="ic in" aria-hidden="true"><use href="#i-livro"/></svg>ITs do CBM-BA</button>
+  <button id="mn-pc" role="menuitem"><svg class="ic in" aria-hidden="true"><use href="#i-recibo"/></svg>Pedidos (compra e pagamento) <span class="mn-qtd" id="mn-pc-qtd" hidden></span></button>
+  <button id="mn-admin" role="menuitem"><svg class="ic in" aria-hidden="true"><use href="#i-ajustes"/></svg>Administração</button>
   <p class="mn-conta" id="mn-conta"></p>
   <button id="mn-sair" role="menuitem">Sair da conta</button>
 </div>
@@ -871,7 +928,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <div class="avcb-topo"><button class="avcb-voltar" id="pc-voltar">‹ Voltar</button><strong>Pedidos</strong></div>
   <div class="avcb-corpo">
     <div id="pc-topo-lista">
-      <div class="abas pc-tipos" id="pc-tipos" role="tablist"><button role="tab" data-t="compra" aria-selected="true">🛒 Compra</button><button role="tab" data-t="pag" aria-selected="false">💳 Pagamento</button></div>
+      <div class="abas pc-tipos" id="pc-tipos" role="tablist"><button role="tab" data-t="compra" aria-selected="true">Compra</button><button role="tab" data-t="pag" aria-selected="false">Pagamento</button></div>
       <button class="btn prim" id="pc-novo-btn">+ Novo pedido</button>
       <div class="chips avcb-filtro" id="pc-filtro" style="margin-top:12px">
         <button type="button" data-f="abertos" aria-pressed="true">Em aberto</button>
@@ -905,7 +962,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <div class="avcb-corpo">
     <p class="laudo-dica" style="margin-top:0">Pasta Técnica CBM-BA: documentação para a vistoria do Corpo de Bombeiros.</p>
     <div class="avcb-resumo" id="pt-resumo"></div>
-    <button class="btn prim" id="pt-gerar">🖨 Gerar PDF para imprimir</button>
+    <button class="btn prim" id="pt-gerar"><svg class="ic in" aria-hidden="true"><use href="#i-impressora"/></svg>Gerar PDF para imprimir</button>
     <p class="avcb-nota" id="pt-estado"></p>
     <div id="pt-lista"></div>
     <p class="avcb-nota" id="pt-nota"></p>
@@ -2221,8 +2278,8 @@ async function pausarLaudo() {
   tentarPendentes();
 }
 
-// lista dos laudos pausados e concluídos do cliente (atalho "📋 Salvos"); tocar abre o laudo no formulário
-const rotuloSalvos = () => "📋 Salvos";
+// lista dos laudos pausados e concluídos do cliente (atalho "Salvos"); tocar abre o laudo no formulário
+const rotuloSalvos = () => "Salvos";
 async function baixarJSON(id) {
   const it = await graph(`/drives/${CONFIG.driveId}/items/${id}`);
   const r = await fetch(it["@microsoft.graph.downloadUrl"]);
@@ -2331,6 +2388,16 @@ function descartarLaudo() {
 }
 
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+// ícones do app (sprite no começo do <body>; nome sem o "i-"). Sem ícone com esse nome, mostra o próprio texto
+const SVGNS = "http://www.w3.org/2000/svg";
+const ic = (n, cls) => {
+  if (!document.getElementById("i-" + n)) return document.createTextNode(n);
+  const s = document.createElementNS(SVGNS, "svg"); s.setAttribute("class", "ic" + (cls ? " " + cls : "")); s.setAttribute("aria-hidden", "true");
+  const u = document.createElementNS(SVGNS, "use"); u.setAttribute("href", "#i-" + n); s.appendChild(u);
+  return s;
+};
+const icCaixa = n => { if (!document.getElementById("i-" + n)) return el("span", "", n); const c = el("span", "ic-caixa"); c.appendChild(ic(n)); return c; };
+const comIc = (e, n, txt) => { e.textContent = ""; e.append(ic(n, "in"), txt); return e; };   // ícone pequeno antes do texto (botões)
 
 function montarLaudo() {
   if (secao === "trabalho") tituloTrabalho();
@@ -2425,7 +2492,7 @@ function montarLaudo() {
   raiz.appendChild(campoLaudo("Recomendações / adequações necessárias", "recom", { longo: true, id: "ld-recom" }));
   raiz.appendChild(sug);
   raiz.appendChild(padAssinatura());
-  const pausa = el("button", "btn sec ld-pausar", "⏸ Pausar e continuar depois"); pausa.type = "button"; pausa.onclick = pausarLaudo;
+  const pausa = comIc(el("button", "btn sec ld-pausar"), "pausa", "Pausar e continuar depois"); pausa.type = "button"; pausa.onclick = pausarLaudo;
   raiz.appendChild(pausa);
   const desc = el("button", "laudo-link perigo", insp ? "Descartar este relatório" : "Descartar este laudo"); desc.type = "button"; desc.onclick = descartarLaudo;
   raiz.appendChild(desc);
@@ -2546,7 +2613,7 @@ function itemLaudo(uid, id, texto) {
   }
   w.appendChild(sts);
   const acoes = el("div", "li-acoes");
-  const foto = el("label", "li-foto", "📷 Foto");
+  const foto = comIc(el("label", "li-foto"), "camera", "Foto");
   const inp = document.createElement("input");
   inp.type = "file"; inp.accept = "image/*"; inp.multiple = true; inp.className = "oculto";
   inp.onchange = async () => {
@@ -4462,7 +4529,7 @@ function caixaFotosServ(lista, aoMudar) {
   return caixa;
 }
 function botaoFotoServ(rotulo, lista, aoMudar) {
-  const foto = el("label", "li-foto", rotulo);
+  const foto = comIc(el("label", "li-foto"), "camera", rotulo);
   const inp = document.createElement("input");
   inp.type = "file"; inp.accept = "image/*"; inp.multiple = true; inp.className = "oculto";
   inp.onchange = async () => {
@@ -4551,7 +4618,7 @@ function montarServ() {
     card.appendChild(topo);
     card.appendChild(campo("O que foi feito *", a.desc, v => a.desc = v, { longo: true, dica: "Ex.: Troca do pressostato da bomba principal e teste de partida automática" }));
     card.appendChild(campo("Local (pavimento, área)", a.local, v => a.local = v, { dica: "Ex.: Casa de bombas" }));
-    for (const [qual, rot] of [["antes", "📷 Fotos antes"], ["depois", "📷 Fotos depois"]]) {
+    for (const [qual, rot] of [["antes", "Fotos antes"], ["depois", "Fotos depois"]]) {
       const linhaF = el("div", "sv-fotos");
       const redesenhar = () => { mudouServ(); montarServ(); $("sv-at-" + a.id)?.scrollIntoView({ block: "center" }); };
       linhaF.appendChild(botaoFotoServ(`${rot}${a[qual].length ? ` (${a[qual].length})` : ""}`, a[qual], redesenhar));
@@ -4759,7 +4826,7 @@ const extDe = n => (n.match(/\.([^.]+)$/) || [])[1]?.toLowerCase() || "";
 const ehPdfArq = n => extDe(n) === "pdf";
 const ehImgArq = n => ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(extDe(n));
 const ehVideoArq = n => ["mp4", "mov", "m4v", "avi", "webm", "3gp", "mkv", "wmv"].includes(extDe(n));
-const iconeArq = i => i.pasta ? "📁" : ehPdfArq(i.nome) ? "📄" : ehImgArq(i.nome) ? "🖼️" : ehVideoArq(i.nome) ? "🎬" : "📎";
+const iconeArq = i => i.pasta ? "pasta" : ehPdfArq(i.nome) ? "doc" : ehImgArq(i.nome) ? "imagem" : ehVideoArq(i.nome) ? "video" : "clipe";
 const guardadoAtual = i => guardadosArq[i.id] && guardadosArq[i.id].mod === i.mod;
 
 // lê a pasta no OneDrive (e guarda a lista para ver sem internet); sem internet, usa a última lista guardada
@@ -4859,7 +4926,7 @@ function desenharListaArq() {
   for (const i of arq.itens) {
     const li = el("li");
     const b = el("button", "arq-item"); b.type = "button";
-    b.appendChild(el("span", "arq-ico", iconeArq(i)));
+    { const s = el("span", "arq-ico"); s.appendChild(ic(iconeArq(i))); b.appendChild(s); }
     const txt = el("span", "arq-txt");
     txt.appendChild(el("strong", "", i.nome));
     const info = i.pasta ? `${i.qtd} ${i.qtd === 1 ? "item" : "itens"}` : [mb(i.size), i.mod && new Date(i.mod).toLocaleDateString("pt-BR")].filter(Boolean).join(" · ");
@@ -4981,8 +5048,8 @@ async function limparArqCliente() {
    e treinamentos, mais os AVCBs fotografados. Arquivos com nome antigo usam a data de modificação.
    Fica guardado no celular (localStorage vpx_hist_<cliente>) para ver sem internet. */
 const TIPOS_HIST = {
-  visita: { ico: "📷", rot: "Visita técnica" }, relvisita: { ico: "📝", rot: "Relatório de visita" },
-  laudo: { ico: "📋", rot: "Laudo" }, insp: { ico: "🔍", rot: "Inspeção" }, trein: { ico: "🎓", rot: "Treinamento" }, serv: { ico: "🛠️", rot: "Relatório de serviço" }, avcb: { ico: "🧾", rot: "AVCB" }
+  visita: { ico: "camera", rot: "Visita técnica" }, relvisita: { ico: "doc", rot: "Relatório de visita" },
+  laudo: { ico: "laudo", rot: "Laudo" }, insp: { ico: "inspecao", rot: "Inspeção" }, trein: { ico: "capelo", rot: "Treinamento" }, serv: { ico: "chave", rot: "Relatório de serviço" }, avcb: { ico: "escudo", rot: "AVCB" }
 };
 const FILTROS_HIST = [["todos", "Todos"], ["visita", "Visitas"], ["laudo", "Laudos"], ["insp", "Inspeções"], ["trein", "Treinamentos"], ["serv", "Serviços"]];
 let hist = null;                                   // { cliente, eventos, quando, online, filtro }
@@ -5123,7 +5190,7 @@ function desenharHistorico() {
     if (m !== mes) { mes = m; lista.appendChild(el("h3", "avcb-grupo", m.charAt(0).toUpperCase() + m.slice(1))); }
     const t = TIPOS_HIST[e.tipo];
     const b = el("button", "arq-item"); b.type = "button";
-    b.appendChild(el("span", "arq-ico", t.ico));
+    { const s = el("span", "arq-ico"); s.appendChild(ic(t.ico)); b.appendChild(s); }
     const tx = el("span", "arq-txt");
     tx.appendChild(el("strong", "", e.titulo));
     const det = e.tipo === "visita" ? [e.fotos && `${e.fotos} foto${e.fotos > 1 ? "s" : ""}`, e.videos && `${e.videos} vídeo${e.videos > 1 ? "s" : ""}`].filter(Boolean).join(" e ") : "";
@@ -5271,7 +5338,7 @@ function desenharCompHist() {
   for (const e of envs) {
     if (e.data !== dia) { dia = e.data; lista.appendChild(el("h3", "avcb-grupo", dataBRde(dia))); }
     const b = el("button", "arq-item"); b.type = "button";
-    b.appendChild(el("span", "arq-ico", e.t === "compra" ? "🛒" : "💸"));
+    { const s = el("span", "arq-ico"); s.appendChild(ic(e.t === "compra" ? "carrinho" : "dinheiro")); b.appendChild(s); }
     const tx = el("span", "arq-txt");
     tx.appendChild(el("strong", "", `${e.desc || "(sem descrição)"}${e.valor != null ? " · R$ " + moedaBR(e.valor) : ""}`));
     tx.appendChild(el("small", "", [e.t === "compra" ? "Compra" + (e.forma ? " (" + e.forma + ")" : "") : "Reembolso", e.centro && "Centro: " + e.centro].filter(Boolean).join(" · ")));
@@ -5555,11 +5622,11 @@ function desenharEqv() {
   linhas.forEach(l => { if (!porCli.has(l.cli)) porCli.set(l.cli, []); porCli.get(l.cli).push(l); });
   for (const [cli, ls] of porCli) {
     const cab = el("div", "eqv-cab"); cab.appendChild(el("p", "eqv-cli", cli));
-    const av = el("button", "eqv-avisar", "📣 Avisar"); av.type = "button"; av.onclick = () => avisarCliente(cli);
+    const av = comIc(el("button", "eqv-avisar"), "megafone", "Avisar"); av.type = "button"; av.onclick = () => avisarCliente(cli);
     cab.appendChild(av); lista.appendChild(cab);
     const l = el("div", "hub-lista");
     ls.forEach(x => {
-      const b = linha(x.t === "ext" ? "🧯" : "🚒", descGrupo(x.t, x.g), `${x.rot}: ${x.sit === "crit" ? "venceu" : "vence"} em ${ymBR(x.vence)}${x.g.local ? " · " + x.g.local : ""}`, () => abrirEq(cli));
+      const b = linha(x.t === "ext" ? "extintor" : "mangueira", descGrupo(x.t, x.g), `${x.rot}: ${x.sit === "crit" ? "venceu" : "vence"} em ${ymBR(x.vence)}${x.g.local ? " · " + x.g.local : ""}`, () => abrirEq(cli));
       b.classList.add("eq-" + x.sit);
       l.appendChild(b);
     });
@@ -5686,8 +5753,8 @@ async function gerarSituacaoPDF(cli) {
 // os dois botões do aviso (tela do cliente e página do cliente)
 function botoesAviso(cli) {
   const w = el("div", "eq-aviso");
-  const m = el("button", "btn prim", "📣 Avisar cliente"); m.type = "button"; m.onclick = () => avisarCliente(cli);
-  const p = el("button", "btn sec", "📄 Situação em PDF"); p.type = "button"; p.onclick = () => pdfSituacao(cli);
+  const m = comIc(el("button", "btn prim"), "megafone", "Avisar cliente"); m.type = "button"; m.onclick = () => avisarCliente(cli);
+  const p = comIc(el("button", "btn sec"), "doc", "Situação em PDF"); p.type = "button"; p.onclick = () => pdfSituacao(cli);
   w.append(m, p);
   return w;
 }
@@ -5709,13 +5776,13 @@ async function pdfSituacao(cli) {
    Um .json por OS em 02 - Clientes › 00 - Ordens de Serviço (OS-0001.json…), sincronizado por eTag (cache vpx_os) e
    alterado com If-Match (como os pedidos). Baixa sem internet fica em vpx_os_baixas e é enviada depois. */
 const TIPOS_OS = {
-  recarga: { rot: "Recarga/manutenção de extintores", ico: "🧯", modo: "serv", serv: { tipo: "Manutenção preventiva", sist: ["Extintores"] }, eq: "ext" },
-  troca: { rot: "Troca de extintores", ico: "🧯", modo: "serv", serv: { tipo: "Instalação", sist: ["Extintores"] }, eq: "ext" },
-  mangueiras: { rot: "Teste de mangueiras", ico: "🚒", modo: "serv", serv: { tipo: "Teste/inspeção", sist: ["Hidrantes"] }, eq: "mang" },
-  laudo: { rot: "Laudo", ico: "📋", modo: "laudo" },
-  insp: { rot: "Inspeção", ico: "🔍", modo: "insp" },
-  trein: { rot: "Treinamento de brigada", ico: "🎓", modo: "trein" },
-  outro: { rot: "Outro serviço", ico: "🛠️", modo: "serv", serv: {} }
+  recarga: { rot: "Recarga/manutenção de extintores", ico: "extintor", modo: "serv", serv: { tipo: "Manutenção preventiva", sist: ["Extintores"] }, eq: "ext" },
+  troca: { rot: "Troca de extintores", ico: "extintor", modo: "serv", serv: { tipo: "Instalação", sist: ["Extintores"] }, eq: "ext" },
+  mangueiras: { rot: "Teste de mangueiras", ico: "mangueira", modo: "serv", serv: { tipo: "Teste/inspeção", sist: ["Hidrantes"] }, eq: "mang" },
+  laudo: { rot: "Laudo", ico: "laudo", modo: "laudo" },
+  insp: { rot: "Inspeção", ico: "inspecao", modo: "insp" },
+  trein: { rot: "Treinamento de brigada", ico: "capelo", modo: "trein" },
+  outro: { rot: "Outro serviço", ico: "chave", modo: "serv", serv: {} }
 };
 const ST_OS = { aberta: "Aberta", andamento: "Em andamento", concluida: "Concluída", cancelada: "Cancelada" };
 let osDados = lerLS("vpx_os", {});                 // "OS-0042" → { ...json, etag, itemId }
@@ -5895,7 +5962,7 @@ function cartaoOS(o, onclick) {
   if (o.prioridade === "urgente" && o.status !== "concluida" && o.status !== "cancelada") l1.appendChild(el("span", "os-st urgente", "Urgente"));
   b.appendChild(l1);
   b.appendChild(el("b", "", o.cliente));
-  b.appendChild(el("small", "", `${TIPOS_OS[o.tipo]?.ico || "🛠️"} ${descTipoOS(o)}`));
+  { const s = el("small", "os-tipo"); s.append(ic(TIPOS_OS[o.tipo]?.ico || "chave", "in"), descTipoOS(o)); b.appendChild(s); }
   const quem = o.status === "andamento" ? `Com ${o.tecnico?.nome || "-"}` : o.status === "aberta" ? (o.para ? `Para ${o.para.nome}` : "Para qualquer técnico") : o.status === "concluida" ? `Concluída por ${o.concluida?.por?.nome || "-"} em ${o.concluida?.em ? dataBRde(o.concluida.em.slice(0, 10)) : "-"}` : "";
   b.appendChild(el("small", "", [quem, o.prevista && `Prevista ${dataBRde(o.prevista)}${atrasadaOS(o) ? " (atrasada)" : ""}`].filter(Boolean).join(" · ")));
   b.onclick = onclick || (() => { osTela.aberta = o.numero; desenharOS(); });
@@ -5963,7 +6030,7 @@ function formOS() {
     opcoes.forEach(([val, txt]) => { const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-pressed", String(n[chave] === val)); b.onclick = () => { n[chave] = val; aoMudar ? aoMudar() : ch.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); }; ch.appendChild(b); });
     w.appendChild(ch); return w;
   };
-  f.appendChild(chips("Serviço *", Object.entries(TIPOS_OS).map(([k, t]) => [k, `${t.ico} ${t.rot}`]), "tipo", () => desenharOS()));
+  f.appendChild(chips("Serviço *", Object.entries(TIPOS_OS).map(([k, t]) => [k, t.rot]), "tipo", () => desenharOS()));
   if (n.tipo === "laudo") f.appendChild(chips("Tipo de laudo *", Object.entries(LAUDOS).map(([k, l]) => [k, l.curto]), "laudoTipo"));
   const wd = el("label", "campo"); wd.appendChild(el("span", "", "O que foi fechado com o cliente *"));
   const td = document.createElement("textarea"); td.value = n.descricao || ""; td.placeholder = "Ex.: Recarga dos 8 extintores PQS 4 kg do térreo e garagem"; td.oninput = () => { n.descricao = td.value; };
@@ -6015,7 +6082,7 @@ function pintarFaixaOS() {
   const f = $("os-faixa"), a = osAtiva;
   const on = !!a && a.modo === modo && a.cliente === cliente && secao === "trabalho";
   f.hidden = !on;
-  if (on) f.textContent = `🧰 ${a.numero} · ${descTipoOS(osDados[a.numero] || {})}: ao gerar o PDF, a OS é concluída sozinha.`;
+  if (on) f.textContent = `${a.numero} · ${descTipoOS(osDados[a.numero] || {})}: ao gerar o PDF, a OS é concluída sozinha.`;
 }
 
 /* ---------- permissões e administração ----------
@@ -6398,7 +6465,7 @@ function desenharPT() {
       l1.append(el("span", "pt-ico", s.ico), el("strong", "", item[1]), el("span", "pt-st", s.texto));
       w.appendChild(l1);
       for (const doc of s.docs.slice().reverse()) {
-        const b = el("button", "pt-doc", `📄 ${dataBRde(doc.info.data)}${doc.info.validade ? " · válido até " + dataBRde(doc.info.validade) : ""}`); b.type = "button";
+        const b = comIc(el("button", "pt-doc"), "doc", `${dataBRde(doc.info.data)}${doc.info.validade ? " · válido até " + dataBRde(doc.info.validade) : ""}`); b.type = "button";
         b.onclick = () => abrirDocPT(doc);
         const v = el("button", "laudo-link", "validade"); v.type = "button";
         v.onclick = () => mudarValidadePT(sec, item, doc);
@@ -6421,7 +6488,7 @@ function desenharPT() {
     if (outros.length) {
       const w = el("div", "pt-item outros");
       w.appendChild(el("div", "pt-l1", "Outros documentos desta seção"));
-      for (const doc of outros) { const b = el("button", "pt-doc", "📄 " + doc.nome); b.type = "button"; b.onclick = () => abrirDocPT(doc); w.appendChild(b); }
+      for (const doc of outros) { const b = comIc(el("button", "pt-doc"), "doc", doc.nome); b.type = "button"; b.onclick = () => abrirDocPT(doc); w.appendChild(b); }
       raiz.appendChild(w);
     }
   }
@@ -6701,7 +6768,7 @@ async function desenharNormas() {
   lista.innerHTML = "";
   const item = ([a, num, tit], extra) => {
     const b = el("button", "arq-item"); b.type = "button";
-    b.appendChild(el("span", "arq-ico", "📘"));
+    { const s = el("span", "arq-ico"); s.appendChild(ic("livro")); b.appendChild(s); }
     const tx = el("span", "arq-txt"); tx.append(el("strong", "", `${num} - ${tit}`));
     if (extra) tx.appendChild(el("small", "", extra));
     b.appendChild(tx);
@@ -6790,8 +6857,8 @@ const ST_PC = {
   comprado: ["Comprado", "ok"], entregue: ["Entregue", "ok"], pago: ["Pago", "ok"], cancelado: ["Cancelado", "crit"]
 };
 const TIPOS_PED = {
-  compra: { sigla: "PC", nome: "Pedido de compra", aba: "🛒 Compra", perm: "pedidos", rasc: "vpx_pc_rascunho", abertos: ["aguardando", "aprovado", "comprado"] },
-  pag: { sigla: "PP", nome: "Pedido de pagamento", aba: "💳 Pagamento", perm: "pagamentos", rasc: "vpx_pp_rascunho", abertos: ["aguardando", "aprovado"] }
+  compra: { sigla: "PC", nome: "Pedido de compra", aba: "Compra", ico: "carrinho", perm: "pedidos", rasc: "vpx_pc_rascunho", abertos: ["aguardando", "aprovado", "comprado"] },
+  pag: { sigla: "PP", nome: "Pedido de pagamento", aba: "Pagamento", ico: "cartao", perm: "pagamentos", rasc: "vpx_pp_rascunho", abertos: ["aguardando", "aprovado"] }
 };
 const FORMAS_PAG = ["Boleto", "PIX", "Transferência", "Dinheiro"];
 const caminhoPed = t => t === "pag" ? CONFIG.pagamentosCaminho : CONFIG.pedidosCaminho;
@@ -6898,7 +6965,7 @@ function desenharPedidos() {
   abas.hidden = tipos.length < 2;
   abas.querySelectorAll("button").forEach(b => { b.hidden = !tipos.includes(b.dataset.t); b.setAttribute("aria-selected", String(b.dataset.t === pcTipo));
     const n = ehAdmin() ? Object.values(pedidos).filter(p => tipoDe(p) === b.dataset.t && p.status === "aguardando").length : 0;
-    b.textContent = TIPOS_PED[b.dataset.t].aba + (n ? ` (${n})` : ""); });
+    comIc(b, TIPOS_PED[b.dataset.t].ico, TIPOS_PED[b.dataset.t].aba + (n ? ` (${n})` : "")); });
   $("pc-novo-btn").textContent = pcTipo === "pag" ? "+ Novo pedido de pagamento" : "+ Novo pedido de compra";
   $("pc-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === pcFiltro)));
   const abertos = TIPOS_PED[pcTipo].abertos;
@@ -6953,7 +7020,7 @@ function desenharDetalhePC(p) {
   }
   if (p.anexosWeb?.length) {
     det.appendChild(el("h3", "avcb-grupo", "Anexos"));
-    p.anexosWeb.forEach(a => { const l = el("a", "pt-doc", (/^comprovante/i.test(a.nome) ? "🧾 " : "📎 ") + a.nome); l.href = a.web; l.target = "_blank"; l.rel = "noopener"; l.style.display = "block"; det.appendChild(l); });
+    p.anexosWeb.forEach(a => { const l = comIc(el("a", "pt-doc"), /^comprovante/i.test(a.nome) ? "recibo" : "clipe", a.nome); l.href = a.web; l.target = "_blank"; l.rel = "noopener"; l.style.display = "block"; det.appendChild(l); });
   } else if (p.anexos?.length) det.appendChild(el("p", "avcb-nota", `${p.anexos.length} anexo(s) ${p.pendente ? "aguardando envio" : ""}`));
   if (p.historico?.length) {
     det.appendChild(el("h3", "avcb-grupo", "Histórico"));
@@ -7096,11 +7163,11 @@ function desenharNovoPC() {
     // anexos: boleto, nota fiscal, recibo (foto ou PDF)
     f.appendChild(el("h3", "avcb-grupo", `Anexos (${pcNovo.anexos.length})`));
     pcNovo.anexos.forEach((a, i) => {
-      const d = el("div", "pc-item pc-item-ed"); d.appendChild(el("span", "", "📎 " + a.name));
+      const d = el("div", "pc-item pc-item-ed"); d.appendChild(comIc(el("span"), "clipe", a.name));
       const rm = el("button", "trein-rm", "×"); rm.type = "button"; rm.onclick = () => { pcNovo.anexos.splice(i, 1); desenharNovoPC(); };
       d.appendChild(rm); f.appendChild(d);
     });
-    const lab = el("label", "btn sec", "📎 Anexar boleto, nota ou recibo");
+    const lab = comIc(el("label", "btn sec"), "clipe", "Anexar boleto, nota ou recibo");
     const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*,application/pdf"; inp.multiple = true; inp.className = "oculto";
     inp.onchange = () => { pcNovo.anexos.push(...inp.files); inp.value = ""; desenharNovoPC(); };
     lab.appendChild(inp); f.appendChild(lab);
@@ -7355,7 +7422,7 @@ function desenharAvcb() {
       if (v.reg) {
         const l4 = document.createElement("div"); l4.className = "l4";
         const quando = v.reg.fotografadoEm ? dataBRde(dataISO(new Date(v.reg.fotografadoEm))) : "";
-        l4.textContent = `📷 ${v.reg.fotografadoPor || ""}${quando ? " · " + quando : ""}`;
+        comIc(l4, "camera", `${v.reg.fotografadoPor || ""}${quando ? " · " + quando : ""}`);
         if (v.reg.pendente) l4.append(" · ⏳ aguardando envio");
         else if (v.reg.foto) {
           const a = document.createElement("a"); a.href = v.reg.foto; a.target = "_blank"; a.rel = "noopener"; a.textContent = "ver foto";
@@ -7520,7 +7587,7 @@ function fecharNovoAvcb(voltar = true) {
 
 async function lerFotoAvcb(este) {
   const st = $("an-status");
-  st.textContent = "🔎 Lendo o documento… (alguns segundos)";
+  st.textContent = "Lendo o documento… (alguns segundos)";
   try {
     const [ocr, img] = await Promise.all([obterOcr(), imagemParaOcr(este.arquivo)]);
     const { data } = await ocr.recognize(img, { rotateAuto: true });
@@ -7679,7 +7746,7 @@ function cartaoEvento(e) {
   hora.textContent = (e.diaTodo ? "Dia todo" : `${horaMin(e.ini)} – ${horaMin(e.fim)}`) + (e.cancelado ? " · cancelado" : "");
   const tit = document.createElement("div"); tit.className = "tit"; tit.textContent = e.titulo;
   b.append(hora, tit);
-  if (e.local) { const l = document.createElement("div"); l.className = "loc"; l.textContent = "📍 " + e.local; b.appendChild(l); }
+  if (e.local) { const l = document.createElement("div"); l.className = "loc"; comIc(l, "pin", e.local); b.appendChild(l); }
   b.setAttribute("aria-expanded", "false");
   b.onclick = ev => {
     if (ev.target.closest("a")) return;              // links abrem normalmente
@@ -7706,10 +7773,10 @@ function cartaoEvento(e) {
     if (links.childNodes.length) det.appendChild(links);
     // ações: compartilhar (todos); editar e cancelar só os criados pela pessoa (os que se repetem ficam para o Outlook)
     const ac = el("div", "ag-acoes");
-    const bt = (rot, fn, cls) => { const x = el("button", cls || "", rot); x.type = "button"; x.onclick = fn; ac.appendChild(x); };
-    if (!e.cancelado) bt("📤 Compartilhar", () => compartilharEvento(e));
+    const bt = (rot, fn, cls, i) => { const x = el("button", cls || ""); i ? comIc(x, i, rot) : x.textContent = rot; x.type = "button"; x.onclick = fn; ac.appendChild(x); };
+    if (!e.cancelado) bt("Compartilhar", () => compartilharEvento(e), "", "compartilhar");
     if (e.meu && e.id && !e.cancelado && pode("agenda")) {
-      if (e.unico) { bt("✏️ Editar", () => abrirFormAgenda(e)); bt("Cancelar compromisso", () => cancelarEvento(e), "perigo"); }
+      if (e.unico) { bt("Editar", () => abrirFormAgenda(e), "", "lapis"); bt("Cancelar compromisso", () => cancelarEvento(e), "perigo"); }
       else det.appendChild(el("p", "", "Compromisso que se repete: para alterar, use o Outlook."));
     }
     if (ac.children.length) det.appendChild(ac);
@@ -7873,8 +7940,8 @@ function desenharFormAgenda() {
   }
   c.appendChild(campo("Local", "input", "local", { ph: "Endereço ou sala", max: 250 }));
   // reunião no Teams (depois de criada, não dá para tirar pelo app)
-  if (f.eraTeams) c.appendChild(el("p", "laudo-dica", "💻 Este compromisso tem reunião no Teams."));
-  else c.appendChild(chips("Reunião online", [[false, "Presencial"], [true, "💻 Com link do Teams"]], "teams"));
+  if (f.eraTeams) c.appendChild(el("p", "laudo-dica", "Este compromisso tem reunião no Teams."));
+  else c.appendChild(chips("Reunião online", [[false, "Presencial"], [true, "Com link do Teams"]], "teams"));
   // convidados: quem usa o app (um toque) e qualquer outro e-mail
   const wc = el("div", "campo"); wc.appendChild(el("span", "", "Convidados (recebem o convite do Outlook)"));
   const ch = el("div", "chips");
@@ -8079,8 +8146,8 @@ function novaVisita() {
    Os formulários (visita, comercial, laudo, inspeção, brigada, comprovante) abrem em tela cheia ("trabalho"),
    com "‹ Início" para voltar; a barra de baixo só aparece nas telas de navegação. */
 const MODOS_APP = [
-  ["visita", "📷", "Visita técnica"], ["com", "💼", "Comercial"], ["laudo", "📋", "Laudo"],
-  ["insp", "🔍", "Inspeção"], ["trein", "🧯", "Brigada"], ["serv", "🛠️", "Serviço"], ["comp", "🧾", "Comprovante"]
+  ["visita", "camera", "Visita técnica"], ["com", "maleta", "Comercial"], ["laudo", "laudo", "Laudo"],
+  ["insp", "inspecao", "Inspeção"], ["trein", "chama", "Brigada"], ["serv", "chave", "Serviço"], ["comp", "recibo", "Comprovante"]
 ];
 const NOME_MODO = { visita: "Visita técnica", com: "Comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", serv: "Relatório de serviço", comp: "Comprovante" };
 const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", mod: "tela-mod", fin: "tela-fin", mais: "tela-mais" };
@@ -8089,12 +8156,12 @@ let secao = "inicio", cliPagina = null, agendaDe = "inicio";   // agendaDe: seç
 
 function tile(ico, texto, fn) {
   const b = el("button", "hub-tile"); b.type = "button";
-  b.append(el("span", "", ico), texto); b.onclick = fn;
+  b.append(icCaixa(ico), texto); b.onclick = fn;
   return b;
 }
 function linha(ico, texto, sub, fn, qtd) {
   const b = el("button", "hub-linha"); b.type = "button";
-  b.appendChild(el("span", "ico", ico));
+  const s = el("span", "ico"); s.appendChild(icCaixa(ico)); b.appendChild(s);
   const tx = el("span", "tx", texto); if (sub) tx.appendChild(el("small", "", sub));
   b.appendChild(tx);
   if (qtd) b.appendChild(el("span", "qtd", String(qtd)));
@@ -8164,19 +8231,19 @@ function voltarInicio() {
    daquele tipo e os últimos documentos gerados (de todos os clientes). Só o "+ Novo" abre o formulário. */
 const pastaFotosNome = () => CONFIG.subpasta.replace("{data}", "").replace(/\/$/, "");
 const MOD_INFO = {
-  visita: { ico: "📷", tit: "Visitas técnicas", novo: "Nova visita técnica", busca: { q: "Fotos e Visitas Técnicas", pasta: () => pastaFotosNome(), pastas: true } },
-  com: { ico: "💼", tit: "Comercial", novo: "Nova ficha comercial", busca: { q: "Relatório de Visita", pasta: () => pastaFotosNome(), filtro: /Relatório de Visita/i } },
-  laudo: { ico: "📋", tit: "Laudos", novo: "Novo laudo", busca: { q: "Laudo", pasta: () => CONFIG.pastaLaudos, filtro: /Laudo d/i } },
-  insp: { ico: "🔍", tit: "Inspeções", novo: "Nova inspeção", busca: { q: "Relatório de Inspeção", pasta: () => CONFIG.pastaInspecoes } },
-  trein: { ico: "🧯", tit: "Brigada", novo: "Novo treinamento", busca: { q: "Treinamento", pasta: () => CONFIG.pastaTreinamentos } },
-  serv: { ico: "🛠️", tit: "Relatórios de serviço", novo: "Novo relatório de serviço", busca: { q: "Relatório de Serviço", pasta: () => CONFIG.pastaServicos } }
+  visita: { ico: "camera", tit: "Visitas técnicas", novo: "Nova visita técnica", busca: { q: "Fotos e Visitas Técnicas", pasta: () => pastaFotosNome(), pastas: true } },
+  com: { ico: "maleta", tit: "Comercial", novo: "Nova ficha comercial", busca: { q: "Relatório de Visita", pasta: () => pastaFotosNome(), filtro: /Relatório de Visita/i } },
+  laudo: { ico: "laudo", tit: "Laudos", novo: "Novo laudo", busca: { q: "Laudo", pasta: () => CONFIG.pastaLaudos, filtro: /Laudo d/i } },
+  insp: { ico: "inspecao", tit: "Inspeções", novo: "Nova inspeção", busca: { q: "Relatório de Inspeção", pasta: () => CONFIG.pastaInspecoes } },
+  trein: { ico: "chama", tit: "Brigada", novo: "Novo treinamento", busca: { q: "Treinamento", pasta: () => CONFIG.pastaTreinamentos } },
+  serv: { ico: "chave", tit: "Relatórios de serviço", novo: "Novo relatório de serviço", busca: { q: "Relatório de Serviço", pasta: () => CONFIG.pastaServicos } }
 };
 let modAtual = "laudo";
 function abrirModulo(m) { modAtual = m; irPara("mod"); }
 function desenharModulo() {
   const m = modAtual, info = MOD_INFO[m], t = $("tela-mod"); t.innerHTML = "";
   const v = el("button", "hub-voltar", "‹ Início"); v.type = "button"; v.onclick = () => irPara("inicio");
-  t.append(v, el("h1", "hub-tit", `${info.ico} ${info.tit}`));
+  { const h = el("h1", "hub-tit"); h.append(icCaixa(info.ico), info.tit); t.append(v, h); }
   const n = el("button", "btn prim", "+ " + info.novo); n.type = "button"; n.style.marginBottom = "14px"; n.onclick = () => novoDoModulo(m);
   t.appendChild(n);
   // em andamento neste celular
@@ -8186,7 +8253,7 @@ function desenharModulo() {
     b.onclick = () => abrirTrabalho(m, c.cli);
     t.appendChild(b);
   });
-  if (m === "laudo" || m === "insp") t.appendChild(el("p", "laudo-dica", `${m === "laudo" ? "Laudos" : "Inspeções"} pausados ou concluídos para reabrir: abra o cliente e toque em "Laudos salvos", ou toque em "+ ${info.novo}" e use o botão 📋 Salvos.`));
+  if (m === "laudo" || m === "insp") t.appendChild(el("p", "laudo-dica", `${m === "laudo" ? "Laudos" : "Inspeções"} pausados ou concluídos para reabrir: abra o cliente e toque em "Laudos salvos", ou toque em "+ ${info.novo}" e use o botão Salvos.`));
   // ordens de serviço abertas deste tipo
   if (pode("os")) {
     const oss = Object.values(osDados).filter(o => (TIPOS_OS[o.tipo] || TIPOS_OS.outro).modo === m && (o.status === "aberta" || o.status === "andamento")).sort(ordemOS);
@@ -8201,7 +8268,7 @@ function desenharModulo() {
     if (!c) { lista.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando…" : "Sem internet: a lista aparece quando houver conexão.")); return; }
     if (!c.itens.length) { lista.appendChild(el("p", "avcb-nota", c.erro ? "Não foi possível carregar a lista agora." : "Nenhum documento encontrado ainda.")); return; }
     const l = el("div", "hub-lista");
-    c.itens.forEach(x => l.appendChild(linha(x.pasta ? "📁" : "📄", x.cli || x.nome, [x.titulo, x.data && dataBRde(x.data), x.autor].filter(Boolean).join(" · "), () => abrirDocModulo(x))));
+    c.itens.forEach(x => l.appendChild(linha(x.pasta ? "pasta" : "doc", x.cli || x.nome, [x.titulo, x.data && dataBRde(x.data), x.autor].filter(Boolean).join(" · "), () => abrirDocModulo(x))));
     lista.appendChild(l);
     if (c.parcial) lista.appendChild(el("p", "avcb-nota", "Mostrando os clientes usados recentemente. Os outros ficam no Histórico de cada cliente."));
   };
@@ -8318,7 +8385,7 @@ function desenharInicio() {
     const os = Object.values(osDados), fila = os.filter(naFilaOS), minhas = os.filter(comigoOS);
     const urg = [...fila, ...minhas].some(o => o.prioridade === "urgente" || atrasadaOS(o));
     const b = el("button", "hub-card" + (urg ? " crit" : "")); b.type = "button";
-    b.appendChild(el("small", "", "🧰 Ordens de serviço"));
+    b.appendChild(comIc(el("small", "os-tipo"), "os", "Ordens de serviço"));
     b.appendChild(el("b", "", fila.length || minhas.length ? [fila.length && `${fila.length} na fila`, minhas.length && `${minhas.length} com você`].filter(Boolean).join(" · ") : "Nenhuma OS aberta"));
     if (urg) b.appendChild(el("small", "", "Há OS urgente ou atrasada"));
     b.onclick = () => abrirOS();
@@ -8353,7 +8420,7 @@ function desenharInicio() {
     t.appendChild(el("p", "hub-rot", "Registros"));
     const g = el("div", "hub-grade");
     // cada quadrado abre primeiro a página do assunto (lista + "Novo"); o formulário só abre pelo "+ Novo"
-    if (pode("os")) g.appendChild(tile("🧰", "OS", () => abrirOS()));
+    if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
     modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
     t.appendChild(g);
   } else t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
@@ -8383,7 +8450,7 @@ function desenharInicio() {
 function desenharClientesHub() {
   const lista = $("cl-lista"); lista.innerHTML = "";
   const q = semAcento($("cl-busca").value.trim());
-  if (pode("avcb") && !q) { const l = el("div", "hub-lista"); l.appendChild(linha("🛡️", "Validade AVCB / CLCB", "Lista de todos os clientes", abrirAvcb)); lista.appendChild(l); }
+  if (pode("avcb") && !q) { const l = el("div", "hub-lista"); l.appendChild(linha("escudo", "Validade AVCB / CLCB", "Lista de todos os clientes", abrirAvcb)); lista.appendChild(l); }
   const sub = c => {
     const v = avcbDoCliente(c), s = pode("equip") ? sitCliente(c) : null;
     return [v ? situacaoAvcb(v).texto : "", s === "crit" ? "⚠ extintor/mangueira vencido" : s === "warn" ? "extintor/mangueira vence em 60 dias" : ""].filter(Boolean).join(" · ");
@@ -8392,7 +8459,7 @@ function desenharClientesHub() {
     if (!nomes.length) return;
     lista.appendChild(el("p", "hub-rot", titulo));
     const l = el("div", "hub-lista");
-    nomes.slice(0, 200).forEach(c => l.appendChild(linha("🏢", c, sub(c), () => abrirCliente(c))));
+    nomes.slice(0, 200).forEach(c => l.appendChild(linha("predio", c, sub(c), () => abrirCliente(c))));
     lista.appendChild(l);
   };
   if (!clientes.length) { lista.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando os clientes…" : "Sem internet e sem lista de clientes guardada.")); return; }
@@ -8411,11 +8478,11 @@ function desenharPaginaCliente() {
   const av = avcbDoCliente(c);
   if (av) { const s = situacaoAvcb(av); t.appendChild(el("p", "avcb-aviso " + s.cls, (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto)); }
   const g = el("div", "hub-grade");
-  if (pode("arquivos")) g.appendChild(tile("📁", "Arquivos", () => comCliente(c, abrirArquivos)));
-  if (pode("pastaTec")) g.appendChild(tile("📂", "Pasta técnica", () => comCliente(c, abrirPastaTec)));
-  if (pode("hist")) g.appendChild(tile("🕘", "Histórico", () => comCliente(c, abrirHistorico)));
-  if (pode("equip")) g.appendChild(tile("🧯", "Extintores e mangueiras", () => abrirEq(c)));
-  if (pode("laudo")) g.appendChild(tile("📋", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
+  if (pode("arquivos")) g.appendChild(tile("pasta", "Arquivos", () => comCliente(c, abrirArquivos)));
+  if (pode("pastaTec")) g.appendChild(tile("pastatec", "Pasta técnica", () => comCliente(c, abrirPastaTec)));
+  if (pode("hist")) g.appendChild(tile("historico", "Histórico", () => comCliente(c, abrirHistorico)));
+  if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", () => abrirEq(c)));
+  if (pode("laudo")) g.appendChild(tile("salvo", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
   if (g.children.length) { g.style.marginTop = "12px"; if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
   if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
   // ordens de serviço abertas deste cliente e "Nova OS"
@@ -8423,7 +8490,7 @@ function desenharPaginaCliente() {
     const abertas = Object.values(osDados).filter(o => o.cliente === c && (o.status === "aberta" || o.status === "andamento")).sort(ordemOS);
     if (abertas.length || pode("osCriar")) t.appendChild(el("p", "hub-rot", "Ordens de serviço"));
     abertas.forEach(o => t.appendChild(cartaoOS(o, () => abrirOS({ aberta: o.numero }))));
-    if (pode("osCriar")) { const n = el("button", "btn sec", "🧰 Nova OS para este cliente"); n.type = "button"; n.style.width = "100%"; n.onclick = () => abrirOS({ nova: { cliente: c } }); t.appendChild(n); }
+    if (pode("osCriar")) { const n = comIc(el("button", "btn sec"), "os", "Nova OS para este cliente"); n.type = "button"; n.style.width = "100%"; n.onclick = () => abrirOS({ nova: { cliente: c } }); t.appendChild(n); }
   }
   const modos = MODOS_APP.filter(([m]) => m !== "comp" && pode(m));
   if (modos.length) {
@@ -8450,7 +8517,7 @@ function desenharFin() {
     card.onclick = abrirCompHist;
     t.appendChild(card);
     const g = el("div", "hub-grade"); g.style.gridTemplateColumns = "1fr 1fr";
-    g.append(tile("🧾", "Enviar comprovante", () => abrirTrabalho("comp")), tile("🕘", "Histórico", abrirCompHist));
+    g.append(tile("recibo", "Enviar comprovante", () => abrirTrabalho("comp")), tile("historico", "Histórico", abrirCompHist));
     t.appendChild(g);
     if (navigator.onLine && conta && (!cache || Date.now() - cache.quando > 5 * 60000) && !desenharFin.buscando) {
       desenharFin.buscando = true;
@@ -8464,7 +8531,7 @@ function desenharFin() {
     tipos.forEach(tp => {
       const aguard = ehAdmin() ? Object.values(pedidos).filter(p => tipoDe(p) === tp && p.status === "aguardando").length : 0;
       const meusAbertos = meusPedidos().filter(p => tipoDe(p) === tp && TIPOS_PED[tp].abertos.includes(p.status)).length;
-      l.appendChild(linha(tp === "pag" ? "💳" : "🛒", tp === "pag" ? "Pedidos de pagamento" : "Pedidos de compra",
+      l.appendChild(linha(tp === "pag" ? "cartao" : "carrinho", tp === "pag" ? "Pedidos de pagamento" : "Pedidos de compra",
         aguard ? `${aguard} aguardando sua aprovação` : meusAbertos ? `${meusAbertos} em aberto` : "Fazer e acompanhar pedidos",
         () => { pcTipo = tp; abrirPedidos(); }, aguard));
     });
@@ -8477,15 +8544,15 @@ function desenharMais() {
   const t = $("tela-mais"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Mais"));
   const l = el("div", "hub-lista");
-  if (pode("normas")) l.appendChild(linha("📘", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
-  if (pode("avcb")) l.appendChild(linha("🛡️", "Validade AVCB / CLCB", "Vencidos, a vencer e fotografar AVCB", abrirAvcb));
-  if (pode("equip")) l.appendChild(linha("🧯", "Extintores e mangueiras", "Vencimentos de todos os clientes", abrirEqv));
-  if (ehAdmin()) l.appendChild(linha("⚙️", "Administração", "Permissões da equipe", abrirAdmin));
+  if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
+  if (pode("avcb")) l.appendChild(linha("escudo", "Validade AVCB / CLCB", "Vencidos, a vencer e fotografar AVCB", abrirAvcb));
+  if (pode("equip")) l.appendChild(linha("extintor", "Extintores e mangueiras", "Vencimentos de todos os clientes", abrirEqv));
+  if (ehAdmin()) l.appendChild(linha("ajustes", "Administração", "Permissões da equipe", abrirAdmin));
   if (l.children.length) t.appendChild(l);
   const c = el("div", "hub-lista");
-  c.appendChild(linha("👤", conta?.name || "Conta", conta?.username || "", () => {}));
+  c.appendChild(linha("pessoa", conta?.name || "Conta", conta?.username || "", () => {}));
   c.lastChild.style.cursor = "default";
-  c.appendChild(linha("↩️", "Sair da conta", "", sairConta));
+  c.appendChild(linha("sair", "Sair da conta", "", sairConta));
   t.appendChild(c);
 }
 function sairConta() {
