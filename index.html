@@ -346,7 +346,10 @@ body.agenda-secao .nav{z-index:35}
 @media (prefers-color-scheme:dark){.ag-det a{color:var(--laranja)}}
 .ag-autorizar{margin-top:12px}
 /* novo compromisso / editar */
-.ag-novo{margin:0 0 10px}
+/* "+ Novo" fica no topo da agenda, ao lado do "Hoje" (não some ao rolar) */
+.ag-novo{margin-left:auto;min-height:44px;padding:0 16px;border-radius:10px;border:0;background:var(--laranja);color:var(--marinho);font-family:var(--titulo-fonte);font-weight:700;font-size:16px;cursor:pointer;white-space:nowrap}
+.ag-novo:focus-visible{outline:3px solid var(--marinho);outline-offset:2px}
+.ag-novo:not([hidden]) + .agenda-hoje{margin-left:0}
 .ag-novo[hidden],.ag-form[hidden],#agenda-hoje[hidden]{display:none}
 .ag-form .ag-linha2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ag-form .ag-mais{display:flex;gap:8px}
@@ -1017,10 +1020,10 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <div class="avcb-topo">
     <button class="avcb-voltar" id="agenda-voltar" aria-label="Voltar">‹ Voltar</button>
     <strong>Agenda</strong>
+    <button class="ag-novo" id="agenda-novo" type="button">+ Novo</button>
     <button class="avcb-voltar agenda-hoje" id="agenda-hoje">Hoje</button>
   </div>
   <div class="avcb-corpo" id="agenda-corpo">
-    <button class="btn prim ag-novo" id="agenda-novo" type="button">+ Novo compromisso</button>
     <p class="avcb-nota" id="agenda-estado"></p>
     <div id="agenda-lista"></div>
     <div class="ag-form" id="agenda-form" hidden></div>
