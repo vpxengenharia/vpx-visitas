@@ -154,6 +154,13 @@ button,input,label{font:inherit}
 .nav .avcb-qtd{top:2px;right:calc(50% - 22px)}
 .nav button:focus-visible{outline:3px solid var(--laranja);outline-offset:-3px;border-radius:10px}
 body.hub-on main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+/* no computador (mouse): as telas da barra de baixo rolam só entre o topo e a barra de baixo, sempre com o espaço
+   da barra de rolagem reservado dos dois lados; assim nada "pula" de lugar ao trocar de aba (a lista de Clientes
+   é a única longa e fazia o topo, a barra de baixo e o conteúdo andarem 7 px). No celular continua como antes. */
+@media (hover:hover) and (pointer:fine){
+  body.hub-on main{position:fixed;top:calc(env(safe-area-inset-top,0px) + 96px);bottom:calc(65.5px + env(safe-area-inset-bottom,0px));left:0;right:0;max-width:none;margin:0;overflow-y:auto;scrollbar-gutter:stable both-edges;padding:18px max(18px, calc((100% - 684px) / 2)) 24px}
+  body.hub-on .cl-cab{top:-18px}                  /* encosta no topo da área que rola (cobre o espaço de 18 px de cima) */
+}
 /* Agenda aberta pela barra de baixo: vira uma seção como as outras (barra de baixo visível, sem "Voltar") */
 body.agenda-secao .nav{z-index:35}
 #tela-agenda.como-secao #agenda-voltar{display:none}
@@ -8209,6 +8216,7 @@ function irPara(s) {
   if (s === "mais") desenharMais();
   atualizarNav();
   window.scrollTo(0, 0);
+  document.querySelector("main").scrollTop = 0;    // no computador quem rola é o <main> (ver CSS "hover:hover")
 }
 
 // abre um formulário; cli = cliente já escolhido (página do cliente / continuar); sem cliente, pede logo
