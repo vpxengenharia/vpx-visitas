@@ -152,6 +152,13 @@ button,input,label{font:inherit}
 .nav button[aria-current="page"] svg{color:var(--laranja)}
 @media (prefers-color-scheme:dark){.nav button[aria-current="page"]{color:var(--tinta)}}
 .nav .avcb-qtd{top:2px;right:calc(50% - 22px)}
+/* Registros: aba do meio, com o ícone numa pílula laranja */
+.nav .nav-reg{color:var(--marinho)}
+.nav-reg-bola{display:grid;place-items:center;width:48px;height:28px;margin:-2px 0;border-radius:11px;background:var(--laranja);color:var(--marinho)}
+.nav-reg-bola .ic{width:20px;height:20px;stroke-width:2;--ic-ac:currentColor}
+.nav .nav-reg[aria-current="page"] .nav-reg-bola{box-shadow:0 0 0 3px rgba(235,157,43,.3)}
+.nav .nav-reg .nav-reg-bola svg,.nav .nav-reg[aria-current="page"] .nav-reg-bola svg{color:var(--marinho)}   /* aba marcada: o ícone não fica laranja sobre laranja */
+@media (prefers-color-scheme:dark){.nav .nav-reg{color:var(--tinta)}}
 .nav button:focus-visible{outline:3px solid var(--laranja);outline-offset:-3px;border-radius:10px}
 body.hub-on main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 /* Agenda aberta pela barra de baixo: vira uma seção como as outras (barra de baixo visível, sem "Voltar") */
@@ -701,6 +708,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   <symbol id="i-lupa" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.3 15.3 5.2 5.2"/></symbol>
   <symbol id="i-dinheiro" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle style="stroke:var(--ic-ac)" cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></symbol>
   <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-grade" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><path d="M16.75 14v5.5M14 16.75h5.5"/></symbol>
   <symbol id="i-sair" viewBox="0 0 24 24"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5"/><path style="stroke:var(--ic-ac)" d="M9.5 8 5.5 12l4 4M5.5 12h9"/></symbol>
 </svg>
 <header class="topo">
@@ -827,6 +835,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   </section>
   <section id="tela-cliente" class="hub" hidden></section>
   <section id="tela-mod" class="hub" hidden></section>
+  <section id="tela-reg" class="hub" hidden></section>
   <section id="tela-fin" class="hub" hidden></section>
   <section id="tela-mais" class="hub" hidden></section>
 </main>
@@ -835,9 +844,9 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <nav class="nav" id="nav" hidden aria-label="Menu principal">
   <button data-s="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Início</button>
   <button data-s="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16"/><path d="M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg>Clientes</button>
+  <button data-s="reg" class="nav-reg"><span class="nav-reg-bola"><svg class="ic" aria-hidden="true"><use href="#i-grade"/></svg></span>Registros</button>
   <button data-s="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
-  <button data-s="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M7 12h.01M17 12h.01"/></svg>Financeiro<span class="avcb-qtd" id="nav-fin-qtd" hidden></span></button>
-  <button data-s="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mais</button>
+  <button data-s="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mais<span class="avcb-qtd" id="nav-fin-qtd" hidden></span></button>
 </nav>
 
 <footer class="barra" id="barra" hidden>
@@ -1266,7 +1275,7 @@ function aviso(msg, erro = false) {
   aviso.t = setTimeout(() => el.className = "aviso", erro ? 6000 : 3000);
 }
 function mostrar(tela) {
-  const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-mod", "tela-fin", "tela-mais"];
+  const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-reg", "tela-mod", "tela-fin", "tela-mais"];
   ["tela-config", "tela-login", "tela-app", "tela-ok", ...hubs].forEach(t => $(t).hidden = t !== tela);
   $("barra").hidden = tela !== "tela-app";
   if (tela !== "tela-app") $("ld-prog").hidden = true;   // barra do laudo só no formulário
@@ -6932,8 +6941,9 @@ function atualizarContadores() {
   const n = ehAdmin() ? Object.values(pedidos).filter(p => p.status === "aguardando").length : 0;
   $("menu-qtd").hidden = !n; $("menu-qtd").textContent = n;
   $("mn-pc-qtd").hidden = !n; $("mn-pc-qtd").textContent = n;
-  $("nav-fin-qtd").hidden = !n; $("nav-fin-qtd").textContent = n;   // barra de baixo: Financeiro
+  $("nav-fin-qtd").hidden = !n; $("nav-fin-qtd").textContent = n;   // barra de baixo: Mais (o Financeiro fica lá dentro)
   if (secao === "fin") desenharFin();
+  if (secao === "mais") desenharMais();
 }
 
 function abrirPedidos() {
@@ -8150,7 +8160,8 @@ const MODOS_APP = [
   ["insp", "inspecao", "Inspeção"], ["trein", "chama", "Brigada"], ["serv", "chave", "Serviço"], ["comp", "recibo", "Comprovante"]
 ];
 const NOME_MODO = { visita: "Visita técnica", com: "Comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", serv: "Relatório de serviço", comp: "Comprovante" };
-const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", mod: "tela-mod", fin: "tela-fin", mais: "tela-mais" };
+const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", reg: "tela-reg", mod: "tela-mod", fin: "tela-fin", mais: "tela-mais" };
+let finDe = "mais";                                // o Financeiro foi aberto pelo Mais ou pelo quadrado Comprovante (Registros)
 let trabDe = "inicio";                             // de onde o formulário foi aberto: o "voltar" leva para lá
 let secao = "inicio", cliPagina = null, agendaDe = "inicio";   // agendaDe: seção que fica embaixo da Agenda            // seção atual ("trabalho" = formulário aberto) e cliente da página do cliente
 
@@ -8172,8 +8183,7 @@ const podeFin = () => pode("comp") || Object.keys(TIPOS_PED).some(podeTipo);
 function atualizarNav() {
   const nav = $("nav");
   nav.querySelector('[data-s="agenda"]').hidden = !pode("agenda");
-  nav.querySelector('[data-s="fin"]').hidden = !podeFin();
-  const atual = secao === "cliente" ? "clientes" : secao === "mod" ? "inicio" : secao;
+  const atual = secao === "cliente" ? "clientes" : secao === "mod" ? "reg" : secao === "fin" ? finDe : secao;
   nav.querySelectorAll("button").forEach(b => { if (b.dataset.s === atual) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
 }
 
@@ -8190,9 +8200,11 @@ function irPara(s) {
   if (secao === "agenda") fecharAgenda(false);
   if (secao === "trabalho" && history.state?.trab) history.replaceState(null, "");   // saiu do formulário pela barra
   if ($("dlg").open) $("dlg").close();
+  if (s === "fin" && secao !== "fin") finDe = secao === "reg" || secao === "mod" ? "reg" : "mais";
   secao = s;
   mostrar(TELA_SECAO[s]);
   if (s === "inicio") desenharInicio();
+  if (s === "reg") desenharReg();
   if (s === "clientes") { $("cl-busca").value = ""; desenharClientesHub(); }
   if (s === "cliente") desenharPaginaCliente();
   if (s === "mod") desenharModulo();
@@ -8218,7 +8230,7 @@ function abrirTrabalho(m, cli) {
 // título do formulário (ex.: "Laudo · Aterramento"); refeito quando o tipo de laudo muda
 function tituloTrabalho() {
   $("trab-titulo").textContent = (NOME_MODO[modo] || "") + (modo === "laudo" && LAUDOS[laudo.tipo] ? " · " + LAUDOS[laudo.tipo].curto : "");
-  $("trab-voltar").textContent = "‹ " + ({ mod: MOD_INFO[modAtual]?.tit, cliente: "Cliente", clientes: "Clientes", fin: "Financeiro", mais: "Mais" }[trabDe] || "Início");
+  $("trab-voltar").textContent = "‹ " + ({ mod: MOD_INFO[modAtual]?.tit, cliente: "Cliente", clientes: "Clientes", reg: "Registros", fin: "Financeiro", mais: "Mais" }[trabDe] || "Início");
 }
 // volta para a tela de onde o formulário foi aberto (página do assunto, cliente, Financeiro ou Início)
 function voltarInicio() {
@@ -8242,7 +8254,7 @@ let modAtual = "laudo";
 function abrirModulo(m) { modAtual = m; irPara("mod"); }
 function desenharModulo() {
   const m = modAtual, info = MOD_INFO[m], t = $("tela-mod"); t.innerHTML = "";
-  const v = el("button", "hub-voltar", "‹ Início"); v.type = "button"; v.onclick = () => irPara("inicio");
+  const v = el("button", "hub-voltar", "‹ Registros"); v.type = "button"; v.onclick = () => irPara("reg");
   { const h = el("h1", "hub-tit"); h.append(icCaixa(info.ico), info.tit); t.append(v, h); }
   const n = el("button", "btn prim", "+ " + info.novo); n.type = "button"; n.style.marginBottom = "14px"; n.onclick = () => novoDoModulo(m);
   t.appendChild(n);
@@ -8415,15 +8427,8 @@ function desenharInicio() {
         .catch(() => {}).finally(() => { desenharInicio.buscando = false; });
     }
   }
-  const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (modos.length || pode("os")) {
-    t.appendChild(el("p", "hub-rot", "Registros"));
-    const g = el("div", "hub-grade");
-    // cada quadrado abre primeiro a página do assunto (lista + "Novo"); o formulário só abre pelo "+ Novo"
-    if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
-    modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
-    t.appendChild(g);
-  } else t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
+  // os quadrados de "Registros" viraram a aba do meio da barra de baixo (pedido do Gustavo em 19/10/2026)
+  if (!MODOS_APP.some(([m]) => pode(m)) && !pode("os")) t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar."));
   // alerta de AVCB dos clientes
   if (pode("avcb")) {
     const sts = listaAvcb().filter(v => v.categoria === "cliente").map(situacaoAvcb);
@@ -8501,10 +8506,23 @@ function desenharPaginaCliente() {
   }
 }
 
-// Financeiro: comprovantes (total do mês) e pedidos
+// Registros (aba do meio da barra de baixo): um quadrado por assunto; cada um abre a página do assunto (lista + "+ Novo")
+function desenharReg() {
+  const t = $("tela-reg"); t.innerHTML = "";
+  t.appendChild(el("h1", "hub-tit", "Registros"));
+  const modos = MODOS_APP.filter(([m]) => pode(m));
+  if (!modos.length && !pode("os")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
+  const g = el("div", "hub-grade");
+  if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
+  modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
+  t.appendChild(g);
+}
+
+// Financeiro (dentro de Mais, ou pelo quadrado Comprovante em Registros): comprovantes (total do mês) e pedidos
 function desenharFin() {
   const t = $("tela-fin"); t.innerHTML = "";
-  t.appendChild(el("h1", "hub-tit", "Financeiro"));
+  const v = el("button", "hub-voltar", finDe === "reg" ? "‹ Registros" : "‹ Mais"); v.type = "button"; v.onclick = () => irPara(finDe);
+  t.append(v, el("h1", "hub-tit", "Financeiro"));
   if (pode("comp")) {
     const mes = dataISO().slice(0, 7), eu = semAcento(nomeColaborador());
     const cache = lerLS("vpx_comp_hist", null);
@@ -8543,6 +8561,12 @@ function desenharFin() {
 function desenharMais() {
   const t = $("tela-mais"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Mais"));
+  if (podeFin()) {                                 // Financeiro saiu da barra de baixo e fica aqui, com o contador de pedidos
+    const aguard = ehAdmin() ? Object.values(pedidos).filter(p => p.status === "aguardando").length : 0;
+    const f = el("div", "hub-lista");
+    f.appendChild(linha("dinheiro", "Financeiro", aguard ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : "Comprovantes e pedidos de compra e pagamento", () => irPara("fin"), aguard));
+    t.appendChild(f);
+  }
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
   if (pode("avcb")) l.appendChild(linha("escudo", "Validade AVCB / CLCB", "Vencidos, a vencer e fotografar AVCB", abrirAvcb));
