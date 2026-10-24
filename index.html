@@ -568,6 +568,12 @@ p{margin:0 0 14px;max-width:60ch}
 .sucesso .acoes{display:grid;gap:12px;max-width:360px;margin:22px auto 0}
 .sucesso .acoes svg{width:22px;height:22px}
 .selo.pendente{background:var(--laranja);font-size:38px}
+/* pedido de acesso da equipe de campo (tela de entrada) e pedidos na administração */
+.login-pedir{margin:30px 2px 8px;font-weight:600}
+#btn-pedir{width:100%}
+.adm-pedido-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}
+.adm-pedido-acoes .btn{width:auto;min-height:48px;padding:0 20px;font-size:17px}
+.adm-tag.novo{color:var(--laranja)}
 /* visualizador do relatório (PDF desenhado dentro do app) */
 .visor-pdf{position:fixed;inset:0;z-index:35;background:#525659;display:flex;flex-direction:column}
 .visor-pdf[hidden]{display:none}
@@ -827,8 +833,24 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
       <img src="logo.png" alt="VPX Engenharia" width="172" height="96">
     </picture>
     <h1>Fotos da visita direto na pasta do cliente</h1>
-    <p>Entre uma vez com a sua conta Microsoft da VPX. Depois é só fotografar e salvar.</p>
-    <button class="btn prim" id="btn-entrar">Entrar com a conta da VPX</button>
+    <p>Entre com a sua conta da VPX. Equipe de campo: entre com o e-mail pessoal que você usou no pedido de acesso.</p>
+    <button class="btn prim" id="btn-entrar">Entrar</button>
+    <!-- equipe de campo sem conta da VPX: o cadastro (e-mail pessoal + código) é feito na página da Microsoft e o administrador libera -->
+    <p class="login-pedir">É da equipe de campo e ainda não tem acesso?</p>
+    <button class="btn sec" id="btn-pedir" type="button">Pedir acesso</button>
+    <p class="laudo-dica">Você usa o seu e-mail pessoal: a Microsoft manda um código para ele e pede seu nome e sua função. Depois é só aguardar a liberação.</p>
+  </section>
+
+  <!-- equipe de campo (convidado) ainda não liberada pelo administrador -->
+  <section id="tela-espera" class="sucesso" hidden>
+    <div class="selo pendente">⏳</div>
+    <h1 id="espera-titulo">Pedido de acesso enviado</h1>
+    <p id="espera-texto" style="margin:0 auto"></p>
+    <div class="acoes">
+      <a class="btn prim" id="espera-whats" target="_blank" rel="noopener">Avisar a VPX pelo WhatsApp</a>
+      <button class="btn sec" id="espera-tentar" type="button">Já fui liberado</button>
+      <button class="btn sec" id="espera-sair" type="button">Sair</button>
+    </div>
   </section>
 
   <section id="tela-app" hidden>
@@ -1090,6 +1112,8 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <div class="avcb-topo"><button class="avcb-voltar" id="adm-voltar">‹ Voltar</button><strong>Administração</strong></div>
   <div class="avcb-corpo">
     <p class="laudo-dica">Defina o que cada pessoa vê no app. O acesso às pastas continua sendo o compartilhamento do OneDrive.</p>
+    <h2 class="secao">Pedidos de acesso</h2>
+    <div id="adm-pedidos"></div>
     <h2 class="secao">Perfil padrão</h2>
     <p class="laudo-dica">Vale para quem ainda não foi personalizado (inclusive quem entrar pela primeira vez).</p>
     <div id="adm-padrao"></div>
@@ -1270,6 +1294,11 @@ const CONFIG = {
     "Instagram: @vpxengenharia - instagram.com/vpxengenharia"
   ],
   pastaConfig: "VPX Visitas - Configuração",                           // na raiz do OneDrive do Gustavo: permissoes.json (equipe só lê)
+  pastaConfigId: "",                                                   // id dessa pasta: a equipe de campo (convidados) só a acha pelo id
+  // equipe de campo com e-mail pessoal (convidados do Microsoft 365; pedido do Gustavo em 24/10/2026)
+  dominio: "vpxengenharia.com.br",                                     // contas da VPX; e-mail de outro domínio = convidado
+  whatsappPedidos: "5571991949900",                                    // "Avisar a VPX pelo WhatsApp" na tela de espera do pedido de acesso
+  funcoesCampo: ["visita", "laudo", "insp", "trein", "serv", "avcb", "avcbFoto", "arquivos", "hist", "pastaTec", "equip", "os", "normas"],   // já marcadas ao liberar um pedido
   pastaUsuarios: "00 - Usuários do app",                              // em 02 - Clientes: registro de quem usa o app (para a administração)
   pastaAvcb: "00 - Validade AVCB",            // dentro de 02 - Clientes: fotos e dados dos AVCBs fotografados pela equipe
   // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
@@ -1361,7 +1390,7 @@ function aviso(msg, erro = false) {
 }
 function mostrar(tela) {
   const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-reg", "tela-mod", "tela-fin", "tela-mais"];
-  ["tela-config", "tela-login", "tela-app", "tela-ok", ...hubs].forEach(t => $(t).hidden = t !== tela);
+  ["tela-config", "tela-login", "tela-espera", "tela-app", "tela-ok", ...hubs].forEach(t => $(t).hidden = t !== tela);
   $("barra").hidden = tela !== "tela-app";
   if (tela !== "tela-app") $("ld-prog").hidden = true;   // barra do laudo só no formulário
   const hub = hubs.includes(tela);
@@ -6235,6 +6264,8 @@ const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
 const emailDe = () => (conta?.username || "").toLowerCase();
 const ehAdminFixo = () => CONFIG.admins.includes(emailDe());
+// convidado: pessoa da equipe de campo que entra com o e-mail pessoal (sem conta da VPX); "idp" só vem no login de convidado
+const ehConvidado = () => !!conta && (!!conta.idTokenClaims?.idp || !emailDe().endsWith("@" + CONFIG.dominio));
 let perm = lerLS("vpx_perm", null);                // última cópia do arquivo de permissões (para funcionar sem internet)
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
@@ -6242,15 +6273,23 @@ const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 const NOVAS_NO_PADRAO = ["serv", "equip", "os"];   // "osCriar" não: só quem o Gustavo liberar
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
+  // convidado: nada sem a liberação (sem acesso à pasta de configuração, ou recusado/retirado); nunca a Agenda (não tem Outlook da VPX)
+  if (ehConvidado()) {
+    if (!perm || perm.recusados?.includes(emailDe())) return [];
+    const u = perm.usuarios?.[emailDe()];
+    return (u?.admin ? TODAS_FUNCOES : u?.funcoes || padraoDe(perm) || TODAS_FUNCOES).filter(f => f !== "agenda");
+  }
   if (ehAdmin() || !perm) return TODAS_FUNCOES;    // arquivo nunca carregado neste celular: tudo liberado (como antes)
   const u = perm.usuarios?.[emailDe()];
   return u?.funcoes || padraoDe(perm) || TODAS_FUNCOES;
 }
 const pode = f => funcoesDoUsuario().includes(f);
+const liberado = () => !ehConvidado() || funcoesDoUsuario().length > 0;
 
 // mostra/esconde abas e botões conforme as permissões
 function aplicarPermissoes() {
   if (!conta) return;
+  if (!liberado()) { mostrarEspera(); return; }     // convidado sem liberação (ou que teve o acesso retirado)
   for (const a of ABAS_APP) $("aba-" + a).hidden = !pode(a);
   $("btn-avcb").hidden = !pode("avcb");
   $("btn-agenda").hidden = !pode("agenda");
@@ -6270,6 +6309,7 @@ function aplicarPermissoes() {
 // pasta de configuração: pelo caminho no OneDrive do Gustavo ou, para a equipe, por "Compartilhados comigo"
 async function pastaConfig(criar) {
   if (pastaConfig.id) return pastaConfig.id;
+  if (CONFIG.pastaConfigId) return pastaConfig.id = CONFIG.pastaConfigId;   // pelo id: funciona também para os convidados
   let id = null;
   try { id = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(CONFIG.pastaConfig)}?$select=id`)).id; }
   catch (e) { if (e.status !== 403 && e.status !== 404) throw e; }
@@ -6285,7 +6325,11 @@ async function pastaConfig(criar) {
 }
 
 async function carregarPermissoes() {
-  if (!conta || !navigator.onLine) { aplicarPermissoes(); return; }
+  await lerPermissoes();
+  aplicarPermissoes();
+}
+async function lerPermissoes() {
+  if (!conta || !navigator.onLine) return;
   carregarPermissoes.quando = Date.now();
   try {
     const pasta = await pastaConfig(ehAdminFixo());
@@ -6297,8 +6341,11 @@ async function carregarPermissoes() {
       perm = { ...dados, etag: item.eTag };
       gravarLS("vpx_perm", perm);
     }
-  } catch (e) { console.error("permissões:", e); }
-  aplicarPermissoes();
+  } catch (e) {
+    console.error("permissões:", e);
+    // convidado sem acesso à pasta de configuração: ainda não liberado (ou teve o acesso retirado)
+    if (ehConvidado() && (e.semAcesso || e.status === 403 || e.status === 404)) { perm = null; gravarLS("vpx_perm", null); }
+  }
 }
 
 // registro de quem usa o app (uma vez por dia), para aparecer na administração
@@ -6341,6 +6388,14 @@ async function abrirAdmin() {
     $("adm-estado").textContent = "";
   } catch (e) { console.error(e); $("adm-estado").textContent = "Não foi possível ler a lista de usuários: " + e.message; }
   desenharAdmin();
+  // pedidos de acesso da equipe de campo (cadastros feitos pelo "Pedir acesso")
+  try { await carregarPedidosAcesso(); if (adm) adm.pedidosErro = ""; }
+  catch (e) {
+    console.error("pedidos de acesso:", e);
+    const semAutorizacao = e instanceof msal.InteractionRequiredAuthError || e.status === 401 || e.status === 403 || /consent|AADSTS65001/i.test(e.message || "");
+    if (adm) { adm.pedidosErro = semAutorizacao ? "Para mostrar aqui os pedidos de acesso da equipe de campo, o app precisa da sua autorização para ler os usuários do Microsoft 365 (permissão User.Read.All)." : "Não foi possível ler os pedidos de acesso: " + e.message; adm.pedidosAutorizar = semAutorizacao; }
+  }
+  if (adm) { adm.pedidosLidos = true; desenharPedidosAcesso(); }
 }
 function fecharAdmin(voltar = true) {
   if ($("tela-admin").hidden) return true;
@@ -6352,12 +6407,12 @@ function fecharAdmin(voltar = true) {
   return true;
 }
 
-function chipsFuncoes(lista, aoMudar) {
+function chipsFuncoes(lista, aoMudar, convidado) {   // convidado: sem a Agenda (não tem Outlook da VPX)
   const w = el("div", "adm-funcoes");
   for (const [grupo, filtro] of [["Abas", f => f[2] === "aba"], ["Outras funções", f => f[2] !== "aba"]]) {
     w.appendChild(el("p", "adm-grupo", grupo));
     const ch = el("div", "chips");
-    FUNCOES.filter(filtro).forEach(([id, rot]) => {
+    FUNCOES.filter(filtro).filter(([id]) => !(convidado && id === "agenda")).forEach(([id, rot]) => {
       const b = el("button", "", rot); b.type = "button"; b.setAttribute("aria-pressed", String(lista.includes(id)));
       b.onclick = () => {
         const i = lista.indexOf(id);
@@ -6380,6 +6435,7 @@ function desenharAdmin() {
   const pad = $("adm-padrao");
   pad.innerHTML = "";
   pad.appendChild(chipsFuncoes(p.padrao ||= TODAS_FUNCOES.slice(), () => { mudouAdmin(); desenharListaAdmin(); }));
+  desenharPedidosAcesso();
   desenharListaAdmin();
   $("adm-salvar").disabled = !adm.mudou;
 }
@@ -6391,13 +6447,14 @@ function desenharListaAdmin() {
   emails.sort((a, b) => (info(a).nome || p.usuarios[a]?.nome || a).localeCompare(info(b).nome || p.usuarios[b]?.nome || b, "pt-BR"));
   for (const email of emails) {
     const u = p.usuarios[email] || {}, i = info(email), fixo = CONFIG.admins.includes(email);
+    const conv = !email.endsWith("@" + CONFIG.dominio);   // equipe de campo com e-mail pessoal (convidado)
     const nome = i.nome || u.nome || email.split("@")[0];
     const card = el("div", "adm-user" + (adm.aberto === email ? " aberto" : ""));
     const topo = el("button", "adm-topo"); topo.type = "button";
     const tx = el("span", "arq-txt");
     tx.appendChild(el("strong", "", nome));
     tx.appendChild(el("small", "", email + (i.ultimo ? ` · último acesso ${new Date(i.ultimo).toLocaleDateString("pt-BR")}` : " · ainda não abriu o app")));
-    const tag = fixo ? "Administrador principal" : u.admin ? "Administrador" : u.funcoes ? `Personalizado (${u.funcoes.length} de ${TODAS_FUNCOES.length})` : "Perfil padrão";
+    const tag = fixo ? "Administrador principal" : u.admin ? "Administrador" : (conv ? "Equipe de campo · " : "") + (u.funcoes ? `Personalizado (${u.funcoes.length} de ${TODAS_FUNCOES.length})` : "Perfil padrão");
     topo.append(tx, el("span", "adm-tag", tag));
     topo.onclick = () => { adm.aberto = adm.aberto === email ? null : email; desenharListaAdmin(); };
     card.appendChild(topo);
@@ -6417,8 +6474,12 @@ function desenharListaAdmin() {
           modoCh.appendChild(b);
         });
         corpo.appendChild(modoCh);
-        if (u.funcoes) corpo.appendChild(chipsFuncoes(u.funcoes, () => { mudouAdmin(); desenharListaAdmin(); }));
+        if (u.funcoes) corpo.appendChild(chipsFuncoes(u.funcoes, () => { mudouAdmin(); desenharListaAdmin(); }, conv));
         else corpo.appendChild(el("p", "laudo-dica", "Vê o que estiver marcado no perfil padrão."));
+        if (conv) {                                // convidado: o "Remover acesso" tira também o compartilhamento das pastas
+          if (p.usuarios[email]) { const rm = el("button", "laudo-link perigo", "Remover acesso"); rm.type = "button"; rm.onclick = () => removerAcesso(email, nome); corpo.appendChild(rm); }
+          card.appendChild(corpo); lista.appendChild(card); continue;
+        }
         const adminB = el("label", "adm-admin");
         const ck = document.createElement("input"); ck.type = "checkbox"; ck.checked = !!u.admin;
         ck.onchange = () => { (p.usuarios[email] ||= { nome }).admin = ck.checked; mudouAdmin(); desenharListaAdmin(); };
@@ -6464,6 +6525,162 @@ async function salvarPermissoes() {
     console.error(e);
     aviso(e.status === 403 || e.semAcesso ? "Sem permissão para alterar o arquivo de permissões." : "Não foi possível salvar: " + e.message, true);
   } finally { b.textContent = "Salvar permissões"; b.disabled = !adm?.mudou; }
+}
+
+/* ---------- pedidos de acesso da equipe de campo (pedido do Gustavo em 24/10/2026) ----------
+   Quem toca em "Pedir acesso" na tela de entrada faz o cadastro na página da Microsoft (e-mail pessoal + código, nome e
+   função; fluxo de cadastro ligado ao app no Entra) e vira convidado do Microsoft 365 da VPX, sem acesso a nada.
+   Aqui o administrador vê esses cadastros e libera (o app compartilha 02 - Clientes e a pasta de configuração com a
+   pessoa e grava as funções dela) ou recusa. Ler os convidados exige a permissão User.Read.All (delegada). */
+const ESCOPOS_USUARIOS = ["User.Read.All"];
+let pedidosAcesso = lerLS("vpx_pedidos_acesso", []);   // [{ nome, email, funcao, quando }] ainda sem resposta (Início e Mais)
+let cadastrosCampo = [];                                // todos os cadastros feitos pelo "Pedir acesso" (inclui os já respondidos)
+// e-mail do convidado: o que ele usou no cadastro (no "userPrincipalName" vem como nome_dominio.com#EXT#@…)
+const emailDoConvidado = u => (u.mail || u.otherMails?.[0] || (u.userPrincipalName || "").split("#EXT#")[0].replace(/_([^_]*)$/, "@$1")).toLowerCase();
+async function carregarPedidosAcesso() {
+  if (!conta || !navigator.onLine || !ehAdmin()) return;
+  const tk = (await msalApp.acquireTokenSilent({ scopes: ESCOPOS_USUARIOS, account: conta })).accessToken;
+  let url = GRAPH + "/users?$filter=" + encodeURIComponent("userType eq 'Guest'") + "&$select=displayName,mail,otherMails,userPrincipalName,jobTitle,createdDateTime,creationType&$count=true&$top=999";
+  const lista = [];
+  while (url) {
+    const r = await fetch(url, { headers: { Authorization: "Bearer " + tk, ConsistencyLevel: "eventual" } });
+    if (!r.ok) { let msg = ""; try { msg = (await r.json()).error?.message || ""; } catch {} const e = new Error(`Erro ${r.status}${msg ? ": " + msg : ""}`); e.status = r.status; throw e; }
+    const j = await r.json();
+    lista.push(...j.value);
+    url = j["@odata.nextLink"];
+  }
+  cadastrosCampo = lista.filter(u => u.creationType === "SelfServiceSignUp")   // só quem se cadastrou pelo app (não os convidados de outros jeitos)
+    .map(u => ({ nome: u.displayName || "", email: emailDoConvidado(u), funcao: u.jobTitle || "", quando: u.createdDateTime || "" }))
+    .filter(x => x.email).sort((a, b) => b.quando.localeCompare(a.quando));
+  atualizarPedidosAcesso();
+}
+// pedidos sem resposta = cadastros que não estão nem liberados (usuários) nem recusados
+function atualizarPedidosAcesso() {
+  const p = adm?.perm || perm, feitos = new Set([...Object.keys(p?.usuarios || {}), ...(p?.recusados || [])]);
+  pedidosAcesso = cadastrosCampo.filter(x => !feitos.has(x.email));
+  gravarLS("vpx_pedidos_acesso", pedidosAcesso);
+}
+function desenharPedidosAcesso() {
+  const w = $("adm-pedidos");
+  if (!adm || !w) return;
+  w.innerHTML = "";
+  if (!adm.pedidosLidos) { w.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando…" : "Sem internet.")); return; }
+  if (adm.pedidosErro) {
+    w.appendChild(el("p", "laudo-dica", adm.pedidosErro));
+    if (adm.pedidosAutorizar) { const b = el("button", "btn sec", "Autorizar agora"); b.type = "button"; b.style.width = "auto"; b.onclick = autorizarPedidosAcesso; w.appendChild(b); }
+    return;
+  }
+  const recusados = adm.perm.recusados || [];
+  if (!pedidosAcesso.length) w.appendChild(el("p", "laudo-dica", "Nenhum pedido novo. Quem tocar em \"Pedir acesso\" na tela de entrada do app aparece aqui."));
+  for (const x of pedidosAcesso) {
+    const card = el("div", "adm-user" + (adm.pedidoAberto === x.email ? " aberto" : ""));
+    const topo = el("button", "adm-topo"); topo.type = "button";
+    const tx = el("span", "arq-txt");
+    tx.appendChild(el("strong", "", x.nome || x.email));
+    tx.appendChild(el("small", "", [x.email, x.funcao, x.quando && "pediu em " + new Date(x.quando).toLocaleDateString("pt-BR")].filter(Boolean).join(" · ")));
+    topo.append(tx, el("span", "adm-tag novo", "Novo pedido"));
+    topo.onclick = () => { adm.pedidoAberto = adm.pedidoAberto === x.email ? null : x.email; desenharPedidosAcesso(); };
+    card.appendChild(topo);
+    if (adm.pedidoAberto === x.email) {
+      const corpo = el("div", "adm-corpo");
+      corpo.appendChild(el("p", "laudo-dica", "O que a pessoa vai poder usar (dá para mudar depois, na lista de usuários):"));
+      const funcs = (adm.funcoesPedido ||= {})[x.email] ||= CONFIG.funcoesCampo.slice();
+      corpo.appendChild(chipsFuncoes(funcs, () => {}, true));
+      const ac = el("div", "adm-pedido-acoes");
+      const lib = el("button", "btn prim", "Liberar acesso"); lib.type = "button"; lib.onclick = () => liberarAcesso(x, funcs, lib);
+      const recusar = el("button", "laudo-link perigo", "Recusar"); recusar.type = "button"; recusar.onclick = () => recusarAcesso(x);
+      ac.append(lib, recusar);
+      corpo.appendChild(ac);
+      card.appendChild(corpo);
+    }
+    w.appendChild(card);
+  }
+  const rec = cadastrosCampo.filter(x => recusados.includes(x.email));
+  if (rec.length) {
+    w.appendChild(el("p", "adm-grupo", "Recusados"));
+    rec.forEach(x => {
+      const l = el("p", "laudo-dica", `${x.nome || x.email} (${x.email}) `);
+      const d = el("button", "laudo-link", "desfazer"); d.type = "button"; d.onclick = () => desfazerRecusa(x);
+      l.appendChild(d); w.appendChild(l);
+    });
+  }
+}
+// User.Read.All ainda não autorizada: o administrador autoriza pela tela da Microsoft e volta para a Administração
+function autorizarPedidosAcesso() {
+  if (!confirm("A Microsoft vai abrir uma tela pedindo a sua autorização para o app ler os usuários do Microsoft 365.\n\nMarque \"Consentir em nome da organização\" e toque em Aceitar. Depois você volta para a Administração.\n\nAutorizar agora?")) return;
+  gravarLS("vpx_abrir_admin", true);
+  msalApp.acquireTokenRedirect({ scopes: ESCOPOS_USUARIOS, account: conta }).catch(e => aviso("Não foi possível autorizar: " + e.message, true));
+}
+// compartilha uma pasta do OneDrive com a pessoa, sem e-mail de aviso (ela já está cadastrada como convidada)
+const compartilharPasta = (itemId, email, papel) => graph(`/drives/${CONFIG.driveId}/items/${itemId}/invite`, {
+  method: "POST", headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ recipients: [{ email }], roles: [papel], requireSignIn: true, sendInvitation: false })
+});
+async function liberarAcesso(x, funcoes, botao) {
+  if (!navigator.onLine) { aviso("Sem internet: conecte para liberar.", true); return; }
+  if (!funcoes.length) { aviso("Marque pelo menos uma função.", true); return; }
+  botao.disabled = true; botao.textContent = "Liberando…";
+  try {
+    // a pessoa passa a ver 02 - Clientes (pode editar) e a pasta de configuração (só ver: é por ela que o app sabe o que liberar)
+    await compartilharPasta(CONFIG.pastaClientesId, x.email, "write");
+    await compartilharPasta(await pastaConfig(true), x.email, "read");
+    adm.perm.usuarios[x.email] = { nome: x.nome, funcoes: funcoes.slice(), convidado: true, liberado: new Date().toISOString() };
+    adm.perm.recusados = (adm.perm.recusados || []).filter(e => e !== x.email);
+    mudouAdmin();
+    await salvarPermissoes();
+    if (!adm || adm.mudou) throw new Error("as permissões não foram salvas. Tente de novo.");
+    aviso(`Acesso liberado para ${x.nome || x.email}. É só a pessoa abrir o app (ou tocar em "Já fui liberado").`);
+  } catch (e) {
+    console.error(e);
+    aviso("Não foi possível liberar: " + e.message, true);
+    botao.disabled = false; botao.textContent = "Liberar acesso";
+  }
+  atualizarPedidosAcesso(); desenharAdmin();
+}
+async function recusarAcesso(x) {
+  if (!confirm(`Recusar o pedido de ${x.nome || x.email}?\n\nA pessoa continua sem acesso a nada. Se quiser apagar o cadastro dela, apague em Microsoft Entra › Usuários.`)) return;
+  adm.perm.recusados = [...new Set([...(adm.perm.recusados || []), x.email])];
+  mudouAdmin();
+  await salvarPermissoes();
+  atualizarPedidosAcesso(); desenharAdmin();
+}
+async function desfazerRecusa(x) {
+  adm.perm.recusados = (adm.perm.recusados || []).filter(e => e !== x.email);
+  mudouAdmin();
+  await salvarPermissoes();
+  atualizarPedidosAcesso(); desenharAdmin();
+}
+// tira o acesso de um convidado: descompartilha as pastas, apaga as funções e marca como recusado (não volta para os pedidos)
+async function removerAcesso(email, nome) {
+  if (!navigator.onLine) { aviso("Sem internet: conecte para remover o acesso.", true); return; }
+  if (!confirm(`Remover o acesso de ${nome || email}?\n\nO app tira o compartilhamento das pastas com a pessoa e ela volta para a tela de espera.`)) return;
+  try {
+    const sobrou = [];
+    for (const id of [CONFIG.pastaClientesId, await pastaConfig(true)]) sobrou.push(...await descompartilharPasta(id, email));
+    delete adm.perm.usuarios[email];
+    adm.perm.recusados = [...new Set([...(adm.perm.recusados || []), email])];
+    adm.aberto = null;
+    mudouAdmin();
+    await salvarPermissoes();
+    if (sobrou.length) aviso(`Acesso retirado no app. Confira no OneDrive: ${nome || email} ainda está num link compartilhado com outras pessoas.`, true);
+    else aviso(`Acesso de ${nome || email} removido.`);
+  } catch (e) { console.error(e); aviso("Não foi possível remover: " + e.message, true); }
+  atualizarPedidosAcesso(); desenharAdmin();
+}
+// apaga as permissões da pessoa numa pasta; devolve as que não deu para apagar sozinho (link compartilhado com mais gente)
+async function descompartilharPasta(itemId, email) {
+  const r = await graph(`/drives/${CONFIG.driveId}/items/${itemId}/permissions`);
+  const ext = email.replace("@", "_") + "#ext#", sobrou = [];
+  const ehEla = u => (u.email || "").toLowerCase() === email || (u.loginName || "").toLowerCase().includes(ext);
+  for (const p of r.value || []) {
+    if (p.inheritedFrom || p.roles?.includes("owner")) continue;   // herdada da pasta de cima ou do dono: não mexe
+    const varios = p.grantedToIdentitiesV2 || p.grantedToIdentities || [];
+    const quem = [p.grantedToV2?.user, p.grantedToV2?.siteUser, p.grantedTo?.user, ...varios.flatMap(g => [g.user, g.siteUser])].filter(Boolean);
+    if (!quem.some(ehEla) && (p.invitation?.email || "").toLowerCase() !== email) continue;
+    if (varios.length > 1) { sobrou.push(p.id); continue; }
+    await graph(`/drives/${CONFIG.driveId}/items/${itemId}/permissions/${p.id}`, { method: "DELETE" });
+  }
+  return sobrou;
 }
 
 /* ---------- pasta técnica do cliente (vistoria do CBM-BA) ----------
@@ -8540,6 +8757,14 @@ function desenharInicio() {
   }
   const temEq = pode("equip") && Object.keys(eqDados).length;
   if (computador.matches && (pode("os") || pode("avcb") || temEq)) esq.appendChild(el("p", "hub-rot", pode("os") ? (pode("avcb") || temEq ? "Ordens de serviço e avisos" : "Ordens de serviço") : "Avisos"));
+  // pedidos de acesso da equipe de campo esperando o administrador
+  if (ehAdmin() && pedidosAcesso.length) {
+    const n = pedidosAcesso.length, b = el("button", "hub-card warn"); b.type = "button";
+    b.appendChild(el("b", "", `${n} pedido${n > 1 ? "s" : ""} de acesso da equipe de campo`));
+    b.appendChild(el("small", "", "Toque para liberar ou recusar"));
+    b.onclick = abrirAdmin;
+    esq.appendChild(b);
+  }
   // ordens de serviço: fila e as que estão com a pessoa
   if (pode("os")) {
     const os = Object.values(osDados), fila = os.filter(naFilaOS), minhas = os.filter(comigoOS);
@@ -8718,7 +8943,7 @@ function desenharMais() {
   }
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
-  if (ehAdmin()) l.appendChild(linha("ajustes", "Administração", "Permissões da equipe", abrirAdmin));
+  if (ehAdmin()) { const n = pedidosAcesso.length; l.appendChild(linha("ajustes", "Administração", n ? `${n} pedido${n > 1 ? "s" : ""} de acesso esperando você` : "Permissões da equipe", abrirAdmin, n)); }
   if (l.children.length) t.appendChild(l);
   const c = el("div", "hub-lista");
   c.appendChild(linha("pessoa", conta?.name || "Conta", conta?.username || "", () => {}));
@@ -8732,7 +8957,24 @@ function sairConta() {
 }
 
 /* ---------- início ---------- */
+// convidado ainda não liberado: tela de espera (sem menu), com o aviso pelo WhatsApp
+function mostrarEspera() {
+  fecharTelasPorCima();
+  document.body.classList.remove("logado");
+  const nome = (conta?.name || "").trim(), email = emailDe(), pediu = lerLS("vpx_pediu_acesso", false);
+  $("espera-titulo").textContent = pediu ? "Pedido de acesso enviado" : "Aguardando liberação";
+  $("espera-texto").textContent = `${nome ? nome.split(/\s+/)[0] + ", seu" : "Seu"} acesso ao app da VPX Engenharia (e-mail ${email}) ainda não foi liberado. Quando o administrador liberar, toque em "Já fui liberado".`;
+  $("espera-whats").href = `https://wa.me/${CONFIG.whatsappPedidos}?text=${encodeURIComponent(`Olá! Sou ${nome || email} e pedi acesso ao app da VPX Engenharia com o e-mail ${email}.`)}`;
+  mostrar("tela-espera");
+}
+
 async function iniciarApp() {
+  // equipe de campo (convidado): só entra depois que o administrador libera o pedido de acesso
+  if (ehConvidado()) {
+    await lerPermissoes();
+    if (!liberado()) { mostrarEspera(); return; }
+    gravarLS("vpx_pediu_acesso", false);
+  }
   document.body.classList.add("logado");          // no computador, o menu lateral aparece
   const nome = conta.name || conta.username || "";
   const ini = nome.split(/\s+/).filter(Boolean).map(p => p[0]).slice(0, 2).join("").toUpperCase();
@@ -8754,9 +8996,16 @@ async function iniciarApp() {
   if (secao === "inicio") desenharInicio();       // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
   if (lerLS("vpx_abrir_agenda", false)) { gravarLS("vpx_abrir_agenda", false); irPara("agenda"); }   // voltou da autorização da agenda
+  // administrador: pedidos de acesso da equipe de campo (cartão no Início e número no Mais)
+  if (ehAdmin()) carregarPedidosAcesso().then(() => { if (secao === "inicio") desenharInicio(); else if (secao === "mais") desenharMais(); }).catch(e => console.error("pedidos de acesso:", e));
+  if (lerLS("vpx_abrir_admin", false)) { gravarLS("vpx_abrir_admin", false); abrirAdmin(); }   // voltou da autorização para ler os pedidos de acesso
 }
 
 $("btn-entrar").onclick = () => msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "select_account" });
+// equipe de campo: "create" abre direto o cadastro da Microsoft (fluxo de cadastro de convidados ligado ao app no Entra)
+$("btn-pedir").onclick = () => { gravarLS("vpx_pediu_acesso", true); msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "create" }).catch(e => aviso("Não foi possível abrir o pedido de acesso: " + e.message, true)); };
+$("espera-tentar").onclick = () => location.reload();
+$("espera-sair").onclick = sairConta;
 $("btn-conta").onclick = () => irPara("mais");     // iniciais no topo: conta e mais opções
 $("nav").querySelectorAll("button").forEach(b => b.onclick = () => { if (fecharTelasPorCima()) irPara(b.dataset.s); });
 computador.addEventListener("change", () => { if (conta && secao === "inicio") desenharInicio(); });   // janela passou da largura do celular para a do computador (ou o contrário)
@@ -8968,7 +9217,8 @@ travarVertical(true);
     const r = await msalApp.handleRedirectPromise();
     conta = r?.account || msalApp.getAllAccounts()[0];
   } catch (e) {
-    aviso("Falha no login: " + e.message, true);
+    aviso((lerLS("vpx_pediu_acesso", false) ? "O pedido de acesso não foi concluído: " : "Falha no login: ") + e.message, true);
+    gravarLS("vpx_pediu_acesso", false);
   }
   if (conta) iniciarApp(); else mostrar("tela-login");
 })();

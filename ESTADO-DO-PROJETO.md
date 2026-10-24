@@ -84,6 +84,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Arquivos e histórico do cliente.**
 - **Visualizador de PDF:** zoom e arrasto com a pinça dos dedos.
 - **Administração:** permissões por pessoa e perfil padrão.
+- **Equipe de campo com e-mail pessoal (desde 24/10/2026):** a pessoa toca em "Pedir acesso" na entrada do app, faz o cadastro na página da Microsoft (e-mail pessoal + código, nome e função) e fica na tela de espera. O administrador vê o pedido em Mais › Administração e toca em Liberar (o app compartilha as pastas e grava as funções) ou Recusar; depois dá para Remover acesso. Sem caixa de e-mail da VPX e sem custo. Quem entra assim não vê a Agenda.
 - **Celular:** sem zoom de dois toques; nome "VPX Engenharia" no ícone.
 - **Computador (Chrome no PC, desde 24/10/2026):** menu lateral fixo no lugar da barra de baixo, telas largas com quadrados e listas em colunas, Início em duas colunas (agenda à direita), Esc fecha a tela aberta por cima e dá para arrastar fotos e PDFs para os formulários. No celular nada mudou.
 
@@ -124,6 +125,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Agenda (criar compromisso):** no primeiro uso, autorizar a permissão `Calendars.ReadWrite` marcando "Consentir em nome da organização". Depois, criar um compromisso com convidado e link do Teams, editar e cancelar.
 
 ### Configurar
+- **Equipe de campo (pedidos de acesso):** configurar no Microsoft 365 o cadastro de convidados e o compartilhamento (passo a passo no `CLAUDE.md`) e testar com uma pessoa antes de chamar a equipe.
 - Em **Mais › Administração**, ligar **"Criar ordens de serviço"** para quem do escritório vai abrir OS.
 - Os técnicos precisam abrir o app pelo menos uma vez para aparecer na lista de "Direcionar a" das OS.
 
