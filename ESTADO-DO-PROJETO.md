@@ -85,6 +85,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Visualizador de PDF:** zoom e arrasto com a pinça dos dedos.
 - **Administração:** permissões por pessoa e perfil padrão.
 - **Celular:** sem zoom de dois toques; nome "VPX Engenharia" no ícone.
+- **Computador (Chrome no PC, desde 24/10/2026):** menu lateral fixo no lugar da barra de baixo, telas largas com quadrados e listas em colunas, Início em duas colunas (agenda à direita), Esc fecha a tela aberta por cima e dá para arrastar fotos e PDFs para os formulários. No celular nada mudou.
 
 ---
 
@@ -115,6 +116,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 ## 3. O que falta / pendências
 
 ### Testar no celular (feito só no navegador do computador, sem login)
+- **Versão para computador:** abrir no Chrome do PC com o login real e passar pelas telas (testada só com dados de exemplo).
 - **Ordens de serviço** com OneDrive real: criar, pegar, executar e ver a baixa automática. Também conferir se a pasta `00 - Ordens de Serviço` foi criada.
 - **Extintores e mangueiras:** primeiro cadastro real. Conferir se a pasta `00 - Extintores e Mangueiras` foi criada.
 - **Páginas de cada assunto:** a lista "Últimos gerados" usa a busca do OneDrive. Ela pode demorar alguns minutos para achar arquivos novos e não foi testada com os arquivos reais.
