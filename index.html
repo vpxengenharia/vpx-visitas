@@ -6549,7 +6549,7 @@ async function carregarPedidosAcesso() {
     lista.push(...j.value);
     url = j["@odata.nextLink"];
   }
-  cadastrosCampo = lista.filter(u => u.creationType === "SelfServiceSignUp")   // só quem se cadastrou pelo app (não os convidados de outros jeitos)
+  cadastrosCampo = lista.filter(u => /^selfservicesignup$/i.test(u.creationType || ""))   // só quem se cadastrou pelo app (não os convidados de outros jeitos); a Graph manda "SelfServiceSignup"
     .map(u => ({ nome: u.displayName || "", email: emailDoConvidado(u), funcao: u.jobTitle || "", quando: u.createdDateTime || "" }))
     .filter(x => x.email).sort((a, b) => b.quando.localeCompare(a.quando));
   atualizarPedidosAcesso();
