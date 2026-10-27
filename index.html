@@ -6135,7 +6135,7 @@ function cartaoOS(o, onclick) {
 function desenharOS() {
   if (!osTela) return;
   const c = $("os-corpo"); c.innerHTML = "";
-  $("os-titulo").textContent = osTela.nova ? "Nova ordem de serviço" : osTela.aberta || "Ordens de serviço";
+  $("os-titulo").textContent = osTela.nova ? (osTela.nova.editando ? "Editar " + osTela.nova.editando : "Nova ordem de serviço") : osTela.aberta || "Ordens de serviço";
   if (osTela.nova) { c.appendChild(formOS()); return; }
   if (osTela.aberta) { c.appendChild(detalheOS(osDados[osTela.aberta])); return; }
   if (pode("osCriar")) { const n = el("button", "btn prim", "+ Nova ordem de serviço"); n.type = "button"; n.style.marginBottom = "12px"; n.onclick = () => { osTela.nova = {}; desenharOS(); }; c.appendChild(n); }
@@ -6170,6 +6170,7 @@ function detalheOS(o) {
   const meu = o.tecnico?.email === emailDe(), podeEu = !o.para || o.para.email === emailDe() || pode("osCriar");
   if (o.status === "aberta" && podeEu) { bt("▶ Executar agora", "prim", () => executarOS(o.numero)); bt("Pegar esta OS", "sec", () => pegarOS(o.numero)); }
   if (o.status === "andamento" && (meu || pode("osCriar"))) { if (meu) bt("▶ Executar", "prim", () => executarOS(o.numero)); bt("Devolver para a fila", "sec", () => devolverOS(o.numero)); }
+  if (pode("osCriar")) bt("Editar OS", "sec", () => editarOS(o.numero));   // a qualquer momento, em qualquer situação
   if ((o.status === "aberta" || o.status === "andamento") && pode("osCriar")) bt("Cancelar OS", "sec", () => cancelarOS(o.numero));
   if (o.status === "andamento" && meu && osAtiva?.numero === o.numero) ac.appendChild(el("p", "laudo-dica", "Esta OS está em execução neste celular: gere o PDF do documento para concluir."));
   if (ac.children.length) w.appendChild(ac);
@@ -6178,6 +6179,12 @@ function detalheOS(o) {
   (o.historico || []).slice().reverse().forEach(x => h.appendChild(el("li", "", `${new Date(x.em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} · ${x.por} · ${x.acao}`)));
   w.appendChild(h);
   return w;
+}
+// editar a OS depois de criada (pedido do Gustavo em 26/10/2026): o mesmo formulário da nova OS, já preenchido
+function editarOS(numero) {
+  const o = osDados[numero]; if (!o) return;
+  osTela.nova = { editando: numero, cliente: o.cliente, tipo: o.tipo, laudoTipo: o.laudoTipo, descricao: o.descricao || "", prioridade: o.prioridade || "normal", prevista: o.prevista || "", para: o.para || null };
+  desenharOS();
 }
 function formOS() {
   const n = osTela.nova; n.prioridade ||= "normal";
@@ -6214,11 +6221,12 @@ function formOS() {
   sel.onchange = () => { const u = lerLS("vpx_usuarios_app", []).find(x => x.email === sel.value); n.para = u ? { nome: u.nome || u.email, email: u.email } : null; };
   wt.appendChild(sel); f.appendChild(wt);
   if (!lerLS("vpx_usuarios_app", []).length) carregarUsuariosApp().then(l => { if (l.length && osTela?.nova === n) desenharOS(); });
-  const criar = el("button", "btn prim", "Criar ordem de serviço"); criar.type = "button";
+  const criar = el("button", "btn prim", n.editando ? "Salvar alterações" : "Criar ordem de serviço"); criar.type = "button";
   criar.onclick = async () => {
     const cli = clientes.find(c => semAcento(c) === semAcento((n.cliente || "").trim()));
     const falta = !cli ? "Escolha um cliente da lista" : !n.tipo ? "Escolha o serviço" : n.tipo === "laudo" && !n.laudoTipo ? "Escolha o tipo de laudo" : "";
     if (falta) { aviso(falta + ".", true); return; }
+    if (n.editando) { salvarEdicaoOS(n, cli, criar); return; }
     criar.disabled = true; criar.textContent = "Criando…";
     try {
       const numero = await criarOS({ cliente: cli, tipo: n.tipo, laudoTipo: n.tipo === "laudo" ? n.laudoTipo : undefined, descricao: (n.descricao || "").trim(), prioridade: n.prioridade, prevista: n.prevista || "", para: n.para || null });
@@ -6229,6 +6237,22 @@ function formOS() {
   };
   f.appendChild(criar);
   return f;
+}
+// grava a edição (versão mais nova do OneDrive + If-Match) e anota no histórico o que mudou
+async function salvarEdicaoOS(n, cli, botao) {
+  const numero = n.editando, antes = osDados[numero] || {};
+  const novo = { cliente: cli, tipo: n.tipo, laudoTipo: n.tipo === "laudo" ? n.laudoTipo : undefined, descricao: (n.descricao || "").trim(), prioridade: n.prioridade, prevista: n.prevista || "", para: n.para || null };
+  const igual = (k, a, b) => k === "para" ? (a?.email || "") === (b?.email || "") : (a ?? "") === (b ?? "");
+  const mudou = [["cliente", "cliente"], ["tipo", "serviço"], ["laudoTipo", "tipo de laudo"], ["descricao", "observações"], ["prioridade", "prioridade"], ["prevista", "data prevista"], ["para", "direcionada a"]]
+    .filter(([k]) => !igual(k, antes[k], novo[k])).map(([, rot]) => rot);
+  if (!mudou.length) { osTela.nova = null; osTela.aberta = numero; desenharOS(); return; }   // nada mudou
+  botao.disabled = true; botao.textContent = "Salvando…";
+  try {
+    await alterarOS(numero, a => (Object.assign(a, novo), ""), "Editou: " + mudou.join(", "));
+    aviso(`${numero} atualizada.`);
+    osTela.nova = null; osTela.aberta = numero;
+  } catch (e) { aviso(e.message, true); botao.disabled = false; botao.textContent = "Salvar alterações"; return; }
+  desenharOS();
 }
 // lista de quem usa o app (mesma pasta da administração), para direcionar a OS
 async function carregarUsuariosApp() {
