@@ -6159,7 +6159,7 @@ function detalheOS(o) {
   w.appendChild(cartaoOS(o, () => {}));
   const dl = el("dl");
   const par = (k, val) => { if (!val) return; dl.append(el("dt", "", k), el("dd", "", val)); };
-  par("Cliente", o.cliente); par("Serviço", descTipoOS(o)); par("O que foi fechado", o.descricao);
+  par("Cliente", o.cliente); par("Serviço", descTipoOS(o)); par("Observações", o.descricao);
   par("Prioridade", o.prioridade === "urgente" ? "Urgente" : "Normal"); par("Prevista", o.prevista && dataBRde(o.prevista));
   par("Direcionada a", o.para ? o.para.nome : "Qualquer técnico"); par("Criada por", `${o.criadoPor?.nome || "-"} em ${o.criadoEm ? new Date(o.criadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-"}`);
   if (o.concluida) par("Documento", `${o.concluida.documento}${o.concluida.caminho ? " (" + o.concluida.caminho.split("/").slice(1).join(" › ") + ")" : ""}`);
@@ -6196,7 +6196,8 @@ function formOS() {
   };
   f.appendChild(chips("Serviço *", Object.entries(TIPOS_OS).map(([k, t]) => [k, t.rot]), "tipo", () => desenharOS()));
   if (n.tipo === "laudo") f.appendChild(chips("Tipo de laudo *", Object.entries(LAUDOS).map(([k, l]) => [k, l.curto]), "laudoTipo"));
-  const wd = el("label", "campo"); wd.appendChild(el("span", "", "O que foi fechado com o cliente *"));
+  // observações: opcional (antes "O que foi fechado com o cliente", obrigatório; pedido do Gustavo em 26/10/2026); continua no campo "descricao"
+  const wd = el("label", "campo"); wd.appendChild(el("span", "", "Observações (opcional)"));
   const td = document.createElement("textarea"); td.value = n.descricao || ""; td.placeholder = "Ex.: Recarga dos 8 extintores PQS 4 kg do térreo e garagem"; td.oninput = () => { n.descricao = td.value; };
   wd.appendChild(td); f.appendChild(wd);
   f.appendChild(chips("Prioridade", [["normal", "Normal"], ["urgente", "Urgente"]], "prioridade"));
@@ -6216,11 +6217,11 @@ function formOS() {
   const criar = el("button", "btn prim", "Criar ordem de serviço"); criar.type = "button";
   criar.onclick = async () => {
     const cli = clientes.find(c => semAcento(c) === semAcento((n.cliente || "").trim()));
-    const falta = !cli ? "Escolha um cliente da lista" : !n.tipo ? "Escolha o serviço" : n.tipo === "laudo" && !n.laudoTipo ? "Escolha o tipo de laudo" : !(n.descricao || "").trim() ? "Escreva o que foi fechado" : "";
+    const falta = !cli ? "Escolha um cliente da lista" : !n.tipo ? "Escolha o serviço" : n.tipo === "laudo" && !n.laudoTipo ? "Escolha o tipo de laudo" : "";
     if (falta) { aviso(falta + ".", true); return; }
     criar.disabled = true; criar.textContent = "Criando…";
     try {
-      const numero = await criarOS({ cliente: cli, tipo: n.tipo, laudoTipo: n.tipo === "laudo" ? n.laudoTipo : undefined, descricao: n.descricao.trim(), prioridade: n.prioridade, prevista: n.prevista || "", para: n.para || null });
+      const numero = await criarOS({ cliente: cli, tipo: n.tipo, laudoTipo: n.tipo === "laudo" ? n.laudoTipo : undefined, descricao: (n.descricao || "").trim(), prioridade: n.prioridade, prevista: n.prevista || "", para: n.para || null });
       aviso(`${numero} criada e enviada para a fila.`);
       osTela.nova = null; osTela.aberta = numero;
     } catch (e) { aviso(e.message, true); criar.disabled = false; criar.textContent = "Criar ordem de serviço"; return; }
