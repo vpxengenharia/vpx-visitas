@@ -1298,7 +1298,8 @@ const CONFIG = {
   // equipe de campo com e-mail pessoal (convidados do Microsoft 365; pedido do Gustavo em 24/10/2026)
   dominio: "vpxengenharia.com.br",                                     // contas da VPX; e-mail de outro domínio = convidado
   whatsappPedidos: "5571991949900",                                    // "Avisar a VPX pelo WhatsApp" na tela de espera do pedido de acesso
-  funcoesCampo: ["visita", "laudo", "insp", "trein", "serv", "avcb", "avcbFoto", "arquivos", "hist", "pastaTec", "equip", "os", "normas"],   // já marcadas ao liberar um pedido
+  // já marcadas ao liberar um pedido; sem "Arquivos do cliente" (o Gustavo libera para quem quiser; pedido em 26/10/2026)
+  funcoesCampo: ["visita", "laudo", "insp", "trein", "serv", "avcb", "avcbFoto", "hist", "pastaTec", "equip", "os", "normas"],
   pastaUsuarios: "00 - Usuários do app",                              // em 02 - Clientes: registro de quem usa o app (para a administração)
   pastaAvcb: "00 - Validade AVCB",            // dentro de 02 - Clientes: fotos e dados dos AVCBs fotografados pela equipe
   // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
@@ -5028,6 +5029,8 @@ async function pastaRaizArq(cli) {
 
 function abrirArquivos(pastaInicial) {                 // pastaInicial: { id, nome } (ex.: a pasta de fotos, vindo do histórico)
   if (!cliente) return;
+  // todos os caminhos passam aqui (página do cliente, formulário, histórico, últimas visitas): só com "Arquivos do cliente"
+  if (!pode("arquivos")) { aviso("Você não tem acesso aos arquivos do cliente. Peça ao administrador.", true); return; }
   arq = { cliente, pilha: [], inicial: pastaInicial && pastaInicial.id ? pastaInicial : null };
   $("arq-titulo").textContent = cliente;
   $("tela-arq").hidden = false;
@@ -8653,7 +8656,8 @@ function desenharModulo() {
     const oss = Object.values(osDados).filter(o => (TIPOS_OS[o.tipo] || TIPOS_OS.outro).modo === m && (o.status === "aberta" || o.status === "andamento")).sort(ordemOS);
     if (oss.length) { t.appendChild(el("p", "hub-rot", "Ordens de serviço abertas")); oss.forEach(o => t.appendChild(cartaoOS(o, () => abrirOS({ aberta: o.numero })))); }
   }
-  // últimos documentos gerados (de todos os clientes)
+  // últimos documentos gerados (de todos os clientes); as últimas visitas abrem nos arquivos do cliente: só com essa permissão
+  if (m === "visita" && !pode("arquivos")) return;
   t.appendChild(el("p", "hub-rot", m === "visita" ? "Últimas visitas (pastas de fotos)" : "Últimos gerados"));
   const cache = lerLS("vpx_mod_" + m, null), lista = el("div");
   t.appendChild(lista);
