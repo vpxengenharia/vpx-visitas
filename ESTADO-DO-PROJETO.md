@@ -125,7 +125,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Agenda (criar compromisso):** no primeiro uso, autorizar a permissão `Calendars.ReadWrite` marcando "Consentir em nome da organização". Depois, criar um compromisso com convidado e link do Teams, editar e cancelar.
 
 ### Configurar
-- **Equipe de campo (pedidos de acesso):** configurado no Microsoft 365 e testado em 26/10/2026 (cadastro com e-mail do iCloud, liberação e entrada no app). Falta apagar os cadastros de teste ("Colaborador Teste" e "Funcionário Teste") quando não forem mais necessários: Remover acesso no app e excluir em Entra › Usuários.
+- **Equipe de campo (pedidos de acesso):** configurado no Microsoft 365 e testado em 26/10/2026 (cadastro com e-mail do iCloud, liberação, entrada no app e uma OS pega, executada e concluída pelo convidado). Decisão do Gustavo: sem agenda para os técnicos por enquanto (compromissos podem ir por convite para o e-mail pessoal). Falta apagar os cadastros de teste ("Colaborador Teste" e "Funcionário Teste") quando não forem mais necessários: Remover acesso no app e excluir em Entra › Usuários.
 - Em **Mais › Administração**, ligar **"Criar ordens de serviço"** para quem do escritório vai abrir OS.
 - Os técnicos precisam abrir o app pelo menos uma vez para aparecer na lista de "Direcionar a" das OS.
 
