@@ -38,8 +38,6 @@ button,input,label{font:inherit}
 .marca{font-family:var(--titulo-fonte);font-weight:700;font-size:22px;letter-spacing:.01em;margin:0}
 .marca{display:flex;align-items:center}
 .marca img{height:56px;width:auto;display:block}
-.logo-grande{display:block;margin:28px 0 4px}
-.logo-grande img{height:96px;width:auto;display:block}
 .conta{background:transparent;border:1.5px solid rgba(28,60,97,.45);color:var(--marinho);border-radius:999px;width:38px;height:38px;font-weight:600;cursor:pointer}
 .topo-dir{display:flex;align-items:center;gap:10px}
 @media (max-width:420px){.topo{padding-left:12px;padding-right:12px}.topo-dir{gap:6px}.marca img{height:48px}}   /* cabe todos os botões do topo no celular */
@@ -568,9 +566,44 @@ p{margin:0 0 14px;max-width:60ch}
 .sucesso .acoes{display:grid;gap:12px;max-width:360px;margin:22px auto 0}
 .sucesso .acoes svg{width:22px;height:22px}
 .selo.pendente{background:var(--laranja);font-size:38px}
-/* pedido de acesso da equipe de campo (tela de entrada) e pedidos na administração */
-.login-pedir{margin:30px 2px 8px;font-weight:600}
-#btn-pedir{width:100%}
+/* tela de entrada (e a de espera do pedido de acesso): desenho de cidade nas cores da VPX + painel com a logo,
+   o e-mail e os links (pedido do Gustavo em 28/10/2026, a partir de um exemplo). Sem o topo do app. */
+:root{--es-ceua:#F4F7FB;--es-ceub:#DCE7F3;--es-p3a:#E6EEF7;--es-p3b:#CFDDEC;--es-p3l:#C3D3E5;--es-p2a:#F3F7FB;--es-p2b:#CBDAEB;--es-p2l:#B7CAE0;
+  --es-p1a:#FFFFFF;--es-p1b:#DDE7F2;--es-p1l:#C6D5E7;--es-jan:rgba(110,140,175,.22);--es-sol:.3}
+@media (prefers-color-scheme:dark){:root{--es-ceua:#0E1A29;--es-ceub:#13233A;--es-p3a:#182B42;--es-p3b:#132339;--es-p3l:#0F1D30;--es-p2a:#1E3450;--es-p2b:#162A42;--es-p2l:#112237;
+  --es-p1a:#284262;--es-p1b:#1B3150;--es-p1l:#142842;--es-jan:rgba(140,170,210,.18);--es-sol:.2}}
+.entrada-arte{display:none}
+body.entrada-on .topo{display:none}
+body.entrada-on main{max-width:none;margin:0;padding:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--papel)}
+body.entrada-on .entrada-arte{display:block;position:relative;flex:none;height:32vh;min-height:190px;max-height:320px;overflow:hidden}
+.entrada-arte svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.entrada-painel{flex:1;position:relative;margin-top:-26px;background:var(--papel);border-radius:24px 24px 0 0;padding:30px 22px calc(28px + env(safe-area-inset-bottom,0px))}
+.entrada-painel[hidden]{display:none!important}   /* o display:flex do computador não pode mostrar a tela escondida */
+.entrada-caixa{max-width:420px;margin:0 auto}
+.entrada-logo img{display:block;height:84px;width:auto;margin:0 auto 10px}
+.entrada-sub{text-align:center;color:var(--suave);font-size:15.5px;margin:0 auto 24px}
+.entrada-rot{display:block;font-size:15px;font-weight:600;color:var(--tinta);margin:0 2px 6px}
+.entrada-campo{display:flex;align-items:center;gap:10px;min-height:56px;padding:0 14px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
+.entrada-campo:focus-within{border-color:var(--laranja);box-shadow:0 0 0 3px rgba(235,157,43,.25)}
+.entrada-campo .ic{color:var(--suave)}
+.entrada-campo input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--tinta);font-size:18px;padding:12px 0}
+.entrada-dica{font-size:13.5px;color:var(--suave);margin:8px 2px 0}
+.entrada-links{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:16px 2px 18px}
+.entrada-links a,.entrada-links button{display:inline-flex;align-items:center;background:none;border:0;padding:6px 0;min-height:42px;color:var(--marinho);font:inherit;font-size:15.5px;font-weight:600;text-decoration:none;cursor:pointer}
+.entrada-links a:hover,.entrada-links button:hover{text-decoration:underline}
+.entrada-links a:focus-visible,.entrada-links button:focus-visible{outline:3px solid var(--laranja);outline-offset:2px;border-radius:4px}
+@media (prefers-color-scheme:dark){.entrada-links a,.entrada-links button{color:var(--laranja)}}
+.entrada-nota{font-size:13.5px;color:var(--suave);text-align:center;margin:18px auto 0}
+#tela-espera.sucesso{padding-top:30px}
+/* tela larga (computador, tablet deitado): desenho à esquerda e painel à direita, como no exemplo */
+@media (min-width:900px){
+  body.entrada-on main{display:grid;grid-template-columns:minmax(0,1fr) minmax(440px,38%)}
+  body.entrada-on .entrada-arte{height:auto;max-height:none;min-height:100vh}
+  .entrada-painel,#tela-espera.sucesso{margin:0;border-radius:0;display:flex;align-items:center;padding:48px 56px}
+  .entrada-caixa{width:100%}
+  .entrada-logo img{height:96px}
+}
+/* pedidos de acesso na administração */
 .adm-pedido-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}
 .adm-pedido-acoes .btn{width:auto;min-height:48px;padding:0 20px;font-size:17px}
 .adm-tag.novo{color:var(--laranja)}
@@ -795,6 +828,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <symbol id="i-dinheiro" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle style="stroke:var(--ic-ac)" cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></symbol>
   <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-grade" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><path d="M16.75 14v5.5M14 16.75h5.5"/></symbol>
+  <symbol id="i-email" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path style="stroke:var(--ic-ac)" d="m4.5 7 7.5 6 7.5-6"/></symbol>
   <symbol id="i-sair" viewBox="0 0 24 24"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5"/><path style="stroke:var(--ic-ac)" d="M9.5 8 5.5 12l4 4M5.5 12h9"/></symbol>
 </svg>
 <header class="topo">
@@ -827,29 +861,44 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
     <p>Abra o arquivo <b>index.html</b> e preencha o <b>clientId</b> e o <b>tenantId</b> no bloco CONFIG, no início do script. O passo a passo está no arquivo LEIA-ME.</p>
   </section>
 
-  <section id="tela-login" hidden>
-    <picture class="logo-grande">
-      <source srcset="logo-branco.png" media="(prefers-color-scheme: dark)">
-      <img src="logo.png" alt="VPX Engenharia" width="172" height="96">
-    </picture>
-    <h1>Fotos da visita direto na pasta do cliente</h1>
-    <p>Entre com a sua conta da VPX. Equipe de campo: entre com o e-mail pessoal que você usou no pedido de acesso.</p>
-    <button class="btn prim" id="btn-entrar">Entrar</button>
-    <!-- equipe de campo sem conta da VPX: o cadastro (e-mail pessoal + código) é feito na página da Microsoft e o administrador libera -->
-    <p class="login-pedir">É da equipe de campo e ainda não tem acesso?</p>
-    <button class="btn sec" id="btn-pedir" type="button">Pedir acesso</button>
-    <p class="laudo-dica">Você usa o seu e-mail pessoal: a Microsoft manda um código para ele e pede seu nome e sua função. Depois é só aguardar a liberação.</p>
+  <!-- tela de entrada e de espera do pedido de acesso: desenho de cidade (à esquerda no computador, em cima no celular) + painel -->
+  <div class="entrada-arte" aria-hidden="true"><svg viewBox="0 0 1200 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><linearGradient id="es-ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--es-ceua)"/><stop offset="1" style="stop-color:var(--es-ceub)"/></linearGradient><linearGradient id="es-p3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--es-p3a)"/><stop offset="1" style="stop-color:var(--es-p3b)"/></linearGradient><linearGradient id="es-p2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--es-p2a)"/><stop offset="1" style="stop-color:var(--es-p2b)"/></linearGradient><linearGradient id="es-p1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--es-p1a)"/><stop offset="1" style="stop-color:var(--es-p1b)"/></linearGradient><radialGradient id="es-sol"><stop offset="0" style="stop-color:var(--laranja);stop-opacity:var(--es-sol)"/><stop offset="1" style="stop-color:var(--laranja);stop-opacity:0"/></radialGradient><linearGradient id="es-nevoa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--es-ceub);stop-opacity:0"/><stop offset="1" style="stop-color:var(--es-ceub);stop-opacity:.96"/></linearGradient><pattern id="es-jan" width="14" height="22" patternUnits="userSpaceOnUse"><rect y="10" width="14" height="2" style="fill:var(--es-jan)"/></pattern></defs><rect width="1200" height="900" fill="url(#es-ceu)"/><circle cx="800" cy="560" r="360" fill="url(#es-sol)"/><path fill="var(--es-p3l)" d="M35 361l12 5V900H35z"/><rect x="-20" y="361" width="55" height="539" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M109 410l14 6V900H109z"/><rect x="46" y="410" width="63" height="490" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M192 404l15 7V900H192z"/><rect x="124" y="404" width="68" height="496" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M287 422l17 8V900H287z"/><rect x="210" y="422" width="77" height="478" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M391 537l19 9V900H391z"/><rect x="303" y="537" width="88" height="363" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M486 419l18 8V900H486z"/><rect x="403" y="419" width="83" height="481" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M575 478l18 8V900H575z"/><rect x="493" y="478" width="82" height="422" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M683 568l19 9V900H683z"/><rect x="596" y="568" width="87" height="332" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M789 421l20 9V900H789z"/><rect x="697" y="421" width="92" height="479" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M883 363l17 8V900H883z"/><rect x="805" y="363" width="78" height="537" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M974 513l15 7V900H974z"/><rect x="904" y="513" width="70" height="387" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M1061 560l15 7V900H1061z"/><rect x="993" y="560" width="68" height="340" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M1144 523l16 7V900H1144z"/><rect x="1072" y="523" width="72" height="377" fill="url(#es-p3)"/><path fill="var(--es-p3l)" d="M1242 410l17 8V900H1242z"/><rect x="1165" y="410" width="77" height="490" fill="url(#es-p3)"/><path fill="var(--es-p2l)" d="M54 640l21 9V900H54z"/><rect x="-40" y="640" width="94" height="260" fill="url(#es-p2)"/><rect x="-32" y="654" width="78" height="246" fill="url(#es-jan)"/><path fill="var(--es-p2l)" d="M199 658l25 11V900H199z"/><rect x="84" y="658" width="115" height="242" fill="url(#es-p2)"/><rect x="92" y="672" width="99" height="228" fill="url(#es-jan)"/><path fill="var(--es-p2l)" d="M327 624l25 11V900H327z"/><rect x="215" y="624" width="112" height="276" fill="url(#es-p2)"/><rect x="223" y="638" width="96" height="262" fill="url(#es-jan)"/><path fill="var(--es-p2l)" d="M492 664l27 12V900H492z"/><rect x="371" y="664" width="121" height="236" fill="url(#es-p2)"/><rect x="379" y="678" width="105" height="222" fill="url(#es-jan)"/><path fill="var(--es-p2l)" d="M627 607l25 11V900H627z"/><rect x="515" y="607" width="112" height="293" fill="url(#es-p2)"/><path fill="var(--es-p2l)" d="M785 649l28 13V900H785z"/><rect x="658" y="649" width="127" height="251" fill="url(#es-p2)"/><rect x="666" y="663" width="111" height="237" fill="url(#es-jan)"/><path fill="var(--es-p2l)" d="M956 560l31 14V900H956z"/><rect x="814" y="560" width="142" height="340" fill="url(#es-p2)"/><rect x="822" y="574" width="126" height="326" fill="url(#es-jan)"/><path fill="var(--es-p2l)" d="M1107 548l26 12V900H1107z"/><rect x="987" y="548" width="120" height="352" fill="url(#es-p2)"/><rect x="995" y="562" width="104" height="338" fill="url(#es-jan)"/><path fill="var(--es-p2l)" d="M1266 645l29 13V900H1266z"/><rect x="1134" y="645" width="132" height="255" fill="url(#es-p2)"/><rect x="1142" y="659" width="116" height="241" fill="url(#es-jan)"/><path fill="var(--es-p1l)" d="M150 650l42 19V900H150z"/><rect x="-40" y="650" width="190" height="250" fill="url(#es-p1)"/><rect x="-32" y="664" width="174" height="236" fill="url(#es-jan)"/><path fill="var(--es-p1l)" d="M350 730l35 16V900H350z"/><rect x="190" y="730" width="160" height="170" fill="url(#es-p1)"/><rect x="198" y="744" width="144" height="156" fill="url(#es-jan)"/><path fill="var(--es-p1l)" d="M650 600l48 22V900H650z"/><rect x="430" y="600" width="220" height="300" fill="url(#es-p1)"/><rect x="438" y="614" width="204" height="286" fill="url(#es-jan)"/><path fill="var(--es-p1l)" d="M890 690l37 17V900H890z"/><rect x="720" y="690" width="170" height="210" fill="url(#es-p1)"/><rect x="728" y="704" width="154" height="196" fill="url(#es-jan)"/><path fill="var(--es-p1l)" d="M1160 620l51 23V900H1160z"/><rect x="930" y="620" width="230" height="280" fill="url(#es-p1)"/><rect x="938" y="634" width="214" height="266" fill="url(#es-jan)"/><path fill="var(--es-p1l)" d="M1300 710l33 15V900H1300z"/><rect x="1150" y="710" width="150" height="190" fill="url(#es-p1)"/><rect x="1158" y="724" width="134" height="176" fill="url(#es-jan)"/><rect y="520" width="1200" height="380" fill="url(#es-nevoa)"/></svg></div>
+
+  <section id="tela-login" class="entrada-painel" hidden>
+    <div class="entrada-caixa">
+      <h1 class="oculto">Entrar no app da VPX Engenharia</h1>
+      <picture class="entrada-logo">
+        <source srcset="logo-branco.png" media="(prefers-color-scheme: dark)">
+        <img src="logo.png" alt="VPX Engenharia" width="172" height="96">
+      </picture>
+      <p class="entrada-sub">Visitas, laudos e ordens de serviço direto na pasta do cliente.</p>
+      <!-- a senha não fica no app: o e-mail vai para a página da Microsoft (login_hint), que pede a senha ou manda o código -->
+      <form id="form-entrar" novalidate>
+        <label class="entrada-rot" for="login-email">E-mail</label>
+        <div class="entrada-campo"><svg class="ic" aria-hidden="true"><use href="#i-email"/></svg><input id="login-email" type="email" inputmode="email" autocomplete="username email" autocapitalize="off" spellcheck="false" placeholder="exemplo@exemplo.com" enterkeyhint="go"></div>
+        <p class="entrada-dica">Na próxima tela, a Microsoft pede a sua senha ou manda um código para o seu e-mail.</p>
+        <div class="entrada-links">
+          <a id="login-esqueci" href="https://passwordreset.microsoftonline.com/" target="_blank" rel="noopener">Esqueceu a senha?</a>
+          <!-- equipe de campo sem conta da VPX: cadastro (e-mail pessoal + código) na página da Microsoft; o administrador libera -->
+          <button id="btn-pedir" type="button">Primeiro acesso</button>
+        </div>
+        <button class="btn prim" id="btn-entrar" type="submit">Entrar</button>
+      </form>
+      <p class="entrada-nota">Primeiro acesso é para a equipe de campo: peça o acesso com o seu e-mail pessoal e aguarde a liberação.</p>
+    </div>
   </section>
 
   <!-- equipe de campo (convidado) ainda não liberada pelo administrador -->
-  <section id="tela-espera" class="sucesso" hidden>
-    <div class="selo pendente">⏳</div>
-    <h1 id="espera-titulo">Pedido de acesso enviado</h1>
-    <p id="espera-texto" style="margin:0 auto"></p>
-    <div class="acoes">
-      <a class="btn prim" id="espera-whats" target="_blank" rel="noopener">Avisar a VPX pelo WhatsApp</a>
-      <button class="btn sec" id="espera-tentar" type="button">Já fui liberado</button>
-      <button class="btn sec" id="espera-sair" type="button">Sair</button>
+  <section id="tela-espera" class="sucesso entrada-painel" hidden>
+    <div class="entrada-caixa">
+      <div class="selo pendente">⏳</div>
+      <h1 id="espera-titulo">Pedido de acesso enviado</h1>
+      <p id="espera-texto" style="margin:0 auto"></p>
+      <div class="acoes">
+        <a class="btn prim" id="espera-whats" target="_blank" rel="noopener">Avisar a VPX pelo WhatsApp</a>
+        <button class="btn sec" id="espera-tentar" type="button">Já fui liberado</button>
+        <button class="btn sec" id="espera-sair" type="button">Sair</button>
+      </div>
     </div>
   </section>
 
@@ -1392,6 +1441,7 @@ function aviso(msg, erro = false) {
 function mostrar(tela) {
   const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-reg", "tela-mod", "tela-fin", "tela-mais"];
   ["tela-config", "tela-login", "tela-espera", "tela-app", "tela-ok", ...hubs].forEach(t => $(t).hidden = t !== tela);
+  document.body.classList.toggle("entrada-on", tela === "tela-login" || tela === "tela-espera");   // desenho da cidade, sem o topo do app
   $("barra").hidden = tela !== "tela-app";
   if (tela !== "tela-app") $("ld-prog").hidden = true;   // barra do laudo só no formulário
   const hub = hubs.includes(tela);
@@ -9030,9 +9080,24 @@ async function iniciarApp() {
   if (lerLS("vpx_abrir_admin", false)) { gravarLS("vpx_abrir_admin", false); abrirAdmin(); }   // voltou da autorização para ler os pedidos de acesso
 }
 
-$("btn-entrar").onclick = () => msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "select_account" });
-// equipe de campo: "create" abre direto o cadastro da Microsoft (fluxo de cadastro de convidados ligado ao app no Entra)
-$("btn-pedir").onclick = () => { gravarLS("vpx_pediu_acesso", true); msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "create" }).catch(e => aviso("Não foi possível abrir o pedido de acesso: " + e.message, true)); };
+// entrada: o e-mail digitado vai para a página da Microsoft (login_hint), que pede a senha ou manda o código; fica lembrado no aparelho
+const emailEntrada = () => $("login-email").value.trim().toLowerCase();
+$("login-email").value = lerLS("vpx_login_email", "");
+$("form-entrar").onsubmit = e => {
+  e.preventDefault();
+  const email = emailEntrada();
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { aviso("Confira o e-mail digitado.", true); $("login-email").focus(); return; }
+  gravarLS("vpx_login_email", email);
+  msalApp.loginRedirect(email ? { scopes: ESCOPOS, loginHint: email } : { scopes: ESCOPOS, prompt: "select_account" })
+    .catch(err => aviso("Não foi possível abrir o login: " + err.message, true));
+};
+// primeiro acesso (equipe de campo): "create" abre direto o cadastro da Microsoft (fluxo de cadastro de convidados ligado ao app no Entra)
+$("btn-pedir").onclick = () => {
+  const email = emailEntrada();
+  gravarLS("vpx_pediu_acesso", true);
+  if (email) gravarLS("vpx_login_email", email);
+  msalApp.loginRedirect({ scopes: ESCOPOS, prompt: "create", ...(email ? { loginHint: email } : {}) }).catch(e => aviso("Não foi possível abrir o pedido de acesso: " + e.message, true));
+};
 $("espera-tentar").onclick = () => location.reload();
 $("espera-sair").onclick = sairConta;
 $("btn-conta").onclick = () => irPara("mais");     // iniciais no topo: conta e mais opções
