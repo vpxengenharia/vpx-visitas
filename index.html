@@ -6340,7 +6340,7 @@ function pintarFaixaOS() {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -7298,7 +7298,14 @@ const FORMAS_PAG = ["Boleto", "PIX", "Transferência", "Dinheiro"];
 const caminhoPed = t => t === "pag" ? CONFIG.pagamentosCaminho : CONFIG.pedidosCaminho;
 const nomePastaPed = t => t === "pag" ? CONFIG.pagamentosNome : CONFIG.pedidosNome;
 const tipoDe = p => p.tipo || "compra";                         // pedidos antigos (antes dos pagamentos) são de compra
-const podeTipo = t => ehAdmin() || pode(TIPOS_PED[t].perm);
+// quem faz os pagamentos (ex.: Raquel): vê os pedidos de pagamento de todos e marca os aprovados como pagos.
+// Só com a função marcada na administração (sem o arquivo de permissões não vale, para não mostrar a todos)
+const ehPagador = () => !ehAdmin() && !!perm && pode("pagar");
+const podeTipo = t => ehAdmin() || pode(TIPOS_PED[t].perm) || (t === "pag" && ehPagador());
+// pedidos que esperam esta pessoa: o administrador aprova; quem paga, paga os aprovados
+const esperandoMim = tp => Object.values(pedidos).filter(p => (!tp || tipoDe(p) === tp) &&
+  (ehAdmin() ? p.status === "aguardando" : ehPagador() && tipoDe(p) === "pag" && p.status === "aprovado")).length;
+const txtEsperando = n => ehAdmin() ? `${n} aguardando sua aprovação` : `${n} aprovado${n > 1 ? "s" : ""} para pagar`;
 let pedidos = lerLS("vpx_pc", {});                 // id → { ...json, etag, itemId, pdfWeb, anexosWeb }
 let pcTipo = "compra", pcFiltro = "abertos", pcNovo = null, pcAberto = null;
 
@@ -7362,9 +7369,9 @@ async function sincronizarPedidos() {
   atualizarContadores();
   if (!$("tela-pc").hidden) desenharPedidos();
 }
-const meusPedidos = () => Object.values(pedidos).filter(p => ehAdmin() || p.solicitante?.email === emailDe());
+const meusPedidos = () => Object.values(pedidos).filter(p => ehAdmin() || p.solicitante?.email === emailDe() || (tipoDe(p) === "pag" && ehPagador()));
 function atualizarContadores() {
-  const n = ehAdmin() ? Object.values(pedidos).filter(p => p.status === "aguardando").length : 0;
+  const n = esperandoMim();
   $("menu-qtd").hidden = !n; $("menu-qtd").textContent = n;
   $("mn-pc-qtd").hidden = !n; $("mn-pc-qtd").textContent = n;
   $("nav-fin-qtd").hidden = !n; $("nav-fin-qtd").textContent = n;   // barra de baixo: Mais (o Financeiro fica lá dentro)
@@ -7400,7 +7407,7 @@ function desenharPedidos() {
   const abas = $("pc-tipos"), tipos = Object.keys(TIPOS_PED).filter(podeTipo);
   abas.hidden = tipos.length < 2;
   abas.querySelectorAll("button").forEach(b => { b.hidden = !tipos.includes(b.dataset.t); b.setAttribute("aria-selected", String(b.dataset.t === pcTipo));
-    const n = ehAdmin() ? Object.values(pedidos).filter(p => tipoDe(p) === b.dataset.t && p.status === "aguardando").length : 0;
+    const n = esperandoMim(b.dataset.t);
     comIc(b, TIPOS_PED[b.dataset.t].ico, TIPOS_PED[b.dataset.t].aba + (n ? ` (${n})` : "")); });
   $("pc-novo-btn").textContent = pcTipo === "pag" ? "+ Novo pedido de pagamento" : "+ Novo pedido de compra";
   $("pc-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === pcFiltro)));
@@ -7467,7 +7474,7 @@ function desenharDetalhePC(p) {
   const adm = ehAdmin(), meu = p.solicitante?.email === emailDe();
   if (!p.pendente) {
     if (adm && p.status === "aguardando") { botao("✓ Aprovar", "prim", () => mudarStatusPC(p, "aprovado")); botao("Recusar", "sec", () => mudarStatusPC(p, "recusado", true)); }
-    if (adm && p.status === "aprovado") pag ? botao("Marcar como pago (anexar comprovante)", "prim", () => marcarPago(p)) : botao("Marcar como comprado", "prim", () => marcarComprado(p));
+    if ((adm || (pag && ehPagador())) && p.status === "aprovado") pag ? botao("Marcar como pago (anexar comprovante)", "prim", () => marcarPago(p)) : botao("Marcar como comprado", "prim", () => marcarComprado(p));
     if (!pag && (adm || meu) && p.status === "comprado") botao("Marcar como entregue", "prim", () => mudarStatusPC(p, "entregue"));
     if (meu && p.status === "aguardando") botao("Cancelar pedido", "sec", () => mudarStatusPC(p, "cancelado", true));
   }
@@ -9111,10 +9118,10 @@ function desenharFin() {
     t.appendChild(el("p", "hub-rot", "Pedidos"));
     const l = el("div", "hub-lista");
     tipos.forEach(tp => {
-      const aguard = ehAdmin() ? Object.values(pedidos).filter(p => tipoDe(p) === tp && p.status === "aguardando").length : 0;
+      const aguard = esperandoMim(tp);
       const meusAbertos = meusPedidos().filter(p => tipoDe(p) === tp && TIPOS_PED[tp].abertos.includes(p.status)).length;
       l.appendChild(linha(tp === "pag" ? "cartao" : "carrinho", tp === "pag" ? "Pedidos de pagamento" : "Pedidos de compra",
-        aguard ? `${aguard} aguardando sua aprovação` : meusAbertos ? `${meusAbertos} em aberto` : "Fazer e acompanhar pedidos",
+        aguard ? txtEsperando(aguard) : meusAbertos ? `${meusAbertos} em aberto` : "Fazer e acompanhar pedidos",
         () => { pcTipo = tp; abrirPedidos(); }, aguard));
     });
     t.appendChild(l);
@@ -9126,9 +9133,9 @@ function desenharMais() {
   const t = $("tela-mais"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Mais"));
   if (podeFin()) {                                 // Financeiro saiu da barra de baixo e fica aqui, com o contador de pedidos
-    const aguard = ehAdmin() ? Object.values(pedidos).filter(p => p.status === "aguardando").length : 0;
+    const aguard = esperandoMim();
     const f = el("div", "hub-lista");
-    f.appendChild(linha("dinheiro", "Financeiro", aguard ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : "Comprovantes e pedidos de compra e pagamento", () => irPara("fin"), aguard));
+    f.appendChild(linha("dinheiro", "Financeiro", aguard ? (ehAdmin() ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : `${aguard} pagamento${aguard > 1 ? "s" : ""} aprovado${aguard > 1 ? "s" : ""} para pagar`) : "Comprovantes e pedidos de compra e pagamento", () => irPara("fin"), aguard));
     t.appendChild(f);
   }
   const l = el("div", "hub-lista");
