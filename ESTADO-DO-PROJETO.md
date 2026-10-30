@@ -75,7 +75,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 ### Financeiro
 - **Comprovantes** de compra e reembolso, com **valor obrigatório**.
 - **Histórico de comprovantes:** cada um vê os seus, o administrador vê todos. Mostra o total do mês e exporta planilha.
-- **Pedidos de compra e de pagamento**, com aprovação, acompanhamento e planilha.
+- **Pedidos de compra e de pagamento**, com aprovação, acompanhamento e planilha. No pedido de pagamento, **favoritos e recentes**: um toque preenche nome, chave PIX ou conta, centro de custo e descrição; falta só o valor (desde 30/10/2026).
 
 ### Outros
 - **Agenda do Outlook:** ver a agenda; criar compromissos com convidados e link do Teams; editar e cancelar os que a pessoa criou; compartilhar pelo WhatsApp.

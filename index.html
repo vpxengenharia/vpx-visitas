@@ -231,6 +231,10 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .mn-qtd[hidden]{display:none}
 .mn-conta{margin:6px 12px 0;padding-top:8px;border-top:1px solid var(--linha);font-size:12.5px;color:var(--suave);overflow-wrap:anywhere}
 #mn-sair{color:var(--erro)}
+.pp-fav{background:var(--papel);border:1.5px solid var(--linha);border-radius:12px;padding:6px 12px 2px;margin:6px 0 12px}
+.pp-fav .chips{margin-bottom:6px}
+.pp-fav .fav-chip{border-color:var(--laranja)}
+#pp-fav-btn{margin:-6px 0 8px}
 .pc-tipos{grid-template-columns:1fr 1fr;margin-bottom:12px}
 .pc-tipos[hidden]{display:none}
 .pc-card{display:block;width:100%;text-align:left;background:var(--papel);border:1.5px solid var(--linha);border-left-width:6px;border-radius:12px;padding:10px 12px;margin-bottom:8px;color:var(--tinta);cursor:pointer}
@@ -7354,6 +7358,7 @@ async function sincronizarPedidos() {
   gravarLS("vpx_pc", pedidos);
   sincronizarPedidos.rodando = false;
   sincronizarPedidos.erros = erros;
+  carregarFavoritosPP();                          // favoritos do pedido de pagamento (mesmos em outro celular)
   atualizarContadores();
   if (!$("tela-pc").hidden) desenharPedidos();
 }
@@ -7574,14 +7579,120 @@ function textoPC(f, rot, chave, op = {}) {
   w.appendChild(e); f.appendChild(w); return w;
 }
 
+/* favoritos e recentes do pedido de pagamento: um toque preenche favorecido, documento, forma, chave PIX ou banco,
+   centro de custo e descrição; falta só o valor. Favoritos de cada pessoa ficam no celular (vpx_pp_fav) e numa cópia
+   em "03 - Pedidos de Pagamento/Favoritos/<email>.json" (mesmos favoritos em outro celular ou no computador).
+   Recentes = pedidos de pagamento anteriores visíveis para a pessoa (os dela; o administrador vê todos). */
+const CAMPOS_FAV_PP = ["favorecido", "docFav", "forma", "pix", "banco", "agencia", "contaBanco", "centro", "centroDesc", "descricao"];
+let favPP = lerLS("vpx_pp_fav", { itens: [], pendente: false });
+const chaveFavPP = n => semAcento((n || "").trim());
+const ehFavPP = nome => favPP.itens.some(x => chaveFavPP(x.favorecido) === chaveFavPP(nome));
+function recentesPP() {
+  const vistos = new Set(favPP.itens.map(x => chaveFavPP(x.favorecido))), out = [];
+  for (const p of meusPedidos().filter(p => tipoDe(p) === "pag" && p.favorecido).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""))) {
+    const k = chaveFavPP(p.favorecido);
+    if (vistos.has(k)) continue;
+    vistos.add(k); out.push(p);
+    if (out.length >= 6) break;
+  }
+  return out;
+}
+// próximo dia da semana igual ao do último vencimento (pagamento semanal de sexta cai na próxima sexta; hoje, se for o dia)
+function proximoMesmoDia(iso) {
+  if (!iso) return "";
+  const alvo = new Date(iso + "T12:00:00").getDay(), d = new Date(); d.setHours(12, 0, 0, 0);
+  while (d.getDay() !== alvo) d.setDate(d.getDate() + 1);
+  return dataISO(d);
+}
+function ultimoVencPP(nome) {
+  return meusPedidos().filter(p => tipoDe(p) === "pag" && chaveFavPP(p.favorecido) === chaveFavPP(nome) && p.vencimento)
+    .sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""))[0]?.vencimento || "";
+}
+function preencherFavoritoPP(origem) {
+  CAMPOS_FAV_PP.forEach(c => { pcNovo[c] = origem[c] || ""; });
+  pcNovo.forma ||= "PIX";
+  pcNovo.valor = "";
+  pcNovo.vencimento = proximoMesmoDia(ultimoVencPP(origem.favorecido)) || pcNovo.vencimento || "";
+  gravarRascPC(); desenharNovoPC();
+  const v = [...$("pc-novo").querySelectorAll("label.campo")].find(l => l.querySelector("span")?.textContent.startsWith("Valor"))?.querySelector("input");
+  if (v) { v.scrollIntoView({ block: "center" }); v.focus(); }
+  aviso(`Dados de ${origem.favorecido} preenchidos. Informe o valor.`);
+}
+function blocoFavoritosPP(f) {
+  const recentes = recentesPP();
+  if (!favPP.itens.length && !recentes.length) return;
+  const w = el("div", "pp-fav");
+  const grupo = (rot, lista, fav) => {
+    if (!lista.length) return;
+    w.appendChild(el("p", "adm-grupo", rot));
+    const c = el("div", "chips");
+    lista.forEach(o => { const b = el("button", fav ? "fav-chip" : "", (fav ? "★ " : "") + o.favorecido); b.type = "button";
+      b.title = [o.forma, o.forma === "PIX" ? o.pix : "", o.centro].filter(Boolean).join(" · ");
+      b.onclick = () => preencherFavoritoPP(o); c.appendChild(b); });
+    w.appendChild(c);
+  };
+  grupo("Favoritos", favPP.itens.slice().sort((a, b) => a.favorecido.localeCompare(b.favorecido, "pt-BR")), true);
+  grupo("Recentes", recentes, false);
+  w.appendChild(el("p", "laudo-dica", "Toque num nome para preencher os dados; depois é só informar o valor."));
+  f.appendChild(w);
+}
+function botaoFavoritoPP(f) {
+  const nome = (pcNovo.favorecido || "").trim();
+  const ja = nome && ehFavPP(nome);
+  const b = el("button", "laudo-link", ja ? "★ Favorito (toque para remover)" : "☆ Salvar como favorito"); b.type = "button";
+  b.hidden = !nome; b.id = "pp-fav-btn";
+  b.onclick = () => alternarFavoritoPP();
+  f.appendChild(b);
+}
+function alternarFavoritoPP() {
+  const nome = (pcNovo.favorecido || "").trim();
+  if (!nome) { aviso("Escreva o favorecido primeiro.", true); return; }
+  if (ehFavPP(nome)) {
+    if (!confirm(`Tirar ${nome} dos favoritos?`)) return;
+    favPP.itens = favPP.itens.filter(x => chaveFavPP(x.favorecido) !== chaveFavPP(nome));
+    aviso(`${nome} saiu dos favoritos.`);
+  } else {
+    const novo = {}; CAMPOS_FAV_PP.forEach(c => { novo[c] = (pcNovo[c] || "").trim(); });
+    favPP.itens.push(novo);
+    aviso(`${nome} salvo nos favoritos (com a forma de pagamento, chave/conta, centro de custo e descrição de agora).`);
+  }
+  favPP.pendente = true; favPP.quando = new Date().toISOString();
+  gravarLS("vpx_pp_fav", favPP);
+  enviarFavoritosPP();
+  desenharNovoPC();
+}
+// cópia dos favoritos no OneDrive (de cada pessoa); quem estiver sem internet envia na próxima atualização dos pedidos
+async function pastaFavoritosPP() { return (await garantirFilhas(await basePedidos("pag"), ["Favoritos"])).id; }
+async function enviarFavoritosPP() {
+  if (!favPP.pendente || !navigator.onLine || !conta || !podeTipo("pag")) return;
+  try {
+    const pasta = await pastaFavoritosPP();
+    const { pendente, ...dados } = favPP;
+    await graph(`/drives/${CONFIG.driveId}/items/${pasta}:/${encodeURIComponent(emailDe() + ".json")}:/content`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dados, null, 2) });
+    favPP.pendente = false; gravarLS("vpx_pp_fav", favPP);
+  } catch (e) { console.error("favoritos:", e); }
+}
+async function carregarFavoritosPP() {
+  if (!navigator.onLine || !conta || !podeTipo("pag")) return;
+  if (favPP.pendente) { await enviarFavoritosPP(); return; }          // o do celular é mais novo: manda
+  try {
+    const it = await graph(`/drives/${CONFIG.driveId}/items/${await basePedidos("pag")}:/Favoritos/${encodeURIComponent(emailDe() + ".json")}`);
+    const d = await (await fetch(it["@microsoft.graph.downloadUrl"])).json();
+    if (Array.isArray(d.itens)) { favPP = { itens: d.itens, quando: d.quando, pendente: false }; gravarLS("vpx_pp_fav", favPP); }
+  } catch (e) { if (e.status !== 404) console.error("favoritos:", e); }
+}
+
 function desenharNovoPC() {
   const f = $("pc-novo"); f.innerHTML = "";
   const pag = pcNovo.tipo === "pag";
   const voltar = el("button", "laudo-link", "‹ Cancelar"); voltar.type = "button"; voltar.onclick = fecharNovoPC;
   f.append(voltar, el("h2", "secao", pag ? "Novo pedido de pagamento" : "Novo pedido de compra"));
+  if (pag) blocoFavoritosPP(f);
   campoCentroPC(f);
   if (pag) {
     textoPC(f, "Favorecido (quem recebe) *", "favorecido", { dica: "Empresa ou pessoa" });
+    botaoFavoritoPP(f);
     textoPC(f, "CPF/CNPJ do favorecido", "docFav", { num: true });
     textoPC(f, "Valor (R$) *", "valor", { num: true, dica: "Ex.: 1.250,00" });
     textoPC(f, "Vencimento *", "vencimento", { tipo: "date" });
