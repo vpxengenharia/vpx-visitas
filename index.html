@@ -340,9 +340,17 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .avcb-card .l3{font-size:13px;opacity:.85;margin-top:2px}
 .avcb-nota{font-size:13px;color:var(--suave);margin-top:16px}
 #avcb-sinc{margin:0 2px 8px}
-.avcb-acoes{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:12px}
+.avcb-acoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}   /* Fotografar na 1ª linha; Galeria e PDF embaixo */
 .avcb-acoes .btn{width:auto;font-size:17px}
+.avcb-acoes .btn.prim{grid-column:1 / -1}
 .avcb-acoes svg{width:22px;height:22px}
+.avcb-acoes .ic.in{width:20px;height:20px;margin:-2px 7px 0 0}
+#an-foto[src]{cursor:zoom-in}                       /* toque no documento abre em tela cheia, com zoom */
+.an-ampliar{font-size:13px;color:var(--suave);text-align:center;margin:-4px 0 10px}
+.an-foto:not([src]),.an-foto:not([src]) + .an-ampliar{display:none}   /* PDF: a imagem aparece quando a 1ª página fica pronta */
+/* arrastar a foto ou o PDF do AVCB para a tela de Validade AVCB (computador) */
+body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do AVCB";position:absolute;z-index:5;inset:12px;display:grid;place-items:center;border:3px dashed var(--laranja);border-radius:18px;background:rgba(242,244,247,.92);font-family:var(--titulo-fonte);font-size:26px;font-weight:700;color:var(--marinho);pointer-events:none}
+@media (prefers-color-scheme:dark){body.soltando #tela-avcb:not([hidden])::before{background:rgba(14,26,41,.92);color:var(--tinta)}}
 .avcb-filtro{margin-bottom:12px}
 .avcb-card .cat{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8;margin-left:6px}
 .avcb-card .l4{font-size:12.5px;opacity:.8;margin-top:4px}
@@ -772,7 +780,8 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   #arq-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:10px}
   #arq-lista > li{display:flex}                    /* cartões da mesma linha com a mesma altura */
   #os-corpo > .btn.prim,#pc-novo-btn,#pt-gerar,#eqv-exportar,#ch-exportar,#its-guardar,#arq-baixar{width:fit-content!important;min-width:280px;padding:0 28px}
-  .avcb-acoes{grid-template-columns:repeat(2,minmax(0,260px))}
+  .avcb-acoes{grid-template-columns:repeat(3,minmax(0,220px))}
+  .avcb-acoes .btn.prim{grid-column:auto}
   /* escolher cliente: janela no meio da tela */
   dialog{max-width:600px;height:min(780px, calc(100vh - 96px));max-height:none;margin:auto;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
   /* mouse por cima: destaca o que dá para clicar */
@@ -1269,8 +1278,14 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
         <input class="oculto" type="file" accept="image/*" capture="environment" id="in-avcb-cam">
       </label>
       <label class="btn sec">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg>
         Galeria
         <input class="oculto" type="file" accept="image/*" id="in-avcb-gal">
+      </label>
+      <!-- AVCB em PDF (pedido do Gustavo em 04/11/2026): o app lê o texto do PDF e preenche os campos -->
+      <label class="btn sec">
+        <svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>PDF
+        <input class="oculto" type="file" accept="application/pdf,.pdf" id="in-avcb-pdf">
       </label>
     </div>
     <div class="chips avcb-filtro" id="avcb-filtro">
@@ -1292,7 +1307,8 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
     <strong>Novo AVCB/CLCB</strong>
   </div>
   <div class="avcb-corpo">
-    <img class="an-foto" id="an-foto" alt="Foto do documento">
+    <img class="an-foto" id="an-foto" alt="Documento do AVCB">
+    <p class="an-ampliar" id="an-ampliar">Toque no documento para ampliar.</p>
     <p class="an-status" id="an-status"></p>
     <div class="campo"><span>Categoria *</span><div class="chips" id="an-cat">
       <button type="button" data-v="cliente" aria-pressed="false">Cliente</button>
@@ -4212,6 +4228,12 @@ const carregarScript = src => new Promise((ok, falha) => {
   s.src = src; s.onload = ok; s.onerror = () => falha(new Error("não carregou " + src));
   document.head.appendChild(s);
 });
+async function carregarPdfjs() {
+  if (window.pdfjsLib) return;
+  await carregarScript(PDFJS + "pdf.min.js");
+  await carregarScript(PDFJS + "pdf.worker.min.js");   // carregado na página: o pdf.js roda sem worker separado
+  pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js";
+}
 function verRelatorio() {
   if (relatorio) abrirVisor(arquivoRelatorio(), relatorio.titulo, `${relatorio.titulo} - ${relatorio.cliente}`);
 }
@@ -4234,11 +4256,7 @@ async function abrirVisor(arquivo, titulo, texto, op = {}) {      // op.pagina: 
     if (arquivo.type.startsWith("image/") || ehImgArq(arquivo.name)) {
       este.img = URL.createObjectURL(arquivo);
     } else {
-      if (!window.pdfjsLib) {
-        await carregarScript(PDFJS + "pdf.min.js");
-        await carregarScript(PDFJS + "pdf.worker.min.js");   // carregado na página: o pdf.js roda sem worker separado
-        pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js";
-      }
+      await carregarPdfjs();
       este.pdf = await pdfjsLib.getDocument({ data: await arquivo.arrayBuffer() }).promise;
     }
     if (visor !== este) return;
@@ -5323,7 +5341,7 @@ async function montarHistorico(cli) {
 function avcbsFotografados(cli) {
   const n = semAcento(cli);
   return Object.values(regsAvcb).filter(r => { const a = semAcento(r.nome || ""); return a && (a === n || n.startsWith(a) || a.startsWith(n)); })
-    .map(r => ({ tipo: "avcb", titulo: `${r.tipo || "AVCB"} fotografado - válido até ${dataBRde(r.validade)}`, data: (r.fotografadoEm || "").slice(0, 10), autor: r.fotografadoPor || "", fotoWeb: r.foto }));
+    .map(r => ({ tipo: "avcb", titulo: `${r.tipo || "AVCB"} ${r.pdf ? "enviado em PDF" : "fotografado"} - válido até ${dataBRde(r.validade)}`, data: (r.fotografadoEm || "").slice(0, 10), autor: r.fotografadoPor || "", fotoWeb: r.foto }));
 }
 
 async function carregarHistorico(cli, forcar = false) {
@@ -5428,7 +5446,7 @@ async function abrirEventoHist(e) {
     abrirArquivos({ id, nome: e.pasta });
     return;
   }
-  if (e.tipo === "avcb") { if (e.fotoWeb && navigator.onLine) window.open(e.fotoWeb, "_blank", "noopener"); else aviso("A foto do AVCB abre com internet."); return; }
+  if (e.tipo === "avcb") { if (e.fotoWeb && navigator.onLine) window.open(e.fotoWeb, "_blank", "noopener"); else aviso("O documento do AVCB abre com internet."); return; }
   // PDF: usa o guardado no celular ou baixa
   let blob = guardadosArq[e.id] && guardadosArq[e.id].mod === e.mod ? await lerArqGuardado(e.id).catch(() => null) : null;
   if (!blob) {
@@ -7971,10 +7989,10 @@ function desenharAvcb() {
       if (v.reg) {
         const l4 = document.createElement("div"); l4.className = "l4";
         const quando = v.reg.fotografadoEm ? dataBRde(dataISO(new Date(v.reg.fotografadoEm))) : "";
-        comIc(l4, "camera", `${v.reg.fotografadoPor || ""}${quando ? " · " + quando : ""}`);
+        comIc(l4, v.reg.pdf ? "doc" : "camera", `${v.reg.fotografadoPor || ""}${quando ? " · " + quando : ""}`);
         if (v.reg.pendente) l4.append(" · ⏳ aguardando envio");
         else if (v.reg.foto) {
-          const a = document.createElement("a"); a.href = v.reg.foto; a.target = "_blank"; a.rel = "noopener"; a.textContent = "ver foto";
+          const a = document.createElement("a"); a.href = v.reg.foto; a.target = "_blank"; a.rel = "noopener"; a.textContent = v.reg.pdf ? "ver PDF" : "ver foto";
           l4.append(" · ", a);
         }
         c.appendChild(l4);
@@ -7985,8 +8003,8 @@ function desenharAvcb() {
   if (!filtrados.length) { const p = document.createElement("p"); p.className = "avcb-nota"; p.textContent = "Nenhum estabelecimento encontrado."; lista.appendChild(p); }
   const n = Object.keys(regsAvcb).length;
   $("avcb-nota").textContent = `Lista do painel "Validade AVCB/CLCB" copiada em ${CONFIG.validadeAvcbData}` +
-    (n ? ` + ${n} AVCB${n > 1 ? "s" : ""} fotografado${n > 1 ? "s" : ""} pela equipe.` : ".") +
-    ` As fotos ficam em ${CONFIG.pastaClientesNome} › ${CONFIG.pastaAvcb}.`;
+    (n ? ` + ${n} AVCB${n > 1 ? "s" : ""} registrado${n > 1 ? "s" : ""} pela equipe (foto ou PDF).` : ".") +
+    ` Os arquivos ficam em ${CONFIG.pastaClientesNome} › ${CONFIG.pastaAvcb}.`;
 }
 
 // contador no botão AVCB: clientes vencidos + vencendo em até 3 meses (prospecção não conta)
@@ -8014,7 +8032,7 @@ function filtrarAvcb(f) {
   desenharAvcb();
 }
 
-// lê a pasta 00 - Validade AVCB: baixa só os .json novos ou alterados; a foto vira o link "ver foto"
+// lê a pasta 00 - Validade AVCB: baixa só os .json novos ou alterados; a foto (ou o PDF) vira o link "ver foto" ("ver PDF")
 async function sincronizarAvcb() {
   if (!conta || !navigator.onLine || sincronizarAvcb.rodando) return;
   sincronizarAvcb.rodando = true;
@@ -8109,29 +8127,122 @@ const CAMPOS_AN = ["an-nome", "an-validade", "an-numero", "an-cnpj", "an-enderec
 const chipDe = id => $(id).querySelector('[aria-pressed="true"]')?.dataset.v || "";
 const marcarChip = (id, v) => $(id).querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
 
-function aoEscolherFotoAvcb(e) {
+const ehPdfAvcb = f => f.type === "application/pdf" || ehPdfArq(f.name);
+
+function aoEscolherAvcb(e) {
   const arquivo = e.target.files?.[0];
   e.target.value = "";
   if (arquivo) abrirNovoAvcb(arquivo);
 }
+// arquivo = foto do AVCB (câmera ou Galeria) ou o PDF do documento (botão PDF, ou arrastado para a tela no computador)
 function abrirNovoAvcb(arquivo) {
-  novoAvcb = { arquivo, url: URL.createObjectURL(arquivo) };
-  $("an-foto").src = novoAvcb.url;
+  const pdf = ehPdfAvcb(arquivo);
+  novoAvcb = { arquivo, pdf, url: pdf ? null : URL.createObjectURL(arquivo) };   // PDF: a imagem da 1ª página vem em lerPdfAvcb
+  if (novoAvcb.url) $("an-foto").src = novoAvcb.url; else $("an-foto").removeAttribute("src");
+  $("an-ampliar").textContent = (computador.matches ? "Clique" : "Toque") + " no documento para ampliar.";
   CAMPOS_AN.forEach(id => $(id).value = "");
   marcarChip("an-cat", ""); marcarChip("an-tipo", "");
   $("tela-avcb-novo").hidden = false;
   $("tela-avcb-novo").querySelector(".avcb-corpo").scrollTop = 0;
   history.pushState({ avcbNovo: true }, "");
   conferirAvcb();
-  lerFotoAvcb(novoAvcb);
+  (pdf ? lerPdfAvcb : lerFotoAvcb)(novoAvcb);
 }
 function fecharNovoAvcb(voltar = true) {
   if ($("tela-avcb-novo").hidden) return;
   $("tela-avcb-novo").hidden = true;
-  if (novoAvcb) URL.revokeObjectURL(novoAvcb.url);
+  if (novoAvcb?.url) URL.revokeObjectURL(novoAvcb.url);
   novoAvcb = null;
   $("an-foto").removeAttribute("src");
   if (voltar && history.state?.avcbNovo) history.back();
+}
+// toque na imagem: abre a foto ou o PDF original no visualizador, com zoom, para conferir os números
+function ampliarNovoAvcb() {
+  if (novoAvcb && $("an-foto").hasAttribute("src")) abrirVisor(novoAvcb.arquivo, "Documento do AVCB", "AVCB");
+}
+
+// coloca nos campos o que foi lido, sem apagar o que a pessoa já digitou; devolve quantos dos 3 principais achou (nome, validade, tipo)
+function preencherAvcb(c) {
+  const preencher = (id, v) => { if (v && !$(id).value) $(id).value = v; };
+  preencher("an-nome", c.nome); preencher("an-validade", c.validade); preencher("an-numero", c.numero);
+  preencher("an-cnpj", c.cnpj); preencher("an-endereco", c.endereco);
+  if (c.razao && c.razao !== c.nome) preencher("an-razao", c.razao);
+  if (c.tipo && !chipDe("an-tipo")) marcarChip("an-tipo", c.tipo);
+  return [c.nome, c.validade, c.tipo].filter(Boolean).length;
+}
+
+// AVCB em PDF (pedido do Gustavo em 04/11/2026). O PDF do sistema do Corpo de Bombeiros já traz o texto, que é lido
+// direto (rápido e sem erro de leitura). PDF escaneado (só imagem) ou com texto ilegível passa pela mesma leitura
+// das fotos, na 1ª página. A 1ª página também vira a imagem de conferência no alto da tela.
+async function lerPdfAvcb(este) {
+  const st = $("an-status");
+  st.textContent = "Abrindo o PDF…";
+  let pdf = null;
+  try {
+    await carregarPdfjs();
+    pdf = await pdfjsLib.getDocument({ data: await este.arquivo.arrayBuffer() }).promise;
+    const pagina = await paginaPdfImagem(pdf);
+    const blob = await new Promise(ok => pagina.toBlob(ok, "image/jpeg", 0.85));
+    if (novoAvcb !== este) return;                 // a pessoa cancelou ou escolheu outro arquivo
+    este.url = URL.createObjectURL(blob);
+    $("an-foto").src = este.url;
+    st.textContent = "Lendo o documento…";
+    let c = lerCamposAvcb(await textoPdf(pdf));
+    if (novoAvcb !== este) return;
+    let achou = preencherAvcb(c), semOcr = false;
+    if (achou < 3) {
+      st.textContent = "Lendo o documento… (alguns segundos)";
+      try {
+        const { data } = await (await obterOcr()).recognize(pagina, { rotateAuto: true });
+        if (novoAvcb !== este) return;
+        const o = lerCamposAvcb(data.text || "");
+        c = Object.fromEntries(Object.entries(c).map(([k, v]) => [k, v || o[k]]));   // o texto do PDF vale mais; a leitura da imagem completa
+        achou = preencherAvcb(c);
+      } catch (e) { console.error(e); semOcr = !navigator.onLine; }
+    }
+    st.textContent = achou === 3 ? "✓ PDF lido. Confira cada campo com o documento antes de salvar."
+      : achou ? "⚠ Parte do PDF foi lida. Confira e complete os campos vazios."
+      : semOcr ? "Sem internet para a leitura automática deste PDF (só funciona sem internet depois do primeiro uso). Preencha os campos olhando o documento."
+      : "⚠ Não deu para ler este PDF. Preencha os campos olhando o documento.";
+  } catch (e) {
+    console.error(e);
+    if (novoAvcb !== este) return;
+    st.textContent = e?.name === "PasswordException" ? "⚠ Este PDF tem senha e não pode ser lido aqui. Preencha os campos à mão; o PDF será salvo do mesmo jeito."
+      : !window.pdfjsLib && !navigator.onLine ? "Sem internet para abrir o PDF (só funciona sem internet depois do primeiro uso). Preencha os campos à mão; o PDF será salvo do mesmo jeito."
+      : "⚠ Não deu para abrir este PDF. Preencha os campos à mão; o PDF será salvo do mesmo jeito.";
+  } finally { pdf?.destroy(); }                    // libera a memória do PDF (a imagem da 1ª página continua)
+  conferirAvcb();
+}
+// 1ª página do PDF como imagem, com o lado maior em 2400 px (o mesmo tamanho usado na leitura das fotos)
+async function paginaPdfImagem(pdf) {
+  const pg = await pdf.getPage(1);
+  const v1 = pg.getViewport({ scale: 1 });
+  const vp = pg.getViewport({ scale: 2400 / Math.max(v1.width, v1.height) });
+  const c = document.createElement("canvas");
+  c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+  await pg.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;   // o pdf.js pinta o fundo de branco
+  return c;
+}
+// texto das primeiras páginas na ordem de leitura (linha por linha, da esquerda para a direita), como sai da leitura
+// das fotos: assim "RAZÃO SOCIAL:" fica ao lado do nome mesmo que o PDF guarde os rótulos separados dos valores.
+// Só texto na horizontal (carimbos e marcas d'água inclinados ficam de fora).
+async function textoPdf(pdf, maxPaginas = 3) {
+  const linhas = [];
+  for (let p = 1; p <= Math.min(maxPaginas, pdf.numPages); p++) {
+    const itens = (await (await pdf.getPage(p)).getTextContent()).items
+      .filter(i => i.str?.trim() && i.transform[0] > 0 && Math.abs(i.transform[1]) <= i.transform[0] * 0.1)
+      .map(i => ({ s: i.str, x: i.transform[4], y: i.transform[5], fim: i.transform[4] + i.width, h: Math.hypot(i.transform[2], i.transform[3]) || 10 }))
+      .sort((a, b) => b.y - a.y);
+    let lin = [];
+    for (const i of itens) {
+      const u = lin.at(-1);
+      if (u && Math.abs(u.y - i.y) > Math.max(u.h, i.h) / 2) { linhas.push(lin); lin = []; }   // outra linha
+      lin.push(i);
+    }
+    if (lin.length) linhas.push(lin);
+  }
+  return linhas.map(l => l.sort((a, b) => a.x - b.x)
+    .map((i, k) => (k && i.x - l[k - 1].fim > i.h * 0.15 ? " " : "") + i.s).join("")).join("\n");
 }
 
 async function lerFotoAvcb(este) {
@@ -8141,13 +8252,7 @@ async function lerFotoAvcb(este) {
     const [ocr, img] = await Promise.all([obterOcr(), imagemParaOcr(este.arquivo)]);
     const { data } = await ocr.recognize(img, { rotateAuto: true });
     if (novoAvcb !== este) return;                 // a pessoa cancelou ou tirou outra foto
-    const c = lerCamposAvcb(data.text || "");
-    const preencher = (id, v) => { if (v && !$(id).value) $(id).value = v; };   // não apaga o que a pessoa já digitou
-    preencher("an-nome", c.nome); preencher("an-validade", c.validade); preencher("an-numero", c.numero);
-    preencher("an-cnpj", c.cnpj); preencher("an-endereco", c.endereco);
-    if (c.razao && c.razao !== c.nome) preencher("an-razao", c.razao);
-    if (c.tipo && !chipDe("an-tipo")) marcarChip("an-tipo", c.tipo);
-    const achou = [c.nome, c.validade, c.tipo].filter(Boolean).length;
+    const achou = preencherAvcb(lerCamposAvcb(data.text || ""));
     st.textContent = achou === 3 ? "✓ Documento lido. Confira cada campo com a foto antes de salvar."
       : achou ? "⚠ Parte do documento foi lida. Confira e complete os campos vazios."
       : "⚠ Não deu para ler este documento. Preencha os campos olhando a foto (ou tire outra foto mais de perto, sem reflexo).";
@@ -8184,7 +8289,7 @@ async function salvarAvcb() {
   if (faltaAvcb(d) || !novoAvcb) return;
   const agora = new Date();
   const nomeBase = `AVCB_${limparNome(d.nome).slice(0, 60)}_${dataISO(agora)}_${pad(agora.getHours())}${pad(agora.getMinutes())}${pad(agora.getSeconds())}`;
-  const reg = { versao: 1, ...d, fotografadoPor: nomeColaborador(), fotografadoEm: agora.toISOString() };
+  const reg = { versao: 1, ...d, fotografadoPor: nomeColaborador(), fotografadoEm: agora.toISOString(), ...(novoAvcb.pdf ? { pdf: true } : {}) };   // pdf: enviado em PDF (não foto)
   const json = new File([JSON.stringify(reg, null, 2)], nomeBase + ".json", { type: "application/json", lastModified: agora.getTime() });
   const itens = [novoAvcb.arquivo, json].map(arquivo => ({
     id: ++seq, modo: "avcb", arquivo, url: "", st: "pendente", dest: { modo: "avcb" }, prefixo: nomeBase, nomeBase
@@ -8638,7 +8743,7 @@ function fecharVisor(voltar = true) {
   visor?.obs?.disconnect();
   visor = null;
   travarVertical(true);
-  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden && $("tela-eq").hidden && $("tela-eqv").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes: a lista continua
+  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden && $("tela-eq").hidden && $("tela-eqv").hidden && $("tela-avcb").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes/AVCB: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -9232,11 +9337,14 @@ document.addEventListener("keydown", e => {
 // no computador: arrastar fotos, vídeos e PDFs do computador para o formulário (o mesmo que escolher na Galeria)
 const podeSoltar = () => secao === "trabalho" && !$("tela-app").hidden && !document.body.classList.contains("modo-laudo") && !enviando
   && !cam && !$("dlg").open && $("visor-pdf").hidden && ![...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden);
+// e o PDF ou a foto do AVCB na tela Validade AVCB/CLCB (o mesmo que os botões PDF e Galeria)
+const podeSoltarAvcb = () => pode("avcbFoto") && $("visor-pdf").hidden && !$("dlg").open
+  && [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).at(-1)?.id === "tela-avcb";
 const comArquivos = e => [...(e.dataTransfer?.types || [])].includes("Files");
 document.addEventListener("dragover", e => {
   if (!comArquivos(e)) return;
   e.preventDefault();                              // sem isto o Chrome abriria o arquivo no lugar do app
-  const ok = podeSoltar();
+  const ok = podeSoltar() || podeSoltarAvcb();
   e.dataTransfer.dropEffect = ok ? "copy" : "none";
   document.body.classList.toggle("soltando", ok);
 });
@@ -9245,6 +9353,11 @@ document.addEventListener("drop", e => {
   if (!comArquivos(e)) return;
   e.preventDefault();
   document.body.classList.remove("soltando");
+  if (podeSoltarAvcb()) {
+    const f = [...e.dataTransfer.files].find(f => ehPdfAvcb(f) || f.type.startsWith("image/") || ehImgArq(f.name));
+    if (f) abrirNovoAvcb(f); else aviso("Aqui só entram o PDF ou a foto do AVCB.", true);
+    return;
+  }
   if (podeSoltar()) {
     const antes = fotos.length;
     adicionar(e.dataTransfer.files);
@@ -9307,6 +9420,7 @@ window.addEventListener("popstate", () => {
   if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
   if (agForm && !history.state?.agform) { fecharFormAgenda(false); return; }   // "voltar" no formulário da agenda: volta para a lista
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
+  if (history.state?.avcbNovo && !$("tela-avcb-novo").hidden) return;   // voltou do visualizador (documento ampliado) para o "Novo AVCB"
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
   if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
@@ -9377,8 +9491,10 @@ $("btn-avcb").onclick = abrirAvcb;
 $("avcb-voltar").onclick = () => fecharAvcb();
 $("avcb-busca").oninput = desenharAvcb;
 $("avcb-filtro").querySelectorAll("button").forEach(b => b.onclick = () => filtrarAvcb(b.dataset.f));
-$("in-avcb-cam").onchange = aoEscolherFotoAvcb;
-$("in-avcb-gal").onchange = aoEscolherFotoAvcb;
+$("in-avcb-cam").onchange = aoEscolherAvcb;
+$("in-avcb-gal").onchange = aoEscolherAvcb;
+$("in-avcb-pdf").onchange = aoEscolherAvcb;
+$("an-foto").onclick = ampliarNovoAvcb;
 $("an-cancelar").onclick = () => fecharNovoAvcb();
 ["an-cat", "an-tipo"].forEach(id => $(id).querySelectorAll("button").forEach(b => b.onclick = () => { marcarChip(id, b.dataset.v); conferirAvcb(); }));
 CAMPOS_AN.forEach(id => $(id).oninput = conferirAvcb);
