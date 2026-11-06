@@ -134,6 +134,17 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 
 ### Combinado para depois
 - **"Pausar" no Relatório de Serviço:** continuar outro dia ou em outro celular, como nos laudos.
+- **Claude dentro do app** (conversado em 06/11/2026; o Gustavo decidiu deixar para depois):
+  - **O que faria:** uma tela "Assistente" ou botões nos lugares certos para:
+    - tirar dúvidas sobre as ITs, com a IT e a página;
+    - escrever as observações e recomendações de laudos e inspeções;
+    - montar o texto de orçamento a partir das não conformidades;
+    - ler PDFs (AVCB, projeto, orçamento);
+    - resumir a situação do cliente.
+  - **Como montar:** o app não tem servidor, então a chave de acesso da Anthropic não pode ficar no app. Precisa de uma pequena função na nuvem (sugestão: Cloudflare, plano gratuito) que guarda a chave e só atende quem entrou com o login da VPX. Não precisa de permissão nova da Microsoft.
+  - **Custo:** por uso, cobrado pela Anthropic. Com o Claude Opus 5.5: US$ 4 por milhão de tokens lidos e US$ 20 por milhão escritos. Uma pergunta com um PDF de poucas páginas fica em cerca de US$ 0,05 a 0,15. Há modelos mais baratos (Sonnet 5.5, Haiku 5.5).
+  - **Fica com o Gustavo:** criar as contas da Anthropic (desenvolvedor) e da Cloudflare, cadastrar o cartão e gerar a chave. O Claude monta a função e a tela.
+  - **Alternativa sem mexer no app:** usar o claude.ai com o conector do Microsoft 365 e pôr no app só um botão "Abrir o Claude".
 
 ### Ideias sugeridas (ainda não pedidas)
 - **Proposta comercial em PDF** a partir do laudo ou da inspeção, com uma tabela de preços da VPX.
