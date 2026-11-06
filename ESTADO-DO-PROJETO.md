@@ -80,6 +80,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 ### Outros
 - **Agenda do Outlook:** ver a agenda; criar compromissos com convidados e link do Teams; editar e cancelar os que a pessoa criou; compartilhar pelo WhatsApp.
 - **Validade AVCB/CLCB:** fotografar o AVCB ou enviar o **PDF** do documento (desde 04/11/2026), com leitura automática do texto e os campos preenchidos sozinhos. No computador dá para arrastar o PDF para a tela.
+- **Orçamentos (desde 05/11/2026):** todos os orçamentos de todos os clientes numa lista só (Registros › Orçamentos, ou a página do cliente), com número, cliente e data. Dá para buscar, ordenar por número, abrir o PDF, abrir a planilha e exportar para Excel. Só aparece para quem tiver a função "Orçamentos" liberada na Administração (o administrador vê sempre).
 - **ITs do CBM-BA:** funcionam sem internet, com busca por palavra.
 - **Arquivos e histórico do cliente.**
 - **Visualizador de PDF:** zoom e arrasto com a pinça dos dedos.
@@ -122,6 +123,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Extintores e mangueiras:** primeiro cadastro real. Conferir se a pasta `00 - Extintores e Mangueiras` foi criada.
 - **Páginas de cada assunto:** a lista "Últimos gerados" usa a busca do OneDrive. Ela pode demorar alguns minutos para achar arquivos novos e não foi testada com os arquivos reais.
 - **Relatório de serviço e Aviso ao cliente:** envio e compartilhamento reais.
+- **Orçamentos:** abrir a lista com os dados reais e conferir se estão todos lá. O app procura só nas pastas "02 - Orçamento" de cada cliente (fora as "Arquivo Morto") e só os arquivos com nome "VPX ENGENHARIA-ORÇ-…". Liberar a função "Orçamentos" na Administração para quem do escritório precisar.
 - **AVCB em PDF:** enviar um PDF real do Corpo de Bombeiros e conferir se todos os campos vieram certos (testado só com PDFs de exemplo no mesmo formato).
 - **Agenda (criar compromisso):** no primeiro uso, autorizar a permissão `Calendars.ReadWrite` marcando "Consentir em nome da organização". Depois, criar um compromisso com convidado e link do Teams, editar e cancelar.
 

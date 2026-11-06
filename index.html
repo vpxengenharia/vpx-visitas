@@ -114,6 +114,19 @@ button,input,label{font:inherit}
 .eqv-avisar{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--linha);background:var(--papel);color:var(--marinho);font-weight:700;font-size:14px;cursor:pointer;margin-top:10px}
 @media (prefers-color-scheme:dark){.eqv-avisar{color:var(--tinta)}}
 .eqv-cli{margin:16px 2px 6px;font-family:var(--titulo-fonte);font-weight:700;font-size:17px;color:var(--tinta)}
+/* orçamentos de todos os clientes */
+.orc-item{display:flex;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel);margin-bottom:8px;overflow:hidden}
+.orc-card{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:0;background:none;color:var(--tinta);text-align:left;font:inherit;cursor:pointer}
+.orc-l1{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.orc-num{font-family:var(--titulo-fonte);font-weight:700;font-size:18px;color:var(--marinho)}
+.orc-tag{font-size:12px;font-weight:700;border:1.5px solid var(--linha);border-radius:6px;padding:0 6px;color:var(--suave)}
+.orc-l2{display:flex;align-items:baseline;gap:10px}
+.orc-cli{flex:1;min-width:0;font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orc-data{flex:none;font-size:14px;font-weight:600;color:var(--suave)}
+.orc-desc{font-size:13px;color:var(--suave)}
+.orc-plan{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:78px;border:0;border-left:1px solid var(--linha);background:none;color:var(--marinho);font-size:12.5px;font-weight:700;cursor:pointer}
+.orc-plan .ic{width:22px;height:22px}
+@media (prefers-color-scheme:dark){.orc-num{color:var(--laranja)}.orc-plan{color:var(--tinta)}}
 /* histórico de comprovantes */
 .ch-abrir{margin:0 0 14px}
 #ch-lista .arq-txt small{display:block}
@@ -779,7 +792,12 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   #avcb-lista > :not(.avcb-card),#os-corpo > :not(.os-card),#pc-lista > :not(.pc-card){grid-column:1 / -1}
   #arq-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:10px}
   #arq-lista > li{display:flex}                    /* cartões da mesma linha com a mesma altura */
-  #os-corpo > .btn.prim,#pc-novo-btn,#pt-gerar,#eqv-exportar,#ch-exportar,#its-guardar,#arq-baixar{width:fit-content!important;min-width:280px;padding:0 28px}
+  #os-corpo > .btn.prim,#pc-novo-btn,#pt-gerar,#eqv-exportar,#ch-exportar,#its-guardar,#arq-baixar,#orc-exportar{width:fit-content!important;min-width:280px;padding:0 28px}
+  #orc-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;align-content:start}
+  #orc-lista > :not(.orc-item){grid-column:1 / -1}
+  .orc-item{transition:border-color .12s,box-shadow .12s}
+  .orc-item:hover{border-color:var(--borda-hover);box-shadow:0 3px 12px rgba(19,37,59,.08)}
+  .orc-plan:hover{background-color:rgba(127,127,127,.08)}
   .avcb-acoes{grid-template-columns:repeat(3,minmax(0,220px))}
   .avcb-acoes .btn.prim{grid-column:auto}
   /* escolher cliente: janela no meio da tela */
@@ -843,6 +861,8 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <symbol id="i-grade" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><path d="M16.75 14v5.5M14 16.75h5.5"/></symbol>
   <symbol id="i-email" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path style="stroke:var(--ic-ac)" d="m4.5 7 7.5 6 7.5-6"/></symbol>
   <symbol id="i-sair" viewBox="0 0 24 24"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5"/><path style="stroke:var(--ic-ac)" d="M9.5 8 5.5 12l4 4M5.5 12h9"/></symbol>
+  <symbol id="i-orcamento" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path style="stroke:var(--ic-ac)" d="M8.5 7.3h7v3h-7z"/><path d="M8.7 14h.01M12 14h.01M15.3 14h.01M8.7 17.2h.01M12 17.2h.01M15.3 17.2h.01"/></symbol>
+  <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
 </svg>
 <header class="topo">
   <p class="marca"><img src="logo.png" alt="VPX Engenharia" width="100" height="56"></p>
@@ -1167,6 +1187,23 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
     <p class="avcb-nota" id="eqv-estado" style="margin-top:0"></p>
     <div id="eqv-lista"></div>
     <button class="btn sec" id="eqv-exportar" type="button" style="width:100%;margin-top:12px">⬇ Exportar planilha (Excel)</button>
+  </div>
+</div>
+
+<!-- orçamentos de todos os clientes, pelo número, cliente e data (pedido do Gustavo em 05/11/2026) -->
+<div class="tela-avcb" id="tela-orc" hidden role="dialog" aria-label="Orçamentos">
+  <div class="avcb-topo"><button class="avcb-voltar" id="orc-voltar">‹ Voltar</button><strong>Orçamentos</strong></div>
+  <div class="avcb-corpo">
+    <input class="avcb-busca" id="orc-busca" type="search" placeholder="Buscar por número, cliente ou tipo" autocomplete="off">
+    <div class="chips avcb-filtro" id="orc-ordem">
+      <button type="button" data-o="data" aria-pressed="true">Mais recentes</button>
+      <button type="button" data-o="num" aria-pressed="false">Por número</button>
+    </div>
+    <p class="avcb-nota" id="orc-estado" style="margin-top:0"></p>
+    <div id="orc-lista"></div>
+    <button class="btn sec" id="orc-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+    <button class="laudo-link" id="orc-atualizar">Atualizar lista</button>
+    <p class="avcb-nota" id="orc-nota"></p>
   </div>
 </div>
 
@@ -6358,7 +6395,7 @@ function pintarFaixaOS() {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["orc", "Orçamentos"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -6370,7 +6407,7 @@ let perm = lerLS("vpx_perm", null);                // última cópia do arquivo 
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
 // (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
-const NOVAS_NO_PADRAO = ["serv", "equip", "os"];   // "osCriar" não: só quem o Gustavo liberar
+const NOVAS_NO_PADRAO = ["serv", "equip", "os"];   // "osCriar", "pagar" e "orc" (orçamentos, com preços) não: só quem o Gustavo liberar
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
   // convidado: nada sem a liberação (sem acesso à pasta de configuração, ou recusado/retirado); nunca a Agenda (não tem Outlook da VPX)
@@ -8743,7 +8780,7 @@ function fecharVisor(voltar = true) {
   visor?.obs?.disconnect();
   visor = null;
   travarVertical(true);
-  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden && $("tela-eq").hidden && $("tela-eqv").hidden && $("tela-avcb").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes/AVCB: a lista continua
+  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden && $("tela-eq").hidden && $("tela-eqv").hidden && $("tela-avcb").hidden && $("tela-orc").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes/AVCB/orçamentos: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -8867,7 +8904,7 @@ function fecharTelasPorCima() {
   const havia = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-agenda");
   if (adm) adm.mudou = false;
   fecharAssinar(false); fecharNovoAvcb(false); fecharAdmin(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
-  fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOS(false); fecharAvcb(false);
+  fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharOS(false); fecharAvcb(false);
   if (havia) { document.body.style.overflow = ""; history.replaceState(null, ""); }
   return true;
 }
@@ -9013,6 +9050,211 @@ async function abrirDocModulo(x) {
     const blob = await (await fetch(it["@microsoft.graph.downloadUrl"])).blob();
     abrirVisor(new File([blob], x.nome, { type: "application/pdf" }), x.titulo || x.nome, `${x.titulo || x.nome} - ${x.cli || ""}`);
   } catch (e) { console.error(e); aviso("Não foi possível abrir: " + e.message, true); }
+}
+
+/* ---------- orçamentos de todos os clientes (pedido do Gustavo em 05/11/2026) ----------
+   Uma lista só, pelo número, cliente e data. Sem banco de dados: o app lê as pastas 02 - Clientes › [Cliente] ›
+   02 - Orçamento (e subpastas, menos "Arquivo Morto"), 20 clientes por pedido à Graph ($batch), e o nome dos arquivos
+   no padrão do escritório "VPX ENGENHARIA-ORÇ-AVCB-1154_2026-BRINKS.pdf" (tipo, número/ano, cliente). A data é a do
+   arquivo (nos orçamentos conferidos, a mesma do campo "Data" dentro do PDF). A planilha (.xlsx) com o mesmo número vira
+   o botão "Planilha" do PDF; sem PDF, a planilha aparece sozinha. Lista guardada no celular (vpx_orc). Função "orc". */
+let orc = lerLS("vpx_orc", null), orcOrdem = "data", orcVisiveis = [];
+
+// "VPX ENGENHARIA-ORÇ-AVCB-1154_2026-BRINKS.pdf" → { tipo: "AVCB", num: 1154, ano: "2026", rev: "", desc: "BRINKS" }.
+// Aceita ORC sem cedilha, "_" no lugar dos espaços, "XXXX" (ainda sem número) e revisões (RV01, R01, Rev.02, RV no fim).
+function lerNomeOrc(nome) {
+  const base = nome.replace(/\.[^.]+$/, "").replace(/_/g, " ").replace(/\s+/g, " ").trim();
+  const m = base.match(/^VPX ?ENGENHARIA ?- ?OR[ÇC](?:AMENTO)?(?![A-Za-zÀ-ú])[ -]*(.*)$/i);
+  if (!m) return null;
+  const resto = m[1];
+  let tipo = "", num = null, ano = "", desc = resto, rev = "";
+  const n = resto.match(/(^|[ -])(\d{3,5}|X{3,5})(?: (\d{4}))?(?=$|[ -])/i);
+  if (n) {
+    tipo = resto.slice(0, n.index).replace(/[ -]+$/, "");
+    num = /^x+$/i.test(n[2]) ? null : +n[2];
+    ano = n[3] || "";
+    desc = resto.slice(n.index + n[0].length);
+  } else {
+    const t = resto.match(/^([A-ZÀ-Ú]{2,12}) ?- ?(.*)$/);   // sem número: "HID-AVENIDA RV01"
+    if (t) [, tipo, desc] = t;
+  }
+  desc = desc.replace(/(?:^|[ -])(?:RV|REV\.?|R)(\d{1,2})?(?=$|[ -])/i, (x, d) => { rev = String(+(d || 1)).padStart(2, "0"); return " "; })
+    .replace(/^[ -]+|[ -]+$/g, "").replace(/\s+/g, " ");
+  return { ext: extDe(nome), tipo: tipo.trim(), num, ano, rev, desc };
+}
+const numOrc = o => o.num ? o.num + (o.ano ? "/" + o.ano : "") : "Sem número";
+
+// vários GET numa ida só (Graph $batch, até 20); devolve as respostas na ordem dos pedidos (null = sem resposta)
+async function graphLote(urls) {
+  const out = urls.map(() => null);
+  let pend = urls.map((url, i) => ({ id: String(i), method: "GET", url }));
+  for (let t = 0; pend.length && t < 3; t++) {
+    if (t) await espera(1500 * t);
+    const r = await graph("/$batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requests: pend }) });
+    const ok = new Set();
+    for (const x of r.responses || []) if (x.status !== 429 && x.status < 500) { out[+x.id] = x; ok.add(x.id); }
+    pend = pend.filter(p => !ok.has(p.id));       // limite de pedidos (429) ou erro do servidor: tenta de novo
+  }
+  return out;
+}
+// roda fn em cada item, n de cada vez
+async function emParalelo(itens, n, fn) {
+  let i = 0;
+  await Promise.all(Array.from({ length: Math.min(n, itens.length) }, async () => { while (i < itens.length) await fn(itens[i++]); }));
+}
+
+async function buscarOrcamentos(aoAvancar) {
+  const sel = "?$select=id,name,file,folder,lastModifiedDateTime,fileSystemInfo,webUrl&$top=999";
+  const clis = clientes.slice(), arqs = [], falhas = new Set();
+  let fila = clis.map(cli => ({ cli, url: `${BASE()}:/${encPath(cli + "/" + CONFIG.pastaOrcamento)}:/children${sel}` })), feitos = 0;
+  for (let nivel = 0; fila.length && nivel < 3; nivel++) {   // a pasta de orçamentos e até 2 níveis de subpastas
+    const prox = [], lotes = [];
+    for (let i = 0; i < fila.length; i += 20) lotes.push(fila.slice(i, i + 20));
+    await emParalelo(lotes, 3, async lote => {
+      const resp = await graphLote(lote.map(p => p.url)).catch(e => { console.error(e); return []; });
+      lote.forEach((p, k) => {
+        const r = resp[k];
+        if (r?.status === 404) return;                // cliente sem a pasta de orçamentos
+        if (r?.status !== 200) { falhas.add(p.cli); return; }
+        for (const i of r.body?.value || []) {
+          if (i.folder) { if (!/arquivo morto/i.test(i.name)) prox.push({ cli: p.cli, url: `/drives/${CONFIG.driveId}/items/${i.id}/children${sel}` }); }
+          else if (i.file) arqs.push({ i, cli: p.cli });
+        }
+      });
+      if (!nivel) aoAvancar?.(feitos += lote.length, clis.length);
+    });
+    fila = prox;
+  }
+  if (clis.length && falhas.size === clis.length) throw new Error("O OneDrive não respondeu.");
+  const docs = arqs.map(({ i, cli }) => {
+    const p = lerNomeOrc(i.name);
+    if (!p) return null;
+    const quando = i.fileSystemInfo?.lastModifiedDateTime || i.lastModifiedDateTime;
+    return { ...p, id: i.id, nome: i.name, cli, data: quando ? dataISO(new Date(quando)) : "", mod: i.lastModifiedDateTime, web: i.webUrl };
+  }).filter(Boolean);
+  // um item por PDF; a planilha com o mesmo número vai junto (a mesma revisão ou, se não houver, o PDF mais novo)
+  const ehPlan = d => /^(xlsx|xlsm|xls|ods|csv)$/.test(d.ext);
+  const itens = docs.filter(d => !ehPlan(d));
+  for (const pl of docs.filter(ehPlan).sort((a, b) => a.data.localeCompare(b.data))) {   // a mais nova por último: é a que fica
+    const pares = pl.num ? itens.filter(d => !d.soPlan && d.cli === pl.cli && d.num === pl.num) : [];
+    const alvo = pares.find(d => d.rev === pl.rev) || pares.sort((a, b) => b.data.localeCompare(a.data))[0];
+    if (alvo) alvo.plan = { web: pl.web, nome: pl.nome };
+    else itens.push({ ...pl, soPlan: true });
+  }
+  if (falhas.size && orc?.itens) itens.push(...orc.itens.filter(o => falhas.has(o.cli)));   // quem não respondeu agora fica como estava
+  return { quando: Date.now(), itens, falhas: falhas.size };
+}
+
+function abrirOrcamentos(busca = "") {
+  if (!pode("orc")) return;
+  $("orc-busca").value = busca;
+  $("tela-orc").hidden = false;
+  $("tela-orc").querySelector(".avcb-corpo").scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  history.pushState({ orc: true }, "");            // o "voltar" do celular fecha a tela
+  desenharOrc();
+  if (!orc || Date.now() - orc.quando > 10 * 60000) atualizarOrc();
+}
+function fecharOrc(voltar = true) {
+  if ($("tela-orc").hidden) return;
+  $("tela-orc").hidden = true;
+  document.body.style.overflow = "";
+  if (voltar && history.state?.orc) history.back();
+}
+async function atualizarOrc() {
+  if (atualizarOrc.rodando || !conta || !navigator.onLine) { desenharOrc(); return; }
+  atualizarOrc.rodando = true;
+  desenharOrc();
+  try {
+    if (!clientes.length) await carregarClientes();
+    orc = await buscarOrcamentos((f, t) => { $("orc-estado").textContent = `Atualizando a lista… ${f} de ${t} clientes`; });
+    gravarLS("vpx_orc", orc);
+  } catch (e) { console.error(e); aviso("Não foi possível atualizar a lista de orçamentos agora.", true); }
+  finally { atualizarOrc.rodando = false; }
+  if (!$("tela-orc").hidden) desenharOrc();
+}
+function desenharOrc() {
+  $("orc-ordem").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.o === orcOrdem)));
+  const q = semAcento($("orc-busca").value.trim()), todos = orc?.itens || [];
+  const porData = (a, b) => (b.data || "").localeCompare(a.data || "") || (b.num || 0) - (a.num || 0);
+  orcVisiveis = todos.filter(o => !q || semAcento([numOrc(o), o.tipo, o.cli, o.nome, o.data && dataBRde(o.data)].join(" ")).includes(q))
+    .sort(orcOrdem === "num" ? (a, b) => (b.num || 0) - (a.num || 0) || porData(a, b) : porData);
+  const f = orc?.falhas || 0;
+  $("orc-estado").textContent = atualizarOrc.rodando ? "Atualizando a lista…"
+    : !orc ? (navigator.onLine ? "Carregando…" : "Sem internet: a lista aparece quando houver conexão.")
+    : [q ? `${orcVisiveis.length} de ${todos.length} orçamentos` : `${todos.length} orçamento${todos.length === 1 ? "" : "s"}`,
+      "atualizada em " + new Date(orc.quando).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }),
+      f && `${f} cliente${f > 1 ? "s não responderam" : " não respondeu"} (ficou a lista anterior)`, !navigator.onLine && "sem internet"].filter(Boolean).join(" · ");
+  const lista = $("orc-lista"); lista.innerHTML = "";
+  let mes = null;
+  for (const o of orcVisiveis) {
+    if (orcOrdem === "data" && (o.data || "").slice(0, 7) !== mes) {   // "Mais recentes": separado por mês
+      mes = (o.data || "").slice(0, 7);
+      const nm = mes ? MESES[+mes.slice(5) - 1] : "";
+      lista.appendChild(el("h3", "avcb-grupo", mes ? `${nm[0].toUpperCase() + nm.slice(1)} de ${mes.slice(0, 4)}` : "Sem data"));
+    }
+    lista.appendChild(cartaoOrc(o));
+  }
+  if (orc && !orcVisiveis.length) lista.appendChild(el("p", "avcb-nota", q ? "Nenhum orçamento encontrado." : "Nenhum orçamento nas pastas dos clientes."));
+  $("orc-exportar").hidden = !orcVisiveis.length;
+  $("orc-nota").textContent = `A lista mostra os arquivos "VPX ENGENHARIA-ORÇ-…" das pastas ${CONFIG.pastaOrcamento} de cada cliente (as pastas "Arquivo Morto" ficam de fora). A data é a do arquivo.`;
+}
+function cartaoOrc(o) {
+  const d = el("div", "orc-item"), b = el("button", "orc-card"); b.type = "button";
+  const l1 = el("span", "orc-l1");
+  l1.appendChild(el("strong", "orc-num", numOrc(o)));
+  [o.tipo, o.rev && "Rev. " + o.rev, o.soPlan && "Planilha"].filter(Boolean).forEach(t => l1.appendChild(el("span", "orc-tag", t)));
+  const l2 = el("span", "orc-l2");
+  l2.appendChild(el("span", "orc-cli", o.cli));
+  if (o.data) l2.appendChild(el("span", "orc-data", dataBRde(o.data)));
+  b.append(l1, l2);
+  // nome no arquivo diferente da pasta (ex.: orçamento do Salvador Prime guardado na pasta ITC)
+  const a = semAcento(o.desc).replace(/[^a-z0-9]/g, ""), c = semAcento(o.cli).replace(/[^a-z0-9]/g, ""), k = Math.min(4, a.length, c.length);
+  if (a && a.slice(0, k) !== c.slice(0, k)) b.appendChild(el("small", "orc-desc", tit(o.desc)));   // compara o começo ("NAU" = "NAU Barra")
+  b.onclick = () => abrirArqOrc(o);
+  d.appendChild(b);
+  if (o.plan) {
+    const p = el("button", "orc-plan"); p.type = "button"; p.title = o.plan.nome;
+    p.append(ic("planilha"), "Planilha");
+    p.onclick = () => abrirWebOrc(o.plan.web);
+    d.appendChild(p);
+  }
+  return d;
+}
+// PDF abre no visualizador do app (e fica guardado no celular para abrir de novo sem internet); planilha, no OneDrive
+async function abrirArqOrc(o) {
+  if (o.ext !== "pdf") { abrirWebOrc(o.web); return; }
+  const i = { id: o.id, nome: o.nome, mod: o.mod };
+  let blob = guardadoAtual(i) || !navigator.onLine ? await lerArqGuardado(o.id).catch(() => null) : null;
+  if (!blob) {
+    if (!navigator.onLine) { aviso("Sem internet: este orçamento ainda não foi aberto neste celular.", true); return; }
+    aviso("Abrindo…");
+    try { blob = await baixarArq(i, o.cli); }
+    catch (e) {
+      console.error(e);
+      if (e.status === 404) { aviso("Este orçamento foi apagado ou mudou de pasta. Atualizando a lista…", true); atualizarOrc(); }
+      else aviso("Não foi possível abrir o orçamento: " + e.message, true);
+      return;
+    }
+  }
+  const titulo = "Orçamento " + numOrc(o);
+  abrirVisor(new File([blob], o.nome, { type: "application/pdf" }), titulo, `${titulo} - ${o.cli}`);
+}
+function abrirWebOrc(url) {
+  if (navigator.onLine && url) window.open(url, "_blank", "noopener");
+  else aviso("A planilha abre com internet.", true);
+}
+async function exportarOrc() {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const linhas = [["Número", "Tipo", "Cliente", "Data", "Arquivo", "Link"]];
+    orcVisiveis.forEach(o => linhas.push([numOrc(o), o.tipo, o.cli, o.data ? dataBRde(o.data) : "", o.nome, o.web || ""]));
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    ws["!cols"] = [12, 14, 30, 11, 58, 40].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Orçamentos");
+    const nome = `Orçamentos - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
 
 // "Continuar de onde parou": rascunhos e fotos ainda não salvas
@@ -9162,6 +9404,7 @@ function desenharPaginaCliente() {
   if (pode("hist")) g.appendChild(tile("historico", "Histórico", () => comCliente(c, abrirHistorico)));
   if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", () => abrirEq(c)));
   if (pode("laudo")) g.appendChild(tile("salvo", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
+  if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos(c)));   // a lista de todos, já buscando este cliente
   if (g.children.length) { g.style.marginTop = "12px"; if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
   if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
   // ordens de serviço abertas deste cliente e "Nova OS"
@@ -9185,12 +9428,13 @@ function desenharReg() {
   const t = $("tela-reg"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Registros"));
   const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (!modos.length && !pode("os") && !pode("avcb") && !pode("equip")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
+  if (!modos.length && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
   const g = el("div", "hub-grade");
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
   if (pode("avcb")) g.appendChild(tile("escudo", "Validade AVCB / CLCB", abrirAvcb));   // saiu do Mais (pedido do Gustavo em 19/10/2026)
   if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", abrirEqv));   // vencimentos de todos os clientes; saiu do Mais (pedido do Gustavo em 19/10/2026)
+  if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos()));   // de todos os clientes (pedido do Gustavo em 05/11/2026)
   t.appendChild(g);
 }
 
@@ -9422,7 +9666,7 @@ window.addEventListener("popstate", () => {
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
   if (history.state?.avcbNovo && !$("tela-avcb-novo").hidden) return;   // voltou do visualizador (documento ampliado) para o "Novo AVCB"
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
-  if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes
+  if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch || history.state?.orc) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes / orçamentos
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
   if (history.state?.eqv && !$("tela-eq").hidden) { fecharEq(false); return; }   // voltou de um cliente para a lista de vencimentos
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
@@ -9432,11 +9676,16 @@ window.addEventListener("popstate", () => {
     if (enviando) { history.pushState({ trab: true }, ""); return; }   // enviando: fica no formulário
     irPara(trabDe || "inicio"); return;
   }
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOS(false); fecharMenu();
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharOS(false); fecharMenu();
 });
 $("os-voltar").onclick = () => { if (osTela?.nova || osTela?.aberta) { osTela.nova = null; osTela.aberta = null; desenharOS(); } else fecharOS(); };
 $("eq-voltar").onclick =() => { if (eq?.editando) { eq.editando = null; desenharEq(); } else fecharEq(); };
 $("eqv-voltar").onclick = () => fecharEqv();
+$("orc-voltar").onclick = () => fecharOrc();
+$("orc-busca").oninput = () => { clearTimeout(desenharOrc.t); desenharOrc.t = setTimeout(desenharOrc, 200); };
+$("orc-ordem").querySelectorAll("button").forEach(b => b.onclick = () => { orcOrdem = b.dataset.o; desenharOrc(); });
+$("orc-atualizar").onclick = atualizarOrc;
+$("orc-exportar").onclick = exportarOrc;
 $("eqv-exportar").onclick = () => exportarEq(Object.keys(eqDados));
 $("eqv-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { eqvFiltro = b.dataset.f; desenharEqv(); });
 $("btn-arq").onclick = abrirArquivos;
