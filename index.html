@@ -199,6 +199,31 @@ button,input,label{font:inherit}
   .nf-tab .orc-c-tipo{width:106px;color:var(--tinta)}
   .nf-tab .orc-c-acao{width:124px}
 }
+/* ficha do cliente: contatos (Ligar, WhatsApp, E-mail) e dados; no celular os botões ficam embaixo do contato */
+.ficha-contato{padding:12px;margin-bottom:10px;border:1.5px solid var(--linha);border-left:6px solid var(--laranja);border-radius:12px;background:var(--papel);line-height:1.35}
+.fc-tx b{display:block;font-size:17px;overflow-wrap:anywhere}
+.fc-tx small{display:block;color:var(--suave);font-size:13.5px}
+.fc-lk{display:block;width:fit-content;max-width:100%;color:var(--tinta);font-size:15.5px;text-decoration:none;overflow-wrap:anywhere}
+.fc-lk[href]:hover{text-decoration:underline}
+.fc-ac{display:flex;gap:8px;margin-top:10px}
+.fc-bt{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 8px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--marinho);font-weight:700;font-size:15px;text-decoration:none;white-space:nowrap}
+.fc-bt .ic{width:20px;height:20px;flex:none}
+.fc-bt:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.ficha-resumo{margin:12px 0 4px}
+.fr-cab{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:40px;padding:0 2px;margin-bottom:6px;border:0;background:none;color:var(--suave);font-size:14px;font-weight:600;cursor:pointer}
+.fr-ver{color:var(--marinho);font-weight:700}
+.ficha-vazia{display:flex;align-items:center;gap:12px;margin-top:12px}
+.ficha-vazia > span:last-child{flex:1;min-width:0}
+.fc-ed{padding:12px;margin-bottom:12px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
+.fc-ed .campo{margin-bottom:10px}
+.fc-ed-cab{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-weight:700;color:var(--tinta)}
+@media (prefers-color-scheme:dark){.fc-bt,.fr-ver{color:var(--tinta)}}
+@media (min-width:560px){
+  .ficha-contato{display:flex;align-items:center;gap:12px}
+  .fc-tx{flex:1;min-width:0}
+  .fc-ac{margin-top:0;flex:none}
+  .fc-bt{flex:none;padding:0 14px}
+}
 /* histórico de comprovantes */
 .ch-abrir{margin:0 0 14px}
 #ch-lista .arq-txt small{display:block}
@@ -854,7 +879,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   .ini-grade .hub-rot:first-child{margin-top:4px}
   /* telas que abrem por cima (AVCB, arquivos, OS, pedidos…): ao lado do menu, conteúdo até 960 px (formulários 760 px) */
   .tela-avcb{top:var(--topo-pc);left:var(--lateral);--larg:960px}
-  #tela-avcb-novo,#tela-assinar,#tela-admin,#tela-agenda{--larg:760px}
+  #tela-avcb-novo,#tela-assinar,#tela-admin,#tela-agenda,#tela-ficha{--larg:760px}
   .tela-avcb .avcb-topo,#tela-agenda.como-secao .avcb-topo{max-width:none;margin:0;background:transparent;border-bottom:0;padding:26px max(28px, calc((100% - var(--larg)) / 2)) 6px}
   .tela-avcb .avcb-topo strong{font-size:26px;color:var(--tinta)}
   .avcb-corpo{max-width:none;padding:12px max(28px, calc((100% - var(--larg)) / 2)) 48px;scrollbar-gutter:stable}
@@ -932,6 +957,9 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <symbol id="i-email" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path style="stroke:var(--ic-ac)" d="m4.5 7 7.5 6 7.5-6"/></symbol>
   <symbol id="i-sair" viewBox="0 0 24 24"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5"/><path style="stroke:var(--ic-ac)" d="M9.5 8 5.5 12l4 4M5.5 12h9"/></symbol>
   <symbol id="i-orcamento" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path style="stroke:var(--ic-ac)" d="M8.5 7.3h7v3h-7z"/><path d="M8.7 14h.01M12 14h.01M15.3 14h.01M8.7 17.2h.01M12 17.2h.01M15.3 17.2h.01"/></symbol>
+  <symbol id="i-contatos" viewBox="0 0 24 24"><rect x="5.5" y="3.5" width="14" height="17" rx="2"/><path d="M3.5 8h3M3.5 12h3M3.5 16h3"/><circle style="stroke:var(--ic-ac)" cx="12.5" cy="10" r="2.5"/><path style="stroke:var(--ic-ac)" d="M8.6 16.6c.8-1.8 2.2-2.7 3.9-2.7s3.1.9 3.9 2.7"/></symbol>
+  <symbol id="i-telefone" viewBox="0 0 24 24"><path d="M8.4 4.2 6.6 4a1.7 1.7 0 0 0-1.8 1.5c-.3 3.3 1 6.8 3.8 9.7 2.9 2.9 6.4 4.2 9.8 3.8a1.7 1.7 0 0 0 1.5-1.8l-.2-1.8a1.6 1.6 0 0 0-1.2-1.4l-2.1-.6a1.6 1.6 0 0 0-1.6.4l-.9.9a11.3 11.3 0 0 1-4.3-4.3l.9-.9a1.6 1.6 0 0 0 .4-1.6l-.6-2.1a1.6 1.6 0 0 0-1.4-1.2z"/><path style="stroke:var(--ic-ac)" d="M14.5 3.7a6 6 0 0 1 5.8 5.8M14.3 7.2a2.6 2.6 0 0 1 2.5 2.5"/></symbol>
+  <symbol id="i-conversa" viewBox="0 0 24 24"><path d="M12 3.8a8.2 8.2 0 0 0-7.1 12.3l-1.1 4.1 4.2-1.1A8.2 8.2 0 1 0 12 3.8z"/><path style="stroke:var(--ic-ac)" d="M8.6 12h.01M12 12h.01M15.4 12h.01"/></symbol>
   <symbol id="i-nf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 7.5h7M8.5 10.7h7"/><path style="stroke:var(--ic-ac)" d="M8.5 14.5v3M10.7 14.5v3M12.6 14.5v3M15.5 14.5v3"/></symbol>
   <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
 </svg>
@@ -1045,6 +1073,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
     <p class="avcb-aviso" id="avcb-aviso" hidden></p>
     <!-- atalhos do cliente: uma linha de ícones (os que a pessoa não pode usar ficam escondidos) -->
     <div class="cli-acoes" id="cli-acoes">
+      <button class="cli-ac" id="btn-ficha" hidden><svg class="ic" aria-hidden="true"><use href="#i-contatos"/></svg>Contatos</button>
       <button class="cli-ac" id="btn-arq" hidden><svg class="ic" aria-hidden="true"><use href="#i-pasta"/></svg>Arquivos</button>
       <button class="cli-ac" id="btn-pt" hidden><svg class="ic" aria-hidden="true"><use href="#i-pastatec"/></svg>Pasta técnica</button>
       <button class="cli-ac" id="btn-ldsalvos" hidden><svg class="ic" aria-hidden="true"><use href="#i-salvo"/></svg>Salvos</button>
@@ -1337,6 +1366,12 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   </div>
 </div>
 
+<!-- ficha do cliente: contatos e dados (pedido do Gustavo em 06/11/2026); fica depois da OS no HTML para abrir por cima dela -->
+<div class="tela-avcb" id="tela-ficha" hidden role="dialog" aria-label="Ficha do cliente">
+  <div class="avcb-topo"><button class="avcb-voltar" id="ficha-voltar">‹ Voltar</button><strong id="ficha-titulo">Ficha do cliente</strong></div>
+  <div class="avcb-corpo" id="ficha-corpo"></div>
+</div>
+
 <!-- o navegador só deixa compartilhar logo depois de um toque: se o download demorou, pede um toque novo -->
 <dialog id="dlg-enviar" class="dlg-enviar" aria-labelledby="env-texto">
   <p id="env-texto">Arquivos prontos para enviar.</p>
@@ -1526,9 +1561,10 @@ const CONFIG = {
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
   subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
-  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i],
+  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i],
   pastaOS: "00 - Ordens de Serviço",           // dentro de 02 - Clientes: um .json por ordem de serviço (OS-0001.json…)
   pastaEquip: "00 - Extintores e Mangueiras",  // dentro de 02 - Clientes: um .json por cliente com os grupos de extintores e mangueiras
+  pastaFichas: "00 - Fichas dos Clientes",     // dentro de 02 - Clientes: um .json por cliente com os dados e os contatos (ficha do cliente)
   admins: ["gustavoponchio@vpxengenharia.com.br"],                     // administrador principal (área ⚙ e tudo liberado)
   contatoVPX: [                                                        // no fim do aviso ao cliente (mensagem e PDF); tirados do site da VPX
     "WhatsApp: (71) 99194-9900",
@@ -1541,7 +1577,7 @@ const CONFIG = {
   dominio: "vpxengenharia.com.br",                                     // contas da VPX; e-mail de outro domínio = convidado
   whatsappPedidos: "5571991949900",                                    // "Avisar a VPX pelo WhatsApp" na tela de espera do pedido de acesso
   // já marcadas ao liberar um pedido; sem "Arquivos do cliente" (o Gustavo libera para quem quiser; pedido em 26/10/2026)
-  funcoesCampo: ["visita", "laudo", "insp", "trein", "serv", "avcb", "avcbFoto", "hist", "pastaTec", "equip", "os", "normas"],
+  funcoesCampo: ["visita", "laudo", "insp", "trein", "serv", "avcb", "avcbFoto", "hist", "pastaTec", "equip", "os", "normas", "ficha"],
   pastaUsuarios: "00 - Usuários do app",                              // em 02 - Clientes: registro de quem usa o app (para a administração)
   pastaAvcb: "00 - Validade AVCB",            // dentro de 02 - Clientes: fotos e dados dos AVCBs fotografados pela equipe
   // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
@@ -3927,6 +3963,7 @@ function atualizar() {
     : (cliente ? "Salvar em: " + CONFIG.pastaClientesNome + " › " + (modo === "laudo" || modo === "insp" ? caminhoLaudo() : modo === "trein" ? caminhoTrein() : modo === "serv" ? caminhoServ() : caminhoVisita()).replace(/\//g, " › ") : "");
   if ($("tr-local")) $("tr-local").placeholder = avcbDoCliente(cliente)?.endereco || "";
   if ($("ld-end")) $("ld-end").placeholder = avcbDoCliente(cliente)?.endereco || "";
+  $("btn-ficha").hidden = comp || !cliente || !pode("ficha");
   $("btn-arq").hidden = comp || !cliente || !pode("arquivos");
   $("btn-pt").hidden = comp || !cliente || !pode("pastaTec");
   $("btn-ldsalvos").hidden = !(modo === "laudo" || modo === "insp") || !cliente;   // laudos/relatórios pausados e concluídos do cliente
@@ -6435,6 +6472,7 @@ function detalheOS(o) {
   const meu = o.tecnico?.email === emailDe(), podeEu = !o.para || o.para.email === emailDe() || pode("osCriar");
   if (o.status === "aberta" && podeEu) { bt("▶ Executar agora", "prim", () => executarOS(o.numero)); bt("Pegar esta OS", "sec", () => pegarOS(o.numero)); }
   if (o.status === "andamento" && (meu || pode("osCriar"))) { if (meu) bt("▶ Executar", "prim", () => executarOS(o.numero)); bt("Devolver para a fila", "sec", () => devolverOS(o.numero)); }
+  if (pode("ficha")) bt("Contatos do cliente", "sec", () => abrirFicha(o.cliente));   // ligar para o síndico ou o zelador antes de ir
   if (pode("osCriar")) bt("Editar OS", "sec", () => editarOS(o.numero));   // a qualquer momento, em qualquer situação
   if ((o.status === "aberta" || o.status === "andamento") && pode("osCriar")) bt("Cancelar OS", "sec", () => cancelarOS(o.numero));
   if (o.status === "andamento" && meu && osAtiva?.numero === o.numero) ac.appendChild(el("p", "laudo-dica", "Esta OS está em execução neste celular: gere o PDF do documento para concluir."));
@@ -6548,7 +6586,7 @@ function pintarFaixaOS() {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -6560,7 +6598,7 @@ let perm = lerLS("vpx_perm", null);                // última cópia do arquivo 
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
 // (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
-const NOVAS_NO_PADRAO = ["serv", "equip", "os"];   // "osCriar", "pagar", "orc" (orçamentos, com preços) e "nf" (notas fiscais) não: só quem o Gustavo liberar
+const NOVAS_NO_PADRAO = ["serv", "equip", "os", "ficha"];   // "osCriar", "pagar", "orc" (orçamentos, com preços) e "nf" (notas fiscais) não: só quem o Gustavo liberar
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
   // convidado: nada sem a liberação (sem acesso à pasta de configuração, ou recusado/retirado); nunca a Agenda (não tem Outlook da VPX)
@@ -9054,9 +9092,11 @@ function irPara(s) {
 function fecharTelasPorCima() {
   if (enviando) return false;
   if (!$("tela-admin").hidden && adm?.mudou && !confirm("Sair sem salvar as alterações de permissões?")) return false;
+  if (fichaTela?.mudou && !confirm("Sair sem salvar as mudanças da ficha?")) return false;
   const havia = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-agenda");
   if (adm) adm.mudou = false;
   fecharAssinar(false); fecharNovoAvcb(false); fecharAdmin(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
+  fecharFicha(false);
   fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharNf(false); fecharOS(false); fecharAvcb(false);
   if (havia) { document.body.style.overflow = ""; history.replaceState(null, ""); }
   return true;
@@ -9573,6 +9613,322 @@ async function exportarOrc() {
     ws["!cols"] = [12, 14, 30, 11, 14, 58, 40].map(w => ({ wch: w }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Orçamentos");
     const nome = `Orçamentos - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+
+/* ---------- ficha do cliente: dados e contatos (pedido do Gustavo em 06/11/2026) ----------
+   Contatos (síndico, administradora, zelador…) com Ligar, WhatsApp e E-mail num toque, e os dados do cliente (razão
+   social, CNPJ/CPF, tipo, endereço com o mapa, acesso e observações). Um .json por cliente em
+   02 - Clientes › 00 - Fichas dos Clientes (CONFIG.pastaFichas), lido por toda a equipe (sincronizarFichas, por eTag;
+   cópia em localStorage vpx_fichas, para ver sem internet) e gravado com If-Match (412 = outra pessoa mudou antes;
+   ficha nova com conflictBehavior=fail). Aparece na página do cliente, no atalho "Contatos" dos formulários e no
+   detalhe da OS; a busca da aba Clientes procura também nas fichas. Função "ficha" (perfil padrão e equipe de campo). */
+const FUNCOES_CONTATO = ["Síndico(a)", "Subsíndico(a)", "Administradora", "Zelador(a)", "Gerente predial", "Portaria", "Financeiro", "Proprietário(a)", "Outro"];
+const TIPOS_CLIENTE = ["Condomínio residencial", "Condomínio comercial", "Empresa", "Indústria", "Saúde (hospital, clínica)", "Escola", "Pessoa física", "Outro"];
+let fichas = lerLS("vpx_fichas", {});              // cliente → { razao, doc, tipo, endereco, obs, contatos: [{ id, nome, funcao, tel, tel2, email, obs, principal }], atualizado, por, etag }
+let fichaTela = null, fichaVoltando = false;       // { cli, editando: cópia sendo editada | null, mudou }
+
+// telefone: só os dígitos, sem o 55; sem DDD vale o 71 (Salvador)
+const telDig = s => { let d = digitos(s); if (d.length >= 12 && d.startsWith("55")) d = d.slice(2); if (d.length === 8 || d.length === 9) d = "71" + d; return d; };
+const telBR = s => { const d = telDig(s); return d.length === 11 ? d.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3") : d.length === 10 ? d.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3") : String(s || "").trim(); };
+const ehCelular = s => { const d = telDig(s); return d.length === 11 && d[2] === "9"; };
+const emailOk = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+function cnpjValido(c) {
+  const d = digitos(c);
+  if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false;
+  const dv = n => { let s = 0, p = n - 7; for (let i = 0; i < n; i++) { s += +d[i] * p--; if (p < 2) p = 9; } const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return dv(12) === +d[12] && dv(13) === +d[13];
+}
+const ordemFuncao = f => { const i = FUNCOES_CONTATO.indexOf(f); return i < 0 ? 99 : i; };
+const ordenarContatos = cs => (cs || []).slice().sort((a, b) => (b.principal ? 1 : 0) - (a.principal ? 1 : 0) || ordemFuncao(a.funcao) - ordemFuncao(b.funcao) || (a.nome || "").localeCompare(b.nome || "", "pt-BR"));
+const novoContato = (funcao = "") => ({ id: Math.random().toString(36).slice(2, 9), nome: "", funcao, tel: "", tel2: "", email: "", obs: "", principal: false });
+
+async function pastaFichas() { return garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaFichas]); }
+async function sincronizarFichas(forcar) {
+  if (!conta || !navigator.onLine || sincronizarFichas.rodando || !pode("ficha")) return;
+  if (!forcar && Date.now() - (sincronizarFichas.quando || 0) < 60000) return;   // no máximo 1 vez por minuto
+  sincronizarFichas.rodando = true; sincronizarFichas.quando = Date.now();
+  const assinatura = () => Object.values(fichas).map(f => f.etag).sort().join(), antes = assinatura();
+  try {
+    const pasta = await pastaFichas();
+    let url = `/drives/${CONFIG.driveId}/items/${pasta.id}/children?$top=999`;
+    const itens = [];
+    while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
+    const porEtag = new Map(Object.entries(fichas).map(([c, f]) => [f.etag, c])), novo = {};
+    for (const i of itens.filter(i => i.file && /\.json$/i.test(i.name))) {
+      let f = porEtag.has(i.eTag) ? fichas[porEtag.get(i.eTag)] : null, etag = i.eTag;
+      if (!f) {
+        try { f = await (await fetch(i["@microsoft.graph.downloadUrl"])).json(); }
+        catch (e) {                                // não baixou: fica a cópia anterior (com o eTag antigo, para baixar de novo na próxima vez)
+          console.error(e);
+          f = Object.values(fichas).find(x => limparNome(x.cliente) + ".json" === i.name) || null;
+          if (!f) continue;
+          etag = f.etag;
+        }
+      }
+      if (f?.cliente) novo[f.cliente] = { ...f, etag };
+    }
+    fichas = novo;
+    gravarLS("vpx_fichas", fichas);
+  } catch (e) { console.error("fichas dos clientes:", e); }
+  finally { sincronizarFichas.rodando = false; }
+  if (assinatura() === antes) return;              // nada mudou: não redesenha
+  if (fichaTela && !fichaTela.editando) desenharFicha();
+  if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
+  if (secao === "clientes" && !$("tela-clientes").hidden && $("cl-busca").value.trim()) desenharClientesHub();
+}
+// grava a ficha (precisa de internet). Outra pessoa mudou antes (412) ou criou a mesma ficha (409): atualiza e avisa
+async function gravarFicha(cli, dados) {
+  if (!navigator.onLine) throw new Error("Sem internet: para salvar a ficha, conecte o aparelho.");
+  const pasta = await pastaFichas(), atual = fichas[cli];
+  const corpo = { versao: 1, cliente: cli, ...dados, atualizado: new Date().toISOString(), por: nomeColaborador() };
+  const headers = { "Content-Type": "application/json" };
+  if (atual?.etag) headers["If-Match"] = atual.etag;
+  const url = `/drives/${CONFIG.driveId}/items/${pasta.id}:/${encodeURIComponent(limparNome(cli) + ".json")}:/content` + (atual?.etag ? "" : "?@microsoft.graph.conflictBehavior=fail");
+  try {
+    const it = await graph(url, { method: "PUT", headers, body: JSON.stringify(corpo, null, 1) });
+    fichas[cli] = { ...corpo, etag: it?.eTag };
+    gravarLS("vpx_fichas", fichas);
+  } catch (e) {
+    if (e.status === 412 || e.status === 409) {
+      await sincronizarFichas(true);
+      const x = new Error("Outra pessoa alterou esta ficha agora há pouco. A ficha foi atualizada: confira e faça a mudança de novo."); x.conflito = true; throw x;
+    }
+    throw e;
+  }
+}
+
+function abrirFicha(cli, editar) {
+  if (!cli || !pode("ficha")) return;
+  fichaTela = { cli, editando: null, mudou: false };
+  $("ficha-titulo").textContent = cli;
+  $("tela-ficha").hidden = false;
+  $("tela-ficha").querySelector(".avcb-corpo").scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  history.pushState({ ficha: true }, "");          // o "voltar" do celular fecha a ficha
+  if (editar && !fichas[cli]) editarFicha(); else desenharFicha();
+  sincronizarFichas();
+}
+function fecharFicha(voltar = true) {
+  if ($("tela-ficha").hidden) return;
+  $("tela-ficha").hidden = true;
+  fichaTela = null;
+  document.body.style.overflow = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden) ? "hidden" : "";   // aberta sobre a OS: a OS continua
+  if (voltar && history.state?.ficha) { fichaVoltando = true; history.go(history.state.fichaEd ? -2 : -1); }
+  if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();   // a página mostra os contatos novos
+}
+function editarFicha() {
+  const f = fichas[fichaTela.cli];
+  fichaTela.editando = f ? { razao: f.razao || "", doc: f.doc || "", tipo: f.tipo || "", endereco: f.endereco || "", obs: f.obs || "", contatos: (f.contatos || []).map(x => ({ ...novoContato(), ...x })) } : sugestaoFicha(fichaTela.cli);
+  fichaTela.mudou = false;
+  history.pushState({ ficha: true, fichaEd: true }, "");   // o "voltar" sai da edição
+  desenharFicha();
+  $("tela-ficha").querySelector(".avcb-corpo").scrollTop = 0;
+}
+// sai da edição (salvou ou desistiu); com mudança não salva, pergunta antes
+function sairEdicaoFicha(perguntar) {
+  if (!fichaTela?.editando) return;
+  if (perguntar && fichaTela.mudou && !confirm("Sair sem salvar as mudanças da ficha?")) return;
+  fichaTela.editando = null; fichaTela.mudou = false;
+  if (history.state?.fichaEd) { fichaVoltando = true; history.back(); }
+  desenharFicha();
+}
+// ficha nova: começa com o que o app já sabe do cliente (lista de AVCB e notas fiscais)
+function sugestaoFicha(cli) {
+  const v = avcbDoCliente(cli);
+  let n = null;
+  try { if (nf) n = [...prepararNf().info.values()].filter(x => x.cli === cli && (x.tomador || x.cnpj)).sort((a, b) => (b.data || "").localeCompare(a.data || ""))[0] || null; } catch {}
+  const c = novoContato("Síndico(a)"); c.principal = true;
+  return { razao: tit(v?.reg?.razao || n?.tomador || ""), doc: digitos(v?.cnpj || n?.cnpj || ""), tipo: "", endereco: v?.endereco || "", obs: "", contatos: [c] };
+}
+
+// um contato com Ligar, WhatsApp (celular) e E-mail; o número e o e-mail também abrem com um toque
+function cartaoContato(x) {
+  const b = el("div", "ficha-contato"), t = el("div", "fc-tx");
+  t.appendChild(el("b", "", x.nome || x.funcao || "Contato"));
+  const sub = [x.nome && x.funcao, x.principal && "contato principal"].filter(Boolean).join(" · ");
+  if (sub) t.appendChild(el("small", "", sub));
+  for (const n of [x.tel, x.tel2].filter(Boolean)) { const a = el("a", "fc-lk", telBR(n)); if (telDig(n).length >= 10) a.href = "tel:+55" + telDig(n); t.appendChild(a); }
+  if (x.email) { const a = el("a", "fc-lk", x.email); a.href = "mailto:" + x.email; t.appendChild(a); }
+  if (x.obs) t.appendChild(el("small", "", x.obs));
+  b.appendChild(t);
+  const ac = el("div", "fc-ac");
+  const lk = (ico, txt, href, fora) => { const a = el("a", "fc-bt"); a.href = href; if (fora) { a.target = "_blank"; a.rel = "noopener"; } a.append(ic(ico), txt); ac.appendChild(a); };
+  const tel = [x.tel, x.tel2].find(n => n && telDig(n).length >= 10), cel = [x.tel, x.tel2].find(n => n && ehCelular(n));
+  if (tel) lk("telefone", "Ligar", "tel:+55" + telDig(tel));
+  if (cel) lk("conversa", "WhatsApp", "https://wa.me/55" + telDig(cel), true);
+  if (x.email && emailOk(x.email)) lk("email", "E-mail", "mailto:" + x.email);
+  if (ac.children.length) b.appendChild(ac);
+  return b;
+}
+// página do cliente: os 2 primeiros contatos, com Ligar e WhatsApp, e o caminho para a ficha completa
+function resumoFicha(cli) {
+  const f = fichas[cli];
+  if (!f) {
+    const b = el("button", "hub-card ficha-vazia"); b.type = "button";
+    const tx = el("span"); tx.append(el("b", "", "Ficha do cliente"), el("small", "", "Cadastrar dados e contatos (síndico, administradora, zelador…)"));
+    b.append(icCaixa("contatos"), tx);
+    b.onclick = () => abrirFicha(cli, true);
+    return b;
+  }
+  const w = el("div", "ficha-resumo"), cs = ordenarContatos(f.contatos);
+  const cab = el("button", "fr-cab"); cab.type = "button";
+  cab.append(el("span", "", "Contatos"), el("span", "fr-ver", "Ficha completa ›"));
+  cab.onclick = () => abrirFicha(cli);
+  w.appendChild(cab);
+  cs.slice(0, 2).forEach(x => w.appendChild(cartaoContato(x)));
+  if (!cs.length) w.appendChild(el("p", "avcb-nota", "Nenhum contato cadastrado ainda."));
+  else if (cs.length > 2) { const m = el("button", "laudo-link", cs.length === 3 ? "Ver o outro contato" : `Ver os outros ${cs.length - 2} contatos`); m.type = "button"; m.onclick = () => abrirFicha(cli); w.appendChild(m); }
+  return w;
+}
+function desenharFicha() {
+  if (!fichaTela) return;
+  const c = $("ficha-corpo"), f = fichas[fichaTela.cli];
+  c.innerHTML = "";
+  if (fichaTela.editando) { c.appendChild(formFicha()); return; }
+  if (!f) {
+    c.appendChild(el("p", "laudo-dica", "Este cliente ainda não tem ficha. Cadastre os dados e os contatos (síndico, administradora, zelador…): ficam para toda a equipe, com Ligar e WhatsApp num toque."));
+    const b = comIc(el("button", "btn prim"), "lapis", "Cadastrar dados e contatos"); b.type = "button"; b.onclick = editarFicha;
+    c.appendChild(b);
+    if (!navigator.onLine) c.appendChild(el("p", "avcb-nota", "Sem internet: a ficha é salva direto no OneDrive. Cadastre quando houver conexão."));
+    return;
+  }
+  c.appendChild(el("h2", "secao", "Contatos"));
+  const cs = ordenarContatos(f.contatos);
+  if (!cs.length) c.appendChild(el("p", "avcb-nota", "Nenhum contato cadastrado."));
+  cs.forEach(x => c.appendChild(cartaoContato(x)));
+  c.appendChild(el("h2", "secao", "Dados do cliente"));
+  const det = el("div", "os-det"), dl = el("dl");
+  const par = (k, v) => { if (v) dl.append(el("dt", "", k), v instanceof Node ? v : el("dd", "", v)); };
+  par("Razão social", f.razao);
+  par("CNPJ/CPF", f.doc ? formatarDoc(digitos(f.doc)) || f.doc : "");
+  par("Tipo", f.tipo);
+  if (f.endereco) {
+    const dd = el("dd", "", f.endereco + " "), a = el("a", "laudo-link", "abrir no mapa");
+    a.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(f.endereco); a.target = "_blank"; a.rel = "noopener";
+    dd.appendChild(a); par("Endereço", dd);
+  }
+  par("Acesso e observações", f.obs);
+  if (dl.children.length) { det.appendChild(dl); c.appendChild(det); }
+  else c.appendChild(el("p", "avcb-nota", "Sem dados cadastrados."));
+  const ed = comIc(el("button", "btn sec"), "lapis", "Editar ficha"); ed.type = "button"; ed.style.width = "100%"; ed.onclick = editarFicha;
+  c.appendChild(ed);
+  c.appendChild(el("p", "avcb-nota", `Atualizada por ${f.por || "—"}${f.atualizado ? " em " + new Date(f.atualizado).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : ""}.`));
+}
+function formFicha() {
+  const E = fichaTela.editando, w = el("div", "ficha-form"), mudou = () => { fichaTela.mudou = true; };
+  const campo = (onde, alvo, rot, k, tipo = "text", attrs = {}) => {
+    const l = el("label", "campo"), i = el(tipo === "area" ? "textarea" : "input");
+    if (tipo !== "area") i.type = tipo;
+    i.value = alvo[k] ?? ""; i.autocomplete = "off";
+    Object.entries(attrs).forEach(([a, v]) => i.setAttribute(a, v));
+    i.oninput = () => { alvo[k] = i.value; mudou(); };
+    l.append(el("span", "", rot), i); onde.appendChild(l); return i;
+  };
+  const escolha = (onde, alvo, rot, k, opcoes) => {
+    const l = el("label", "campo"), s = el("select");
+    s.appendChild(new Option("—", ""));
+    opcoes.forEach(o => s.appendChild(new Option(o, o)));
+    if (alvo[k] && !opcoes.includes(alvo[k])) s.appendChild(new Option(alvo[k], alvo[k]));
+    s.value = alvo[k] || "";
+    s.onchange = () => { alvo[k] = s.value; mudou(); };
+    l.append(el("span", "", rot), s); onde.appendChild(l); return s;
+  };
+  const mostrar = id => { const b = $("fc-ed-" + id); if (b) { b.scrollIntoView({ block: "center" }); b.querySelector("input")?.focus(); } };
+  w.appendChild(el("h2", "secao", "Contatos"));
+  E.contatos.forEach((x, k) => {
+    const b = el("div", "fc-ed"); b.id = "fc-ed-" + x.id;
+    const cab = el("div", "fc-ed-cab"), rm = el("button", "laudo-link perigo", "Remover"); rm.type = "button";
+    rm.onclick = () => { if ((x.nome || x.tel || x.email) && !confirm(`Remover o contato${x.nome ? " " + x.nome : ""}?`)) return; E.contatos.splice(k, 1); mudou(); desenharFicha(); };
+    cab.append(el("span", "", `Contato ${k + 1}`), rm); b.appendChild(cab);
+    campo(b, x, "Nome", "nome", "text", { maxlength: "80" });
+    escolha(b, x, "Função", "funcao", FUNCOES_CONTATO);
+    campo(b, x, "Telefone / WhatsApp", "tel", "tel", { inputmode: "tel", maxlength: "20", placeholder: "(71) 99999-9999" });
+    campo(b, x, "Outro telefone", "tel2", "tel", { inputmode: "tel", maxlength: "20" });
+    campo(b, x, "E-mail", "email", "email", { inputmode: "email", maxlength: "100" });
+    campo(b, x, "Observação", "obs", "text", { maxlength: "160", placeholder: "Ex.: atende à tarde; recebe as notas fiscais" });
+    const lp = el("label", "nf-check"), cp = el("input"); cp.type = "checkbox"; cp.checked = !!x.principal;
+    cp.onchange = () => { E.contatos.forEach(y => { y.principal = y === x && cp.checked; }); mudou(); desenharFicha(); mostrar(x.id); };
+    lp.append(cp, "Contato principal (aparece primeiro)"); b.appendChild(lp);
+    w.appendChild(b);
+  });
+  const add = comIc(el("button", "btn sec"), "mais", "Adicionar contato"); add.type = "button"; add.style.width = "100%";
+  add.onclick = () => { const n = novoContato(); E.contatos.push(n); mudou(); desenharFicha(); mostrar(n.id); };
+  w.appendChild(add);
+  if ("contacts" in navigator && "select" in navigator.contacts) {   // Android (Chrome): escolher um contato da agenda do celular
+    const pk = comIc(el("button", "btn sec"), "pessoa", "Trazer da agenda do celular"); pk.type = "button"; pk.style.cssText = "width:100%;margin-top:8px";
+    pk.onclick = async () => {
+      try {
+        const [p] = await navigator.contacts.select(["name", "tel", "email"], { multiple: false });
+        if (!p) return;
+        const n = Object.assign(novoContato(), { nome: p.name?.[0] || "", tel: p.tel?.[0] || "", tel2: p.tel?.[1] || "", email: p.email?.[0] || "" });
+        E.contatos.push(n); mudou(); desenharFicha(); mostrar(n.id);
+      } catch (e) { if (e.name !== "AbortError") aviso("Não foi possível abrir a agenda do celular: " + e.message, true); }
+    };
+    w.appendChild(pk);
+  }
+  w.appendChild(el("h2", "secao", "Dados do cliente"));
+  campo(w, E, "Razão social", "razao", "text", { maxlength: "120" });
+  campo(w, E, "CNPJ ou CPF", "doc", "text", { inputmode: "numeric", maxlength: "20" });
+  escolha(w, E, "Tipo", "tipo", TIPOS_CLIENTE);
+  campo(w, E, "Endereço", "endereco", "text", { maxlength: "200" });
+  campo(w, E, "Acesso e observações", "obs", "area", { maxlength: "600", placeholder: "Portaria, horários, onde estacionar, chaves…" });
+  const ac = el("div", "os-acoes");
+  const s = el("button", "btn prim", "Salvar ficha"); s.type = "button"; s.id = "ficha-salvar"; s.onclick = salvarFicha;
+  const c = el("button", "btn sec", "Cancelar"); c.type = "button"; c.onclick = () => sairEdicaoFicha(true);
+  ac.append(s, c); w.appendChild(ac);
+  return w;
+}
+async function salvarFicha() {
+  const E = fichaTela?.editando;
+  if (!E) return;
+  const cli = fichaTela.cli;
+  const contatos = E.contatos.map(x => ({ ...x, nome: (x.nome || "").trim(), tel: (x.tel || "").trim(), tel2: (x.tel2 || "").trim(), email: (x.email || "").trim(), obs: (x.obs || "").trim() }))
+    .filter(x => x.nome || x.tel || x.tel2 || x.email || x.obs);   // contato vazio sai
+  for (const x of contatos) {
+    const quem = x.nome || x.funcao;
+    if (!quem) { aviso("Coloque o nome ou a função de cada contato.", true); return; }
+    for (const t of [x.tel, x.tel2].filter(Boolean)) if (telDig(t).length < 10 || telDig(t).length > 11) { aviso(`Telefone incompleto no contato ${quem}: ${t}`, true); return; }
+    if (x.email && !emailOk(x.email)) { aviso(`E-mail inválido no contato ${quem}: ${x.email}`, true); return; }
+  }
+  const doc = digitos(E.doc);
+  if (E.doc.trim() && !(doc.length === 11 ? cpfValido(doc) : doc.length === 14 && cnpjValido(doc)) && !confirm(`O CNPJ/CPF "${E.doc.trim()}" parece incorreto. Salvar assim mesmo?`)) return;
+  const b = $("ficha-salvar"); b.disabled = true; b.textContent = "Salvando…";
+  try {
+    await gravarFicha(cli, { razao: E.razao.trim(), doc: doc || E.doc.trim(), tipo: E.tipo, endereco: E.endereco.trim(), obs: E.obs.trim(),
+      contatos: contatos.map(x => ({ id: x.id, nome: x.nome, funcao: x.funcao, tel: x.tel && telBR(x.tel), tel2: x.tel2 && telBR(x.tel2), email: x.email, obs: x.obs, principal: !!x.principal })) });
+    fichaTela.mudou = false;
+    sairEdicaoFicha(false);
+    aviso("Ficha salva.");
+  } catch (e) {
+    console.error(e);
+    if (e.conflito && fichaTela) { fichaTela.mudou = false; sairEdicaoFicha(false); }
+    else if ($("ficha-salvar")) { $("ficha-salvar").disabled = false; $("ficha-salvar").textContent = "Salvar ficha"; }
+    aviso(e.message, true);
+  }
+}
+// a busca da aba Clientes também acha o cliente pelo que está na ficha (contato, telefone, e-mail, CNPJ, razão social)
+function buscaFicha(cli, q) {
+  const f = fichas[cli];
+  if (!f || !pode("ficha")) return false;
+  const txt = semAcento([f.razao, f.doc, f.endereco, ...(f.contatos || []).flatMap(x => [x.nome, x.funcao, x.email, telDig(x.tel), telDig(x.tel2)])].filter(Boolean).join(" "));
+  const dq = digitos(q);
+  return txt.includes(q) || (dq.length >= 4 && dq.length >= q.replace(/\s/g, "").length - 4 && txt.includes(dq));
+}
+async function exportarFichas() {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const linhas = [["Cliente", "Razão social", "CNPJ/CPF", "Tipo", "Endereço", "Contato", "Função", "Telefone", "Outro telefone", "E-mail", "Observação do contato", "Principal", "Acesso e observações"]];
+    for (const cli of Object.keys(fichas).sort((a, b) => a.localeCompare(b, "pt-BR"))) {
+      const f = fichas[cli], base = [cli, f.razao || "", f.doc ? formatarDoc(digitos(f.doc)) || f.doc : "", f.tipo || "", f.endereco || ""], cs = ordenarContatos(f.contatos);
+      if (!cs.length) linhas.push([...base, "", "", "", "", "", "", "", f.obs || ""]);
+      cs.forEach(x => linhas.push([...base, x.nome || "", x.funcao || "", x.tel || "", x.tel2 || "", x.email || "", x.obs || "", x.principal ? "Sim" : "", f.obs || ""]));
+    }
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    ws["!cols"] = [26, 34, 20, 22, 40, 24, 16, 16, 16, 30, 30, 9, 40].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Contatos dos clientes");
+    const nome = `Contatos dos clientes - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
@@ -10527,10 +10883,20 @@ function desenharClientesHub() {
     lista.appendChild(l);
   };
   if (!clientes.length) { lista.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando os clientes…" : "Sem internet e sem lista de clientes guardada.")); return; }
-  if (q) { grupo("Resultado", clientes.filter(c => semAcento(c).includes(q))); if (!clientes.some(c => semAcento(c).includes(q))) lista.appendChild(el("p", "avcb-nota", "Nenhum cliente encontrado. Para criar um cliente novo, comece um registro pelo Início.")); return; }
+  if (q) {                                          // pelo nome da pasta ou pelo que está na ficha (contato, telefone, e-mail, CNPJ)
+    const achados = clientes.filter(c => semAcento(c).includes(q) || buscaFicha(c, q));
+    grupo("Resultado", achados);
+    if (!achados.length) lista.appendChild(el("p", "avcb-nota", "Nenhum cliente encontrado. Para criar um cliente novo, comece um registro pelo Início."));
+    return;
+  }
   const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c));
   grupo("Recentes", rec);
   grupo("Todos", clientes);
+  if (pode("ficha") && Object.keys(fichas).length) {   // planilha com os contatos de todos os clientes
+    const x = el("button", "laudo-link", "Exportar os contatos dos clientes (Excel)"); x.type = "button"; x.onclick = exportarFichas;
+    lista.appendChild(x);
+  }
+  if (pode("ficha")) sincronizarFichas();          // a busca também procura nas fichas
 }
 function abrirCliente(c) { cliPagina = c; irPara("cliente"); }
 // usa as telas que já existem (arquivos, pasta técnica, histórico) para o cliente da página
@@ -10541,6 +10907,7 @@ function desenharPaginaCliente() {
   t.append(v, el("h1", "hub-tit", c));
   const av = avcbDoCliente(c);
   if (av) { const s = situacaoAvcb(av); t.appendChild(el("p", "avcb-aviso " + s.cls, (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto)); }
+  if (pode("ficha")) { t.appendChild(resumoFicha(c)); sincronizarFichas(); }   // contatos com Ligar e WhatsApp (pedido do Gustavo em 06/11/2026)
   const g = el("div", "hub-grade");
   if (pode("arquivos")) g.appendChild(tile("pasta", "Arquivos", () => comCliente(c, abrirArquivos)));
   if (pode("pastaTec")) g.appendChild(tile("pastatec", "Pasta técnica", () => comCliente(c, abrirPastaTec)));
@@ -10682,6 +11049,7 @@ async function iniciarApp() {
   carregarClientes().then(() => { if (secao === "clientes") desenharClientesHub(); });
   sincronizarAvcb();                              // AVCBs fotografados pela equipe
   sincronizarEq();                                // extintores e mangueiras dos clientes (alerta no Início)
+  sincronizarFichas(true);                        // fichas dos clientes (contatos), para ver sem internet
   sincronizarOS();                                // ordens de serviço (fila no Início) e baixas que ficaram sem internet
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") desenharInicio();       // "Continuar de onde parou" com o que foi recuperado
@@ -10819,9 +11187,17 @@ $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
 window.addEventListener("popstate", () => {
   if (agVoltando) { agVoltando = false; return; }                  // o próprio app tirou o passo do formulário da agenda
+  if (fichaVoltando) { fichaVoltando = false; return; }            // idem, da ficha do cliente (o que estava embaixo continua aberto)
   if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
   if (agForm && !history.state?.agform) { fecharFormAgenda(false); return; }   // "voltar" no formulário da agenda: volta para a lista
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
+  if (!$("tela-ficha").hidden) {                   // ficha do cliente: "voltar" na edição volta para a ficha; na ficha, fecha
+    if (fichaTela?.editando && !history.state?.fichaEd) {
+      if (fichaTela.mudou && !confirm("Sair sem salvar as mudanças da ficha?")) { history.pushState({ ficha: true, fichaEd: true }, ""); return; }
+      fichaTela.editando = null; fichaTela.mudou = false; desenharFicha(); return;
+    }
+    if (!history.state?.ficha) { fecharFicha(false); return; }
+  }
   if (history.state?.avcbNovo && !$("tela-avcb-novo").hidden) return;   // voltou do visualizador (documento ampliado) para o "Novo AVCB"
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
   if (!$("tela-nf").hidden && (nfTela?.det || nfTela?.nova) && !history.state?.nfSub) { nfTela = {}; desenharNf(true); return; }   // "voltar" numa nota fiscal: volta para a lista
@@ -10868,6 +11244,9 @@ $("nf-nova").onclick = abrirNovaNf;
 $("nf-in-pdf").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (f) escolherPdfNf(f); };
 $("nf-in-bol").onchange = e => { const fs = [...e.target.files]; e.target.value = ""; if (fs.length) adicionarBoletosNf(fs); };
 $("env-nao").onclick = () => $("dlg-enviar").close();
+// ficha do cliente: "‹ Voltar" na edição volta para a ficha (pergunta se houver mudança); na ficha, fecha
+$("ficha-voltar").onclick = () => { if (fichaTela?.editando) sairEdicaoFicha(true); else fecharFicha(); };
+$("btn-ficha").onclick = () => abrirFicha(cliente);
 $("eqv-exportar").onclick = () => exportarEq(Object.keys(eqDados));
 $("eqv-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { eqvFiltro = b.dataset.f; desenharEqv(); });
 $("btn-arq").onclick = abrirArquivos;
