@@ -29,6 +29,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 
   **OS** abre a fila de ordens de serviço. **Comprovante** abre o Financeiro.
 - **Formulários:** abrem em tela cheia. O "voltar" leva à tela de onde vieram.
+- **Aba Clientes (desde 07/11/2026):** tabela como planilha, igual às de notas fiscais e validade AVCB: cliente, CNPJ, situação do AVCB, extintores e mangueiras e contato principal, com busca (nome, CNPJ, contato), filtros, ordem pela coluna e exportação para o Excel. Tocar na linha abre a página do cliente; o "‹ Clientes" volta para o mesmo ponto da lista.
 - **Página do cliente:**
   - situação do AVCB;
   - contatos da ficha do cliente (Ligar, WhatsApp, E-mail);

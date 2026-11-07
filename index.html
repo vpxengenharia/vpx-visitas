@@ -199,6 +199,47 @@ button,input,label{font:inherit}
   .nf-tab .orc-c-tipo{width:106px;color:var(--tinta)}
   .nf-tab .orc-c-acao{width:124px}
 }
+/* Clientes: a mesma tabela (pedido do Gustavo em 07/11/2026); o cabeçalho gruda logo abaixo do título e da busca */
+#tela-clientes{container-type:inline-size}
+#cl-tab[hidden],#cl-vazio[hidden],#cl-exportar[hidden],#cl-exp-contatos[hidden],.orc-sel[hidden]{display:none}
+.orc-filtros.cl-filtros{grid-template-columns:1fr 1fr;margin:12px 0 0}
+#cl-recentes{margin-top:0;align-items:center}
+#cl-recentes p{flex:none;max-width:none;margin:0 2px 0 0}   /* "Recentes:" na mesma linha dos nomes */
+.cl-resumo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 2px;font-size:15.5px;font-weight:600}
+.cl-resumo > span{flex:none}
+.cl-resumo .avcb-qt{flex:none;white-space:nowrap}
+.cl-tab thead th{top:var(--cl-th-top,0px)}
+.cl-tab thead button span{display:inline;width:auto;min-height:0;padding:0;line-height:inherit}   /* "Ext./mang." no celular, "Extintores e mang." no computador */
+.cl-tab thead button .orc-data-l{display:none}
+.cl-tab .cl-c-avcb{width:104px}
+.cl-tab .cl-c-ext{width:84px}
+.cl-c-cnpj,.cl-c-cont{display:none}
+.cl-tab.sem-ext .cl-c-ext,.cl-tab.sem-cont .cl-c-cont{display:none!important}
+.cl-c-avcb small{display:block;margin-top:2px;font-size:13px;color:var(--suave);white-space:nowrap}
+.cl-cont-nome{display:block;font-weight:600;overflow-wrap:anywhere}
+.cl-c-cont a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.cl-nome{display:flex;align-items:center;gap:6px;width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;font-weight:600;text-align:left;cursor:pointer;overflow-wrap:anywhere}
+.cl-nome::after{content:"";flex:none;width:7px;height:7px;margin:0 6px 0 auto;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(-45deg);opacity:.45}   /* setinha à direita: abre a página */
+.cl-nome:focus-visible{outline:3px solid var(--laranja);outline-offset:3px;border-radius:4px}
+/* celular: linhas altas para o polegar, letra maior; recentes e números do resumo numa linha só, que rola de lado */
+@container (max-width:859px){
+  .cl-tab{font-size:15.5px}
+  .cl-tab tbody tr{height:54px}
+  .cl-tab tbody td{padding-top:11px;padding-bottom:11px}
+  .cl-tab .orc-sub{font-size:13.5px}
+  #cl-recentes,.cl-resumo{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-18px;margin-right:-18px;padding-left:18px;padding-right:18px}
+  #cl-recentes::-webkit-scrollbar,.cl-resumo::-webkit-scrollbar{display:none}
+  #cl-recentes button{flex:none;max-width:240px}   /* não encolhe: a linha rola de lado */
+}
+@container (min-width:860px){
+  .orc-filtros.cl-filtros{grid-template-columns:repeat(2,minmax(0,280px))}
+  .cl-c-cnpj{display:table-cell;width:150px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .cl-c-cont{display:table-cell;width:210px}
+  .cl-tab .cl-c-avcb{width:186px}
+  .cl-tab .cl-c-ext{width:132px}
+  .cl-tab thead button .orc-data-l{display:inline}
+  .cl-tab thead button .orc-so-cel{display:none}
+}
 /* validade AVCB/CLCB: a mesma tabela das notas fiscais; situação em etiqueta colorida; tocar abre o detalhe embaixo */
 #avcb-vazio[hidden],#avcb-exportar[hidden]{display:none}
 .orc-sel{display:flex;flex-direction:column;gap:3px;min-width:0}   /* filtro com título pequeno em cima (validade AVCB) */
@@ -1069,7 +1110,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   #os-corpo > :not(.os-card),#pc-lista > :not(.pc-card){grid-column:1 / -1}
   #arq-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:10px}
   #arq-lista > li{display:flex}                    /* cartões da mesma linha com a mesma altura */
-  #os-corpo > .btn.prim,#pc-novo-btn,#pt-gerar,#eqv-exportar,#ch-exportar,#its-guardar,#arq-baixar,#orc-exportar,#nf-exportar,#nf-nova,#avcb-exportar{width:fit-content!important;min-width:280px;padding:0 28px}
+  #os-corpo > .btn.prim,#pc-novo-btn,#pt-gerar,#eqv-exportar,#ch-exportar,#its-guardar,#arq-baixar,#orc-exportar,#nf-exportar,#nf-nova,#avcb-exportar,#cl-exportar{width:fit-content!important;min-width:280px;padding:0 28px}
   .orc-tab tbody tr:not(.avcb-det):hover{background-color:rgba(127,127,127,.1)}
   .avcb-tab tbody tr.avcb-aberta:hover + .avcb-det{background-color:rgba(127,127,127,.1)}   /* a linha aberta e o detalhe acendem juntos */
   .orc-tab thead button:hover{text-decoration:underline}
@@ -1311,9 +1352,44 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <section id="tela-clientes" class="hub" hidden>
     <div class="cl-cab">                              <!-- título e busca ficam fixos no topo ao rolar a lista -->
       <h1 class="hub-tit">Clientes</h1>
-      <input class="busca hub-busca" id="cl-busca" type="search" placeholder="Buscar cliente" autocomplete="off">
+      <input class="busca hub-busca" id="cl-busca" type="search" placeholder="Buscar por nome, contato ou CNPJ" autocomplete="off">
     </div>
-    <div id="cl-lista"></div>
+    <!-- tabela como planilha, igual às de notas fiscais e validade AVCB (pedido do Gustavo em 07/11/2026) -->
+    <div class="recentes" id="cl-recentes" hidden></div>
+    <div class="orc-filtros cl-filtros">
+      <label class="orc-sel"><span>AVCB</span>
+        <select id="cl-avcb">
+          <option value="">Todos</option>
+          <option value="crit">Vencido</option>
+          <option value="warn">A vencer</option>
+          <option value="ok">Em dia</option>
+          <option value="sem">Sem AVCB na lista</option>
+        </select>
+      </label>
+      <label class="orc-sel" id="cl-ext-rot"><span>Extintores e mangueiras</span>
+        <select id="cl-ext">
+          <option value="">Todos</option>
+          <option value="crit">Vencido</option>
+          <option value="warn">A vencer</option>
+          <option value="ok">Em dia</option>
+          <option value="sem">Sem cadastro</option>
+        </select>
+      </label>
+    </div>
+    <div class="cl-resumo" id="cl-resumo"></div>
+    <table class="orc-tab cl-tab" id="cl-tab">
+      <thead><tr>
+        <th class="orc-c-cli" scope="col"><button type="button" data-col="cli">Cliente</button></th>
+        <th class="cl-c-cnpj" scope="col"><span>CNPJ/CPF</span></th>
+        <th class="cl-c-avcb" scope="col"><button type="button" data-col="avcb">AVCB/CLCB</button></th>
+        <th class="cl-c-ext" scope="col"><button type="button" data-col="ext" aria-label="Extintores e mangueiras"><span class="orc-so-cel">Ext./mang.</span><span class="orc-data-l">Extintores e mang.</span></button></th>
+        <th class="cl-c-cont" scope="col"><button type="button" data-col="cont">Contato principal</button></th>
+      </tr></thead>
+      <tbody id="cl-corpo"></tbody>
+    </table>
+    <p class="avcb-nota" id="cl-vazio" hidden></p>
+    <button class="btn sec" id="cl-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+    <button class="laudo-link" id="cl-exp-contatos" type="button" hidden>Exportar todos os contatos (Excel)</button>
   </section>
   <section id="tela-cliente" class="hub" hidden></section>
   <section id="tela-mod" class="hub" hidden></section>
@@ -8447,9 +8523,9 @@ function listaAvcb() {
 }
 
 // acha o cliente da lista pelo nome da pasta (sem acento/maiúsculas; aceita um nome começar com o outro). Prospecção não entra.
-function avcbDoCliente(nome) {
+function avcbDoCliente(nome, todos) {                // todos: a lista já montada (a tabela de Clientes monta uma vez só)
   if (!nome) return null;
-  const n = semAcento(nome), lista = listaAvcb().filter(v => v.categoria === "cliente");
+  const n = semAcento(nome), lista = (todos || listaAvcb()).filter(v => v.categoria === "cliente");
   return lista.find(v => { const a = semAcento(v.pasta || v.cliente); return a === n || n.startsWith(a) || a.startsWith(n); })
     || lista.find(v => clienteDeNome(v.pasta || v.cliente) === nome) || null;   // nome parecido (ex.: "Condomínio NAU Barra" no painel e "NAU Barra" na pasta)
 }
@@ -10102,7 +10178,7 @@ async function sincronizarFichas(forcar) {
   if (assinatura() === antes) return;              // nada mudou: não redesenha
   if (fichaTela && !fichaTela.editando) desenharFicha();
   if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
-  if (secao === "clientes" && !$("tela-clientes").hidden && $("cl-busca").value.trim()) desenharClientesHub();
+  if (secao === "clientes" && !$("tela-clientes").hidden) redesenharClientesQuieto();   // a tabela mostra o contato principal (sem trocar as linhas embaixo do dedo)
 }
 // grava a ficha (precisa de internet). Outra pessoa mudou antes (412) ou criou a mesma ficha (409): atualiza e avisa
 async function gravarFicha(cli, dados) {
@@ -12258,36 +12334,186 @@ function desenharInicio() {
   }
 }
 
-// Clientes: busca + recentes + todos; tocar abre a página do cliente
+/* Clientes: tabela como planilha (pedido do Gustavo em 07/11/2026, igual às de notas fiscais e validade AVCB).
+   Colunas: Cliente (o nome é o botão que abre a página; no celular o contato principal vai embaixo), CNPJ/CPF, AVCB/CLCB
+   (situação e prazo), Extintores e mangueiras (situação) e Contato principal (nome, função e telefone). No celular só
+   Cliente, AVCB e Extintores (as outras com @container (min-width:860px)), com linhas altas para o polegar. Busca no
+   nome, no CNPJ, no endereço e na ficha; filtros AVCB e Extintores; números do resumo em botões (filtram); ordem pelo
+   título da coluna; recentes em cima; planilha. O título e a busca (.cl-cab) ficam fixos no topo e o cabeçalho da
+   tabela gruda logo abaixo (--cl-th-top). Abrir um cliente guarda busca, rolagem e o cliente: o "‹ Clientes" volta ali. */
+let clOrdem = { col: "cli", desc: false }, clVisiveis = [], clVolta = null, clAbertoEm = 0, clToque = 0;
+const ORDEM_SIT = { crit: 0, warn: 1, ok: 2 }, SIT_EXT = { crit: "Vencido", warn: "A vencer", ok: "Em dia" };
+function infoCliente(c, avcbs) {
+  const av = avcbDoCliente(c, avcbs), s = av ? situacaoAvcb(av) : null, ext = pode("equip") ? sitCliente(c) : null;
+  const f = pode("ficha") ? fichas[c] : null, contato = f ? ordenarContatos(f.contatos)[0] || null : null;
+  const doc = f?.doc ? formatarDoc(digitos(f.doc)) || f.doc : av?.cnpj || "";
+  return { c, av, s, ext, f, contato, doc, endereco: f?.endereco || av?.endereco || "" };
+}
+// busca: nome, CNPJ e endereço que a linha mostra (de qualquer origem) e o que está na ficha (contatos, telefones…)
+function buscaCliente(x, q) {
+  if (semAcento([x.c, x.doc, x.endereco].join(" ")).includes(q)) return true;
+  const dq = digitos(q);
+  if (dq.length >= 4 && dq.length >= q.replace(/\s/g, "").length - 4 && digitos(x.doc).includes(dq)) return true;
+  return buscaFicha(x.c, q);
+}
+const COLS_CL = { cli: x => x.c, avcb: x => x.s ? x.s.dias : null, ext: x => x.ext ? ORDEM_SIT[x.ext] : null, cont: x => x.contato ? x.contato.nome || x.contato.funcao || null : null };
+function compCl(a, b) {
+  const f = COLS_CL[clOrdem.col], x = f(a), y = f(b);
+  if ((x == null) !== (y == null)) return x == null ? 1 : -1;   // sem o dado: sempre no fim
+  let r = x == null ? 0 : typeof x === "number" ? x - y : String(x).localeCompare(String(y), "pt-BR");
+  if (clOrdem.desc) r = -r;
+  return r || a.c.localeCompare(b.c, "pt-BR");
+}
+// o cabeçalho da tabela gruda logo abaixo do título e da busca (1 px por baixo, sem fresta)
+function ajustarCabCl() {
+  const cab = document.querySelector("#tela-clientes .cl-cab");
+  if (!cab || $("tela-clientes").hidden) return;
+  $("tela-clientes").style.setProperty("--cl-th-top", ((parseFloat(getComputedStyle(cab).top) || 0) + cab.getBoundingClientRect().height - 1) + "px");
+}
 function desenharClientesHub() {
-  const lista = $("cl-lista"); lista.innerHTML = "";
-  const q = semAcento($("cl-busca").value.trim());
-  const sub = c => {
-    const v = avcbDoCliente(c), s = pode("equip") ? sitCliente(c) : null;
-    return [v ? situacaoAvcb(v).texto : "", s === "crit" ? "⚠ extintor/mangueira vencido" : s === "warn" ? "extintor/mangueira vence em 60 dias" : ""].filter(Boolean).join(" · ");
-  };
-  const grupo = (titulo, nomes) => {
-    if (!nomes.length) return;
-    lista.appendChild(el("p", "hub-rot", titulo));
-    const l = el("div", "hub-lista");
-    nomes.slice(0, 200).forEach(c => l.appendChild(linha("predio", c, sub(c), () => abrirCliente(c))));
-    lista.appendChild(l);
-  };
-  if (!clientes.length) { lista.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando os clientes…" : "Sem internet e sem lista de clientes guardada.")); return; }
-  if (q) {                                          // pelo nome da pasta ou pelo que está na ficha (contato, telefone, e-mail, CNPJ)
-    const achados = clientes.filter(c => semAcento(c).includes(q) || buscaFicha(c, q));
-    grupo("Resultado", achados);
-    if (!achados.length) lista.appendChild(el("p", "avcb-nota", "Nenhum cliente encontrado. Para criar um cliente novo, comece um registro pelo Início."));
-    return;
+  const q = semAcento($("cl-busca").value.trim()), fa = $("cl-avcb").value, temEq = pode("equip"), temFicha = pode("ficha");
+  const fe = temEq ? $("cl-ext").value : "";
+  $("cl-busca").placeholder = temFicha ? "Buscar por nome, contato ou CNPJ" : "Buscar por nome ou CNPJ";
+  $("cl-ext-rot").hidden = !temEq;
+  $("cl-tab").classList.toggle("sem-ext", !temEq);
+  $("cl-tab").classList.toggle("sem-cont", !temFicha);
+  // recentes: um toque abre a página (como antes); somem durante a busca
+  const rec = $("cl-recentes"), recs = q ? [] : lerLS("vpx_recentes", []).filter(c => clientes.includes(c));
+  rec.innerHTML = "";
+  if (recs.length) {
+    rec.appendChild(el("p", "", "Recentes:"));
+    recs.forEach(c => { const b = el("button", "", c); b.type = "button"; b.onclick = () => abrirClienteDaLista(c); rec.appendChild(b); });
   }
-  const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c));
-  grupo("Recentes", rec);
-  grupo("Todos", clientes);
-  if (pode("ficha") && Object.keys(fichas).length) {   // planilha com os contatos de todos os clientes
-    const x = el("button", "laudo-link", "Exportar os contatos dos clientes (Excel)"); x.type = "button"; x.onclick = exportarFichas;
-    lista.appendChild(x);
+  rec.hidden = !recs.length;
+  const avcbs = listaAvcb();                       // uma vez por desenho (e não uma vez por cliente)
+  const daBusca = clientes.map(c => infoCliente(c, avcbs)).filter(x => !q || buscaCliente(x, q));
+  const passaA = x => !fa || (fa === "sem" ? !x.s : x.s?.cls === fa), passaE = x => !fe || (fe === "sem" ? !x.ext : x.ext === fe);
+  clVisiveis = daBusca.filter(x => passaA(x) && passaE(x)).sort(compCl);
+  // resumo: quantos e o que está vencido ou a vencer (contando com o outro filtro); tocar num número filtra por ele
+  const res = $("cl-resumo");
+  res.innerHTML = "";
+  if (clientes.length) {
+    res.appendChild(el("span", "", `${clVisiveis.length}${clVisiveis.length !== clientes.length ? " de " + clientes.length : ""} cliente${clientes.length === 1 ? "" : "s"}`));
+    const chip = (sel, cls, n, txt, titulo) => {
+      if (!n) return;
+      const ativo = $(sel).value === cls;
+      const b = el("button", "avcb-qt " + cls, `${n} ${txt}`); b.type = "button"; b.title = titulo;
+      b.setAttribute("aria-pressed", String(ativo)); b.dataset.f = sel + "-" + cls;
+      b.onclick = () => { $(sel).value = ativo ? "" : cls; desenharClientesHub(); $("cl-resumo").querySelector(`[data-f="${sel}-${cls}"]`)?.focus(); };
+      res.appendChild(b);
+    };
+    const comE = daBusca.filter(passaE), comA = daBusca.filter(passaA), pl = (n, um, varios) => n === 1 ? um : varios;
+    let n = comE.filter(x => x.s?.cls === "crit").length;
+    chip("cl-avcb", "crit", n, pl(n, "AVCB vencido", "AVCB vencidos"), "Clientes com AVCB ou CLCB vencido");
+    n = comE.filter(x => x.s?.cls === "warn").length;
+    chip("cl-avcb", "warn", n, "AVCB a vencer", "Clientes com AVCB ou CLCB vencendo em até 3 meses");
+    if (temEq) {
+      n = comA.filter(x => x.ext === "crit").length;
+      chip("cl-ext", "crit", n, pl(n, "ext./mang. vencido", "ext./mang. vencidos"), "Clientes com extintor ou mangueira vencido");
+      n = comA.filter(x => x.ext === "warn").length;
+      chip("cl-ext", "warn", n, "ext./mang. a vencer", "Clientes com extintor ou mangueira vencendo em até 60 dias");
+    }
   }
-  if (pode("ficha")) sincronizarFichas();          // a busca também procura nas fichas
+  $("cl-tab").querySelectorAll("thead button").forEach(b => {
+    const ativa = b.dataset.col === clOrdem.col;
+    b.dataset.seta = ativa ? (clOrdem.desc ? " ↓" : " ↑") : "";
+    b.closest("th").setAttribute("aria-sort", ativa ? (clOrdem.desc ? "descending" : "ascending") : "none");
+  });
+  $("cl-corpo").replaceChildren(...clVisiveis.map(linhaCl));
+  $("cl-tab").hidden = !clVisiveis.length;
+  $("cl-vazio").hidden = !!clVisiveis.length;
+  $("cl-vazio").textContent = !clientes.length ? (navigator.onLine ? "Carregando os clientes…" : "Sem internet e sem lista de clientes guardada.")
+    : q && !daBusca.length ? "Nenhum cliente encontrado. Para cadastrar um cliente novo, comece um registro em Registros e, ao escolher o cliente, digite o nome dele."
+    : "Nenhum cliente com esses filtros.";
+  $("cl-exportar").hidden = !clVisiveis.length;
+  $("cl-exp-contatos").hidden = !(temFicha && Object.keys(fichas).length);   // uma linha por contato, de todos os clientes
+  ajustarCabCl();
+  if (temFicha) sincronizarFichas();               // a busca também procura nas fichas (e a tabela mostra o contato principal)
+}
+function linhaCl(x) {
+  const tr = el("tr"), cli = el("td", "orc-c-cli");
+  tr.dataset.c = x.c;
+  // o nome é o botão que abre a página do cliente (teclado e leitor de tela); tocar em qualquer parte da linha também abre
+  const nome = el("button", "orc-cli cl-nome", x.c); nome.type = "button";
+  cli.appendChild(nome);
+  const ct = x.contato;
+  if (ct) cli.appendChild(el("small", "orc-sub orc-so-cel", [ct.nome || ct.funcao, ct.nome && ct.funcao].filter(Boolean).join(" · ")));   // no celular o contato vai embaixo
+  const avcb = el("td", "cl-c-avcb");
+  if (x.s) {                                       // etiqueta + prazo; no computador também o tipo e a data
+    const [rot, prazo] = sitCurtaAvcb(x.s), quando = el("small");
+    quando.append(el("span", "orc-data-l", `${x.av.tipo} ${dataBRde(x.av.vencimento)} · `), prazo);
+    avcb.append(el("span", "avcb-sit " + x.s.cls, rot), quando);
+    avcb.title = x.s.texto;
+  } else avcb.textContent = "—";
+  const ext = el("td", "cl-c-ext");
+  if (x.ext) { ext.appendChild(el("span", "avcb-sit " + x.ext, SIT_EXT[x.ext])); ext.title = { crit: "Extintor ou mangueira vencido", warn: "Extintor ou mangueira vence em até 60 dias", ok: "Extintores e mangueiras em dia" }[x.ext]; }
+  else ext.textContent = "—";
+  const cont = el("td", "cl-c-cont");
+  if (ct) {
+    cont.appendChild(el("span", "cl-cont-nome", ct.nome || ct.funcao));
+    const tel = [ct.tel, ct.tel2].find(t => t && telDig(t).length >= 10), sub = el("small", "orc-sub");
+    if (ct.nome && ct.funcao) sub.append(ct.funcao);
+    if (tel) {
+      if (sub.childNodes.length) sub.append(" · ");
+      const a = el("a", "", telBR(tel)); a.href = "tel:+55" + telDig(tel); a.onclick = e => e.stopPropagation();
+      sub.appendChild(a);
+    }
+    if (sub.childNodes.length) cont.appendChild(sub);
+  } else cont.textContent = "—";
+  tr.append(cli, el("td", "cl-c-cnpj", x.doc || "—"), avcb, ext, cont);
+  tr.onclick = e => {
+    const sel = getSelection();                     // computador: selecionar o CNPJ ou o telefone para copiar não abre a página
+    if (sel && !sel.isCollapsed && tr.contains(sel.anchorNode)) return;
+    abrirClienteDaLista(x.c);
+  };
+  return tr;
+}
+// quem rola: no celular a janela; no computador (mouse) o <main>
+const rolagemCl = () => { const m = document.querySelector("main"); return getComputedStyle(m).overflowY === "auto" ? m : null; };
+// abre a página do cliente guardando a busca, a rolagem e o cliente: o "‹ Clientes" volta para o mesmo ponto
+function abrirClienteDaLista(c) {
+  const m = rolagemCl();
+  clVolta = { q: $("cl-busca").value, pos: m ? m.scrollTop : window.scrollY, c };
+  clAbertoEm = Date.now();
+  abrirCliente(c);
+}
+function voltarParaClientes() {
+  const v = clVolta;
+  clVolta = null;
+  irPara("clientes");                              // (apaga a busca e põe o cursor nela no computador)
+  if (!v) return;
+  $("cl-busca").value = v.q;
+  desenharClientesHub();
+  requestAnimationFrame(() => {
+    const m = rolagemCl();
+    if (m) m.scrollTop = v.pos; else window.scrollTo(0, v.pos);
+    const nome = $("cl-corpo").querySelector(`tr[data-c="${CSS.escape(v.c)}"] .cl-nome`);
+    nome?.focus({ preventScroll: true });          // o teclado continua no cliente que foi aberto
+  });
+}
+// computador: o 2º clique de um duplo clique na linha não aciona o que ficou embaixo do ponteiro na página do cliente
+$("tela-cliente").addEventListener("click", e => { if (Date.now() - clAbertoEm < 500) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+// as fichas chegaram por trás: redesenha só se a pessoa não estiver tocando ou com o foco numa linha (tudo seria trocado embaixo dela)
+$("tela-clientes").addEventListener("pointerdown", () => { clToque = Date.now(); }, true);
+function redesenharClientesQuieto() {
+  if (secao !== "clientes" || $("tela-clientes").hidden) return;
+  const foco = document.activeElement, emLinha = foco && ["cl-corpo", "cl-resumo", "cl-recentes"].some(id => $(id).contains(foco));
+  if (emLinha || Date.now() - clToque < 1200) { clearTimeout(redesenharClientesQuieto.t); redesenharClientesQuieto.t = setTimeout(redesenharClientesQuieto, 1500); return; }
+  desenharClientesHub();
+}
+async function exportarClientes() {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const SIT = { crit: "Vencido", warn: "A vencer", ok: "Em dia" };
+    const linhas = [["Cliente", "CNPJ/CPF", "Tipo", "Validade", "Situação do AVCB/CLCB", "Extintores e mangueiras", "Contato principal", "Função", "Telefone", "E-mail", "Endereço"]];
+    clVisiveis.forEach(x => linhas.push([x.c, x.doc, x.av?.tipo || "", x.av ? dataBRde(x.av.vencimento) : "", x.s ? SIT[x.s.cls] : "Sem AVCB na lista", x.ext ? SIT[x.ext] : "",
+      x.contato?.nome || "", x.contato?.funcao || "", x.contato?.tel || x.contato?.tel2 || "", x.contato?.email || "", x.endereco]));
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    ws["!cols"] = [30, 20, 7, 11, 20, 20, 24, 16, 16, 30, 44].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+    const nome = `Clientes - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
 function abrirCliente(c, de = null) { cliPagina = c; cliDe = de; irPara("cliente"); }   // de "avcb": aberta pela tabela de validade AVCB
 // usa as telas que já existem (arquivos, pasta técnica, histórico) para o cliente da página
@@ -12295,7 +12521,7 @@ function comCliente(c, fn) { const ant = cliente; cliente = c; try { fn(); } fin
 function desenharPaginaCliente() {
   const t = $("tela-cliente"), c = cliPagina; t.innerHTML = "";
   const v = el("button", "hub-voltar", cliDe === "avcb" ? "‹ Validade AVCB" : "‹ Clientes"); v.type = "button";
-  v.onclick = () => { if (cliDe === "avcb") voltarParaAvcb(); else irPara("clientes"); };
+  v.onclick = () => { if (cliDe === "avcb") voltarParaAvcb(); else voltarParaClientes(); };   // a lista volta no mesmo ponto
   t.append(v, el("h1", "hub-tit", c));
   const av = avcbDoCliente(c);
   if (av) { const s = situacaoAvcb(av); t.appendChild(el("p", "avcb-aviso " + s.cls, (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto)); }
@@ -12565,6 +12791,16 @@ document.addEventListener("drop", e => {
 $("trab-voltar").onclick = voltarInicio;
 $("ok-inicio").onclick = () => { novaVisita(); voltarInicio(); };
 $("cl-busca").oninput = () => { clearTimeout(desenharClientesHub.t); desenharClientesHub.t = setTimeout(desenharClientesHub, 200); };
+// Clientes em tabela: filtros, ordem pelo título da coluna (de novo, inverte), planilhas e o cabeçalho fixo
+$("cl-avcb").onchange = $("cl-ext").onchange = () => desenharClientesHub();
+$("cl-tab").querySelectorAll("thead button").forEach(b => b.onclick = () => {
+  const c = b.dataset.col;
+  clOrdem = clOrdem.col === c ? { col: c, desc: !clOrdem.desc } : { col: c, desc: false };
+  desenharClientesHub();
+});
+$("cl-exportar").onclick = exportarClientes;
+$("cl-exp-contatos").onclick = exportarFichas;
+new ResizeObserver(ajustarCabCl).observe(document.querySelector("#tela-clientes .cl-cab"));
 $("topo-fila").onclick = () => aviso($("fila").textContent || "Itens aguardando envio.");
 $("btn-cliente").onclick = abrirDialogo;
 $("dlg-fechar").onclick = () => $("dlg").close();
