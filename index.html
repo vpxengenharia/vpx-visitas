@@ -12342,7 +12342,7 @@ function desenharInicio() {
    título da coluna; recentes em cima; planilha. O título e a busca (.cl-cab) ficam fixos no topo e o cabeçalho da
    tabela gruda logo abaixo (--cl-th-top). Abrir um cliente guarda busca, rolagem e o cliente: o "‹ Clientes" volta ali. */
 let clOrdem = { col: "cli", desc: false }, clVisiveis = [], clVolta = null, clAbertoEm = 0, clToque = 0;
-const ORDEM_SIT = { crit: 0, warn: 1, ok: 2 }, SIT_EXT = { crit: "Vencido", warn: "A vencer", ok: "Em dia" };
+const ORDEM_SIT_CL = { crit: 0, warn: 1, ok: 2 }, SIT_EXT = { crit: "Vencido", warn: "A vencer", ok: "Em dia" };
 function infoCliente(c, avcbs) {
   const av = avcbDoCliente(c, avcbs), s = av ? situacaoAvcb(av) : null, ext = pode("equip") ? sitCliente(c) : null;
   const f = pode("ficha") ? fichas[c] : null, contato = f ? ordenarContatos(f.contatos)[0] || null : null;
@@ -12356,7 +12356,7 @@ function buscaCliente(x, q) {
   if (dq.length >= 4 && dq.length >= q.replace(/\s/g, "").length - 4 && digitos(x.doc).includes(dq)) return true;
   return buscaFicha(x.c, q);
 }
-const COLS_CL = { cli: x => x.c, avcb: x => x.s ? x.s.dias : null, ext: x => x.ext ? ORDEM_SIT[x.ext] : null, cont: x => x.contato ? x.contato.nome || x.contato.funcao || null : null };
+const COLS_CL = { cli: x => x.c, avcb: x => x.s ? x.s.dias : null, ext: x => x.ext ? ORDEM_SIT_CL[x.ext] : null, cont: x => x.contato ? x.contato.nome || x.contato.funcao || null : null };
 function compCl(a, b) {
   const f = COLS_CL[clOrdem.col], x = f(a), y = f(b);
   if ((x == null) !== (y == null)) return x == null ? 1 : -1;   // sem o dado: sempre no fim
