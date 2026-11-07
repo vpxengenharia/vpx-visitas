@@ -11,7 +11,8 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 ## 1. O que o app faz hoje
 
 ### Navegação
-- **Barra de baixo** com 5 seções: **Início · Clientes · Agenda · Financeiro · Mais**.
+- **Barra de baixo (celular)** com 5 seções: **Início · Clientes · Registros · Agenda · Mais**. No Mais ficam o Financeiro, as ITs, a Administração e a conta.
+- **No computador** a barra vira um menu lateral **sem o Mais** (desde 06/11/2026): **Início · Clientes · Registros · Agenda · Financeiro · ITs do CBM-BA · Administração** e, embaixo, a conta com **Sair da conta**.
 - **Topo:** a logo da VPX no centro e o aviso "⏳ X na fila" quando há envios pendentes.
 - **Início:**
   - saudação;
@@ -30,6 +31,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Formulários:** abrem em tela cheia. O "voltar" leva à tela de onde vieram.
 - **Página do cliente:**
   - situação do AVCB;
+  - contatos da ficha do cliente (Ligar, WhatsApp, E-mail);
   - Arquivos, Pasta técnica, Histórico e Laudos salvos;
   - Extintores e mangueiras;
   - Avisar cliente;
