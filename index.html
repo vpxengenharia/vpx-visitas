@@ -468,6 +468,131 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .avcb-card .l4 a{color:inherit;font-weight:700}
 .an-foto{display:block;width:100%;max-height:260px;object-fit:contain;background:#000;border-radius:10px;margin-bottom:10px}
 .an-status{font-size:15px;font-weight:600;margin:0 2px 12px;padding:8px 12px;border-radius:10px;background:var(--papel);border:1.5px solid var(--linha)}
+/* tarefas e funil comercial (como no monday.com, mais simples): lista por prioridade ou quadro em colunas */
+.tar-ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.tar-ctrl .avcb-busca{flex:1 1 180px;min-width:0;margin:0}
+.tar-ctrl select{flex:1 1 140px;min-width:0;min-height:46px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 8px;font-size:15px}
+.tar-ctrl select[hidden],#tar-filtro[hidden],#tar-lista-tela[hidden],#tar-sub[hidden],#fu-lista-tela[hidden],#fu-sub[hidden]{display:none}
+.tar-vistas{flex:none;display:flex;gap:3px;padding:3px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
+.tar-vistas button{min-height:40px;padding:0 14px;border:0;border-radius:9px;background:none;color:var(--suave);font-weight:700;font-size:15px;cursor:pointer}
+.tar-vistas button[aria-pressed="true"]{background:var(--marinho);color:#fff}
+.tar-vistas button:focus-visible{outline:3px solid var(--laranja);outline-offset:1px}
+@media (prefers-color-scheme:dark){.tar-vistas button[aria-pressed="true"]{background:var(--laranja);color:var(--marinho)}}
+.tar-st{flex:none;min-height:30px;padding:3px 10px;border-radius:999px;border:0;font:inherit;font-size:12.5px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer}
+.tar-st:disabled{cursor:default}
+.st-nao{background:#E6EAF0;color:#44546A}
+.st-andamento{background:var(--warn-bg);color:var(--warn-tx)}
+.st-parado{background:var(--crit-bg);color:var(--crit-tx)}
+.st-feito{background:var(--okv-bg);color:var(--okv-tx)}
+@media (prefers-color-scheme:dark){.st-nao{background:rgba(255,255,255,.1);color:var(--suave)}}
+.tar-card,.fu-card{display:block;width:100%;margin-bottom:8px;padding:10px 12px;border:1.5px solid var(--linha);border-left:6px solid var(--linha);border-radius:12px;background:var(--papel);color:var(--tinta);text-align:left;cursor:pointer}
+.tar-card:focus-visible,.fu-card:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.tar-card.pri-critica,.fu-card.pri-critica{border-left-color:var(--erro)}
+.tar-card.pri-alta,.fu-card.pri-alta{border-left-color:var(--laranja)}
+.tar-card.pri-media,.fu-card.pri-media{border-left-color:#6F8FB8}
+.tar-card.pri-baixa,.fu-card.pri-baixa{border-left-color:#B9C6D6}
+.tar-l1{display:flex;align-items:flex-start;gap:8px}
+.tar-tit{flex:1;min-width:0;padding-top:4px;font-size:16px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.tar-card.feita .tar-tit{text-decoration:line-through;color:var(--suave)}
+.tar-meta{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:6px;font-size:13.5px;line-height:1.35;color:var(--suave)}
+.tar-meta .atr,.tar-meta .crit{color:var(--crit-tx);font-weight:700}
+.tar-meta .hoje,.tar-meta .warn{color:var(--warn-tx);font-weight:700}
+.tar-grupo{display:flex;align-items:center;gap:8px;margin:18px 2px 8px;font-family:var(--titulo-fonte);font-size:17px;font-weight:700;color:var(--tinta)}
+.tar-grupo:first-child{margin-top:4px}
+.tar-grupo i{width:12px;height:12px;border-radius:4px;background:var(--linha)}
+.tar-grupo i.g-critica{background:var(--erro)}.tar-grupo i.g-alta{background:var(--laranja)}.tar-grupo i.g-media{background:#6F8FB8}.tar-grupo i.g-baixa{background:#B9C6D6}
+.tar-grupo small{font-family:var(--texto-fonte);font-size:14px;font-weight:600;color:var(--suave)}
+.tar-feitas{width:100%;margin:14px 0 10px}
+/* quadro: uma coluna por situação (tarefas) ou por etapa (funil); no celular as colunas correm para o lado */
+.kb{display:flex;align-items:flex-start;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:2px 16px 14px}
+.kb-col{flex:0 0 min(84vw,300px);scroll-snap-align:start;min-height:140px;padding:8px;border-radius:14px;border-top:4px solid var(--linha);background:rgba(28,60,97,.05)}
+@media (prefers-color-scheme:dark){.kb-col{background:rgba(255,255,255,.04)}}
+.kb-col.kb-c-andamento,.kb-col.kb-c-07{border-top-color:var(--laranja)}
+.kb-col.kb-c-parado,.kb-col.kb-c-10{border-top-color:var(--erro)}
+.kb-col.kb-c-feito,.kb-col.kb-c-08{border-top-color:var(--ok)}
+.kb-col.sobre{outline:3px dashed var(--laranja);outline-offset:-3px}
+.kb-cab{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:2px 4px 8px;font-family:var(--titulo-fonte);font-size:16px;font-weight:700;line-height:1.2}
+.kb-cab small{flex:none;font-family:var(--texto-fonte);font-size:13px;font-weight:600;color:var(--suave)}
+.kb-soma{margin:-4px 4px 8px;font-size:13px;font-weight:700;color:var(--marinho)}
+@media (prefers-color-scheme:dark){.kb-soma{color:var(--laranja)}}
+.kb-col .tar-card,.kb-col .fu-card{margin-bottom:6px}
+.kb-vazio{margin:6px 4px;font-size:14px;color:var(--suave)}
+.kb-mais{width:100%;min-height:40px;border:0;background:none;color:var(--marinho);font-weight:700;font-size:14.5px;cursor:pointer}
+@media (prefers-color-scheme:dark){.kb-mais{color:var(--laranja)}}
+.tar-card[draggable="true"],.fu-card[draggable="true"]{cursor:grab}
+.arrastando{opacity:.45}
+/* funil: cartão com nome e valor; contato atrasado em laranja/vermelho */
+.fu-nome{display:block;font-size:16px;line-height:1.3;overflow-wrap:anywhere}
+.tar-meta .fu-valor{font-family:var(--titulo-fonte);font-size:15px;font-weight:700;color:var(--marinho);white-space:nowrap}
+@media (prefers-color-scheme:dark){.tar-meta .fu-valor{color:var(--laranja)}}
+.fu-sit{display:inline-block;padding:0 8px;border-radius:999px;background:var(--orc-th);color:var(--tinta);font-size:12.5px;font-weight:700}
+#fu-resumo{margin:0 2px 10px}
+#tela-funil .avcb-corpo{container-type:inline-size}
+.fu-tab .fu-c-valor{width:96px;text-align:right}
+.fu-tab .fu-c-data{width:84px}
+.fu-tab .fu-c-etapa,.fu-tab .fu-c-resp,.fu-tab .fu-c-sit{display:none}
+.fu-tab td.fu-c-valor{font-variant-numeric:tabular-nums;font-weight:600}
+.fu-tab .fu-n b{display:block;font-weight:600;overflow-wrap:anywhere}
+.fu-tab .fu-n small{display:block;margin-top:2px;font-size:12.5px;color:var(--suave)}
+.fu-tab td.crit{color:var(--crit-tx);font-weight:700}.fu-tab td.warn{color:var(--warn-tx);font-weight:700}
+@container (min-width:600px){.fu-tab .fu-c-etapa{display:table-cell;width:150px;font-size:13px}}
+@container (min-width:900px){.fu-tab .fu-c-resp{display:table-cell;width:130px}.fu-tab .fu-c-sit{display:table-cell;width:150px;font-size:13px}}
+.fu-mais-tab{width:100%;margin-top:10px}
+/* detalhe da tarefa / da oportunidade (cada mudança é salva na hora) */
+.tar-det{padding-bottom:12px}
+.tar-tit-in{display:block;width:100%;margin:0 0 8px;padding:6px 10px;border:1.5px solid transparent;border-radius:10px;background:transparent;color:var(--tinta);font-family:var(--titulo-fonte);font-size:23px;font-weight:700;line-height:1.2}
+.tar-tit-in:hover{border-color:var(--linha)}
+.tar-tit-in:focus{outline:none;border-color:var(--laranja);background:var(--papel)}
+.tar-h{font-family:var(--titulo-fonte);font-size:23px;line-height:1.2;margin:4px 2px 10px}
+.chips.peq button{min-height:42px;padding:4px 13px;font-size:15px}
+.tar-2col{display:grid;gap:0 12px}
+@media (min-width:640px){.tar-2col{grid-template-columns:1fr 1fr}}
+.tar-det .campo input[type="date"]{min-width:0}
+.tar-det .cliente{margin-bottom:6px}
+.tar-links{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0 2px 12px}
+.tar-info{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 2px 12px;font-size:15px}
+.tar-info dt{color:var(--suave)}
+.tar-info dd{margin:0;overflow-wrap:anywhere}
+.tar-subs{list-style:none;margin:0 0 8px;padding:0;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel);overflow:hidden}
+.tar-subs:empty{display:none}
+.tar-subs li{display:flex;align-items:center;gap:6px;min-height:50px;padding:0 4px 0 12px;border-bottom:1px solid var(--linha)}
+.tar-subs li:last-child{border-bottom:0}
+.tar-subs label{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:8px 0;font-size:16px;line-height:1.3;overflow-wrap:anywhere;cursor:pointer}
+.tar-subs input{width:22px;height:22px;flex:none;accent-color:var(--ok)}
+.tar-subs li.f label span{text-decoration:line-through;color:var(--suave)}
+.tar-x{flex:none;min-width:44px;min-height:44px;border:0;border-radius:10px;background:none;color:var(--suave);font-size:22px;line-height:1;cursor:pointer}
+.tar-x:hover{color:var(--erro)}
+.tar-add{display:flex;gap:8px;margin-bottom:12px}
+.tar-add input{flex:1;min-width:0;min-height:48px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 12px;font-size:16px}
+.tar-add .btn{flex:none;width:auto;min-height:48px;padding:0 16px}
+.tar-novo-com textarea{width:100%;min-height:76px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:10px 12px;font:inherit;font-size:16px;resize:vertical}
+.tar-novo-com textarea:focus,.tar-add input:focus{outline:3px solid var(--laranja);outline-offset:1px}
+.tar-novo-com .btn{width:100%;min-height:48px;margin:6px 0 12px}
+.tar-coms{display:grid;gap:8px;margin-bottom:12px}
+.tar-com{position:relative;padding:10px 12px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
+.tar-com small{display:block;padding-right:40px;font-size:13px;color:var(--suave)}
+.tar-com p{margin:4px 0 0;max-width:none;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15.5px;line-height:1.4}
+.tar-com .tar-x{position:absolute;top:2px;right:2px;min-width:40px;min-height:40px;font-size:20px}
+.tar-hist summary{padding:8px 2px;color:var(--suave);font-weight:600;cursor:pointer}
+.tar-rodape{margin:14px 2px 0;font-size:13px;color:var(--suave)}
+.tar-desc{max-width:none;margin:0 2px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.btn.sec.perigo{color:var(--erro)}
+.tar-excluir{width:100%;margin-top:12px}
+.fu-etapa-l{display:flex;flex-wrap:wrap;gap:8px}
+.fu-etapa-l select{flex:1 1 220px}
+.fu-etapa-l .btn{flex:1 1 220px;min-height:52px;font-size:17px}
+.fu-ligacao{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.fu-ligacao button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-weight:700;font-size:14.5px;cursor:pointer}
+.tar-det .fc-ac{margin:-4px 0 12px;flex-wrap:wrap}
+.tar-det .fc-bt{flex:1 1 110px}
+@media (prefers-color-scheme:dark){.tar-det .fc-bt{color:var(--tinta)}}
+/* menu de escolha (situação da tarefa, etapa) que abre junto do botão */
+.menu-op{position:fixed;z-index:60;min-width:200px;max-width:calc(100vw - 16px);display:grid;gap:4px;padding:6px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel);box-shadow:0 12px 32px rgba(19,37,59,.22)}
+.menu-op[hidden]{display:none}
+.menu-op button{min-height:44px;padding:0 12px;border:0;border-radius:9px;font:inherit;font-weight:700;font-size:15px;text-align:left;cursor:pointer}
+.menu-op button:not([class*="st-"]){background:none;color:var(--tinta)}
+.menu-op button.atual{box-shadow:inset 0 0 0 2px var(--marinho)}
+.menu-op button:focus-visible{outline:3px solid var(--laranja);outline-offset:1px}
 /* agenda (Outlook) */
 .agenda-btn{width:42px;height:38px;border-radius:999px;border:1.5px solid rgba(28,60,97,.45);background:transparent;color:var(--marinho);display:grid;place-items:center;cursor:pointer;padding:0}
 .agenda-btn[hidden]{display:none}
@@ -769,7 +894,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .item.novo{color:var(--marinho);font-weight:600}
 @media (prefers-color-scheme:dark){.item.novo{color:var(--laranja)}}
 
-.aviso{position:fixed;left:18px;right:18px;bottom:calc(200px + env(safe-area-inset-bottom,0px));max-width:684px;margin:0 auto;background:var(--tinta);color:var(--fundo);padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:20}
+.aviso{position:fixed;left:18px;right:18px;bottom:calc(200px + env(safe-area-inset-bottom,0px));max-width:684px;margin:0 auto;background:var(--tinta);color:var(--fundo);padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:70}   /* acima das telas que abrem por cima (antes ficava escondido atrás delas) */
 .aviso.ver{opacity:1;transform:none}
 .aviso.erro{background:var(--erro);color:#fff}
 
@@ -906,6 +1031,19 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   .orc-ac:hover{border-color:var(--borda-hover);background-color:rgba(127,127,127,.06)}
   .avcb-acoes{grid-template-columns:repeat(3,minmax(0,220px))}
   .avcb-acoes .btn.prim{grid-column:auto}
+  /* tarefas e funil: lista e quadro largos (cartões em colunas); o detalhe numa coluna de 760 px */
+  #tela-tar,#tela-funil{--larg:1240px}
+  .kb{margin:0;padding:2px 0 14px}
+  .kb-col{flex:1 0 190px}
+  .kb .tar-st{display:none}                        /* no quadro a coluna já diz a situação; no computador muda arrastando */
+  .tar-ctrl select{flex:0 1 230px}
+  .tar-gr-itens{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));column-gap:12px}
+  #tar-sub,#fu-sub{max-width:760px;margin:0 auto}
+  .tar-card,.fu-card,.fu-ligacao button{transition:border-color .12s,box-shadow .12s,background-color .12s}
+  .tar-card:hover,.fu-card:hover{box-shadow:0 3px 14px rgba(19,37,59,.12)}
+  .menu-op button:hover{background-color:rgba(127,127,127,.1)}
+  .fu-ligacao button:hover{border-color:var(--borda-hover);background-color:rgba(127,127,127,.06)}
+  .kb-mais:hover{text-decoration:underline}
   /* escolher cliente: janela no meio da tela */
   dialog{max-width:600px;height:min(780px, calc(100vh - 96px));max-height:none;margin:auto;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
   /* mouse por cima: destaca o que dá para clicar */
@@ -973,6 +1111,8 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <symbol id="i-conversa" viewBox="0 0 24 24"><path d="M12 3.8a8.2 8.2 0 0 0-7.1 12.3l-1.1 4.1 4.2-1.1A8.2 8.2 0 1 0 12 3.8z"/><path style="stroke:var(--ic-ac)" d="M8.6 12h.01M12 12h.01M15.4 12h.01"/></symbol>
   <symbol id="i-nf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 7.5h7M8.5 10.7h7"/><path style="stroke:var(--ic-ac)" d="M8.5 14.5v3M10.7 14.5v3M12.6 14.5v3M15.5 14.5v3"/></symbol>
   <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
+  <symbol id="i-tarefas" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path style="stroke:var(--ic-ac)" d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1"/><path d="M14.4 9.6h2.6M14.4 15.8h2.6"/></symbol>
+  <symbol id="i-funil" viewBox="0 0 24 24"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/><path style="stroke:var(--ic-ac)" d="M7.6 9.2h8.8"/></symbol>
 </svg>
 <header class="topo">
   <p class="marca"><img src="logo.png" alt="VPX Engenharia" width="100" height="56"></p>
@@ -1144,6 +1284,9 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <button data-s="reg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><path d="M16.75 14v5.5M14 16.75h5.5"/></svg>Registros</button>
   <button data-s="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
   <!-- no computador (menu lateral) o que fica no Mais aparece direto; no celular, só o Mais (pedido do Gustavo em 06/11/2026) -->
+  <!-- tarefas e funil comercial (pedido do Gustavo em 07/11/2026): no computador, direto no menu; no celular, em Registros e no Início -->
+  <button class="so-pc" data-acao="tar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1M14.4 9.6h2.6M14.4 15.8h2.6"/></svg>Tarefas<span class="avcb-qtd" id="nav-tar-qtd" hidden></span></button>
+  <button class="so-pc" data-acao="funil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/></svg>Funil comercial</button>
   <button class="so-pc" data-s="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></svg>Financeiro<span class="avcb-qtd" id="nav-fin-qtd-pc" hidden></span></button>
   <button class="so-pc" data-acao="its"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 6.8C10 5.2 7 4.6 3.5 5v13.6c3.5-.4 6.5.2 8.5 1.8 2-1.6 5-2.2 8.5-1.8V5C17 4.6 14 5.2 12 6.8zM12 6.8v13.6"/></svg>ITs do CBM-BA</button>
   <button class="so-pc" data-acao="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h8.5M18 7h2M4 17h2.5M12 17h8"/><circle cx="15.2" cy="7" r="2.4"/><circle cx="9.2" cy="17" r="2.4"/></svg>Administração<span class="avcb-qtd" id="nav-adm-qtd" hidden></span></button>
@@ -1385,6 +1528,43 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   </div>
 </div>
 
+<!-- funil comercial e tarefas (pedido do Gustavo em 07/11/2026: "semelhante ao monday.com, um pouco mais simples").
+     As tarefas ficam depois do funil no HTML para abrir por cima dele ("+ Tarefa" de uma oportunidade). -->
+<div class="tela-avcb" id="tela-funil" hidden role="dialog" aria-label="Funil comercial">
+  <div class="avcb-topo"><button class="avcb-voltar" id="fu-voltar">‹ Voltar</button><strong id="fu-titulo">Funil comercial</strong><button class="ag-novo" id="fu-nova" type="button">+ Nova</button></div>
+  <div class="avcb-corpo">
+    <div id="fu-lista-tela">
+      <div class="tar-ctrl">
+        <div class="tar-vistas" id="fu-vistas"><button type="button" data-v="quadro" aria-pressed="true">Quadro</button><button type="button" data-v="lista" aria-pressed="false">Lista</button></div>
+        <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar nome, contato, telefone ou endereço" autocomplete="off">
+        <select id="fu-pessoa" aria-label="Responsável"></select>
+        <select id="fu-sit" aria-label="Situação do contato"></select>
+      </div>
+      <div class="chips avcb-filtro" id="fu-grupos"></div>
+      <p class="orc-resumo" id="fu-resumo"></p>
+      <div id="fu-lista"></div>
+      <p class="avcb-nota" id="fu-nota"></p>
+    </div>
+    <div id="fu-sub" hidden></div>
+  </div>
+</div>
+<div class="tela-avcb" id="tela-tar" hidden role="dialog" aria-label="Tarefas">
+  <div class="avcb-topo"><button class="avcb-voltar" id="tar-voltar">‹ Voltar</button><strong id="tar-titulo">Tarefas</strong><button class="ag-novo" id="tar-nova" type="button">+ Nova</button></div>
+  <div class="avcb-corpo">
+    <div id="tar-lista-tela">
+      <div class="tar-ctrl">
+        <div class="tar-vistas" id="tar-vistas"><button type="button" data-v="lista" aria-pressed="true">Lista</button><button type="button" data-v="quadro" aria-pressed="false">Quadro</button></div>
+        <input class="avcb-busca" id="tar-busca" type="search" placeholder="Buscar tarefa, cliente ou pessoa" autocomplete="off">
+        <select id="tar-pessoa" aria-label="Pessoa"></select>
+      </div>
+      <div class="chips avcb-filtro" id="tar-filtro"></div>
+      <div id="tar-lista"></div>
+      <p class="avcb-nota" id="tar-nota"></p>
+    </div>
+    <div id="tar-sub" hidden></div>
+  </div>
+</div>
+
 <!-- ficha do cliente: contatos e dados (pedido do Gustavo em 06/11/2026); fica depois da OS no HTML para abrir por cima dela -->
 <div class="tela-avcb" id="tela-ficha" hidden role="dialog" aria-label="Ficha do cliente">
   <div class="avcb-topo"><button class="avcb-voltar" id="ficha-voltar">‹ Voltar</button><strong id="ficha-titulo">Ficha do cliente</strong></div>
@@ -1580,10 +1760,12 @@ const CONFIG = {
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
   subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
-  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i],
+  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i, /^00 - Tarefas$/i, /^00 - Funil Comercial$/i],
   pastaOS: "00 - Ordens de Serviço",           // dentro de 02 - Clientes: um .json por ordem de serviço (OS-0001.json…)
   pastaEquip: "00 - Extintores e Mangueiras",  // dentro de 02 - Clientes: um .json por cliente com os grupos de extintores e mangueiras
   pastaFichas: "00 - Fichas dos Clientes",     // dentro de 02 - Clientes: um .json por cliente com os dados e os contatos (ficha do cliente)
+  pastaTarefas: "00 - Tarefas",                // dentro de 02 - Clientes: tarefas da equipe, em 8 arquivos (tarefas-00.json … tarefas-07.json)
+  pastaFunil: "00 - Funil Comercial",          // dentro de 02 - Clientes: oportunidades do funil comercial, em 32 arquivos (funil-00.json …)
   admins: ["gustavoponchio@vpxengenharia.com.br"],                     // administrador principal (área ⚙ e tudo liberado)
   contatoVPX: [                                                        // no fim do aviso ao cliente (mensagem e PDF); tirados do site da VPX
     "WhatsApp: (71) 99194-9900",
@@ -6605,7 +6787,8 @@ function pintarFaixaOS() {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
+  ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Funil comercial"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -6617,7 +6800,7 @@ let perm = lerLS("vpx_perm", null);                // última cópia do arquivo 
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
 // (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
-const NOVAS_NO_PADRAO = ["serv", "equip", "os", "ficha"];   // "osCriar", "pagar", "orc" (orçamentos, com preços) e "nf" (notas fiscais) não: só quem o Gustavo liberar
+const NOVAS_NO_PADRAO = ["serv", "equip", "os", "ficha", "tarefas"];   // "osCriar", "pagar", "orc" (orçamentos, com preços), "nf" (notas fiscais) e "funil" (valores das propostas) não: só quem o Gustavo liberar
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
   // convidado: nada sem a liberação (sem acesso à pasta de configuração, ou recusado/retirado); nunca a Agenda (não tem Outlook da VPX)
@@ -9080,8 +9263,12 @@ function atualizarNav() {
   nav.querySelector('[data-s="fin"]').hidden = !podeFin();
   nav.querySelector('[data-acao="its"]').hidden = !pode("normas");
   nav.querySelector('[data-acao="admin"]').hidden = !ehAdmin();
+  nav.querySelector('[data-acao="tar"]').hidden = !podeVerTarefas();
+  nav.querySelector('[data-acao="funil"]').hidden = !pode("funil");
   const nAdm = ehAdmin() ? pedidosAcesso.length : 0;
   $("nav-adm-qtd").hidden = !nAdm; $("nav-adm-qtd").textContent = nAdm;
+  const nTar = conta ? alertaTar() : 0;              // tarefas da pessoa atrasadas ou para hoje
+  $("nav-tar-qtd").hidden = !nTar; $("nav-tar-qtd").textContent = nTar;
   $("nav-conta-nome").textContent = conta?.name || "Conta";
   $("nav-conta-email").textContent = conta?.username || "";
   const s = secao === "trabalho" ? trabDe : secao;   // formulário aberto: marca de onde ele veio (no computador o menu continua à vista)
@@ -9090,6 +9277,8 @@ function atualizarNav() {
     if (s === "fin" && atual === "mais") atual = "fin";   // aberto pelo Mais no celular e a janela cresceu
     if (!$("tela-its").hidden) atual = "its";      // ITs e Administração abrem por cima: ficam marcadas enquanto abertas
     if (!$("tela-admin").hidden) atual = "admin";
+    if (!$("tela-funil").hidden) atual = "funil";  // tarefas e funil também (as tarefas podem estar por cima do funil)
+    if (!$("tela-tar").hidden) atual = "tar";
   } else if (atual === "fin") atual = "mais";      // celular: o Financeiro fica dentro do Mais
   nav.querySelectorAll("button").forEach(b => { if ((b.dataset.s || b.dataset.acao) === atual) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
 }
@@ -9131,7 +9320,7 @@ function fecharTelasPorCima() {
   const havia = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-agenda");
   if (adm) adm.mudou = false;
   fecharAssinar(false); fecharNovoAvcb(false); fecharAdmin(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
-  fecharFicha(false);
+  fecharFicha(false); fecharTar(false); fecharFunil(false);
   fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharNf(false); fecharOS(false); fecharAvcb(false);
   if (havia) { document.body.style.overflow = ""; history.replaceState(null, ""); }
   return true;
@@ -10791,6 +10980,959 @@ async function salvarNovaNf() {
   }
 }
 
+/* ---------- tarefas e funil comercial (pedido do Gustavo em 07/11/2026: "controle de tarefas e processos semelhante
+   ao monday.com, um pouco mais simples") ----------
+   Decisões dele: tarefas da equipe e funil comercial na 1ª versão (o processo de cada cliente fica para depois), em lista
+   e em quadro, com o que estava no monday importado; função "tarefas" para o escritório (perfil padrão) — quem não a tem
+   vê só as tarefas em que é responsável —, e "funil" só para quem ele liberar (tem os valores das propostas).
+   Sem banco de dados: cada coleção é uma pasta em 02 - Clientes com N arquivos .json ("baldes"); cada registro fica no
+   balde que sai do seu id (hashId % N), com vários registros por arquivo (as ~1.900 oportunidades do funil cabem em 32
+   arquivos). Toda mudança é gravada com If-Match: se outra pessoa mexeu no mesmo arquivo (412), o app lê a versão nova,
+   aplica de novo a mesma mudança e grava. Na tela a mudança aparece na hora (camada "sobre"); se não der para gravar,
+   volta ao que estava e avisa. Precisa de internet para salvar (como a OS e a ficha); sem internet mostra a última cópia. */
+const hashId = s => {                              // FNV-1a + mistura final (espalha bem os ids pelos arquivos); igual ao da importação do monday
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16;
+  return h >>> 0;
+};
+const novoIdReg = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const colecao = op => ({ ...op, dados: lerLS(op.chave, null) || { baldes: {} }, sobre: {}, pend: {}, filas: {} });
+const nomeBalde = (c, b) => `${c.prefixo}-${String(b).padStart(2, "0")}.json`;
+const baldeDe = (c, id) => hashId(id) % c.n;
+function regsDe(c) {                               // todos os registros (com as mudanças ainda sendo gravadas por cima)
+  const out = {};
+  for (const b of Object.values(c.dados.baldes)) Object.assign(out, b.itens);
+  for (const [id, r] of Object.entries(c.sobre)) { if (r) out[id] = r; else delete out[id]; }
+  return out;
+}
+async function pastaCol(c) { return c.pastaId ||= (await garantirFilhas(CONFIG.pastaClientesId, [c.pasta])).id; }
+// baixa só os arquivos que mudaram (eTag); no máximo 1 vez por minuto, a não ser forçado
+async function sincronizarCol(c, forcar) {
+  if (!conta || !navigator.onLine || c.rodando || !c.pode()) return;
+  if (!forcar && Date.now() - (c.quando || 0) < 60000) return;
+  c.rodando = true; c.quando = Date.now();
+  const antes = { ...c.dados.baldes }, primeira = !c.dados.lido;
+  let mudou = false;
+  try {
+    const pasta = await pastaCol(c), re = new RegExp(`^${c.prefixo}-(\\d+)\\.json$`, "i"), arqs = [], novos = {};
+    let url = `/drives/${CONFIG.driveId}/items/${pasta}/children?$top=999`;
+    while (url) { const r = await graph(url); arqs.push(...r.value); url = r["@odata.nextLink"]; }
+    await emParalelo(arqs.filter(i => i.file && re.test(i.name)), 4, async i => {
+      const b = String(+i.name.match(re)[1]), velho = antes[b];
+      if (velho?.etag === i.eTag) { novos[b] = velho; return; }
+      try {
+        const j = await (await fetch(i["@microsoft.graph.downloadUrl"])).json();
+        novos[b] = { etag: i.eTag, itemId: i.id, itens: j.itens || {} }; mudou = true;
+      } catch (e) { console.error(e); if (velho) novos[b] = velho; }   // não baixou: fica a cópia anterior (baixa de novo da próxima vez)
+    });
+    if (Object.keys(antes).some(b => !novos[b])) mudou = true;          // arquivo apagado no OneDrive
+    for (const [b, v] of Object.entries(c.dados.baldes)) if (v !== antes[b]) novos[b] = v;   // gravado por este aparelho enquanto isso
+    c.dados = { baldes: novos, lido: Date.now() };
+    gravarLS(c.chave, c.dados);
+  } catch (e) { console.error(c.prefixo, e); }
+  finally { c.rodando = false; }
+  if (mudou || primeira) c.aoMudar();
+}
+async function lerBalde(c, b) {
+  try {
+    const it = await graph(`/drives/${CONFIG.driveId}/items/${await pastaCol(c)}:/${nomeBalde(c, b)}`);
+    const j = await (await fetch(it["@microsoft.graph.downloadUrl"])).json();
+    return { etag: it.eTag, itemId: it.id, itens: j.itens || {} };
+  } catch (e) { if (e.status === 404) return null; throw e; }
+}
+// grava uma mudança num balde: mudar(itens) recebe os registros do arquivo mais novo (devolve texto de erro para desistir).
+// Uma gravação por vez em cada balde, para o aparelho não brigar com ele mesmo.
+function gravarBalde(c, b, mudar) {
+  const vez = (c.filas[b] || Promise.resolve()).catch(() => {}).then(async () => {
+    if (!navigator.onLine) throw new Error("Sem internet: conecte o aparelho para salvar.");
+    const pasta = await pastaCol(c);
+    let atual = c.dados.baldes[b] || null;
+    for (let tent = 0; tent < 5; tent++) {
+      if (tent) atual = await lerBalde(c, b);
+      const itens = JSON.parse(JSON.stringify(atual?.itens || {}));
+      const erro = mudar(itens); if (erro) throw new Error(erro);
+      const headers = { "Content-Type": "application/json" };
+      let url = `/drives/${CONFIG.driveId}/items/${pasta}:/${nomeBalde(c, b)}:/content?@microsoft.graph.conflictBehavior=fail`;
+      if (atual?.itemId) { url = `/drives/${CONFIG.driveId}/items/${atual.itemId}/content`; headers["If-Match"] = atual.etag; }
+      try {
+        const r = await graph(url, { method: "PUT", headers, body: JSON.stringify({ versao: 1, itens }) });
+        c.dados.baldes[b] = { etag: r.eTag, itemId: r.id, itens };
+        gravarLS(c.chave, c.dados);
+        return;
+      } catch (e) { if (![404, 409, 412].includes(e.status)) throw e; }   // outra pessoa gravou antes (ou o arquivo sumiu): lê de novo
+    }
+    throw new Error("Muitas mudanças ao mesmo tempo. Tente de novo.");
+  });
+  c.filas[b] = vez;
+  return vez;
+}
+function carimbar(r, acao) {
+  r.atualizado = new Date().toISOString(); r.atualizadoPor = nomeColaborador();
+  if (acao) { (r.hist ||= []).push({ em: r.atualizado, por: nomeColaborador(), acao }); if (r.hist.length > 80) r.hist.splice(0, r.hist.length - 80); }
+}
+async function gravarReg(c, id, otim, mudar) {
+  c.sobre[id] = otim; c.pend[id] = (c.pend[id] || 0) + 1;
+  c.aoMudar();
+  let ok = true;
+  try { await gravarBalde(c, baldeDe(c, id), mudar); }
+  catch (e) { ok = false; console.error(e); aviso(e.message || "Não foi possível salvar.", true); }
+  if (!--c.pend[id]) { delete c.pend[id]; delete c.sobre[id]; }
+  c.aoMudar();
+  return ok;
+}
+// muda um registro: fn(r) faz a mudança (devolve texto de erro para desistir); vale na hora na tela e é gravada por trás
+function mudarReg(c, id, fn, acao) {
+  const atual = regsDe(c)[id];
+  if (!atual) { aviso("Não encontrado: a lista foi atualizada.", true); return Promise.resolve(false); }
+  const otim = JSON.parse(JSON.stringify(atual)), e0 = fn(otim);
+  if (e0) { aviso(e0, true); return Promise.resolve(false); }
+  carimbar(otim, acao);
+  return gravarReg(c, id, otim, itens => {
+    const r = itens[id]; if (!r) return "Outra pessoa apagou este registro.";
+    const e = fn(r); if (e) return e;
+    carimbar(r, acao);
+  });
+}
+function criarReg(c, reg) {
+  Object.assign(reg, { id: reg.id || novoIdReg(), criado: new Date().toISOString(), criadoPor: nomeColaborador() });
+  carimbar(reg, "Criou");
+  return gravarReg(c, reg.id, reg, itens => { itens[reg.id] = JSON.parse(JSON.stringify(reg)); }).then(ok => ok ? reg.id : null);
+}
+const apagarReg = (c, id) => gravarReg(c, id, null, itens => { delete itens[id]; });
+// redesenha a tela sem atrapalhar quem está digitando ou tocando: espera sair do campo de texto / soltar o dedo
+function redesenhoSeguro(idTela, desenhar) {
+  const t = $(idTela); let pend = false, aperto = false;
+  const digitando = () => t.contains(document.activeElement) && document.activeElement.matches("input:not([type=checkbox]):not([type=radio]), textarea, select");
+  const tentar = () => { if (pend && !aperto && !digitando() && !t.hidden) { pend = false; desenhar(); } };
+  t.addEventListener("pointerdown", () => { aperto = true; }, true);
+  for (const ev of ["pointerup", "pointercancel"]) t.addEventListener(ev, () => { aperto = false; setTimeout(tentar, 0); }, true);
+  t.addEventListener("focusout", () => setTimeout(tentar, 0));
+  return () => { if (t.hidden) return; pend = true; tentar(); };
+}
+// menu de escolha que abre junto do botão (situação da tarefa)
+function menuOpcoes(alvo, opcoes, atual, aoEscolher) {
+  let m = $("menu-op");
+  if (!m) {
+    m = el("div", "menu-op"); m.id = "menu-op"; m.setAttribute("role", "menu"); m.hidden = true; document.body.appendChild(m);
+    document.addEventListener("pointerdown", e => { if (!m.hidden && !m.contains(e.target)) m.hidden = true; }, true);
+    document.addEventListener("scroll", e => { if (!m.hidden && !m.contains(e.target)) m.hidden = true; }, true);
+    window.addEventListener("resize", () => { m.hidden = true; });
+  }
+  m.innerHTML = "";
+  for (const [v, rot, cls] of opcoes) {
+    const b = el("button", (cls || "") + (v === atual ? " atual" : ""), rot); b.type = "button"; b.setAttribute("role", "menuitem");
+    b.onclick = () => { m.hidden = true; if (v !== atual) aoEscolher(v); };
+    m.appendChild(b);
+  }
+  m.hidden = false;
+  const r = alvo.getBoundingClientRect(), h = m.offsetHeight, w = m.offsetWidth;
+  m.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
+  m.style.top = (r.bottom + 4 + h > innerHeight - 8 ? Math.max(8, r.top - h - 4) : r.bottom + 4) + "px";
+  (m.querySelector(".atual") || m.querySelector("button"))?.focus({ preventScroll: true });
+}
+// equipe: quem usa o app (pasta de usuários) com o nome da administração; para escolher os responsáveis
+function pessoasEquipe() {
+  const m = new Map();
+  for (const u of lerLS("vpx_usuarios_app", [])) if (u?.email) m.set(u.email.toLowerCase(), u.nome || u.email);
+  for (const [e, u] of Object.entries(perm?.usuarios || {})) if (u?.nome) m.set(e.toLowerCase(), u.nome);
+  if (conta && !m.has(emailDe())) m.set(emailDe(), conta.name || emailDe());
+  return [...m].map(([email, nome]) => ({ email, nome })).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+}
+let cacheEquipe = null;
+function mapaEquipe() {
+  if (!cacheEquipe || Date.now() - cacheEquipe.t > 5000) cacheEquipe = { t: Date.now(), m: new Map(pessoasEquipe().map(p => [p.email, p.nome])) };
+  return cacheEquipe.m;
+}
+const nomePessoa = p => mapaEquipe().get(p.email) || p.nome || p.email;
+const primeiroNome = n => (n || "").trim().split(/\s+/)[0] || n || "";
+const dataCurta = iso => { const [a, m, d] = iso.split("-"); return +a === new Date().getFullYear() ? `${d}/${m}` : `${d}/${m}/${a.slice(2)}`; };
+const dataHoraBR = iso => iso ? new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "-";
+// peças dos formulários (detalhe salva na hora; formulário novo só guarda na memória com op.local)
+function chipsCampo(rot, opcoes, atual, aoEscolher) {
+  const w = el("div", "campo"); w.appendChild(el("span", "", rot));
+  const ch = el("div", "chips peq");
+  for (const [v, txt] of opcoes) {
+    const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-pressed", String(atual === v));
+    b.onclick = () => { if (v !== atual) aoEscolher(v); };
+    ch.appendChild(b);
+  }
+  w.appendChild(ch); return w;
+}
+function chipsPessoas(rot, sel, aoMudar) {
+  const lista = pessoasEquipe();
+  for (const p of sel) if (!lista.some(x => x.email === p.email)) lista.push({ email: p.email, nome: p.nome || p.email });
+  const w = el("div", "campo"); w.appendChild(el("span", "", rot));
+  const ch = el("div", "chips peq");
+  for (const p of lista) {
+    const on = sel.some(x => x.email === p.email);
+    const b = el("button", "", p.nome); b.type = "button"; b.setAttribute("aria-pressed", String(on));
+    b.onclick = () => aoMudar(on ? sel.filter(x => x.email !== p.email) : [...sel, { email: p.email, nome: p.nome }]);
+    ch.appendChild(b);
+  }
+  w.appendChild(ch); return w;
+}
+function campoTxt(rot, valor, aoSalvar, op = {}) {
+  const w = el("label", "campo"); w.appendChild(el("span", "", rot));
+  const i = document.createElement(op.area ? "textarea" : "input");
+  if (!op.area) i.type = op.tipo || "text";
+  if (op.modo) i.inputMode = op.modo;
+  if (op.ph) i.placeholder = op.ph;
+  if (op.id) i.id = op.id;
+  i.value = valor ?? "";
+  const ler = () => op.tipo === "date" ? i.value : i.value.trim();
+  if (op.local) i.oninput = () => op.local(ler());
+  else i.onchange = () => { const v = ler(); if (v !== (valor ?? "")) { valor = v; aoSalvar(v, i); } };
+  if (!op.area && op.tipo !== "date") i.addEventListener("keydown", e => { if (e.key === "Enter") i.blur(); });
+  w.appendChild(i); return w;
+}
+function linhaAdicionar(ph, rot, id, fn) {
+  const w = el("div", "tar-add");
+  const i = document.createElement("input"); i.type = "text"; i.placeholder = ph; i.id = id; i.setAttribute("aria-label", ph);
+  const b = el("button", "btn sec", rot); b.type = "button";
+  const ir = () => { const v = i.value.trim(); if (!v) { i.focus(); return; } i.value = ""; fn(v); };
+  i.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); ir(); } };
+  b.onclick = ir;
+  w.append(i, b); return w;
+}
+// rodapé do detalhe: quem criou (ou que veio do monday) e a última mudança
+const origemReg = (r, criada) => (r.monday ? `Veio do monday (criada lá em ${dataHoraBR(r.criado)})` : `${criada} por ${r.criadoPor || "-"} em ${dataHoraBR(r.criado)}`)
+  + (r.atualizadoPor && r.atualizado !== r.criado ? ` · última mudança: ${r.atualizadoPor}, ${dataHoraBR(r.atualizado)}` : "");
+function histDetalhe(w, r) {
+  const hs = r.hist || []; if (!hs.length) return;
+  const d = document.createElement("details"); d.className = "tar-hist";
+  d.appendChild(el("summary", "", `Histórico de mudanças (${hs.length})`));
+  const ul = el("ul", "os-hist");
+  hs.slice().reverse().forEach(x => ul.appendChild(el("li", "", `${dataHoraBR(x.em)} · ${x.por} · ${x.acao}`)));
+  d.appendChild(ul); w.appendChild(d);
+}
+// coluna do quadro (tarefas por situação, funil por etapa): no computador dá para arrastar os cartões entre as colunas
+let arrasto = null, depoisVoltar = null;
+function colunaKb(estado, chave, rot, itens, cartao, aoSoltar, op = {}) {
+  const col = el("section", "kb-col kb-c-" + chave);
+  const cab = el("h3", "kb-cab"); cab.append(el("span", "", rot), el("small", "", String(itens.length))); col.appendChild(cab);
+  if (op.soma) col.appendChild(el("p", "kb-soma", op.soma));
+  const lim = (estado.mais ||= {})[chave] || 40;
+  itens.slice(0, lim).forEach(x => col.appendChild(cartao(x)));
+  if (!itens.length) col.appendChild(el("p", "kb-vazio", op.vazio || "Vazio."));
+  if (itens.length > lim) { const m = el("button", "kb-mais", `Mostrar mais (${itens.length - lim})`); m.type = "button"; m.onclick = () => { estado.mais[chave] = lim + 60; op.redesenhar(); }; col.appendChild(m); }
+  if (op.extra) col.appendChild(el("p", "kb-vazio", op.extra));
+  col.addEventListener("dragover", e => { if (!arrasto) return; e.preventDefault(); e.dataTransfer.dropEffect = "move"; col.classList.add("sobre"); });
+  col.addEventListener("dragleave", e => { if (!col.contains(e.relatedTarget)) col.classList.remove("sobre"); });
+  col.addEventListener("drop", e => { if (!arrasto) return; e.preventDefault(); col.classList.remove("sobre"); const a = arrasto; arrasto = null; aoSoltar(a.id); });
+  return col;
+}
+function arrastavel(b, id) {
+  b.draggable = true;
+  b.ondragstart = e => { arrasto = { id }; e.dataTransfer.setData("text/plain", id); e.dataTransfer.effectAllowed = "move"; b.classList.add("arrastando"); };
+  b.ondragend = () => { b.classList.remove("arrastando"); arrasto = null; document.querySelectorAll(".kb-col.sobre").forEach(c => c.classList.remove("sobre")); };
+}
+
+/* tarefas */
+const ST_TAR = { nao: "Não iniciado", andamento: "Em andamento", parado: "Parado", feito: "Feito" };
+const PRI = { critica: "Crítica", alta: "Alta", media: "Média", baixa: "Baixa" };
+const RANK_PRI = { critica: 0, alta: 1, media: 2, baixa: 3 };
+const OPC_PRI = [...Object.entries(PRI), ["", "Sem"]];
+let redesenharTarSeguro = null, redesenharFuSeguro = null;
+function aoMudarTar() {
+  (redesenharTarSeguro ||= redesenhoSeguro("tela-tar", desenharTar))();
+  if (fuTela?.aberta) (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", desenharFunil))();   // tarefas da oportunidade aberta
+  if (!conta || !document.body.classList.contains("logado")) return;
+  atualizarNav();
+  if (secao === "inicio" && !$("tela-inicio").hidden) desenharInicio();
+  if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
+  if (secao === "reg" && !$("tela-reg").hidden) desenharReg();
+}
+const colTar = colecao({ chave: "vpx_tar", pasta: CONFIG.pastaTarefas, prefixo: "tarefas", n: 8, pode: () => liberado(), aoMudar: aoMudarTar });
+let tarTela = null, tarVoltando = false;   // { vista, filtro, pessoa, aberta, nova, verFeitas, direto, mais }
+const tarefas = () => Object.values(regsDe(colTar));
+const minhaTar = t => (t.resp || []).some(p => p.email === emailDe());
+const veTar = t => pode("tarefas") || minhaTar(t);
+const abertaTar = t => t.status !== "feito";
+const atrasadaTar = t => abertaTar(t) && !!t.prazo && t.prazo < dataISO();
+const hojeTar = t => abertaTar(t) && t.prazo === dataISO();
+const ordemTar = (a, b) => atrasadaTar(b) - atrasadaTar(a) || (a.prazo || "9").localeCompare(b.prazo || "9") || (RANK_PRI[a.prioridade] ?? 9) - (RANK_PRI[b.prioridade] ?? 9) || (a.criado || "").localeCompare(b.criado || "");
+const alertaTar = () => tarefas().filter(t => minhaTar(t) && (atrasadaTar(t) || hojeTar(t))).length;   // número no menu lateral
+const podeVerTarefas = () => !!conta && (pode("tarefas") || tarefas().some(t => minhaTar(t) && abertaTar(t)));
+const filtroTar = f => f === "minhas" ? minhaTar : f === "atrasadas" ? atrasadaTar : () => true;
+const mudarStatusTar = (id, st) => mudarReg(colTar, id, r => { r.status = st; r.feitoEm = st === "feito" ? (r.feitoEm || new Date().toISOString()) : ""; }, "Situação: " + ST_TAR[st]);
+
+// op: { filtro, busca, aberta (abre direto numa tarefa), nova (abre direto o formulário, com campos já preenchidos) }
+function abrirTar(op = {}) {
+  if (!conta) return;
+  const tudo = pode("tarefas");
+  tarTela = { vista: lerLS("vpx_tar_vista", "lista"), filtro: tudo ? op.filtro || "minhas" : "minhas", pessoa: "", aberta: null, nova: null, verFeitas: false, direto: !!(op.aberta || op.nova), mais: {} };
+  if (tudo && !op.filtro && !tarefas().some(t => minhaTar(t) && abertaTar(t))) tarTela.filtro = "todas";
+  $("tar-busca").value = op.busca || "";
+  $("tela-tar").hidden = false;
+  $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  history.pushState({ tar: true }, "");            // o "voltar" do celular fecha a tela (ou volta do detalhe para a lista)
+  if (op.nova) novaTarefa(op.nova); else if (op.aberta) abrirTarefa(op.aberta); else desenharTar();
+  sincronizarCol(colTar, true);
+  if (!lerLS("vpx_usuarios_app", []).length) carregarUsuariosApp().then(() => { cacheEquipe = null; if (tarTela) desenharTar(); });
+}
+// fecha; devolve true se mandou o histórico voltar (quem precisar abrir outra tela espera o popstate: depoisVoltar)
+function fecharTar(voltar = true) {
+  if ($("tela-tar").hidden) return false;
+  $("tela-tar").hidden = true;
+  if ($("menu-op")) $("menu-op").hidden = true;
+  const st = history.state;
+  tarTela = null;
+  document.body.style.overflow = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden) ? "hidden" : "";
+  if (fuTela && !$("tela-funil").hidden) desenharFunil();   // estava sobre o funil: ele mostra as tarefas novas
+  if (voltar && st?.tar) { tarVoltando = true; history.go(st.tarSub ? -2 : -1); return true; }
+  return false;
+}
+function abrirTarefa(id) {
+  tarTela.aberta = id; tarTela.nova = null;
+  if (!tarTela.direto && !history.state?.tarSub) history.pushState({ tar: true, tarSub: true }, "");   // o "voltar" volta para a lista
+  desenharTar();
+  $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0;
+}
+function novaTarefa(base = {}) {
+  if (!tarTela || !pode("tarefas")) return;
+  tarTela.nova = { titulo: "", status: "nao", prioridade: "", prazo: "", resp: [eu()], cliente: "", funil: "", desc: "", ...base };
+  tarTela.aberta = null;
+  if (!tarTela.direto && !history.state?.tarSub) history.pushState({ tar: true, tarSub: true }, "");
+  desenharTar();
+  $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0;
+  if (computador.matches) setTimeout(() => $("tar-novo-tit")?.focus(), 60);
+}
+function voltarListaTar() {                        // "‹ Tarefas" no detalhe ou na tarefa nova
+  if (!tarTela || tarTela.direto) { fecharTar(); return; }
+  if (history.state?.tarSub) { history.back(); return; }   // o popstate volta para a lista
+  tarTela.aberta = tarTela.nova = null; desenharTar();
+}
+function desenharTar() {
+  if (!tarTela) return;
+  const sub = !!(tarTela.aberta || tarTela.nova), tudo = pode("tarefas");
+  $("tar-lista-tela").hidden = sub; $("tar-sub").hidden = !sub;
+  $("tar-nova").hidden = !tudo || sub;
+  $("tar-titulo").textContent = tarTela.nova ? "Nova tarefa" : sub ? "Tarefa" : "Tarefas";
+  $("tar-voltar").textContent = sub && !tarTela.direto ? "‹ Tarefas" : "‹ Voltar";
+  if (sub) {
+    const s = $("tar-sub"); s.innerHTML = "";
+    s.appendChild(tarTela.nova ? formNovaTar() : detalheTar(regsDe(colTar)[tarTela.aberta]));
+    return;
+  }
+  $("tar-vistas").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === tarTela.vista)));
+  const todas = tarefas().filter(veTar), abertas = todas.filter(abertaTar);
+  const fil = $("tar-filtro"); fil.innerHTML = ""; fil.hidden = !tudo;
+  if (tudo) [["minhas", "Minhas"], ["todas", "Todas"], ["atrasadas", "Atrasadas"]].forEach(([f, rot]) => {
+    const b = el("button", "", `${rot} (${abertas.filter(filtroTar(f)).length})`); b.type = "button";
+    b.setAttribute("aria-pressed", String(tarTela.filtro === f));
+    b.onclick = () => { tarTela.filtro = f; tarTela.pessoa = ""; tarTela.mais = {}; desenharTar(); };
+    fil.appendChild(b);
+  });
+  // pessoa: nas listas de todos
+  const sel = $("tar-pessoa"); sel.hidden = !tudo || tarTela.filtro === "minhas";
+  if (!sel.hidden) {
+    const pessoas = new Map();
+    todas.forEach(t => (t.resp || []).forEach(p => pessoas.set(p.email, nomePessoa(p))));
+    sel.innerHTML = "";
+    const opt = (v, txt) => { const o = document.createElement("option"); o.value = v; o.textContent = txt; sel.appendChild(o); };
+    opt("", "Todas as pessoas");
+    [...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")).forEach(([e, n]) => opt(e, n));
+    if (!pessoas.has(tarTela.pessoa)) tarTela.pessoa = "";
+    sel.value = tarTela.pessoa;
+  }
+  let lista = todas.filter(filtroTar(tarTela.filtro));
+  if (tarTela.pessoa && !sel.hidden) lista = lista.filter(t => (t.resp || []).some(p => p.email === tarTela.pessoa));
+  const q = semAcento($("tar-busca").value.trim());
+  if (q) lista = lista.filter(t => semAcento([t.titulo, t.cliente, t.desc, ...(t.resp || []).map(nomePessoa), ...(t.sub || []).map(s => s.t)].filter(Boolean).join(" ")).includes(q));
+  const alvo = $("tar-lista"); alvo.innerHTML = "";
+  if (!colTar.dados.lido && !Object.keys(colTar.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as tarefas…" : "Sem internet e sem tarefas guardadas neste aparelho."));
+  else if (!lista.length) alvo.appendChild(el("p", "avcb-nota", q ? "Nenhuma tarefa encontrada." : tarTela.filtro === "atrasadas" ? "Nenhuma tarefa atrasada." : tarTela.filtro === "minhas" ? "Nenhuma tarefa com você." + (tudo ? " Toque em + Nova para criar uma." : "") : "Nenhuma tarefa ainda. Toque em + Nova para criar uma."));
+  else if (tarTela.vista === "quadro") alvo.appendChild(quadroTar(lista));
+  else listaTar(lista, alvo);
+  $("tar-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando as últimas tarefas guardadas. Para mudar, conecte o aparelho.";
+}
+// lista: abertas por prioridade (como os grupos do monday); concluídas no fim, escondidas
+function listaTar(lista, alvo) {
+  const abertas = lista.filter(abertaTar), feitas = lista.filter(t => !abertaTar(t));
+  for (const [p, rot] of [...Object.entries(PRI), ["", "Sem prioridade"]]) {
+    const g = abertas.filter(t => (PRI[t.prioridade] ? t.prioridade : "") === p).sort(ordemTar);
+    if (!g.length) continue;
+    const h = el("h3", "tar-grupo"); h.append(el("i", "g-" + (p || "nenhuma")), rot, el("small", "", String(g.length)));
+    const itens = el("div", "tar-gr-itens"); g.forEach(t => itens.appendChild(cartaoTar(t)));
+    alvo.append(h, itens);
+  }
+  if (!abertas.length) alvo.appendChild(el("p", "avcb-nota", "Nenhuma tarefa aberta aqui."));
+  if (!feitas.length) return;
+  const b = el("button", "btn sec tar-feitas", `${tarTela.verFeitas ? "Esconder" : "Ver"} as concluídas (${feitas.length})`); b.type = "button";
+  b.onclick = () => { tarTela.verFeitas = !tarTela.verFeitas; desenharTar(); };
+  alvo.appendChild(b);
+  if (!tarTela.verFeitas) return;
+  const itens = el("div", "tar-gr-itens");
+  feitas.sort((a, b) => (b.feitoEm || b.atualizado || "").localeCompare(a.feitoEm || a.atualizado || "")).slice(0, 150).forEach(t => itens.appendChild(cartaoTar(t)));
+  alvo.appendChild(itens);
+}
+// quadro: uma coluna por situação; "Feito" só com as dos últimos 30 dias
+function quadroTar(lista) {
+  const kb = el("div", "kb"), limite = Date.now() - 30 * 864e5;
+  for (const [st, rot] of Object.entries(ST_TAR)) {
+    let itens = lista.filter(t => (ST_TAR[t.status] ? t.status : "nao") === st), extra = "";
+    if (st === "feito") {
+      const n = itens.length;
+      itens = itens.filter(t => Date.parse(t.feitoEm || t.atualizado || 0) >= limite).sort((a, b) => (b.feitoEm || "").localeCompare(a.feitoEm || ""));
+      if (n > itens.length) extra = `+ ${n - itens.length} concluída${n - itens.length > 1 ? "s" : ""} há mais de 30 dias (veja na Lista)`;
+    } else itens.sort(ordemTar);
+    kb.appendChild(colunaKb(tarTela, st, rot, itens, t => cartaoTar(t, { arrastar: computador.matches }),
+      id => { const t = regsDe(colTar)[id]; if (t && (ST_TAR[t.status] ? t.status : "nao") !== st && veTar(t)) mudarStatusTar(id, st); },
+      { extra, vazio: "Nenhuma tarefa.", redesenhar: desenharTar }));
+  }
+  return kb;
+}
+function cartaoTar(t, op = {}) {
+  const b = el("div", "tar-card pri-" + (PRI[t.prioridade] ? t.prioridade : "nenhuma") + (abertaTar(t) ? "" : " feita"));
+  b.tabIndex = 0; b.setAttribute("role", "button");
+  b.onclick = () => op.abrir ? op.abrir() : abrirTarefa(t.id);
+  b.onkeydown = e => { if (e.key === "Enter" && e.target === b) b.click(); };
+  const l1 = el("div", "tar-l1"), st = ST_TAR[t.status] ? t.status : "nao";
+  const pill = el("button", "tar-st st-" + st, ST_TAR[st]); pill.type = "button";
+  if (pode("tarefas") || minhaTar(t)) {
+    pill.title = "Mudar a situação";
+    pill.onclick = e => { e.stopPropagation(); menuOpcoes(pill, Object.entries(ST_TAR).map(([k, r]) => [k, r, "st-" + k]), st, v => mudarStatusTar(t.id, v)); };
+  } else pill.disabled = true;
+  l1.append(pill, el("span", "tar-tit", t.titulo || "(sem título)"));
+  b.appendChild(l1);
+  const meta = el("div", "tar-meta");
+  if (t.prazo) meta.appendChild(el("span", atrasadaTar(t) ? "atr" : hojeTar(t) ? "hoje" : "", atrasadaTar(t) ? `Atrasada · ${dataCurta(t.prazo)}` : hojeTar(t) ? "Prazo hoje" : `Prazo ${dataCurta(t.prazo)}`));
+  if ((t.resp || []).length) meta.appendChild(el("span", "", t.resp.map(p => primeiroNome(nomePessoa(p))).join(", ")));
+  if (t.cliente && !op.semCliente) meta.appendChild(el("span", "", t.cliente));
+  const ns = (t.sub || []).length, nc = (t.coment || []).length;
+  if (ns) meta.appendChild(el("span", "", `${t.sub.filter(s => s.f).length}/${ns} subtarefas`));
+  if (nc) meta.appendChild(el("span", "", `${nc} comentário${nc > 1 ? "s" : ""}`));
+  if (meta.children.length) b.appendChild(meta);
+  if (op.arrastar && (pode("tarefas") || minhaTar(t))) arrastavel(b, t.id);
+  return b;
+}
+function detalheTar(t) {
+  const w = el("div", "tar-det");
+  if (!t) { w.appendChild(el("p", "avcb-nota", "Tarefa não encontrada: pode ter sido apagada por outra pessoa.")); return w; }
+  const tudo = pode("tarefas"), mexe = tudo || minhaTar(t);
+  const salvar = (fn, acao) => mudarReg(colTar, t.id, fn, acao);
+  if (tudo) {
+    const ti = el("input", "tar-tit-in"); ti.type = "text"; ti.value = t.titulo || ""; ti.setAttribute("aria-label", "Título da tarefa");
+    ti.onchange = () => { const v = ti.value.trim(); if (!v) { ti.value = t.titulo || ""; return; } if (v !== t.titulo) salvar(r => { r.titulo = v; }, "Título: " + v); };
+    ti.onkeydown = e => { if (e.key === "Enter") ti.blur(); };
+    w.appendChild(ti);
+  } else w.appendChild(el("h2", "tar-h", t.titulo || "(sem título)"));
+  if (mexe) w.appendChild(chipsCampo("Situação", Object.entries(ST_TAR), ST_TAR[t.status] ? t.status : "nao", v => mudarStatusTar(t.id, v)));
+  if (tudo) {
+    w.appendChild(chipsCampo("Prioridade", OPC_PRI, PRI[t.prioridade] ? t.prioridade : "", v => salvar(r => { r.prioridade = v; }, "Prioridade: " + (PRI[v] || "sem"))));
+    w.appendChild(chipsPessoas("Responsáveis", t.resp || [], nv => salvar(r => { r.resp = nv; }, "Responsáveis: " + (nv.map(p => primeiroNome(p.nome)).join(", ") || "ninguém"))));
+    const g = el("div", "tar-2col");
+    g.appendChild(campoTxt("Prazo", t.prazo || "", v => salvar(r => { r.prazo = v; }, v ? "Prazo: " + dataBRde(v) : "Tirou o prazo"), { tipo: "date" }));
+    const wc = el("div", "campo"); wc.appendChild(el("span", "", "Cliente (opcional)"));
+    const bc = el("button", "cliente" + (t.cliente ? "" : " vazio")); bc.type = "button";
+    bc.appendChild(el("strong", "", t.cliente || "Escolher cliente"));
+    bc.onclick = () => abrirDialogo(nome => salvar(r => { r.cliente = nome; }, "Cliente: " + nome));
+    wc.appendChild(bc); g.appendChild(wc);
+    w.appendChild(g);
+  } else {
+    const dl = el("dl", "tar-info");
+    const par = (k, v) => { if (v) dl.append(el("dt", "", k), el("dd", "", v)); };
+    par("Prioridade", PRI[t.prioridade]); par("Prazo", t.prazo && dataBRde(t.prazo) + (atrasadaTar(t) ? " (atrasada)" : ""));
+    par("Responsáveis", (t.resp || []).map(nomePessoa).join(", ")); par("Cliente", t.cliente);
+    if (dl.children.length) w.appendChild(dl);
+  }
+  // atalhos: página do cliente, oportunidade do funil
+  const lk = el("div", "tar-links");
+  const link = (txt, fn) => { const b = el("button", "laudo-link", txt); b.type = "button"; b.onclick = fn; lk.appendChild(b); };
+  if (t.cliente && clientes.includes(t.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(t.cliente); });
+  if (t.cliente && tudo) link("Tirar o cliente", () => salvar(r => { r.cliente = ""; }, "Tirou o cliente"));
+  const op = t.funil && pode("funil") ? regsDe(colFu)[t.funil] : null;
+  if (op) link("Oportunidade no funil: " + op.nome, () => { const id = t.funil, ir = () => fuTela ? abrirOport(id) : abrirFunil({ aberta: id }); if (fecharTar()) depoisVoltar = ir; else ir(); });
+  if (lk.children.length) w.appendChild(lk);
+  if (tudo) w.appendChild(campoTxt("Descrição", t.desc || "", v => salvar(r => { r.desc = v; }, "Editou a descrição"), { area: true, ph: "Detalhes da tarefa (opcional)" }));
+  else if (t.desc) w.appendChild(el("p", "tar-desc", t.desc));
+  // subtarefas
+  const subs = t.sub || [];
+  if (subs.length || mexe) {
+    w.appendChild(el("h2", "secao", "Subtarefas" + (subs.length ? ` (${subs.filter(s => s.f).length}/${subs.length})` : "")));
+    const ul = el("ul", "tar-subs");
+    subs.forEach(s => {
+      const li = el("li", s.f ? "f" : ""), lb = el("label"), cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = !!s.f; cb.disabled = !mexe;
+      cb.onchange = () => salvar(r => { const x = (r.sub || []).find(y => y.id === s.id); if (x) x.f = cb.checked; }, `${cb.checked ? "Concluiu" : "Reabriu"} a subtarefa: ${s.t}`);
+      lb.append(cb, el("span", "", s.t)); li.appendChild(lb);
+      if (mexe) {
+        const x = el("button", "tar-x", "×"); x.type = "button"; x.title = "Apagar a subtarefa"; x.setAttribute("aria-label", "Apagar a subtarefa " + s.t);
+        x.onclick = () => salvar(r => { r.sub = (r.sub || []).filter(y => y.id !== s.id); }, "Apagou a subtarefa: " + s.t);
+        li.appendChild(x);
+      }
+      ul.appendChild(li);
+    });
+    w.appendChild(ul);
+    if (mexe) w.appendChild(linhaAdicionar("Nova subtarefa", "Adicionar", "tar-sub-novo", v => {
+      salvar(r => { (r.sub ||= []).push({ id: novoIdReg(), t: v, f: false }); }, "Subtarefa: " + v);
+      desenharTar(); $("tar-sub-novo")?.focus();
+    }));
+  }
+  // comentários (atualizações, como no monday)
+  w.appendChild(el("h2", "secao", "Comentários"));
+  if (mexe) {
+    const nc = el("div", "tar-novo-com");
+    const tc = document.createElement("textarea"); tc.placeholder = "Escreva um comentário ou uma atualização"; tc.setAttribute("aria-label", "Novo comentário");
+    const bt = el("button", "btn sec", "Comentar"); bt.type = "button";
+    bt.onclick = () => {
+      const v = tc.value.trim(); if (!v) { tc.focus(); return; }
+      const c = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: v };
+      tc.value = ""; salvar(r => { (r.coment ||= []).push(c); }); desenharTar();
+    };
+    nc.append(tc, bt); w.appendChild(nc);
+  }
+  const cs = (t.coment || []).slice().sort((a, b) => (b.em || "").localeCompare(a.em || ""));
+  if (cs.length) {
+    const lc = el("div", "tar-coms");
+    cs.forEach(c => {
+      const d = el("div", "tar-com"); d.append(el("small", "", `${c.por || "-"} · ${dataHoraBR(c.em)}`), el("p", "", c.t));
+      if (c.por === nomeColaborador()) {
+        const x = el("button", "tar-x", "×"); x.type = "button"; x.title = "Apagar o comentário"; x.setAttribute("aria-label", "Apagar o comentário");
+        x.onclick = () => { if (confirm("Apagar este comentário?")) salvar(r => { r.coment = (r.coment || []).filter(y => y.id !== c.id); }); };
+        d.appendChild(x);
+      }
+      lc.appendChild(d);
+    });
+    w.appendChild(lc);
+  } else w.appendChild(el("p", "avcb-nota", "Nenhum comentário ainda."));
+  histDetalhe(w, t);
+  w.appendChild(el("p", "tar-rodape", origemReg(t, "Criada")));
+  if (tudo) {
+    const x = el("button", "btn sec perigo tar-excluir", "Excluir tarefa"); x.type = "button";
+    x.onclick = async () => { if (!confirm(`Excluir a tarefa "${t.titulo}"?`)) return; voltarListaTar(); if (await apagarReg(colTar, t.id)) aviso("Tarefa excluída."); };
+    w.appendChild(x);
+  }
+  return w;
+}
+function formNovaTar() {
+  const n = tarTela.nova, f = el("div", "tar-det");
+  const ti = el("input", "tar-tit-in"); ti.type = "text"; ti.id = "tar-novo-tit"; ti.placeholder = "O que precisa ser feito?"; ti.value = n.titulo;
+  ti.setAttribute("aria-label", "Título da tarefa");
+  ti.oninput = () => { n.titulo = ti.value; };
+  ti.onkeydown = e => { if (e.key === "Enter") ti.blur(); };
+  f.appendChild(ti);
+  f.appendChild(chipsPessoas("Responsáveis", n.resp, nv => { n.resp = nv; desenharTar(); }));
+  f.appendChild(chipsCampo("Prioridade", OPC_PRI, n.prioridade, v => { n.prioridade = v; desenharTar(); }));
+  f.appendChild(chipsCampo("Situação", Object.entries(ST_TAR).filter(([k]) => k !== "feito"), n.status, v => { n.status = v; desenharTar(); }));
+  const g = el("div", "tar-2col");
+  g.appendChild(campoTxt("Prazo (opcional)", n.prazo, null, { tipo: "date", local: v => { n.prazo = v; } }));
+  const wc = el("div", "campo"); wc.appendChild(el("span", "", "Cliente (opcional)"));
+  const bc = el("button", "cliente" + (n.cliente ? "" : " vazio")); bc.type = "button"; bc.appendChild(el("strong", "", n.cliente || "Escolher cliente"));
+  bc.onclick = () => abrirDialogo(nome => { n.cliente = nome; desenharTar(); });
+  wc.appendChild(bc); g.appendChild(wc); f.appendChild(g);
+  const op = n.funil ? regsDe(colFu)[n.funil] : null;
+  if (op) f.appendChild(el("p", "laudo-dica", "Ligada à oportunidade do funil: " + op.nome));
+  f.appendChild(campoTxt("Descrição (opcional)", n.desc, null, { area: true, ph: "Detalhes da tarefa", local: v => { n.desc = v; } }));
+  const criar = el("button", "btn prim", n.criando ? "Criando…" : "Criar tarefa"); criar.type = "button"; criar.disabled = !!n.criando;
+  criar.onclick = async () => {
+    n.titulo = ti.value.trim();
+    if (!n.titulo) { aviso("Escreva o que precisa ser feito.", true); ti.focus(); return; }
+    n.criando = true; desenharTar();
+    const id = await criarReg(colTar, { titulo: n.titulo, status: n.status, prioridade: n.prioridade, prazo: n.prazo, resp: n.resp, cliente: n.cliente, funil: n.funil, desc: (n.desc || "").trim(), sub: [], coment: [] });
+    n.criando = false;
+    if (!id) { desenharTar(); return; }
+    aviso("Tarefa criada.");
+    if (tarTela?.nova === n) { tarTela.nova = null; tarTela.aberta = id; desenharTar(); }
+  };
+  f.appendChild(criar);
+  return f;
+}
+
+/* funil comercial: as etapas do monday (cada quadro do monday virou uma etapa) */
+const ETAPAS = [["01", "Leads"], ["02", "Primeiro contato"], ["03", "Reunião de diagnóstico"], ["04", "Visita técnica"], ["05", "Elaborar proposta"],
+  ["06", "Apresentar proposta"], ["07", "Fechar contrato"], ["08", "Fechado"], ["09", "Oportunidade futura"], ["10", "Perdido"], ["11", "Não qualificado"]];
+const NOME_ETAPA = Object.fromEntries(ETAPAS);
+const GRUPOS_FU = [["neg", "Em negociação", ["03", "04", "05", "06", "07", "08"]], ["prosp", "Prospecção", ["01", "02", "03"]],
+  ["fim", "Encerradas", ["08", "09", "10", "11"]], ["todas", "Todas", ETAPAS.map(e => e[0])]];
+const PROX_ETAPA = { "01": "02", "02": "03", "03": "04", "04": "05", "05": "06", "06": "07", "07": "08", "09": "03" };
+const SITUACOES_FU = ["A definir", "Ligar novamente", "Não atendeu", "Atendeu", "Aguardando resposta", "Enviar mensagem", "Enviar e-mail", "Já foi feito contato",
+  "Interesse", "Marcar visita", "Visita marcada", "Em andamento", "Parado", "Sem telefone", "Inválido"];
+const ORDEM_SIT = ["Interesse", "Marcar visita", "Visita marcada", "Ligar novamente", "Aguardando resposta", "Enviar mensagem", "Enviar e-mail", "Atendeu",
+  "Em andamento", "Já foi feito contato", "A definir", "Não atendeu", "Parado", "Sem telefone", "Inválido"];
+const rankSit = s => { const i = ORDEM_SIT.indexOf(s || "A definir"); return i < 0 ? 11 : i; };
+function aoMudarFu() {
+  (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", desenharFunil))();
+  if (conta && secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
+}
+const colFu = colecao({ chave: "vpx_funil", pasta: CONFIG.pastaFunil, prefixo: "funil", n: 32, pode: () => pode("funil"), aoMudar: aoMudarFu });
+let fuTela = null, fuVoltando = false;   // { vista, grupo, pessoa, sit, aberta, nova, direto, mais, ordem, limTab }
+const oportunidades = () => Object.values(regsDe(colFu));
+const etapaTxt = e => `${e} - ${NOME_ETAPA[e] || "?"}`;
+const ativaFu = o => o.etapa >= "02" && o.etapa <= "07";
+function diasSemContato(o) {
+  const ref = o.ultimoContato || (o.etapaEm || o.criado || "").slice(0, 10);
+  return ref ? Math.max(0, Math.round((Date.parse(dataISO()) - Date.parse(ref)) / 864e5)) : null;
+}
+const frioFu = o => { const d = ativaFu(o) ? diasSemContato(o) : null; return d == null ? "" : d > 15 ? "crit" : d > 7 ? "warn" : ""; };
+const valorFu = o => typeof o.valor === "number" ? o.valor : 0;
+const reais = n => "R$ " + n.toLocaleString("pt-BR", { maximumFractionDigits: 0 });
+const ordemFu = (a, b) => (a.etapa === "08" && b.etapa === "08" ? (b.fechadoEm || "").localeCompare(a.fechadoEm || "") : 0)
+  || (RANK_PRI[a.prioridade] ?? 9) - (RANK_PRI[b.prioridade] ?? 9) || valorFu(b) - valorFu(a)
+  || rankSit(a.situacao) - rankSit(b.situacao) || (a.nome || "").localeCompare(b.nome || "", "pt-BR");
+function moverEtapa(id, e) {
+  const o = regsDe(colFu)[id]; if (!o || o.etapa === e) return;
+  mudarReg(colFu, id, r => { r.etapa = e; r.etapaEm = new Date().toISOString(); r.fechadoEm = e === "08" ? (r.fechadoEm || dataISO()) : ""; }, "Etapa: " + etapaTxt(e));
+  if (e === "08") aviso(`${o.nome}: fechado!`);
+}
+// registro de contato (ligação, visita, mensagem): entra nas anotações e vira o "último contato"
+function registrarContatoFu(id, texto, situacao) {
+  const a = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: texto };
+  return mudarReg(colFu, id, r => { (r.ativ ||= []).push(a); r.ultimoContato = dataISO(); if (situacao) r.situacao = situacao; }, situacao ? "Situação: " + situacao : null);
+}
+function cartaoFu(o, op = {}) {
+  const b = el("div", "fu-card pri-" + (PRI[o.prioridade] ? o.prioridade : "nenhuma"));
+  b.tabIndex = 0; b.setAttribute("role", "button");
+  b.onclick = () => op.abrir ? op.abrir() : abrirOport(o.id);
+  b.onkeydown = e => { if (e.key === "Enter" && e.target === b) b.click(); };
+  b.appendChild(el("b", "fu-nome", o.nome || "(sem nome)"));
+  const meta = el("div", "tar-meta");
+  if (o.valor) meta.appendChild(el("span", "fu-valor", reais(o.valor)));
+  if (op.etapa) meta.appendChild(el("span", "", etapaTxt(o.etapa)));
+  if (o.situacao && o.situacao !== "A definir") meta.appendChild(el("span", "fu-sit", o.situacao));
+  if ((o.resp || []).length) meta.appendChild(el("span", "", o.resp.map(p => primeiroNome(nomePessoa(p))).join(", ")));
+  const d = ativaFu(o) ? diasSemContato(o) : null;
+  if (d != null) meta.appendChild(el("span", frioFu(o), d === 0 ? "Contato hoje" : `Sem contato há ${d} dia${d > 1 ? "s" : ""}`));
+  else if (o.etapa === "08" && o.fechadoEm) meta.appendChild(el("span", "", "Fechado em " + dataCurta(o.fechadoEm)));
+  if (o.tel && o.etapa <= "02") meta.appendChild(el("span", "", telBR(o.tel)));
+  if (meta.children.length) b.appendChild(meta);
+  if (op.arrastar) arrastavel(b, o.id);
+  return b;
+}
+// op: { busca, aberta (abre direto numa oportunidade), nova }
+function abrirFunil(op = {}) {
+  if (!conta || !pode("funil")) return;
+  fuTela = { vista: lerLS("vpx_fu_vista", "quadro"), grupo: lerLS("vpx_fu_grupo", "neg"), pessoa: "", sit: "", aberta: null, nova: null,
+    direto: !!(op.aberta || op.nova), mais: {}, ordem: { col: "etapa", desc: false }, limTab: 150 };
+  $("fu-busca").value = op.busca || "";
+  $("tela-funil").hidden = false;
+  $("tela-funil").querySelector(".avcb-corpo").scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  history.pushState({ fu: true }, "");
+  if (op.nova) novaOport(op.nova); else if (op.aberta) abrirOport(op.aberta); else desenharFunil();
+  sincronizarCol(colFu, true);
+  if (!lerLS("vpx_usuarios_app", []).length) carregarUsuariosApp().then(() => { cacheEquipe = null; if (fuTela) desenharFunil(); });
+}
+function fecharFunil(voltar = true) {
+  if ($("tela-funil").hidden) return false;
+  $("tela-funil").hidden = true;
+  if ($("menu-op")) $("menu-op").hidden = true;
+  const st = history.state;
+  fuTela = null;
+  document.body.style.overflow = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden) ? "hidden" : "";
+  if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
+  if (voltar && st?.fu) { fuVoltando = true; history.go(st.fuSub ? -2 : -1); return true; }
+  return false;
+}
+function abrirOport(id) {
+  if (!fuTela) { abrirFunil({ aberta: id }); return; }
+  fuTela.aberta = id; fuTela.nova = null;
+  if (!fuTela.direto && !history.state?.fuSub) history.pushState({ fu: true, fuSub: true }, "");   // o "voltar" volta para o funil
+  desenharFunil();
+  $("tela-funil").querySelector(".avcb-corpo").scrollTop = 0;
+}
+function novaOport(base = {}) {
+  if (!fuTela) return;
+  const g = fuTela.grupo;
+  fuTela.nova = { nome: "", etapa: g === "prosp" ? "01" : g === "fim" ? "09" : "03", prioridade: "", resp: [eu()], cliente: "", ...base };
+  fuTela.aberta = null;
+  if (!fuTela.direto && !history.state?.fuSub) history.pushState({ fu: true, fuSub: true }, "");
+  desenharFunil();
+  $("tela-funil").querySelector(".avcb-corpo").scrollTop = 0;
+  if (computador.matches) setTimeout(() => $("fu-novo-nome")?.focus(), 60);
+}
+function voltarListaFu() {
+  if (!fuTela || fuTela.direto) { fecharFunil(); return; }
+  if (history.state?.fuSub) { history.back(); return; }
+  fuTela.aberta = fuTela.nova = null; desenharFunil();
+}
+function buscaFu(o, q) {
+  if (semAcento([o.nome, o.contato, o.empresa, o.local, o.fonte, o.indicacao, o.situacao, o.obs, o.cliente, o.orc, o.email, ...(o.resp || []).map(nomePessoa)].filter(Boolean).join(" ")).includes(q)) return true;
+  const d = q.replace(/\D/g, "");
+  return d.length >= 4 && [o.tel, o.tel2].some(t => digitos(t).includes(d));
+}
+function desenharFunil() {
+  if (!fuTela) return;
+  const sub = !!(fuTela.aberta || fuTela.nova);
+  $("fu-lista-tela").hidden = sub; $("fu-sub").hidden = !sub;
+  $("fu-nova").hidden = sub;
+  $("fu-titulo").textContent = fuTela.nova ? "Nova oportunidade" : sub ? "Oportunidade" : "Funil comercial";
+  $("fu-voltar").textContent = sub && !fuTela.direto ? "‹ Funil" : "‹ Voltar";
+  if (sub) {
+    const s = $("fu-sub"); s.innerHTML = "";
+    s.appendChild(fuTela.nova ? formNovaFu() : detalheFu(regsDe(colFu)[fuTela.aberta]));
+    return;
+  }
+  $("fu-vistas").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === fuTela.vista)));
+  const todas = oportunidades();
+  const gr = $("fu-grupos"); gr.innerHTML = "";
+  for (const [k, rot, ets] of GRUPOS_FU) {
+    const b = el("button", "", `${rot} (${todas.filter(o => ets.includes(o.etapa)).length})`); b.type = "button";
+    b.setAttribute("aria-pressed", String(fuTela.grupo === k));
+    b.onclick = () => { fuTela.grupo = k; fuTela.mais = {}; fuTela.limTab = 150; fuTela.sit = ""; gravarLS("vpx_fu_grupo", k); desenharFunil(); };
+    gr.appendChild(b);
+  }
+  const ets = (GRUPOS_FU.find(g => g[0] === fuTela.grupo) || GRUPOS_FU[0])[2];
+  let lista = todas.filter(o => ets.includes(o.etapa));
+  // responsável e situação: só as opções que existem nesta parte do funil
+  const opcoes = (sel, primeira, pares, atual) => {
+    sel.innerHTML = "";
+    for (const [v, t] of [["", primeira], ...pares]) { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); }
+    sel.value = pares.some(([v]) => v === atual) ? atual : "";
+    return sel.value;
+  };
+  const pessoas = new Map(); let semResp = false;
+  lista.forEach(o => { if (!(o.resp || []).length) semResp = true; (o.resp || []).forEach(p => pessoas.set(p.email, nomePessoa(p))); });
+  fuTela.pessoa = opcoes($("fu-pessoa"), "Todos os responsáveis", [...[...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")), ...(semResp ? [["-", "Sem responsável"]] : [])], fuTela.pessoa);
+  fuTela.sit = opcoes($("fu-sit"), "Todas as situações", [...new Set(lista.map(o => o.situacao || "A definir"))].sort((a, b) => rankSit(a) - rankSit(b)).map(s => [s, s]), fuTela.sit);
+  if (fuTela.pessoa) lista = lista.filter(o => fuTela.pessoa === "-" ? !(o.resp || []).length : (o.resp || []).some(p => p.email === fuTela.pessoa));
+  if (fuTela.sit) lista = lista.filter(o => (o.situacao || "A definir") === fuTela.sit);
+  const q = semAcento($("fu-busca").value.trim());
+  if (q) lista = lista.filter(o => buscaFu(o, q));
+  // resumo: quantidade e valor do que está na tela; em negociação, os fechados do mês
+  const res = $("fu-resumo"); res.innerHTML = "";
+  const soma = lista.reduce((s, o) => s + valorFu(o), 0);
+  res.append(el("b", "", String(lista.length)), ` oportunidade${lista.length === 1 ? "" : "s"}`);
+  if (soma) res.append(" · ", el("b", "", reais(soma)), " estimados");
+  if (fuTela.grupo === "neg") {
+    const mes = dataISO().slice(0, 7), fe = todas.filter(o => o.etapa === "08" && (o.fechadoEm || "").startsWith(mes)), sf = fe.reduce((s, o) => s + valorFu(o), 0);
+    if (fe.length) res.append(` · fechadas em ${MESES[+mes.slice(5) - 1]}: `, el("b", "", `${fe.length}${sf ? " (" + reais(sf) + ")" : ""}`));
+  }
+  const alvo = $("fu-lista"); alvo.innerHTML = "";
+  if (!colFu.dados.lido && !Object.keys(colFu.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando o funil…" : "Sem internet e sem o funil guardado neste aparelho."));
+  else if (!lista.length && (q || fuTela.pessoa || fuTela.sit)) alvo.appendChild(el("p", "avcb-nota", "Nada encontrado."));
+  else if (fuTela.vista === "quadro") alvo.appendChild(quadroFu(lista, ets));
+  else alvo.appendChild(tabelaFu(lista));
+  $("fu-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando a última cópia guardada. Para mudar, conecte o aparelho.";
+}
+function quadroFu(lista, ets) {
+  const kb = el("div", "kb");
+  for (const e of ets) {
+    const itens = lista.filter(o => o.etapa === e).sort(ordemFu), soma = itens.reduce((s, o) => s + valorFu(o), 0);
+    kb.appendChild(colunaKb(fuTela, e, etapaTxt(e), itens, o => cartaoFu(o, { arrastar: computador.matches }), id => moverEtapa(id, e),
+      { soma: soma ? reais(soma) : "", vazio: "Nenhuma oportunidade.", redesenhar: desenharFunil }));
+  }
+  return kb;
+}
+// lista: tabela como planilha; tocar no título da coluna ordena (de novo, inverte)
+const COLS_FU = { nome: o => semAcento(o.nome || ""), etapa: o => o.etapa, resp: o => (o.resp || []).map(nomePessoa).join(", ") || null,
+  sit: o => o.situacao || null, valor: o => valorFu(o) || null, data: o => o.ultimoContato || null };
+function tabelaFu(lista) {
+  const w = el("div"), tb = el("table", "orc-tab fu-tab"), th = el("thead"), tr = el("tr");
+  const cab = (col, rot, cls) => {
+    const c = el("th", cls); c.scope = "col";
+    const b = el("button", "", rot); b.type = "button";
+    if (fuTela.ordem.col === col) b.dataset.seta = fuTela.ordem.desc ? " ↓" : " ↑";
+    b.onclick = () => { fuTela.ordem = fuTela.ordem.col === col ? { col, desc: !fuTela.ordem.desc } : { col, desc: col === "valor" || col === "data" }; desenharFunil(); };
+    c.appendChild(b); tr.appendChild(c);
+  };
+  cab("nome", "Nome", "fu-c-nome"); cab("etapa", "Etapa", "fu-c-etapa"); cab("resp", "Responsável", "fu-c-resp"); cab("sit", "Situação", "fu-c-sit");
+  cab("valor", "Valor (R$)", "fu-c-valor"); cab("data", "Contato", "fu-c-data");
+  th.appendChild(tr); tb.appendChild(th);
+  const corpo = el("tbody"), f = COLS_FU[fuTela.ordem.col] || COLS_FU.etapa, s = fuTela.ordem.desc ? -1 : 1;
+  const ord = lista.slice().sort((a, b) => { const x = f(a), y = f(b); if (x == null || y == null) return (x == null) - (y == null) || ordemFu(a, b); return (x < y ? -1 : x > y ? 1 : 0) * s || ordemFu(a, b); });
+  ord.slice(0, fuTela.limTab).forEach(o => {
+    const r = el("tr"); r.tabIndex = 0;
+    r.onclick = () => abrirOport(o.id); r.onkeydown = e => { if (e.key === "Enter") abrirOport(o.id); };
+    const n = el("td", "fu-n"); n.appendChild(el("b", "", o.nome || "(sem nome)"));
+    n.appendChild(el("small", "", [etapaTxt(o.etapa), o.situacao && o.situacao !== "A definir" ? o.situacao : "", (o.resp || []).map(p => primeiroNome(nomePessoa(p))).join(", ")].filter(Boolean).join(" · ")));
+    r.append(n, el("td", "fu-c-etapa", etapaTxt(o.etapa)), el("td", "fu-c-resp", (o.resp || []).map(nomePessoa).join(", ")), el("td", "fu-c-sit", o.situacao || ""),
+      el("td", "fu-c-valor", o.valor ? moedaBR(o.valor).replace(/,00$/, "") : "—"), el("td", "fu-c-data " + frioFu(o), o.ultimoContato ? dataCurta(o.ultimoContato) : "—"));
+    corpo.appendChild(r);
+  });
+  tb.appendChild(corpo); w.appendChild(tb);
+  if (!ord.length) w.appendChild(el("p", "avcb-nota", "Nenhuma oportunidade aqui."));
+  if (ord.length > fuTela.limTab) { const m = el("button", "btn sec fu-mais-tab", `Mostrar mais (${ord.length - fuTela.limTab})`); m.type = "button"; m.onclick = () => { fuTela.limTab += 300; desenharFunil(); }; w.appendChild(m); }
+  return w;
+}
+function detalheFu(o) {
+  const w = el("div", "tar-det");
+  if (!o) { w.appendChild(el("p", "avcb-nota", "Oportunidade não encontrada: pode ter sido apagada por outra pessoa.")); return w; }
+  const salvar = (fn, acao) => mudarReg(colFu, o.id, fn, acao);
+  const tx = (rot, k, op = {}) => campoTxt(rot, o[k] || "", (v, i) => {
+    const f = op.fmt && v ? op.fmt(v) : v; if (op.fmt) i.value = f;
+    salvar(r => { r[k] = f; }, op.area ? "Editou: " + rot.toLowerCase() : `${rot}: ${op.tipo === "date" && f ? dataBRde(f) : f || "(vazio)"}`);
+  }, op);
+  const ti = el("input", "tar-tit-in"); ti.type = "text"; ti.value = o.nome || ""; ti.setAttribute("aria-label", "Nome da oportunidade");
+  ti.onchange = () => { const v = ti.value.trim(); if (!v) { ti.value = o.nome || ""; return; } if (v !== o.nome) salvar(r => { r.nome = v; }, "Nome: " + v); };
+  ti.onkeydown = e => { if (e.key === "Enter") ti.blur(); };
+  w.appendChild(ti);
+  // etapa: escolher ou avançar para a próxima
+  const we = el("div", "campo"); we.appendChild(el("span", "", "Etapa"));
+  const le = el("div", "fu-etapa-l"), se = document.createElement("select"); se.setAttribute("aria-label", "Etapa");
+  ETAPAS.forEach(([k, r]) => { const x = document.createElement("option"); x.value = k; x.textContent = `${k} - ${r}`; se.appendChild(x); });
+  se.value = o.etapa; se.onchange = () => moverEtapa(o.id, se.value);
+  le.appendChild(se);
+  const prox = PROX_ETAPA[o.etapa];
+  if (prox) { const av = el("button", "btn prim", prox === "08" ? "Marcar como fechado" : "Avançar: " + NOME_ETAPA[prox]); av.type = "button"; av.onclick = () => moverEtapa(o.id, prox); le.appendChild(av); }
+  we.appendChild(le); w.appendChild(we);
+  const g1 = el("div", "tar-2col");
+  const ws = el("label", "campo"); ws.appendChild(el("span", "", "Situação do contato"));
+  const ss = document.createElement("select");
+  [...new Set([...SITUACOES_FU, o.situacao || "A definir"])].forEach(s => { const x = document.createElement("option"); x.value = s; x.textContent = s; ss.appendChild(x); });
+  ss.value = o.situacao || "A definir";
+  ss.onchange = () => salvar(r => { r.situacao = ss.value; }, "Situação: " + ss.value);
+  ws.appendChild(ss); g1.appendChild(ws);
+  g1.appendChild(campoTxt("Valor estimado (R$)", o.valor ? moedaBR(o.valor) : "", (v, i) => {
+    const n = v ? lerValor(v) : null;
+    if (v && !n) { aviso("Confira o valor.", true); return; }
+    i.value = n ? moedaBR(n) : "";
+    if (n !== (o.valor ?? null)) salvar(r => { r.valor = n; }, "Valor: " + (n ? reais(n) : "sem valor"));
+  }, { modo: "decimal", ph: "0,00" }));
+  w.appendChild(g1);
+  w.appendChild(chipsCampo("Prioridade", OPC_PRI, PRI[o.prioridade] ? o.prioridade : "", v => salvar(r => { r.prioridade = v; }, "Prioridade: " + (PRI[v] || "sem"))));
+  w.appendChild(chipsPessoas("Responsáveis (VPX)", o.resp || [], nv => salvar(r => { r.resp = nv; }, "Responsáveis: " + (nv.map(p => primeiroNome(p.nome)).join(", ") || "ninguém"))));
+  const g2 = el("div", "tar-2col");
+  g2.append(tx("Último contato", "ultimoContato", { tipo: "date" }), tx("Fechamento previsto", "fechamento", { tipo: "date" }));
+  w.appendChild(g2);
+  // contato: telefones, e-mail e endereço, com Ligar, WhatsApp, E-mail e Mapa
+  w.appendChild(el("h2", "secao", "Contato"));
+  const g3 = el("div", "tar-2col");
+  g3.append(tx("Nome do contato", "contato", { ph: "Ex.: síndico Sr. Paulo" }), tx("Empresa / administradora", "empresa"),
+    tx("Telefone", "tel", { tipo: "tel", modo: "tel", fmt: telBR }), tx("Outro telefone", "tel2", { tipo: "tel", modo: "tel", fmt: telBR }),
+    tx("E-mail", "email", { tipo: "email", modo: "email" }), tx("Endereço", "local"));
+  w.appendChild(g3);
+  const ac = el("div", "fc-ac");
+  const lk = (ico, txt, href, fora) => { const a = el("a", "fc-bt"); a.href = href; if (fora) { a.target = "_blank"; a.rel = "noopener"; } a.append(ic(ico), txt); ac.appendChild(a); };
+  const tels = [o.tel, o.tel2].filter(Boolean), tel = tels.find(n => telDig(n).length >= 10), cel = tels.find(ehCelular);
+  if (tel) lk("telefone", "Ligar", "tel:+55" + telDig(tel));
+  if (cel) lk("conversa", "WhatsApp", "https://wa.me/55" + telDig(cel), true);
+  if (o.email && emailOk(o.email)) lk("email", "E-mail", "mailto:" + o.email);
+  if (o.local) lk("pin", "Mapa", "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(o.local), true);
+  if (ac.children.length) w.appendChild(ac);
+  w.appendChild(el("p", "laudo-dica", "Registrar a ligação de hoje:"));
+  const lg = el("div", "fu-ligacao");
+  for (const [rot, sit] of [["Não atendeu", "Não atendeu"], ["Ligar de novo", "Ligar novamente"], ["Atendeu", "Atendeu"]]) {
+    const b = el("button", "", rot); b.type = "button";
+    b.onclick = () => { registrarContatoFu(o.id, "Ligação: " + sit.toLowerCase(), sit); aviso("Ligação registrada."); };
+    lg.appendChild(b);
+  }
+  w.appendChild(lg);
+  // mais informações e ligação com a pasta do cliente
+  w.appendChild(el("h2", "secao", "Mais informações"));
+  const g4 = el("div", "tar-2col");
+  g4.append(tx("Fonte", "fonte", { ph: "Ex.: Google, indicação" }), tx("Indicação", "indicacao"), tx("Orçamento nº", "orc", { ph: "Ex.: 1148" }));
+  if (o.tamanho) g4.appendChild(tx("Tamanho", "tamanho"));
+  const wc = el("div", "campo"); wc.appendChild(el("span", "", "Cliente (pasta no OneDrive)"));
+  const bc = el("button", "cliente" + (o.cliente ? "" : " vazio")); bc.type = "button"; bc.appendChild(el("strong", "", o.cliente || "Ligar a um cliente"));
+  bc.onclick = () => abrirDialogo(nome => salvar(r => { r.cliente = nome; }, "Cliente: " + nome));
+  wc.appendChild(bc); g4.appendChild(wc);
+  w.appendChild(g4);
+  const links = el("div", "tar-links");
+  const link = (txt, fn) => { const b = el("button", "laudo-link", txt); b.type = "button"; b.onclick = fn; links.appendChild(b); };
+  if (o.orc && pode("orc")) link("Ver o orçamento " + o.orc, () => { $("tela-orc").style.zIndex = "35"; abrirOrcamentos(String(o.orc).split("/")[0]); });   // por cima do funil
+  if (o.cliente && clientes.includes(o.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(o.cliente); });
+  if (o.cliente && pode("ficha")) link("Contatos do cliente", () => abrirFicha(o.cliente));
+  if (o.cliente) link("Tirar o cliente", () => salvar(r => { r.cliente = ""; }, "Tirou o cliente"));
+  if (links.children.length) w.appendChild(links);
+  w.appendChild(tx("Observações", "obs", { area: true, ph: "Anotações sobre a oportunidade" }));
+  // tarefas ligadas a esta oportunidade
+  if (pode("tarefas")) {
+    w.appendChild(el("h2", "secao", "Tarefas"));
+    tarefas().filter(t => t.funil === o.id).sort((a, b) => abertaTar(b) - abertaTar(a) || ordemTar(a, b))
+      .forEach(t => w.appendChild(cartaoTar(t, { abrir: () => abrirTar({ aberta: t.id }), semCliente: true })));
+    const nb = el("button", "btn sec", "+ Tarefa para esta oportunidade"); nb.type = "button"; nb.style.width = "100%";
+    nb.onclick = () => abrirTar({ nova: { funil: o.id, cliente: o.cliente || "" } });
+    w.appendChild(nb);
+  }
+  // contatos e anotações (as atualizações do monday vieram para cá)
+  w.appendChild(el("h2", "secao", "Contatos e anotações"));
+  const nc = el("div", "tar-novo-com");
+  const ta = document.createElement("textarea"); ta.placeholder = "O que foi conversado? (ligação, visita, mensagem…)"; ta.setAttribute("aria-label", "Novo registro de contato");
+  const bt = el("button", "btn sec", "Registrar contato de hoje"); bt.type = "button";
+  bt.onclick = () => { const v = ta.value.trim(); if (!v) { ta.focus(); return; } ta.value = ""; registrarContatoFu(o.id, v); desenharFunil(); };
+  nc.append(ta, bt); w.appendChild(nc);
+  const at = (o.ativ || []).slice().sort((a, b) => (b.em || "").localeCompare(a.em || ""));
+  if (at.length) {
+    const l = el("div", "tar-coms");
+    at.slice(0, 60).forEach(a => { const d = el("div", "tar-com"); d.append(el("small", "", `${a.por || "-"} · ${dataHoraBR(a.em)}`), el("p", "", a.t)); l.appendChild(d); });
+    w.appendChild(l);
+  } else w.appendChild(el("p", "avcb-nota", "Nenhum contato registrado ainda."));
+  histDetalhe(w, o);
+  w.appendChild(el("p", "tar-rodape", origemReg(o, "Criada")));
+  const x = el("button", "btn sec perigo tar-excluir", "Excluir oportunidade"); x.type = "button";
+  x.onclick = async () => {
+    if (!confirm(`Excluir "${o.nome}" do funil?\n\nPara tirar do funil sem apagar, mude a etapa para Perdido ou Não qualificado.`)) return;
+    voltarListaFu(); if (await apagarReg(colFu, o.id)) aviso("Oportunidade excluída.");
+  };
+  w.appendChild(x);
+  return w;
+}
+function formNovaFu() {
+  const n = fuTela.nova, f = el("div", "tar-det");
+  const ti = el("input", "tar-tit-in"); ti.type = "text"; ti.id = "fu-novo-nome"; ti.placeholder = "Nome (condomínio, empresa…)"; ti.value = n.nome || "";
+  ti.setAttribute("aria-label", "Nome da oportunidade");
+  ti.oninput = () => { n.nome = ti.value; };
+  ti.onkeydown = e => { if (e.key === "Enter") ti.blur(); };
+  f.appendChild(ti);
+  const we = el("label", "campo"); we.appendChild(el("span", "", "Etapa"));
+  const se = document.createElement("select");
+  ETAPAS.forEach(([k, r]) => { const x = document.createElement("option"); x.value = k; x.textContent = `${k} - ${r}`; se.appendChild(x); });
+  se.value = n.etapa; se.onchange = () => { n.etapa = se.value; };
+  we.appendChild(se); f.appendChild(we);
+  f.appendChild(chipsPessoas("Responsáveis (VPX)", n.resp, nv => { n.resp = nv; desenharFunil(); }));
+  f.appendChild(chipsCampo("Prioridade", OPC_PRI, n.prioridade, v => { n.prioridade = v; desenharFunil(); }));
+  const g = el("div", "tar-2col");
+  const loc = (rot, k, op = {}) => g.appendChild(campoTxt(rot, n[k] || "", null, { ...op, local: v => { n[k] = v; } }));
+  loc("Nome do contato", "contato"); loc("Telefone", "tel", { tipo: "tel", modo: "tel" }); loc("E-mail", "email", { tipo: "email", modo: "email" });
+  loc("Empresa / administradora", "empresa"); loc("Valor estimado (R$)", "valorTxt", { modo: "decimal", ph: "0,00" }); loc("Fechamento previsto", "fechamento", { tipo: "date" });
+  loc("Endereço", "local"); loc("Fonte", "fonte", { ph: "Ex.: Google, indicação" }); loc("Indicação", "indicacao");
+  const wc = el("div", "campo"); wc.appendChild(el("span", "", "Cliente (opcional)"));
+  const bc = el("button", "cliente" + (n.cliente ? "" : " vazio")); bc.type = "button"; bc.appendChild(el("strong", "", n.cliente || "Ligar a um cliente"));
+  bc.onclick = () => abrirDialogo(nome => { n.cliente = nome; desenharFunil(); });
+  wc.appendChild(bc); g.appendChild(wc);
+  f.appendChild(g);
+  f.appendChild(campoTxt("Observações (opcional)", n.obs || "", null, { area: true, local: v => { n.obs = v; } }));
+  const criar = el("button", "btn prim", n.criando ? "Criando…" : "Criar oportunidade"); criar.type = "button"; criar.disabled = !!n.criando;
+  criar.onclick = async () => {
+    n.nome = ti.value.trim();
+    if (!n.nome) { aviso("Escreva o nome.", true); ti.focus(); return; }
+    const valor = n.valorTxt ? lerValor(n.valorTxt) : null;
+    if (n.valorTxt && !valor) { aviso("Confira o valor.", true); return; }
+    const reg = { nome: n.nome, etapa: n.etapa, etapaEm: new Date().toISOString(), situacao: "A definir", prioridade: n.prioridade, resp: n.resp, ativ: [] };
+    if (valor) reg.valor = valor;
+    if (n.etapa === "08") reg.fechadoEm = dataISO();
+    for (const k of ["contato", "email", "empresa", "fechamento", "local", "fonte", "indicacao", "cliente", "obs"]) if ((n[k] || "").trim()) reg[k] = n[k].trim();
+    if ((n.tel || "").trim()) reg.tel = telBR(n.tel);
+    n.criando = true; desenharFunil();
+    const id = await criarReg(colFu, reg);
+    n.criando = false;
+    if (!id) { desenharFunil(); return; }
+    aviso("Oportunidade criada.");
+    if (fuTela?.nova === n) { fuTela.nova = null; fuTela.aberta = id; desenharFunil(); }
+  };
+  f.appendChild(criar);
+  return f;
+}
+// botões fixos das duas telas
+$("tar-voltar").onclick = () => { if (tarTela?.aberta || tarTela?.nova) voltarListaTar(); else fecharTar(); };
+$("tar-nova").onclick = () => novaTarefa();
+$("tar-busca").oninput = () => { clearTimeout(desenharTar.t); desenharTar.t = setTimeout(desenharTar, 200); };
+$("tar-pessoa").onchange = () => { if (tarTela) { tarTela.pessoa = $("tar-pessoa").value; desenharTar(); } };
+$("tar-vistas").querySelectorAll("button").forEach(b => b.onclick = () => { if (!tarTela) return; tarTela.vista = b.dataset.v; gravarLS("vpx_tar_vista", tarTela.vista); desenharTar(); });
+$("fu-voltar").onclick = () => { if (fuTela?.aberta || fuTela?.nova) voltarListaFu(); else fecharFunil(); };
+$("fu-nova").onclick = () => novaOport();
+$("fu-busca").oninput = () => { clearTimeout(desenharFunil.t); desenharFunil.t = setTimeout(() => { if (fuTela) { fuTela.mais = {}; fuTela.limTab = 150; } desenharFunil(); }, 200); };
+$("fu-pessoa").onchange = () => { if (fuTela) { fuTela.pessoa = $("fu-pessoa").value; fuTela.mais = {}; desenharFunil(); } };
+$("fu-sit").onchange = () => { if (fuTela) { fuTela.sit = $("fu-sit").value; fuTela.mais = {}; desenharFunil(); } };
+$("fu-vistas").querySelectorAll("button").forEach(b => b.onclick = () => { if (!fuTela) return; fuTela.vista = b.dataset.v; gravarLS("vpx_fu_vista", fuTela.vista); desenharFunil(); });
+// o orçamento aberto por cima do funil volta à altura de sempre quando fecha
+new MutationObserver(() => { if ($("tela-orc").hidden) $("tela-orc").style.zIndex = ""; }).observe($("tela-orc"), { attributes: true, attributeFilter: ["hidden"] });
+// trabalho em equipe: com a tela aberta, confere as mudanças dos outros a cada minuto; e ao voltar para o app
+setInterval(() => {
+  if (document.hidden || !conta) return;
+  if (!$("tela-tar").hidden) sincronizarCol(colTar, true);
+  if (!$("tela-funil").hidden) sincronizarCol(colFu, true);
+}, 60000);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || !conta) return;
+  sincronizarCol(colTar);
+  if (!$("tela-funil").hidden) sincronizarCol(colFu);
+});
+window.addEventListener("online", () => { if (tarTela) desenharTar(); if (fuTela) desenharFunil(); });
+
 // "Continuar de onde parou": rascunhos e fotos ainda não salvas
 function itensContinuar() {
   const out = [];
@@ -10834,7 +11976,8 @@ function desenharInicio() {
     });
   }
   const temEq = pode("equip") && Object.keys(eqDados).length;
-  if (computador.matches && (pode("os") || pode("avcb") || temEq)) esq.appendChild(el("p", "hub-rot", pode("os") ? (pode("avcb") || temEq ? "Ordens de serviço e avisos" : "Ordens de serviço") : "Avisos"));
+  const partes = [pode("os") && "ordens de serviço", podeVerTarefas() && "tarefas", (pode("avcb") || temEq) && "avisos"].filter(Boolean);
+  if (computador.matches && partes.length) { const s = partes.length > 1 ? partes.slice(0, -1).join(", ") + " e " + partes.at(-1) : partes[0]; esq.appendChild(el("p", "hub-rot", s[0].toUpperCase() + s.slice(1))); }
   // pedidos de acesso da equipe de campo esperando o administrador
   if (ehAdmin() && pedidosAcesso.length) {
     const n = pedidosAcesso.length, b = el("button", "hub-card warn"); b.type = "button";
@@ -10852,6 +11995,17 @@ function desenharInicio() {
     b.appendChild(el("b", "", fila.length || minhas.length ? [fila.length && `${fila.length} na fila`, minhas.length && `${minhas.length} com você`].filter(Boolean).join(" · ") : "Nenhuma OS aberta"));
     if (urg) b.appendChild(el("small", "", "Há OS urgente ou atrasada"));
     b.onclick = () => abrirOS();
+    esq.appendChild(b);
+  }
+  // tarefas com a pessoa: quantas, atrasadas e as próximas (pedido do Gustavo em 07/11/2026)
+  if (podeVerTarefas()) {
+    const minhas = tarefas().filter(t => minhaTar(t) && abertaTar(t)).sort(ordemTar);
+    const atr = minhas.filter(atrasadaTar).length, hj = minhas.filter(hojeTar).length;
+    const b = el("button", "hub-card" + (atr ? " crit" : hj ? " warn" : "")); b.type = "button";
+    b.appendChild(comIc(el("small", "os-tipo"), "tarefas", "Tarefas"));
+    b.appendChild(el("b", "", minhas.length ? `${minhas.length} tarefa${minhas.length > 1 ? "s" : ""} com você` + (atr ? ` · ${atr} atrasada${atr > 1 ? "s" : ""}` : hj ? ` · ${hj} para hoje` : "") : "Nenhuma tarefa com você"));
+    minhas.slice(0, 3).forEach(t => b.appendChild(el("small", "", t.titulo + (t.prazo ? " · " + (atrasadaTar(t) ? "atrasada" : hojeTar(t) ? "hoje" : dataCurta(t.prazo)) : ""))));
+    b.onclick = () => abrirTar({ filtro: "minhas" });
     esq.appendChild(b);
   }
   // agenda de hoje e de amanhã, acima dos registros (pedido do Gustavo em 19/10/2026); vem da última agenda guardada e atualiza por trás
@@ -10960,6 +12114,18 @@ function desenharPaginaCliente() {
     abertas.forEach(o => t.appendChild(cartaoOS(o, () => abrirOS({ aberta: o.numero }))));
     if (pode("osCriar")) { const n = comIc(el("button", "btn sec"), "os", "Nova OS para este cliente"); n.type = "button"; n.style.width = "100%"; n.onclick = () => abrirOS({ nova: { cliente: c } }); t.appendChild(n); }
   }
+  // tarefas abertas e oportunidades do funil deste cliente (pedido do Gustavo em 07/11/2026)
+  const tCli = tarefas().filter(x => x.cliente === c && abertaTar(x) && veTar(x)).sort(ordemTar);
+  if (tCli.length || pode("tarefas")) {
+    t.appendChild(el("p", "hub-rot", "Tarefas"));
+    tCli.slice(0, 5).forEach(x => t.appendChild(cartaoTar(x, { abrir: () => abrirTar({ aberta: x.id }), semCliente: true })));
+    if (tCli.length > 5) { const m = el("button", "laudo-link", `Ver as ${tCli.length} tarefas deste cliente`); m.type = "button"; m.onclick = () => abrirTar({ filtro: "todas", busca: c }); t.appendChild(m); }
+    if (pode("tarefas")) { const n = comIc(el("button", "btn sec"), "tarefas", "Nova tarefa para este cliente"); n.type = "button"; n.style.width = "100%"; n.onclick = () => abrirTar({ nova: { cliente: c } }); t.appendChild(n); }
+  }
+  if (pode("funil")) {
+    const ops = oportunidades().filter(o => o.cliente === c).sort((a, b) => (b.atualizado || "").localeCompare(a.atualizado || ""));
+    if (ops.length) { t.appendChild(el("p", "hub-rot", "Funil comercial")); ops.slice(0, 5).forEach(o => t.appendChild(cartaoFu(o, { etapa: true, abrir: () => abrirFunil({ aberta: o.id }) }))); }
+  }
   const modos = MODOS_APP.filter(([m]) => m !== "comp" && pode(m));
   if (modos.length) {
     t.appendChild(el("p", "hub-rot", "Novo para este cliente"));
@@ -10974,9 +12140,11 @@ function desenharReg() {
   const t = $("tela-reg"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Registros"));
   const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (!modos.length && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc") && !pode("nf")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
+  if (!modos.length && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc") && !pode("nf") && !podeVerTarefas() && !pode("funil")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
   const g = el("div", "hub-grade");
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
+  if (podeVerTarefas()) g.appendChild(tile("tarefas", "Tarefas", () => abrirTar()));             // como no monday (pedido do Gustavo em 07/11/2026)
+  if (pode("funil")) g.appendChild(tile("funil", "Funil comercial", () => abrirFunil()));
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
   if (pode("avcb")) g.appendChild(tile("escudo", "Validade AVCB / CLCB", abrirAvcb));   // saiu do Mais (pedido do Gustavo em 19/10/2026)
   if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", abrirEqv));   // vencimentos de todos os clientes; saiu do Mais (pedido do Gustavo em 19/10/2026)
@@ -11087,6 +12255,7 @@ async function iniciarApp() {
   sincronizarEq();                                // extintores e mangueiras dos clientes (alerta no Início)
   sincronizarFichas(true);                        // fichas dos clientes (contatos), para ver sem internet
   sincronizarOS();                                // ordens de serviço (fila no Início) e baixas que ficaram sem internet
+  sincronizarCol(colTar, true);                   // tarefas (cartão no Início e número no menu lateral); o funil só ao abrir
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") desenharInicio();       // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
@@ -11123,10 +12292,12 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (!fecharTelasPorCima()) return;
   if (b.dataset.acao === "its") abrirNormas();
   else if (b.dataset.acao === "admin") abrirAdmin();
+  else if (b.dataset.acao === "tar") abrirTar();
+  else if (b.dataset.acao === "funil") abrirFunil();
   else irPara(b.dataset.s, true);
 });
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
-for (const id of ["tela-its", "tela-admin"]) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
+for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil"]) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
 computador.addEventListener("change", () => {      // janela passou da largura do celular para a do computador (ou o contrário)
   if (!conta) return;
   if (secao === "inicio") desenharInicio();
@@ -11138,7 +12309,10 @@ document.addEventListener("keydown", e => {
   if (e.key !== "Escape" || $("dlg").open || $("dlg-enviar").open || cam) return;   // a lista de clientes (e o "Enviar agora") fecha sozinha com o Esc; a câmera tem o próprio botão
   if (e.target.matches?.("input, textarea, select")) { e.target.blur(); return; }
   if (!$("visor-pdf").hidden) { fecharVisor(); return; }
-  const voltar = [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).at(-1)?.querySelector(".avcb-voltar");   // a última aberta no HTML fica por cima
+  if ($("menu-op") && !$("menu-op").hidden) { $("menu-op").hidden = true; return; }   // menu da situação da tarefa
+  // a que está por cima: a de z-index maior (orçamento aberto pelo funil) ou, empatando, a última no HTML
+  const zi = t => +getComputedStyle(t).zIndex || 0;
+  const voltar = [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).reduce((a, t) => !a || zi(t) >= zi(a) ? t : a, null)?.querySelector(".avcb-voltar");
   if (voltar && voltar.offsetParent) voltar.click();
 });
 // no computador: arrastar fotos, vídeos e PDFs do computador para o formulário (o mesmo que escolher na Galeria)
@@ -11238,6 +12412,11 @@ $("cam-luz").onclick = alternarLuz;
 window.addEventListener("popstate", () => {
   if (agVoltando) { agVoltando = false; return; }                  // o próprio app tirou o passo do formulário da agenda
   if (fichaVoltando) { fichaVoltando = false; return; }            // idem, da ficha do cliente (o que estava embaixo continua aberto)
+  if (tarVoltando || fuVoltando) {                                 // idem, das tarefas e do funil; depois abre o que foi pedido (ex.: a oportunidade)
+    tarVoltando = fuVoltando = false;
+    const f = depoisVoltar; depoisVoltar = null; if (f) f();
+    return;
+  }
   if (!$("visor-pdf").hidden) { fecharVisor(false); return; }      // o visualizador fecha sozinho (pode estar sobre os arquivos do cliente)
   if (agForm && !history.state?.agform) { fecharFormAgenda(false); return; }   // "voltar" no formulário da agenda: volta para a lista
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
@@ -11247,6 +12426,15 @@ window.addEventListener("popstate", () => {
       fichaTela.editando = null; fichaTela.mudou = false; desenharFicha(); return;
     }
     if (!history.state?.ficha) { fecharFicha(false); return; }
+  }
+  // tarefas e funil: "voltar" no detalhe volta para a lista; na lista, fecha (as tarefas podem estar por cima do funil)
+  if (!$("tela-tar").hidden) {
+    if (!history.state?.tar) { fecharTar(false); return; }
+    if ((tarTela?.aberta || tarTela?.nova) && !tarTela.direto && !history.state?.tarSub) { tarTela.aberta = tarTela.nova = null; desenharTar(); return; }
+  }
+  if (!$("tela-funil").hidden && $("tela-tar").hidden) {
+    if (!history.state?.fu) { fecharFunil(false); return; }
+    if ((fuTela?.aberta || fuTela?.nova) && !fuTela.direto && !history.state?.fuSub) { fuTela.aberta = fuTela.nova = null; desenharFunil(); return; }
   }
   if (history.state?.avcbNovo && !$("tela-avcb-novo").hidden) return;   // voltou do visualizador (documento ampliado) para o "Novo AVCB"
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
