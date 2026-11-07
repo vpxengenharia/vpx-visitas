@@ -143,9 +143,14 @@ button,input,label{font:inherit}
 .orc-ac{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 9px;margin-left:6px;border-radius:8px;border:1.5px solid var(--linha);background:var(--papel);color:var(--marinho);font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;vertical-align:middle}
 .orc-ac .ic{width:18px;height:18px}
 @media (prefers-color-scheme:dark){.orc-c-num,.orc-resumo b{color:var(--laranja)}.orc-ac{color:var(--tinta)}}
-@media (min-width:700px){
+/* as colunas extras dependem da largura da área da tabela, não da janela (no computador o menu lateral ocupa espaço;
+   tablet e celular deitado ficam com a tabela do celular) */
+#tela-orc .avcb-corpo,#tela-nf .avcb-corpo{container-type:inline-size}
+@container (min-width:600px){
   .orc-filtros{grid-template-columns:minmax(0,1fr) 210px 190px}
   .orc-filtros .avcb-busca{grid-column:auto}
+}
+@container (min-width:860px){
   .orc-tab{font-size:15px}
   .orc-tab th,.orc-tab td{padding:9px 10px}
   .orc-tab thead button,.orc-tab thead span{padding:0 10px;font-size:14px}
@@ -156,6 +161,43 @@ button,input,label{font:inherit}
   .orc-c-acao{display:table-cell;width:268px;text-align:right!important;white-space:nowrap}
   .orc-data-l{display:inline}
   .orc-data-c,.orc-so-cel{display:none}
+}
+/* notas fiscais: a mesma tabela dos orçamentos; uma nota (dados, boletos, enviar) e nota nova */
+#nf-nova{margin-bottom:12px}
+#nf-ler{width:100%;margin-bottom:10px}
+#nf-estado{margin:2px 2px 10px}
+#nf-ler[hidden],#nf-exportar[hidden],#nf-vazio[hidden],#nf-lista-tela[hidden],#nf-sub[hidden]{display:none}
+.nf-tab .orc-c-num{width:58px}
+.nf-serie{display:block;font-family:inherit;font-weight:600;font-size:11px;color:var(--suave)}
+.nf-canc .orc-cli,.nf-canc .orc-c-num{color:var(--suave)}
+.nf-canc .orc-c-valor{text-decoration:line-through;color:var(--suave)}
+.nf-card{margin:4px 0 12px;padding:12px 14px;border-radius:14px;border:1.5px solid var(--linha);border-left:6px solid var(--laranja);background:var(--papel);line-height:1.35}
+.nf-card.canc{border-left-color:var(--linha)}
+.nf-card b{display:block;font-family:var(--titulo-fonte);font-size:21px;margin-top:4px;overflow-wrap:anywhere}
+.nf-card small{display:block;color:var(--suave);font-size:14px}
+.nf-card-valor{display:block;font-family:var(--titulo-fonte);font-size:24px;font-weight:700;color:var(--marinho);margin:2px 0}
+.nf-card.canc .nf-card-valor{text-decoration:line-through;color:var(--suave)}
+.os-det dd .laudo-link{min-height:0;padding:0 2px}
+.nf-links{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:12px}
+.nf-prev{display:block;width:100%;max-height:320px;object-fit:contain;object-position:top;border:1.5px solid var(--linha);border-radius:10px;background:#fff;margin:4px 0 14px;cursor:zoom-in}
+.nf-dica{font-size:13.5px;color:var(--suave);margin:-6px 2px 12px}
+.nf-check{display:flex;align-items:center;gap:10px;min-height:46px;font-size:16px;cursor:pointer}
+.nf-check input{width:22px;height:22px;flex:none;accent-color:var(--laranja)}
+.nf-bol{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 10px;border:1.5px solid var(--linha);border-radius:10px;background:var(--papel);margin-bottom:8px}
+.nf-bol .ic{flex:none}
+.nf-bol .tx{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px}
+.nf-bol input{width:92px;min-height:42px;border-radius:8px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 8px;font-size:15px}
+.nf-tirar{flex:none;width:42px;min-height:42px;border:0;border-radius:8px;background:none;color:var(--suave);font-size:24px;cursor:pointer}
+.nf-dest{font-size:13px;color:var(--suave);white-space:pre-line;overflow-wrap:anywhere;margin:12px 2px}
+.dlg-enviar{height:fit-content;max-height:none;width:calc(100% - 32px);max-width:420px;margin:auto;padding:20px;border-radius:16px}
+.dlg-enviar p{font-size:17px;font-weight:600;margin:0 0 16px}
+.env-acoes{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}
+.env-acoes .prim{font-size:18px}
+@media (prefers-color-scheme:dark){.nf-card-valor{color:var(--laranja)}}
+@container (min-width:860px){
+  .nf-tab .orc-c-num{width:84px}
+  .nf-tab .orc-c-tipo{width:106px;color:var(--tinta)}
+  .nf-tab .orc-c-acao{width:124px}
 }
 /* histórico de comprovantes */
 .ch-abrir{margin:0 0 14px}
@@ -822,7 +864,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   #avcb-lista > :not(.avcb-card),#os-corpo > :not(.os-card),#pc-lista > :not(.pc-card){grid-column:1 / -1}
   #arq-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:10px}
   #arq-lista > li{display:flex}                    /* cartões da mesma linha com a mesma altura */
-  #os-corpo > .btn.prim,#pc-novo-btn,#pt-gerar,#eqv-exportar,#ch-exportar,#its-guardar,#arq-baixar,#orc-exportar{width:fit-content!important;min-width:280px;padding:0 28px}
+  #os-corpo > .btn.prim,#pc-novo-btn,#pt-gerar,#eqv-exportar,#ch-exportar,#its-guardar,#arq-baixar,#orc-exportar,#nf-exportar,#nf-nova{width:fit-content!important;min-width:280px;padding:0 28px}
   .orc-tab tbody tr:hover{background-color:rgba(127,127,127,.1)}
   .orc-tab thead button:hover{text-decoration:underline}
   .orc-ac:hover{border-color:var(--borda-hover);background-color:rgba(127,127,127,.06)}
@@ -890,6 +932,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <symbol id="i-email" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path style="stroke:var(--ic-ac)" d="m4.5 7 7.5 6 7.5-6"/></symbol>
   <symbol id="i-sair" viewBox="0 0 24 24"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5"/><path style="stroke:var(--ic-ac)" d="M9.5 8 5.5 12l4 4M5.5 12h9"/></symbol>
   <symbol id="i-orcamento" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path style="stroke:var(--ic-ac)" d="M8.5 7.3h7v3h-7z"/><path d="M8.7 14h.01M12 14h.01M15.3 14h.01M8.7 17.2h.01M12 17.2h.01M15.3 17.2h.01"/></symbol>
+  <symbol id="i-nf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 7.5h7M8.5 10.7h7"/><path style="stroke:var(--ic-ac)" d="M8.5 14.5v3M10.7 14.5v3M12.6 14.5v3M15.5 14.5v3"/></symbol>
   <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
 </svg>
 <header class="topo">
@@ -1248,6 +1291,58 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   </div>
 </div>
 
+<!-- notas fiscais emitidas para os clientes: tabela como a dos orçamentos, nota com os boletos, nota nova e envio ao cliente (pedido do Gustavo em 06/11/2026) -->
+<div class="tela-avcb" id="tela-nf" hidden role="dialog" aria-label="Notas fiscais">
+  <div class="avcb-topo"><button class="avcb-voltar" id="nf-voltar">‹ Voltar</button><strong id="nf-titulo">Notas fiscais</strong></div>
+  <div class="avcb-corpo">
+    <div id="nf-lista-tela">
+      <button class="btn prim" id="nf-nova" type="button">+ Nova nota fiscal</button>
+      <div class="orc-filtros">
+        <input class="avcb-busca" id="nf-busca" type="search" placeholder="Buscar por número, cliente, CNPJ ou valor" autocomplete="off">
+        <select id="nf-periodo" aria-label="Período"><option value="">Todos os períodos</option></select>
+        <select id="nf-sit" aria-label="Situação">
+          <option value="">Todas as notas</option>
+          <option value="validas">Sem as canceladas</option>
+          <option value="canc">Canceladas</option>
+          <option value="iss">ISS retido</option>
+          <option value="bol">Com boleto</option>
+          <option value="nac">Nacionais (NFS-e)</option>
+          <option value="mun">Antigas (Nota Salvador)</option>
+        </select>
+      </div>
+      <p class="orc-resumo" id="nf-resumo"></p>
+      <p class="avcb-nota" id="nf-estado"></p>
+      <button class="btn sec" id="nf-ler" type="button" hidden></button>
+      <table class="orc-tab nf-tab">
+        <thead><tr>
+          <th class="orc-c-num" scope="col"><button type="button" data-col="num">Nº</button></th>
+          <th class="orc-c-cli" scope="col"><button type="button" data-col="cli">Cliente</button></th>
+          <th class="orc-c-tipo" scope="col"><button type="button" data-col="orc">Orçamento</button></th>
+          <th class="orc-c-valor" scope="col"><button type="button" data-col="valor">Valor (R$)</button></th>
+          <th class="orc-c-data" scope="col"><button type="button" data-col="data">Emissão</button></th>
+          <th class="orc-c-acao" scope="col"><span>Envio</span></th>
+        </tr></thead>
+        <tbody id="nf-corpo"></tbody>
+      </table>
+      <p class="avcb-nota" id="nf-vazio" hidden></p>
+      <button class="btn sec" id="nf-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+      <button class="laudo-link" id="nf-atualizar">Atualizar lista</button>
+      <p class="avcb-nota" id="nf-nota"></p>
+    </div>
+    <div id="nf-sub" hidden></div>
+    <input type="file" id="nf-in-pdf" accept="application/pdf,.pdf" hidden>
+    <input type="file" id="nf-in-bol" accept="application/pdf,.pdf" multiple hidden>
+    <datalist id="nf-clientes"></datalist>
+    <datalist id="nf-orcs"></datalist>
+  </div>
+</div>
+
+<!-- o navegador só deixa compartilhar logo depois de um toque: se o download demorou, pede um toque novo -->
+<dialog id="dlg-enviar" class="dlg-enviar" aria-labelledby="env-texto">
+  <p id="env-texto">Arquivos prontos para enviar.</p>
+  <div class="env-acoes"><button class="btn sec" id="env-nao" type="button">Cancelar</button><button class="btn prim" id="env-ok" type="button">Enviar agora</button></div>
+</dialog>
+
 <div class="tela-avcb" id="tela-admin" hidden role="dialog" aria-label="Administração">
   <div class="avcb-topo"><button class="avcb-voltar" id="adm-voltar">‹ Voltar</button><strong>Administração</strong></div>
   <div class="avcb-corpo">
@@ -1453,6 +1548,10 @@ const CONFIG = {
   comprovantesCaminho: "VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes",
   comprovantesNome: "01 - Comprovantes",
   pastasComprovante: { compra: "Compras", reembolso: "Reembolsos" },   // os arquivos vão direto nelas
+  // Notas fiscais emitidas e boletos (pedido do Gustavo em 06/11/2026): pasta no mesmo OneDrive (compartilhar com quem tiver a função)
+  notasCaminho: "VPX Engenharia - AVCB/06 - Comercial/04 - Notas Fiscais e Boletos",
+  notasNome: "04 - Notas Fiscais e Boletos",
+  notasPastas: { nac: "Notas Fiscais GOV", mun: "Notas Fiscais", boletos: "Boletos" },   // nacionais (NFS-e), antigas (Nota Salvador) e boletos
   // Validade AVCB/CLCB: copiada do painel "Validade AVCB/CLCB" (artefato do Claude), em 12/10/2026.
   // Quando o painel mudar, atualize esta lista. vencimento = AAAA-MM-DD. O nome é comparado com o nome da pasta
   // do cliente (sem acento/maiúsculas); se for diferente, coloque o nome da pasta em "pasta".
@@ -3961,11 +4060,11 @@ async function enviarArquivo(pastaId, nome, blob, avancou = () => {}, substituir
   const alvo = `/drives/${CONFIG.driveId}/items/${pastaId}:/${encodeURIComponent(nome)}:`;
   const conflito = substituir ? "replace" : "rename";
   if (blob.size < 4 * 1024 * 1024) {
-    await graph(`${alvo}/content?@microsoft.graph.conflictBehavior=${conflito}`, {
+    const it = await graph(`${alvo}/content?@microsoft.graph.conflictBehavior=${conflito}`, {
       method: "PUT", headers: { "Content-Type": blob.type || "application/octet-stream" }, body: blob
     });
     avancou(blob.size);
-    return;
+    return it;                                     // o arquivo criado no OneDrive (id, nome final, data)
   }
   const s = await graph(`${alvo}/createUploadSession`, {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -3979,7 +4078,7 @@ async function enviarArquivo(pastaId, nome, blob, avancou = () => {}, substituir
     try {
       const r = await fetch(s.uploadUrl, { method: "PUT", headers: { "Content-Range": `bytes ${ini}-${fim - 1}/${blob.size}` }, body: blob.slice(ini, fim) });
       status = r.status;
-      if (r.ok) { avancou(fim - ini); ini = fim; falhas = 0; continue; }
+      if (r.ok) { avancou(fim - ini); ini = fim; falhas = 0; if (ini >= blob.size) return r.json().catch(() => null); continue; }
     } catch {}                                          // internet caiu no meio do pedaço
     if (status === 404) throw new Error("A sessão de envio expirou");
     if (++falhas > 6) throw new Error("Falha no envio de arquivo grande");
@@ -4285,18 +4384,31 @@ async function compartilharRelatorio() {
   if (!relatorio) return;
   compartilharArquivo(arquivoRelatorio(), relatorio.titulo, `${relatorio.titulo} - ${relatorio.cliente}`);
 }
-async function compartilharArquivo(arquivo, titulo, texto) {
-  const dados = { files: [arquivo], title: titulo, text: texto };
+// arquivo: um ou vários (nota fiscal + boletos)
+async function compartilharArquivo(arquivo, titulo, texto, deNovo) {
+  const arquivos = [].concat(arquivo), dados = { files: arquivos, title: titulo, text: texto };
   if (navigator.canShare?.(dados)) {
     try { await navigator.share(dados); }
-    catch (e) { if (e.name !== "AbortError") aviso("Não foi possível compartilhar: " + e.message, true); }
+    catch (e) {
+      if (e.name === "NotAllowedError" && !deNovo) { prontoParaEnviar(arquivos, titulo, texto); return; }   // o toque "venceu" enquanto o arquivo baixava
+      if (e.name !== "AbortError") aviso("Não foi possível compartilhar: " + e.message, true);
+    }
     return;
   }
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(arquivo); a.download = arquivo.name;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 15000);
-  aviso("Este aparelho não compartilha arquivos direto. O arquivo foi baixado: anexe-o no e-mail ou no WhatsApp.");
+  for (const arq of arquivos) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(arq); a.download = arq.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 15000);
+  }
+  aviso(arquivos.length > 1 ? "Este aparelho não compartilha arquivos direto. Os arquivos foram baixados: anexe-os no e-mail ou no WhatsApp."
+    : "Este aparelho não compartilha arquivos direto. O arquivo foi baixado: anexe-o no e-mail ou no WhatsApp.");
+}
+// o navegador só abre o compartilhar logo depois de um toque: se o download demorou, um botão pede o toque novo
+function prontoParaEnviar(arquivos, titulo, texto) {
+  $("env-texto").textContent = arquivos.length > 1 ? `${arquivos.length} arquivos prontos para enviar.` : "Arquivo pronto para enviar.";
+  $("env-ok").onclick = () => { $("dlg-enviar").close(); compartilharArquivo(arquivos, titulo, texto, true); };
+  $("dlg-enviar").showModal();
 }
 
 // visualizador: desenha as páginas do PDF dentro do app (pdf.js, carregado só quando precisa; funciona sem internet)
@@ -6436,7 +6548,7 @@ function pintarFaixaOS() {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["orc", "Orçamentos"]
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -6448,7 +6560,7 @@ let perm = lerLS("vpx_perm", null);                // última cópia do arquivo 
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
 // (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
-const NOVAS_NO_PADRAO = ["serv", "equip", "os"];   // "osCriar", "pagar" e "orc" (orçamentos, com preços) não: só quem o Gustavo liberar
+const NOVAS_NO_PADRAO = ["serv", "equip", "os"];   // "osCriar", "pagar", "orc" (orçamentos, com preços) e "nf" (notas fiscais) não: só quem o Gustavo liberar
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
   // convidado: nada sem a liberação (sem acesso à pasta de configuração, ou recusado/retirado); nunca a Agenda (não tem Outlook da VPX)
@@ -8821,7 +8933,7 @@ function fecharVisor(voltar = true) {
   visor?.obs?.disconnect();
   visor = null;
   travarVertical(true);
-  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden && $("tela-eq").hidden && $("tela-eqv").hidden && $("tela-avcb").hidden && $("tela-orc").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes/AVCB/orçamentos: a lista continua
+  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden && $("tela-eq").hidden && $("tela-eqv").hidden && $("tela-avcb").hidden && $("tela-orc").hidden && $("tela-nf").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes/AVCB/orçamentos/notas: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -8945,7 +9057,7 @@ function fecharTelasPorCima() {
   const havia = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-agenda");
   if (adm) adm.mudou = false;
   fecharAssinar(false); fecharNovoAvcb(false); fecharAdmin(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
-  fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharOS(false); fecharAvcb(false);
+  fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharNf(false); fecharOS(false); fecharAvcb(false);
   if (havia) { document.body.style.overflow = ""; history.replaceState(null, ""); }
   return true;
 }
@@ -9465,6 +9577,829 @@ async function exportarOrc() {
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
 
+/* ---------- notas fiscais emitidas para os clientes (pedido do Gustavo em 06/11/2026) ----------
+   Tabela como a dos orçamentos: número, cliente, orçamento, valor e emissão, com busca, filtros (período e situação),
+   ordem pela coluna e total (sem as canceladas). Tocar abre a nota: dados, boletos, "Enviar ao cliente" (nota + boletos
+   com mensagem) e, para o administrador, "Corrigir". "+ Nova nota fiscal": escolher o PDF da nota (o app lê número,
+   data, tomador, valor e parcela), conferir, juntar o boleto e salvar na pasta.
+   Sem banco de dados: o app lê a pasta "06 - Comercial › 04 - Notas Fiscais e Boletos" do OneDrive do Gustavo:
+   "Notas Fiscais GOV" (notas nacionais NFS-e: "NF 005 - C1034.pdf", C = número do orçamento), "Notas Fiscais" (notas
+   antigas da Nota Salvador: "VPX ENGENHARIA - NF245.pdf", "NF 0100 - VP ENGENHARIA - CANCELADA.pdf") e "Boletos" (com
+   subpastas por cliente e orçamento: "VPX ENGENHARIA - BOLETO REF NF005 - PARCELA 03 DE 12.pdf"; "NFxxx" = boleto de
+   parcela ainda sem nota). O número vem do nome do arquivo; data, tomador, CNPJ, valor e parcela, de dentro do PDF: a
+   nota nacional tem texto; a antiga é uma imagem e passa pela leitura de imagem (Tesseract, a mesma do AVCB) depois de
+   apagar a marca d'água pontilhada do "ISS deve ser retido". Cada PDF é lido uma vez: o resultado fica no aparelho
+   (vpx_nf_pdf) e em "VPX Visitas - Configuração/notas-fiscais.json" (o administrador grava, junto com as correções
+   feitas à mão; os outros aparelhos não precisam ler de novo). Função "nf" (fora do perfil padrão). */
+let nf = lerLS("vpx_nf", null), nfPdf = lerLS("vpx_nf_pdf", {}), nfCorr = lerLS("vpx_nf_corr", {});
+let nfVisiveis = [], nfLeitura = null, nfOrdem = { col: "data", desc: true };
+let nfTela = null;                                 // {} = lista; { det: id } = uma nota; { nova: {...} } = cadastrar nota nova
+const pad3 = n => String(n).padStart(3, "0");
+
+// "VPX ENGENHARIA - NF245.pdf", "NF 0100 - VP ENGENHARIA - CANCELADA.pdf", "VPX ENGENHARIA - NF159 - ISS RETIDO.pdf",
+// "VPX ENGENHARIA - NF162 - TRIBECA.pdf" (cliente no nome) e "NF 005 - C1034.pdf" (C = número do orçamento)
+function lerNomeNf(nome) {
+  if (extDe(nome) !== "pdf") return null;
+  const b = nome.replace(/\.[^.]+$/, "").replace(/_/g, " ").replace(/\s+/g, " ").trim();
+  if (/BOLETO/i.test(b)) return null;
+  const m = b.match(/(?:^|[^A-Za-z])NF ?-? ?(\d{1,5})(?!\d)/i);
+  if (!m) return null;
+  const resto = b.slice(m.index + m[0].length);
+  const orcN = resto.match(/(?:^|[ -])C ?(\d{3,5})(?=$|[ -])/i), parc = resto.match(/PARCELA ?(\d{1,2}) ?(?:DE|\/) ?(\d{1,2})/i);
+  const dica = resto.replace(/CANCELAD[AO]S?|ISS ?RETIDO|(?:^|[ -])C ?\d{3,5}(?=$|[ -])|PARCELA ?\d{1,2} ?(?:DE|\/) ?\d{1,2}|\bVPX? ?E[A-Z]*\b/gi, " ")
+    .replace(/\s*-\s*/g, " ").replace(/\s+/g, " ").trim();
+  return { numNome: +m[1], canc: /CANCELAD/i.test(resto), iss: /ISS ?RETID/i.test(resto), orcNome: orcN ? +orcN[1] : null,
+    parcNome: parc ? `${+parc[1]} de ${+parc[2]}` : "", dica };
+}
+// "VPX ENGENHARIA - BOLETO REF NF005 - PARCELA 03 DE 12.pdf", "…BOLETO REF. NF 0193.pdf", "…REF N243.pdf"; "NFxxx" = sem nota
+function lerNomeBoleto(nome) {
+  const b = nome.replace(/\.[^.]+$/, "").replace(/_/g, " ").replace(/\s+/g, " ");
+  const n = b.match(/\bREF\.? ?N ?F? ?-? ?(\d{1,5})(?!\d)/i) || b.match(/(?:^|[^A-Za-z])NF ?-? ?(\d{1,5})(?!\d)/i);
+  const p = b.match(/PARCELA ?(\d{1,2}) ?(?:DE|\/) ?(\d{1,2})/i);
+  return { nfNum: n ? +n[1] : null, parc: p ? +p[1] : null, de: p ? +p[2] : null };
+}
+// cliente do boleto: a subpasta em "Boletos" (ex.: "Nova pasta/CONDOMINIO NAU/1034") ou o nome do arquivo
+const dicaBoleto = b => b.caminho.filter(s => !/^nova pasta$/i.test(s) && !/^\d+$/.test(s)).at(-1)
+  || b.nome.replace(/\.[^.]+$/, "").replace(/_/g, " ").replace(/VPX ENGENHARIA|BOLETO|REF\.? ?N ?F? ?(?:\d+|x+)|PARCELA ?\d+ ?(?:DE|\/) ?\d+/gi, " ").replace(/[\s-]+/g, " ").trim();
+const normParcela = s => { const m = String(s || "").match(/(\d{1,2})\s*(?:de|\/|-)\s*(\d{1,2})/i); return m && +m[1] >= 1 && +m[1] <= +m[2] ? `${+m[1]} de ${+m[2]}` : ""; };
+const orcDaDescricao = d => +((d || "").match(/(?:OR[ÇC]AMENTO|PROPOSTA)\s*(?:N[º°O.]*\s*)?(\d{3,5})\b/i)?.[1] || 0) || null;
+
+// qual pasta de cliente combina com o nome escrito na nota ("SUBCONDOMINIO BEACH CLASS SALVADOR" → "Beach Class Salvador").
+// Conta as palavras do nome da pasta que aparecem no nome da nota (aceita uma letra de diferença: "Jadim"/"JARDIM").
+// Precisa de metade das palavras e de uma palavra que não seja comum (condomínio, residencial, Salvador…).
+const PAL_FORA = new Set("de da do das dos di e em the ltda me epp sa spe eireli sr sra dr dra cia".split(" "));
+const PAL_COMUNS = new Set("condominio subcondominio residencial edificio edf cond empresarial comercial centro center medical medico medica clube colegio instituto farmacia mansao vila villa solar reserva sul norte litoral estrada life salvador bahia brasil tropical jardim jardins parque conquista costa moradas morada mirante porto garden ville barra rio sol lagoa".split(" "));
+const palavrasNome = s => semAcento(s || "").replace(/[^a-z0-9]+/g, " ").split(" ").filter(t => t.length > 1 && !PAL_FORA.has(t));
+function parecido(a, b) {
+  if (a === b) return true;
+  if (Math.min(a.length, b.length) < 5 || Math.abs(a.length - b.length) > 1) return false;
+  if (a.length < b.length) [a, b] = [b, a];
+  let i = 0; while (i < b.length && a[i] === b[i]) i++;
+  return a.length === b.length ? a.slice(i + 1) === b.slice(i + 1) : a.slice(i + 1) === b.slice(i);
+}
+const memoCliNf = new Map();
+function clienteDeNome(nome) {
+  if (!nome || !clientes.length) return null;
+  const k = clientes.length + "|" + nome;
+  if (memoCliNf.has(k)) return memoCliNf.get(k);
+  const t = palavrasNome(nome);
+  let melhor = null;
+  for (const c of t.length ? clientes : []) {
+    const ct = palavrasNome(c);
+    if (!ct.length) continue;
+    const achou = ct.filter(x => t.some(y => parecido(x, y))), nota = achou.length / ct.length;
+    if (nota < 0.5 || !(achou.some(x => !PAL_COMUNS.has(x)) || (nota === 1 && achou.length > 1))) continue;
+    const r = [nota, achou.length, c.length], m = melhor?.r;   // desempate: mais palavras iguais, depois o nome mais longo
+    if (!m || (r[0] !== m[0] ? r[0] > m[0] : r[1] !== m[1] ? r[1] > m[1] : r[2] > m[2])) melhor = { c, r };
+  }
+  memoCliNf.set(k, melhor?.c || null);
+  return melhor?.c || null;
+}
+
+// nota nacional (DANFSe): o texto do PDF tem todos os campos com rótulo
+function lerNfNacional(texto) {
+  const t = texto.replace(/\s+/g, " ");
+  const num = +(t.match(/N[ÚU]MERO DA NFS-e\s*(\d+)/i)?.[1] || t.match(/N[°º]\s*NFS-e\s*\/\s*CHAVE NFS-e\s*(\d+)/i)?.[1] || 0) || null;
+  const em = t.match(/DATA E HORA DA EMISS[ÃA]O DA NFS-e\s*(\d{2})\/(\d{2})\/(\d{4})/i);
+  const sit = t.match(/SITUA[ÇC][ÃA]O DA NFS-e\s*(.+?)\s*FINALIDADE/i)?.[1] || "";
+  const tom = t.split(/TOMADOR\s*\/\s*ADQUIRENTE/i)[1] || "";
+  const desc = t.match(/Descri[çc][ãa]o do Servi[çc]o\s*(.+?)\s*TRIBUTA[ÇC][ÃA]O MUNICIPAL/i)?.[1] || "";
+  const parc = desc.match(/Parcela\s*(\d+)\s*(?:de|\/)\s*(\d+)/i);
+  const v = t.match(/VALOR DA OPERA[ÇC][ÃA]O\s*\/\s*SERVI[ÇC]O\s*R\$\s*([\d.,]+)/i)?.[1], l = t.match(/VALOR L[ÍI]QUIDO DA NFS-e\s*R\$\s*([\d.,]+)/i)?.[1];
+  return { num, data: em ? `${em[3]}-${em[2]}-${em[1]}` : "", tomador: (tom.match(/Nome\s*\/\s*Nome Empresarial\s*(.+?)\s*Munic[íi]pio/i)?.[1] || "").trim(),
+    cnpj: tom.match(/CNPJ\s*\/\s*CPF\s*\/\s*NIF\s*([\d./-]{11,20})/i)?.[1] || "", desc: desc.trim().slice(0, 600), parcela: parc ? `${+parc[1]} de ${+parc[2]}` : "",
+    valor: v ? valorTexto(v) : null, liquido: l ? valorTexto(l) : null, iss: /Reten[çc][ãa]o do ISSQN\s*Retido/i.test(t), canc: /cancelad/i.test(sit) };
+}
+// tira a marca d'água pontilhada ("ISS DEVE SER RETIDO…"): suaviza 3×3 e fica só o que é bem escuro
+// (110: com 150 ou 175 um valor foi lido errado nos testes com as notas reais)
+function limparMarcaDagua(c) {
+  const ctx = c.getContext("2d"), { width: w, height: h } = c;
+  const im = ctx.getImageData(0, 0, w, h), d = im.data, cinza = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) cinza[i] = 0.3 * d[i * 4] + 0.59 * d[i * 4 + 1] + 0.11 * d[i * 4 + 2];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let v = 255;
+    if (y > 0 && y < h - 1 && x > 0 && x < w - 1) {
+      let s = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) s += cinza[(y + dy) * w + x + dx];
+      v = s / 9 < 110 ? 0 : 255;
+    }
+    const k = (y * w + x) * 4; d[k] = d[k + 1] = d[k + 2] = v;
+  }
+  ctx.putImageData(im, 0, 0);
+  return c;
+}
+// nota antiga: só a parte de cima da 1ª página (prestador, tomador e valores), com 1600 px de largura
+async function imagemNfAntiga(pdf) {
+  const pg = await pdf.getPage(1);
+  const vp = pg.getViewport({ scale: 1600 / pg.getViewport({ scale: 1 }).width });
+  const c = document.createElement("canvas");
+  c.width = Math.round(vp.width); c.height = Math.round(vp.height * 0.66);
+  await pg.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
+  return limparMarcaDagua(c);
+}
+// nota antiga (Nota Salvador) pelo texto lido da imagem limpa: os rótulos cinza somem, então os dados vão pela posição.
+// O 1º CNPJ é o da VPX (prestador); o 2º é o do tomador, com o nome numa das linhas de cima.
+function lerNfSalvador(texto) {
+  const linhas = texto.split("\n").map(l => l.trim()).filter(Boolean);
+  const em = texto.match(/(\d{2})\/(\d{2})\/(\d{4})\s+\d{2}:\d{2}/);
+  const doc = /\d{2}[ .,]?\d{3}[ .,]?\d{3}\s?\/\s?\d{4}\s?-\s?\d{2}|\d{3}[ .,]\d{3}[ .,]\d{3}\s?-\s?\d{2}/;
+  const comDoc = linhas.map((l, i) => doc.test(l) ? i : -1).filter(i => i >= 0);
+  const iTom = comDoc[1] ?? -1;
+  let tomador = "";
+  for (let i = iTom - 1; i >= 0 && i >= iTom - 3; i--) {
+    const l = linhas[i].replace(/\s+[^\sA-Za-zÀ-ú0-9].*$/, "").trim();
+    if ((l.match(/[A-ZÀ-Ú]/g) || []).length >= 5 && !/VPX|ENGENHARIA LTDA|@|com br/i.test(l)) { tomador = l; break; }
+  }
+  const cnpj = iTom >= 0 ? digitos(linhas[iTom].match(doc)[0]) : "";
+  const vt = texto.match(/VALOR TOTAL DA NOTA\s*[=:]?\s*R\$\s*([\d.,]+)/i)?.[1];
+  const vs = [...texto.matchAll(/(?<![\d.,])(\d{1,3}(?:\.\d{3})*,\d{2})(?!\d)/g)].map(m => valorTexto(m[1])).filter(v => v != null);
+  return { data: em ? `${em[3]}-${em[2]}-${em[1]}` : "", tomador, cnpj: formatarDoc(cnpj), valor: (vt && valorTexto(vt)) || (vs.length ? Math.max(...vs) : null) };
+}
+// lê um PDF de nota: nacional pelo texto; antiga pela imagem (comImagem: devolve também a 1ª página, para conferir)
+async function lerPdfNf(buf, comImagem) {
+  await carregarPdfjs();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  try {
+    let texto = "";
+    for (let p = 1; p <= Math.min(2, pdf.numPages); p++) texto += (await (await pdf.getPage(p)).getTextContent()).items.map(i => i.str).join(" ") + "\n";
+    const img = comImagem ? (await paginaPdfImagem(pdf)).toDataURL("image/jpeg", 0.85) : null;
+    if (/N[ÚU]MERO DA NFS-?e|CHAVE DE ACESSO DA NFS-?e|DANFS/i.test(texto)) return { dados: { ...lerNfNacional(texto), nac: true }, img };
+    if (texto.replace(/\s/g, "").length > 300) { const d = lerNfSalvador(texto); if (d.valor != null && d.data) return { dados: { ...d, nac: false }, img }; }
+    const ocr = await obterOcr().catch(e => { e.infra = true; throw e; });   // sem a leitura de imagem: não marca a nota como lida
+    const { data } = await ocr.recognize(await imagemNfAntiga(pdf));
+    return { dados: { ...lerNfSalvador(data.text), nac: false, ocr: true }, img };
+  } finally { pdf.destroy(); }
+}
+const pdfNf = n => { const p = nfPdf[n.id]; return p && p.m === n.mod ? p : null; };
+
+// junta tudo de cada nota: o que foi lido, as correções, o cliente (pasta), os boletos com o número dela
+function prepararNf() {
+  const info = new Map(), porNum = new Map(), porCnpj = new Map();
+  for (const n of nf?.itens || []) {
+    const p = pdfNf(n), c = nfCorr[n.id] || {};
+    const x = { n, p, num: c.num ?? (n.nac ? p?.num : null) ?? n.numNome, nac: p?.nac ?? n.nac, data: c.data || p?.data || "",
+      valor: c.valor ?? p?.valor ?? null, liquido: p?.liquido ?? null, tomador: p?.tomador || "", cnpj: digitos(p?.cnpj),
+      parcela: c.parcela ?? (p?.parcela || n.parcNome || ""), orc: c.orc ?? n.orcNome ?? orcDaDescricao(p?.desc),
+      canc: c.canc ?? (n.canc || !!p?.canc), iss: c.iss ?? (n.iss || !!p?.iss), cli: c.cli || null, fonte: c.cli ? "corr" : "", boletos: [] };
+    info.set(n.id, x);
+    if (!porNum.has(x.num)) porNum.set(x.num, []);
+    porNum.get(x.num).push(x);
+  }
+  // cliente: orçamento do nome do arquivo (C1034) › cliente no nome do arquivo › nome do tomador na nota
+  const orcCli = num => num ? (orc?.itens || []).find(o => (pdfOrc(o)?.num || o.num) === num)?.cli || null : null;
+  for (const x of info.values()) {
+    if (x.cli) continue;
+    const c = orcCli(x.orc) || clienteDeNome(x.n.dica) || clienteDeNome(x.tomador);
+    if (c) { x.cli = c; x.fonte = "auto"; }
+  }
+  // boletos com o número da nota (dois com o mesmo número, antiga e nacional: a do mesmo cliente, senão a mais nova)
+  const semNota = [];
+  for (const b of nf?.boletos || []) {
+    b.dicaCli = clienteDeNome(dicaBoleto(b));
+    const cands = b.nfNum == null ? [] : porNum.get(b.nfNum) || [];
+    const alvo = cands.length > 1 ? cands.find(x => b.dicaCli && x.cli === b.dicaCli) || cands.slice().sort((a, c) => (c.data || "").localeCompare(a.data || ""))[0] : cands[0];
+    if (alvo) alvo.boletos.push(b); else if (b.nfNum == null) semNota.push(b);
+  }
+  for (const x of info.values()) if (!x.cli) { const d = x.boletos.map(b => b.dicaCli).find(Boolean); if (d) { x.cli = d; x.fonte = "boleto"; } }
+  // CNPJ: o da lista de AVCB e o das notas já ligadas a um cliente valem para as outras notas do mesmo CNPJ
+  for (const v of listaAvcb()) { const d = digitos(v.cnpj), c = d && clienteDeNome(v.pasta || v.cliente); if (c) porCnpj.set(d, c); }
+  for (const x of info.values()) if (x.cli && x.cnpj) porCnpj.set(x.cnpj, x.cli);
+  for (const x of info.values()) {
+    if (!x.cli && x.cnpj && porCnpj.has(x.cnpj)) { x.cli = porCnpj.get(x.cnpj); x.fonte = "cnpj"; }
+    x.cliTxt = x.cli || tit(x.tomador) || tit(x.n.dica) || "Cliente não identificado";
+  }
+  return { info, semNota, porCnpj };
+}
+
+// o que já foi lido fica para os outros aparelhos em "VPX Visitas - Configuração/notas-fiscais.json", com as correções
+async function lerIndiceNf() {
+  try {
+    const pasta = await pastaConfig(false);
+    const item = await graph(`/drives/${CONFIG.driveId}/items/${pasta}:/notas-fiscais.json`);
+    if (item.eTag === lerIndiceNf.etag) return;
+    const d = await (await fetch(item["@microsoft.graph.downloadUrl"])).json();
+    lerIndiceNf.etag = item.eTag;
+    for (const [id, p] of Object.entries(d.itens || {})) if (!nfPdf[id] || (p.m || "") > (nfPdf[id].m || "")) nfPdf[id] = p;
+    for (const [id, c] of Object.entries(d.corr || {})) if (!nfCorr[id] || (c.em || "") > (nfCorr[id].em || "")) nfCorr[id] = c;
+    gravarLS("vpx_nf_pdf", nfPdf); gravarLS("vpx_nf_corr", nfCorr);
+  } catch (e) { if (e.status !== 404) console.error("índice de notas fiscais:", e); }
+}
+function gravarIndiceNf() {
+  if (!ehAdmin() || !navigator.onLine) return Promise.resolve();
+  return gravarIndiceNf.p = (gravarIndiceNf.p || Promise.resolve()).then(async () => {   // uma gravação por vez
+    try {
+      await lerIndiceNf();                         // junta com o que outro aparelho já gravou
+      const ids = new Set((nf?.itens || []).map(n => n.id)), so = o => Object.fromEntries(Object.entries(o).filter(([id]) => ids.has(id)));
+      const pasta = await pastaConfig(false);
+      const r = await graph(`/drives/${CONFIG.driveId}/items/${pasta}:/notas-fiscais.json:/content`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ versao: 1, atualizado: new Date().toISOString(), por: conta?.name || emailDe(), itens: so(nfPdf), corr: so(nfCorr) }) });
+      lerIndiceNf.etag = r?.eTag;
+    } catch (e) { console.error("índice de notas fiscais:", e); }
+  });
+}
+
+// acha a pasta "04 - Notas Fiscais e Boletos": pelo caminho no OneDrive do Gustavo ou pela lista "Compartilhados comigo"
+async function baseNotas() {
+  if (baseNotas.id) return baseNotas.id;
+  let id = null;
+  try { id = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(CONFIG.notasCaminho)}`)).id; }
+  catch (e) { if (e.status !== 403 && e.status !== 404) throw e; }
+  if (!id) {
+    try { id = (await graph("/me/drive/sharedWithMe")).value.find(i => i.name === CONFIG.notasNome && i.remoteItem?.parentReference?.driveId === CONFIG.driveId)?.remoteItem?.id || null; }
+    catch {}
+  }
+  if (!id) { const e = new Error("sem acesso"); e.semAcesso = true; throw e; }
+  return baseNotas.id = id;
+}
+async function filhosNf(id) {
+  const out = [];
+  let url = `/drives/${CONFIG.driveId}/items/${id}/children?$select=id,name,file,folder,size,lastModifiedDateTime,webUrl,parentReference&$top=999`;
+  while (url) { const r = await graph(url); out.push(...r.value); url = r["@odata.nextLink"] || null; }
+  return out;
+}
+// arquivos e pastas de uma pasta, até 3 níveis abaixo (menos "Arquivo Morto"), cada um com o caminho a partir dela
+async function arvoreNf(id) {
+  const arqs = [], pastas = [{ id, caminho: [] }];
+  let nivel = [{ id, caminho: [] }];
+  for (let n = 0; nivel.length && n < 4; n++) {
+    const prox = [];
+    await Promise.all(nivel.map(async p => {
+      for (const i of await filhosNf(p.id)) {
+        if (i.folder) { if (n < 3 && !/arquivo morto/i.test(i.name)) { const q = { id: i.id, caminho: [...p.caminho, i.name] }; prox.push(q); pastas.push(q); } }
+        else if (i.file) arqs.push({ i, caminho: p.caminho });
+      }
+    }));
+    nivel = prox;
+  }
+  return { arqs, pastas };
+}
+async function buscarNotas() {
+  const base = await baseNotas(), raiz = await filhosNf(base), P = CONFIG.notasPastas;
+  const sub = nome => raiz.find(i => i.folder && semAcento(i.name) === semAcento(nome));
+  const itens = [];
+  for (const nac of [true, false]) {
+    const p = sub(nac ? P.nac : P.mun);
+    if (!p) continue;
+    for (const { i } of (await arvoreNf(p.id)).arqs) {
+      const x = lerNomeNf(i.name);
+      if (x) itens.push({ ...x, id: i.id, nome: i.name, nac, mod: i.lastModifiedDateTime, web: i.webUrl, size: i.size, pasta: i.parentReference?.id });
+    }
+  }
+  const pb = sub(P.boletos);
+  let boletos = [], pastasBol = [];
+  if (pb) {
+    const a = await arvoreNf(pb.id);
+    boletos = a.arqs.filter(({ i }) => extDe(i.name) === "pdf").map(({ i, caminho }) => ({ ...lerNomeBoleto(i.name), id: i.id, nome: i.name, mod: i.lastModifiedDateTime, web: i.webUrl, size: i.size, caminho, pasta: i.parentReference?.id }));
+    pastasBol = a.pastas;
+  }
+  return { quando: Date.now(), itens, boletos, pastasBol, pastas: { base, nac: sub(P.nac)?.id || null, mun: sub(P.mun)?.id || null, boletos: pb?.id || null } };
+}
+
+// lê os PDFs ainda não lidos. No computador, todos sozinhos (as antigas levam alguns segundos cada; a leitura continua
+// mesmo com a tela fechada). No celular, sozinhas só as nacionais (se forem poucas); o resto pelo botão.
+async function lerPdfsNf(manual) {
+  if (nfLeitura || !nf || !conta || !navigator.onLine) return;
+  const faltam = nf.itens.filter(n => !pdfNf(n) && !(n.size > 15e6)).sort((a, b) => (b.nac - a.nac) || (b.numNome - a.numNome));   // nacionais (rápidas) primeiro; antigas da mais nova para a mais velha
+  let lista = faltam;
+  if (!manual && !computador.matches) { lista = faltam.filter(n => n.nac); if (lista.length > 20) lista = []; }
+  if (!lista.length) { desenharNf(); return; }
+  const este = nfLeitura = { total: lista.length, feitos: 0, parar: false, antigas: lista.some(n => !n.nac) };
+  desenharNf();
+  let lidos = 0, gravados = 0, ultimo = Date.now();
+  try {
+    await emParalelo(lista, 2, async n => {
+      if (este.parar) return;
+      let buf;
+      try { buf = await (await fetch((await graph(`/drives/${CONFIG.driveId}/items/${n.id}`))["@microsoft.graph.downloadUrl"])).arrayBuffer(); }
+      catch (e) { console.error("nota fiscal", n.nome, e); este.feitos++; return; }   // não baixou: tenta de novo da próxima vez
+      try { nfPdf[n.id] = { m: n.mod, ...(await lerPdfNf(buf)).dados }; lidos++; }
+      catch (e) {
+        console.error("nota fiscal", n.nome, e);
+        if (e.infra) { if (!este.parar) aviso("Não foi possível carregar a leitura de imagem agora. As notas antigas ficam para depois.", true); este.parar = true; }
+        else nfPdf[n.id] = { m: n.mod, erro: true };   // PDF com senha ou estragado
+      }
+      este.feitos++;
+      if (Date.now() - ultimo > 1500) { ultimo = Date.now(); gravarLS("vpx_nf_pdf", nfPdf); desenharNf(); }
+      if (lidos - gravados >= 25) { gravados = lidos; gravarIndiceNf(); }   // leitura longa: o que já foi lido já fica para os outros aparelhos
+    });
+  } catch (e) { console.error(e); }
+  nfLeitura = null;
+  gravarLS("vpx_nf_pdf", nfPdf);
+  desenharNf();
+  if (lidos > gravados) gravarIndiceNf();
+}
+
+function abrirNotas(busca = "") {
+  if (!pode("nf")) return;
+  nfTela = {};
+  $("nf-busca").value = busca;
+  $("nf-periodo").value = ""; $("nf-sit").value = "";
+  $("tela-nf").hidden = false;
+  $("tela-nf").querySelector(".avcb-corpo").scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  history.pushState({ nf: true }, "");             // o "voltar" do celular fecha a tela
+  desenharNf(true);
+  if (!nf || Date.now() - nf.quando > 10 * 60000) atualizarNf();
+  else if (navigator.onLine && conta) lerIndiceNf().then(() => { desenharNf(); lerPdfsNf(); });
+}
+function fecharNf(voltar = true) {
+  if ($("tela-nf").hidden) return;
+  $("tela-nf").hidden = true;
+  if (nfLeitura && !computador.matches) nfLeitura.parar = true;   // no celular a leitura para (continua da próxima vez)
+  nfTela = null;
+  document.body.style.overflow = "";
+  if (voltar) { if (history.state?.nfSub) history.go(-2); else if (history.state?.nf) history.back(); }
+}
+async function atualizarNf() {
+  if (atualizarNf.rodando || !conta || !navigator.onLine) { desenharNf(); return; }
+  atualizarNf.rodando = true;
+  desenharNf();
+  try {
+    if (!clientes.length) await carregarClientes();
+    const [r] = await Promise.all([buscarNotas(), lerIndiceNf()]);
+    nf = r;
+    const ids = new Set(nf.itens.map(n => n.id));
+    for (const id of Object.keys(nfPdf)) if (!ids.has(id)) delete nfPdf[id];   // arquivos que saíram das pastas
+    gravarLS("vpx_nf", nf); gravarLS("vpx_nf_pdf", nfPdf);
+    atualizarNf.erro = "";
+  } catch (e) {
+    console.error(e);
+    atualizarNf.erro = e.semAcesso ? `Sem acesso à pasta "${CONFIG.notasNome}" no OneDrive: ela precisa estar compartilhada com você.` : "Não foi possível atualizar a lista agora.";
+    aviso(atualizarNf.erro, true);
+  } finally { atualizarNf.rodando = false; }
+  desenharNf();
+  lerPdfsNf();
+}
+
+// filtro de período com o que existe na lista (ano ou mês da emissão)
+function filtrosNf(todos) {
+  const meses = [...new Set(todos.map(x => (x.data || "").slice(0, 7)).filter(Boolean))].sort().reverse();
+  if (meses.join() === filtrosNf.chave) return;
+  filtrosNf.chave = meses.join();
+  const sel = $("nf-periodo"), v = sel.value;
+  sel.innerHTML = "";
+  sel.appendChild(new Option("Todos os períodos", ""));
+  const nomeMes = m => { const n = MESES[+m.slice(5) - 1]; return `${n[0].toUpperCase() + n.slice(1)} de ${m.slice(0, 4)}`; };
+  for (const [rot, itens] of [["Ano", [...new Set(meses.map(m => m.slice(0, 4)))].map(a => [a, "Ano de " + a])], ["Mês", meses.map(m => [m, nomeMes(m)])]]) {
+    if (!itens.length) continue;
+    const g = document.createElement("optgroup"); g.label = rot;
+    itens.forEach(([val, txt]) => g.appendChild(new Option(txt, val)));
+    sel.appendChild(g);
+  }
+  sel.value = [...sel.options].some(o => o.value === v) ? v : "";
+}
+const COLS_NF = { num: x => x.num, cli: x => x.cliTxt, orc: x => x.orc || null, valor: x => x.valor, data: x => x.data || null };
+function compNf(a, b) {
+  const f = COLS_NF[nfOrdem.col], x = f(a), y = f(b);
+  if ((x == null) !== (y == null)) return x == null ? 1 : -1;
+  let r = x == null ? 0 : typeof x === "number" ? x - y : String(x).localeCompare(String(y), "pt-BR");
+  if (nfOrdem.desc) r = -r;
+  return r || (b.data || "").localeCompare(a.data || "") || b.num - a.num;
+}
+// forcar: desenha mesmo com um formulário aberto (as atualizações por trás não apagam o que está sendo digitado)
+function desenharNf(forcar) {
+  if ($("tela-nf").hidden || !nfTela) return;
+  const sub = !!(nfTela.det || nfTela.nova);
+  $("nf-lista-tela").hidden = sub; $("nf-sub").hidden = !sub;
+  if (nfTela.nova) { if (forcar) { $("nf-titulo").textContent = "Nova nota fiscal"; desenharNovaNf(); } return; }
+  const prep = prepararNf();
+  if (nfTela.det) {
+    if (forcar || !nfTela.corrigir) { const x = prep.info.get(nfTela.det); $("nf-titulo").textContent = x ? "Nota fiscal " + x.num : "Nota fiscal"; desenharDetNf(x); }
+    return;
+  }
+  $("nf-titulo").textContent = "Notas fiscais";
+  const todos = [...prep.info.values()];
+  filtrosNf(todos);
+  const q = semAcento($("nf-busca").value.trim()), per = $("nf-periodo").value, st = $("nf-sit").value;
+  nfVisiveis = todos.filter(x => {
+    if (per && !(x.data || "").startsWith(per)) return false;   // "2026" (ano) ou "2026-11" (mês)
+    if ((st === "validas" && x.canc) || (st === "canc" && !x.canc) || (st === "iss" && !x.iss) || (st === "bol" && !x.boletos.length) || (st === "nac" && !x.nac) || (st === "mun" && x.nac)) return false;
+    return !q || semAcento([x.num, pad3(x.num), x.cliTxt, x.tomador, x.cnpj, x.cnpj && formatarDoc(x.cnpj), x.orc, x.n.nome, x.data && dataBRde(x.data), x.valor != null && moedaBR(x.valor), x.parcela && "parcela " + x.parcela].filter(Boolean).join(" ")).includes(q);
+  }).sort(compNf);
+  // resumo: quantas e o total do que está na tela (as canceladas não somam)
+  const n = nfVisiveis.length, validas = nfVisiveis.filter(x => !x.canc), comValor = validas.filter(x => x.valor != null);
+  const sem = validas.length - comValor.length, canc = n - validas.length, res = $("nf-resumo");
+  res.innerHTML = "";
+  if (nf) res.append(`${n} nota${n === 1 ? "" : "s"}${n !== todos.length ? ` de ${todos.length}` : ""}`);
+  if (comValor.length) {
+    res.append(" · Total ", el("b", "", "R$ " + moedaBR(comValor.reduce((s, x) => s + x.valor, 0))));
+    const obs = [sem && `${sem} sem valor`, canc && `${canc} cancelada${canc > 1 ? "s" : ""} fora do total`].filter(Boolean);
+    if (obs.length) res.append(` (${obs.join("; ")})`);
+  }
+  const L = nfLeitura;
+  $("nf-estado").textContent = atualizarNf.rodando ? "Atualizando a lista…"
+    : !nf ? atualizarNf.erro || (navigator.onLine ? "Carregando…" : "Sem internet: a lista aparece quando houver conexão.")
+    : [L && `Lendo as notas… ${L.feitos} de ${L.total}${L.antigas ? " (as antigas são imagens: alguns segundos cada)" : ""}`,
+      "Lista de " + new Date(nf.quando).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }),
+      atualizarNf.erro, !navigator.onLine && "sem internet"].filter(Boolean).join(" · ");
+  const faltam = nf && !L && !atualizarNf.rodando ? nf.itens.filter(x => !pdfNf(x) && !(x.size > 15e6)) : [], antigas = faltam.filter(x => !x.nac).length;
+  $("nf-ler").hidden = !faltam.length || !navigator.onLine;
+  $("nf-ler").textContent = `Ler os dados de ${faltam.length} nota${faltam.length === 1 ? "" : "s"}` + (antigas ? " (as antigas levam alguns segundos cada; melhor no Wi-Fi)" : "");
+  $("tela-nf").querySelectorAll("thead button").forEach(b => {
+    const ativa = b.dataset.col === nfOrdem.col;
+    b.dataset.seta = ativa ? (nfOrdem.desc ? " ↓" : " ↑") : "";
+    b.closest("th").setAttribute("aria-sort", ativa ? (nfOrdem.desc ? "descending" : "ascending") : "none");
+  });
+  $("nf-corpo").replaceChildren(...nfVisiveis.map(linhaNf));
+  $("nf-vazio").hidden = !nf || !!n;
+  $("nf-vazio").textContent = todos.length ? "Nenhuma nota com esses filtros." : "Nenhuma nota fiscal na pasta.";
+  $("nf-exportar").hidden = !n;
+  $("nf-nota").textContent = `A lista mostra as notas das pastas "${CONFIG.notasPastas.nac}" e "${CONFIG.notasPastas.mun}" (${CONFIG.notasNome}) e liga cada uma aos boletos com o número dela (pasta "${CONFIG.notasPastas.boletos}"). Data, valor e cliente são lidos de dentro de cada PDF; o cliente é a pasta com o nome mais parecido com o da nota.`;
+}
+function linhaNf(x) {
+  const tr = el("tr", x.canc ? "nf-canc" : ""); tr.tabIndex = 0;
+  const num = el("td", "orc-c-num", String(x.num));
+  if (x.nac) num.appendChild(el("small", "nf-serie", "nacional"));
+  const cli = el("td", "orc-c-cli");
+  cli.appendChild(el("span", "orc-cli", x.cliTxt));
+  const extra = [x.parcela && "Parcela " + x.parcela, x.boletos.length && (x.boletos.length > 1 ? x.boletos.length + " boletos" : "Boleto"), x.iss && "ISS retido", x.canc && "Cancelada"].filter(Boolean).join(" · ");
+  if (extra) cli.appendChild(el("small", "orc-sub", extra));
+  if (x.orc) cli.appendChild(el("small", "orc-sub orc-so-cel", "Orçamento " + x.orc));   // no celular a coluna do orçamento não aparece
+  const d = x.data, data = el("td", "orc-c-data");
+  data.append(el("span", "orc-data-l", d ? dataBRde(d) : "—"), el("span", "orc-data-c", d ? dataBRde(d).replace(/\d{2}(\d{2})$/, "$1") : "—"));
+  const acao = el("td", "orc-c-acao");
+  if (!x.canc) {
+    const b = el("button", "orc-ac"); b.type = "button"; b.title = "Enviar a nota (e o boleto) ao cliente"; b.append(ic("compartilhar"), "Enviar");
+    b.onclick = e => { e.stopPropagation(); enviarNf(x.n.id); };
+    acao.appendChild(b);
+  }
+  tr.append(num, cli, el("td", "orc-c-tipo", x.orc ? String(x.orc) : "—"),
+    el("td", "orc-c-valor", x.valor != null ? moedaBR(x.valor) : nfLeitura && !pdfNf(x.n) ? "…" : "—"), data, acao);
+  tr.onclick = () => abrirDetNf(x.n.id);
+  tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrirDetNf(x.n.id); };
+  return tr;
+}
+
+// uma nota: dados, "Enviar ao cliente", "Ver nota fiscal", boletos e (administrador) "Corrigir"
+function abrirDetNf(id) {
+  nfTela = { det: id };
+  history.pushState({ nf: true, nfSub: true }, "");   // o "voltar" do celular volta para a lista
+  desenharNf(true);
+  $("tela-nf").querySelector(".avcb-corpo").scrollTop = 0;
+}
+function fecharSubNf() {
+  if (history.state?.nfSub) { history.back(); return; }   // o popstate volta para a lista
+  nfTela = {}; desenharNf(true);
+}
+function desenharDetNf(x) {
+  const w = $("nf-sub"); w.innerHTML = "";
+  const v = el("button", "hub-voltar", "‹ Lista"); v.type = "button"; v.onclick = fecharSubNf; w.appendChild(v);
+  if (!x) { w.appendChild(el("p", "avcb-nota", "Esta nota não está mais na lista (pode ter sido apagada ou movida).")); return; }
+  const card = el("div", "nf-card" + (x.canc ? " canc" : ""));
+  const l1 = el("span", "os-num", "NF " + x.num);
+  l1.appendChild(el("span", "os-st " + (x.nac ? "andamento" : "cancelada"), x.nac ? "Nacional (NFS-e)" : "Nota Salvador"));
+  if (x.canc) l1.appendChild(el("span", "os-st urgente", "Cancelada"));
+  if (x.iss) l1.appendChild(el("span", "os-st aberta", "ISS retido"));
+  card.append(l1, el("b", "", x.cliTxt), el("span", "nf-card-valor", x.valor != null ? "R$ " + moedaBR(x.valor) : "Valor ainda não lido"));
+  card.appendChild(el("small", "", [x.data ? "Emitida em " + dataBRde(x.data) : "Data ainda não lida", x.parcela && "Parcela " + x.parcela].filter(Boolean).join(" · ")));
+  w.appendChild(card);
+  if (nfTela.corrigir) { w.appendChild(formCorrNf(x)); return; }
+  const ac = el("div", "os-acoes");
+  if (!x.canc) {
+    const nb = x.boletos.length, e = comIc(el("button", "btn prim"), "compartilhar", nb ? `Enviar nota e boleto${nb > 1 ? "s" : ""} ao cliente` : "Enviar nota ao cliente");
+    e.type = "button"; e.onclick = () => enviarNf(x.n.id); ac.appendChild(e);
+  }
+  const ver = comIc(el("button", "btn sec"), "doc", "Ver nota fiscal"); ver.type = "button";
+  ver.onclick = () => verArqNf(x.n, x.cli || x.cliTxt, `NF ${x.num} · ${x.cliTxt}`, textoNf(x, 0));
+  ac.appendChild(ver);
+  w.appendChild(ac);
+  const det = el("div", "os-det"), dl = el("dl");
+  const par = (k, val) => { if (val) dl.append(el("dt", "", k), val instanceof Node ? val : el("dd", "", val)); };
+  par("Cliente", x.cli || "Não identificado (sem pasta com nome parecido)");
+  par("Nome na nota", [tit(x.tomador), x.cnpj && formatarDoc(x.cnpj)].filter(Boolean).join(" · "));
+  if (x.liquido != null && x.valor != null && Math.abs(x.liquido - x.valor) > 0.009) par("Valor líquido", "R$ " + moedaBR(x.liquido));
+  if (x.orc) {
+    const dd = el("dd", "", String(x.orc) + " ");
+    const o = (orc?.itens || []).filter(o => o.ext === "pdf" && (pdfOrc(o)?.num || o.num) === x.orc).sort((a, b) => dataOrc(b).localeCompare(dataOrc(a)))[0];
+    if (o && pode("orc")) { const b = el("button", "laudo-link", "abrir o orçamento"); b.type = "button"; b.onclick = () => abrirArqOrc(o); dd.appendChild(b); }
+    par("Orçamento", dd);
+  }
+  par("Descrição", x.p?.desc);
+  par("Arquivo", x.n.nome);
+  det.appendChild(dl); w.appendChild(det);
+  w.appendChild(el("h2", "secao", x.boletos.length > 1 ? `Boletos (${x.boletos.length})` : "Boleto"));
+  if (!x.boletos.length) w.appendChild(el("p", "avcb-nota", `Nenhum boleto com o número desta nota na pasta "${CONFIG.notasPastas.boletos}".`));
+  else {
+    const l = el("div", "hub-lista");
+    x.boletos.slice().sort((a, b) => (a.parc || 0) - (b.parc || 0)).forEach(b => l.appendChild(linha("doc", b.parc ? `Parcela ${b.parc} de ${b.de}` : "Boleto", b.nome,
+      () => verArqNf(b, x.cli || x.cliTxt, b.parc ? `Boleto ${b.parc}/${b.de} · NF ${x.num}` : `Boleto · NF ${x.num}`, textoBoleto(x, b)))));
+    w.appendChild(l);
+  }
+  const links = el("div", "nf-links");
+  if (x.n.web) {
+    const a = el("button", "laudo-link", "Abrir no OneDrive"); a.type = "button";
+    a.onclick = () => { if (navigator.onLine) window.open(x.n.web, "_blank", "noopener"); else aviso("O OneDrive abre com internet.", true); };
+    links.appendChild(a);
+  }
+  if (ehAdmin()) { const c = el("button", "laudo-link", "Corrigir os dados desta nota"); c.type = "button"; c.onclick = () => { nfTela.corrigir = true; desenharNf(true); }; links.appendChild(c); }
+  w.appendChild(links);
+}
+// correção à mão (administrador): vale para todos os aparelhos e continua valendo se a nota for lida de novo
+function formCorrNf(x) {
+  const f = el("div", "nf-form");
+  f.appendChild(el("p", "laudo-dica", "Corrija o que foi lido errado. Campo vazio = vale o que foi lido da nota."));
+  const campo = (rot, val, tipo = "text", attrs = {}) => {
+    const l = el("label", "campo"), i = el("input"); i.type = tipo; i.value = val ?? ""; i.autocomplete = "off";
+    Object.entries(attrs).forEach(([a, v]) => i.setAttribute(a, v));
+    l.append(el("span", "", rot), i); f.appendChild(l); return i;
+  };
+  const chk = (rot, v) => { const l = el("label", "nf-check"), c = el("input"); c.type = "checkbox"; c.checked = !!v; l.append(c, rot); f.appendChild(l); return c; };
+  preencherListasNf(x.cli);
+  const cli = campo("Cliente (nome da pasta)", x.cli || "", "text", { list: "nf-clientes", maxlength: "80", placeholder: x.cliTxt });
+  const num = campo("Número da nota", x.num, "text", { inputmode: "numeric", maxlength: "8" });
+  const data = campo("Emissão", x.data, "date");
+  const val = campo("Valor (R$)", x.valor != null ? moedaBR(x.valor) : "", "text", { inputmode: "decimal", maxlength: "16" });
+  const orcI = campo("Orçamento (número)", x.orc || "", "text", { inputmode: "numeric", maxlength: "6", list: "nf-orcs" });
+  const parc = campo("Parcela (ex.: 3 de 12)", x.parcela, "text", { maxlength: "10" });
+  const iss = chk("ISS retido", x.iss), canc = chk("Nota cancelada (fica fora do total)", x.canc);
+  const ac = el("div", "os-acoes");
+  const s = el("button", "btn prim", "Salvar correção"); s.type = "button";
+  s.onclick = () => {
+    const n = +digitos(num.value);
+    if (!n) { aviso("Informe o número da nota.", true); return; }
+    nfCorr[x.n.id] = { num: n, cli: cli.value.trim() || null, data: data.value || "", valor: lerValor(val.value), orc: +digitos(orcI.value) || null,
+      parcela: normParcela(parc.value), iss: iss.checked, canc: canc.checked, em: new Date().toISOString(), por: nomeColaborador() };
+    gravarLS("vpx_nf_corr", nfCorr);
+    gravarIndiceNf();
+    nfTela.corrigir = false; desenharNf(true);
+    aviso("Correção salva.");
+  };
+  const c = el("button", "btn sec", "Cancelar"); c.type = "button"; c.onclick = () => { nfTela.corrigir = false; desenharNf(true); };
+  ac.append(s, c); f.appendChild(ac);
+  return f;
+}
+// sugestões dos campos: as pastas de clientes e os orçamentos do cliente
+function preencherListasNf(cli) {
+  const dl = $("nf-clientes");
+  if (dl.dataset.n !== String(clientes.length)) { dl.replaceChildren(...clientes.map(c => new Option(c))); dl.dataset.n = clientes.length; }
+  const nums = [...new Set((orc?.itens || []).filter(o => o.cli === cli).map(o => pdfOrc(o)?.num || o.num).filter(Boolean))].sort((a, b) => b - a);
+  $("nf-orcs").replaceChildren(...nums.map(n => new Option(String(n))));
+}
+
+// o PDF (nota ou boleto): o guardado no aparelho ou baixado agora (e guardado, para abrir de novo sem internet)
+async function blobNf(it, cli) {
+  const i = { id: it.id, nome: it.nome, mod: it.mod };
+  const g = guardadoAtual(i) || !navigator.onLine ? await lerArqGuardado(it.id).catch(() => null) : null;
+  if (g) return g;
+  if (!navigator.onLine) { aviso("Sem internet: este arquivo ainda não foi aberto neste aparelho.", true); return null; }
+  aviso("Abrindo…");
+  try { return await baixarArq(i, cli); }
+  catch (e) {
+    console.error(e);
+    aviso(e.status === 404 ? 'Este arquivo foi apagado ou mudou de pasta. Toque em "Atualizar lista".' : "Não foi possível abrir o arquivo: " + e.message, true);
+    return null;
+  }
+}
+async function verArqNf(it, cli, titulo, texto) {
+  const blob = await blobNf(it, cli);
+  if (blob) abrirVisor(new File([blob], it.nome, { type: "application/pdf" }), titulo, texto);
+}
+// mensagem que vai junto para o cliente (nb = quantos boletos vão junto)
+function textoNf(x, nb = x.boletos.length) {
+  return `Olá! Segue a nota fiscal nº ${x.num} da VPX Engenharia${x.parcela ? `, referente à parcela ${x.parcela}` : ""}${nb ? (nb > 1 ? `, com os ${nb} boletos` : ", com o boleto") : ""}.\n\n${assinaturaVPX()}`;
+}
+const textoBoleto = (x, b) => `Olá! Segue o boleto${b.parc ? ` da parcela ${b.parc} de ${b.de}` : ""} referente à nota fiscal nº ${x.num} da VPX Engenharia.\n\n${assinaturaVPX()}`;
+// nota + boletos de uma vez (WhatsApp, e-mail…). Se o download demorar, o navegador pede um toque novo ("Enviar agora")
+async function enviarNf(id) {
+  const x = prepararNf().info.get(id);
+  if (!x) return;
+  const t0 = Date.now(), arqs = [];
+  for (const it of [x.n, ...x.boletos.slice().sort((a, b) => (a.parc || 0) - (b.parc || 0))]) {
+    const blob = await blobNf(it, x.cli || x.cliTxt);
+    if (!blob) return;
+    arqs.push(new File([blob], it.nome, { type: "application/pdf" }));
+  }
+  const titulo = `Nota fiscal ${x.num}`, texto = textoNf(x);
+  if (Date.now() - t0 > 4000) prontoParaEnviar(arqs, titulo, texto);
+  else compartilharArquivo(arqs, titulo, texto);
+}
+async function exportarNf() {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const linhas = [["Número", "Tipo", "Emissão", "Cliente", "Nome na nota", "CNPJ/CPF", "Orçamento", "Parcela", "Valor (R$)", "Valor líquido (R$)", "ISS retido", "Situação", "Boletos", "Arquivo", "Link"]];
+    nfVisiveis.forEach(x => linhas.push([x.num, x.nac ? "Nacional (NFS-e)" : "Nota Salvador", x.data ? dataBRde(x.data) : "", x.cliTxt, tit(x.tomador), x.cnpj ? formatarDoc(x.cnpj) : "",
+      x.orc || "", x.parcela, x.valor ?? "", x.liquido ?? "", x.iss ? "Sim" : "", x.canc ? "Cancelada" : "Emitida", x.boletos.length || "", x.n.nome, x.n.web || ""]));
+    linhas.push(["", "", "", "", "", "", "", "TOTAL", nfVisiveis.filter(x => !x.canc).reduce((s, x) => s + (x.valor || 0), 0), "", "", "(sem as canceladas)", "", "", ""]);
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    for (let r = 1; r < linhas.length; r++) for (const c of [8, 9]) { const cel = ws[XLSX.utils.encode_cell({ r, c })]; if (cel && cel.t === "n") cel.z = "#,##0.00"; }
+    ws["!cols"] = [8, 16, 11, 30, 40, 20, 11, 9, 14, 15, 9, 18, 8, 40, 40].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Notas fiscais");
+    const nome = `Notas fiscais - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+
+// nota nova: escolher o PDF, o app lê, a pessoa confere, junta o boleto e salva na pasta (direto no OneDrive, com internet)
+const nomeArqNf = (num, orcN, cli, nac = true) => limparNome(nac ? `NF ${pad3(num)}${orcN ? " - C" + orcN : cli ? " - " + cli : ""}` : `VPX ENGENHARIA - NF${num}${cli ? " - " + cli : ""}`) + ".pdf";
+const nomeBoletoNf = (num, parcela) => { const m = (parcela || "").match(/(\d+) de (\d+)/); return `VPX ENGENHARIA - BOLETO REF NF${pad3(num)}${m ? ` - PARCELA ${pad(+m[1])} DE ${pad(+m[2])}` : ""}.pdf`; };
+// pasta do boleto: a do cliente dentro de "Boletos" (e nela a do orçamento, se houver), senão a própria "Boletos"
+function pastaBoletosNf(cli, orcN) {
+  const ps = nf?.pastasBol || [], ult = p => p.caminho.at(-1) || "";
+  const doCli = ps.filter(p => p.caminho.length && !/^\d+$/.test(ult(p)) && !/^nova pasta$/i.test(ult(p)) && clienteDeNome(ult(p)) === cli).sort((a, b) => a.caminho.length - b.caminho.length)[0];
+  if (doCli && orcN) { const o = ps.find(p => p.caminho.length === doCli.caminho.length + 1 && p.caminho.slice(0, -1).join("/") === doCli.caminho.join("/") && +ult(p) === orcN); if (o) return o; }
+  return doCli || ps.find(p => !p.caminho.length) || null;
+}
+// boletos deste cliente que já estão na pasta sem o número da nota ("NFxxx", parcelas geradas antes)
+const semNotaDoCli = cli => cli ? prepararNf().semNota.filter(b => b.dicaCli === cli).sort((a, b) => (a.parc || 0) - (b.parc || 0)) : [];
+// guarda no aparelho o que acabou de ser enviado: "Enviar ao cliente" não precisa baixar de novo
+async function guardarArqLocal(it, blob, cli) {
+  try {
+    await (await caches.open(CACHE_ARQ)).put(urlCacheArq(it.id), new Response(blob, { headers: { "Content-Type": blob.type || "application/pdf" } }));
+    guardadosArq[it.id] = { cliente: cli, mod: it.lastModifiedDateTime, size: blob.size, nome: it.name };
+    gravarLS("vpx_arq_guardados", guardadosArq);
+  } catch {}
+}
+function abrirNovaNf() {
+  nfTela = { nova: { arq: null, f: { num: "", data: "", cli: "", orc: "", valor: "", parcela: "", iss: false }, bols: [], ligar: new Set() } };
+  history.pushState({ nf: true, nfSub: true }, "");
+  desenharNf(true);
+  $("tela-nf").querySelector(".avcb-corpo").scrollTop = 0;
+  if (!nf && navigator.onLine) atualizarNf();       // a lista de boletos e pastas ajuda a preencher
+}
+async function escolherPdfNf(arq) {
+  const N = nfTela?.nova;
+  if (!N || N.salvando) return;
+  if (!ehPdfAvcb(arq)) { aviso("Escolha o PDF da nota fiscal.", true); return; }
+  Object.assign(N, { arq, lendo: true, img: null, dados: null, aviso: "" });
+  desenharNovaNf();
+  try {
+    const { dados, img } = await lerPdfNf(await arq.arrayBuffer(), true);
+    if (nfTela?.nova !== N) return;
+    const doNome = lerNomeNf(arq.name), porCnpj = prepararNf().porCnpj;
+    const cli = clienteDeNome(dados.tomador) || (dados.cnpj && porCnpj.get(digitos(dados.cnpj))) || "";
+    Object.assign(N, { dados, img });
+    N.f = { num: String(dados.num || doNome?.numNome || ""), data: dados.data || dataISO(), cli: cli || tit(dados.tomador || ""), orc: String(orcDaDescricao(dados.desc) || doNome?.orcNome || ""),
+      valor: dados.valor != null ? moedaBR(dados.valor) : "", parcela: dados.parcela || doNome?.parcNome || "", iss: !!dados.iss };
+    if (!dados.valor && !dados.num) N.aviso = "Não deu para ler os dados deste PDF. Preencha os campos à mão.";
+  } catch (e) {
+    console.error(e);
+    if (nfTela?.nova !== N) return;
+    N.dados = { nac: true };
+    N.aviso = "Não deu para ler este PDF. Preencha os campos à mão; ele será salvo do mesmo jeito.";
+  }
+  N.lendo = false;
+  marcarLigarNf();
+  desenharNovaNf();
+}
+function adicionarBoletosNf(arqs) {
+  const N = nfTela?.nova;
+  if (!N || N.salvando) return;
+  const pdfs = [...arqs].filter(ehPdfAvcb);
+  if (!pdfs.length) { aviso("O boleto precisa ser um PDF.", true); return; }
+  pdfs.forEach(a => N.bols.push({ arq: a, parcela: N.bols.length || pdfs.length > 1 ? "" : normParcela(N.f.parcela) }));
+  desmarcarRepetidosNf();
+  desenharBolsNovaNf(); atualizarNovaNf();
+}
+// boleto novo da mesma parcela de um que já está na pasta: fica só o novo (os dois teriam o mesmo nome)
+function desmarcarRepetidosNf() {
+  const N = nfTela?.nova; if (!N) return;
+  const novas = new Set(N.bols.map(b => normParcela(b.parcela)).filter(Boolean));
+  for (const b of semNotaDoCli(N.f.cli.trim())) if (b.parc && novas.has(`${b.parc} de ${b.de}`)) N.ligar.delete(b.id);
+}
+// marca o boleto já na pasta da mesma parcela desta nota
+function marcarLigarNf() {
+  const N = nfTela?.nova; if (!N) return;
+  const p = normParcela(N.f.parcela);
+  N.ligar = new Set(p ? semNotaDoCli(N.f.cli.trim()).filter(b => b.parc && `${b.parc} de ${b.de}` === p).map(b => b.id) : []);
+  desmarcarRepetidosNf();
+}
+function desenharNovaNf() {
+  const N = nfTela?.nova, w = $("nf-sub");
+  if (!N) return;
+  w.innerHTML = "";
+  const v = el("button", "hub-voltar", "‹ Lista"); v.type = "button"; v.onclick = fecharSubNf; w.appendChild(v);
+  if (!N.arq) {
+    w.appendChild(el("p", "laudo-dica", "Escolha o PDF da nota fiscal que você emitiu (o arquivo baixado do emissor de notas). O app lê número, data, cliente e valor; você confere, junta o boleto e salva na pasta das notas."));
+    const b = comIc(el("button", "btn prim"), "doc", "Escolher o PDF da nota"); b.type = "button"; b.onclick = () => $("nf-in-pdf").click();
+    w.appendChild(b);
+    if (computador.matches) w.appendChild(el("p", "avcb-nota", "Ou arraste o PDF da nota (e o do boleto) para esta tela."));
+    return;
+  }
+  if (N.lendo) { w.appendChild(el("p", "orc-resumo", "Lendo a nota…")); return; }
+  if (N.aviso) w.appendChild(el("p", "ld-aviso", "⚠ " + N.aviso));
+  if (N.img) { const im = el("img", "nf-prev"); im.src = N.img; im.alt = "Primeira página da nota"; im.title = "Ver a nota inteira"; im.onclick = () => abrirVisor(N.arq, "Nota fiscal", ""); w.appendChild(im); }
+  const f = N.f;
+  preencherListasNf(f.cli.trim());
+  const campo = (rot, k, tipo = "text", attrs = {}) => {
+    const l = el("label", "campo"), i = el("input"); i.type = tipo; i.value = f[k] ?? ""; i.autocomplete = "off";
+    Object.entries(attrs).forEach(([a, val]) => i.setAttribute(a, val));
+    i.oninput = () => { f[k] = i.value; atualizarNovaNf(); };
+    l.append(el("span", "", rot), i); w.appendChild(l); return i;
+  };
+  campo("Número da nota *", "num", "text", { inputmode: "numeric", maxlength: "8" });
+  campo("Emissão *", "data", "date");
+  const cli = campo("Cliente *", "cli", "text", { list: "nf-clientes", maxlength: "80", placeholder: "Nome da pasta do cliente" });
+  cli.onchange = () => { preencherListasNf(f.cli.trim()); marcarLigarNf(); desenharBolsNovaNf(); atualizarNovaNf(); };
+  if (N.dados?.tomador) w.appendChild(el("p", "nf-dica", `Na nota: ${tit(N.dados.tomador)}${N.dados.cnpj ? " · " + N.dados.cnpj : ""}`));
+  campo("Orçamento (número)", "orc", "text", { inputmode: "numeric", maxlength: "6", list: "nf-orcs" });
+  campo("Valor (R$) *", "valor", "text", { inputmode: "decimal", maxlength: "16" });
+  const par = campo("Parcela (ex.: 3 de 12)", "parcela", "text", { maxlength: "10" });
+  par.onchange = () => { marcarLigarNf(); desenharBolsNovaNf(); atualizarNovaNf(); };
+  const lc = el("label", "nf-check"), cb = el("input"); cb.type = "checkbox"; cb.checked = !!f.iss; cb.onchange = () => { f.iss = cb.checked; };
+  lc.append(cb, "ISS retido"); w.appendChild(lc);
+  w.appendChild(el("h2", "secao", "Boleto"));
+  const bols = el("div"); bols.id = "nf-n-bols"; w.appendChild(bols);
+  const ad = comIc(el("button", "btn sec"), "clipe", "Adicionar boleto (PDF)"); ad.type = "button"; ad.style.width = "100%"; ad.onclick = () => $("nf-in-bol").click();
+  w.appendChild(ad);
+  const dest = el("p", "nf-dest"); dest.id = "nf-n-dest"; w.appendChild(dest);
+  const s = el("button", "btn prim", "Salvar nota fiscal"); s.type = "button"; s.id = "nf-n-salvar"; s.onclick = salvarNovaNf;
+  w.appendChild(s);
+  desenharBolsNovaNf(); atualizarNovaNf();
+}
+function desenharBolsNovaNf() {
+  const N = nfTela?.nova, c = $("nf-n-bols");
+  if (!N || !c) return;
+  c.innerHTML = "";
+  N.bols.forEach((b, k) => {
+    const r = el("div", "nf-bol");
+    r.append(ic("doc"), el("span", "tx", b.arq.name));
+    const p = el("input"); p.type = "text"; p.value = b.parcela; p.placeholder = "Parcela"; p.maxLength = 10; p.setAttribute("aria-label", "Parcela deste boleto (ex.: 3 de 12)");
+    p.oninput = () => { b.parcela = p.value; atualizarNovaNf(); };
+    p.onchange = () => { desmarcarRepetidosNf(); desenharBolsNovaNf(); atualizarNovaNf(); };
+    const x = el("button", "nf-tirar", "×"); x.type = "button"; x.setAttribute("aria-label", "Tirar este boleto");
+    x.onclick = () => { N.bols.splice(k, 1); desenharBolsNovaNf(); atualizarNovaNf(); };
+    r.append(p, x); c.appendChild(r);
+  });
+  const ja = semNotaDoCli(N.f.cli.trim());
+  if (ja.length) {
+    c.appendChild(el("p", "nf-dica", "Boletos deste cliente que já estão na pasta, ainda sem o número da nota. Marque o desta nota (ele ganha o número):"));
+    ja.forEach(b => {
+      const l = el("label", "nf-check"), cb = el("input"); cb.type = "checkbox"; cb.checked = N.ligar.has(b.id);
+      cb.onchange = () => { if (cb.checked) N.ligar.add(b.id); else N.ligar.delete(b.id); atualizarNovaNf(); };
+      l.append(cb, b.parc ? `Parcela ${b.parc} de ${b.de}` : b.nome); c.appendChild(l);
+    });
+  }
+  if (!N.bols.length && !ja.length) c.appendChild(el("p", "avcb-nota", "Sem boleto (opcional)."));
+}
+// mostra onde cada arquivo vai ficar e libera o Salvar quando o obrigatório estiver preenchido
+function atualizarNovaNf() {
+  const N = nfTela?.nova;
+  if (!N) return;
+  const f = N.f, num = +digitos(f.num), cli = f.cli.trim(), orcN = +digitos(f.orc) || null;
+  const s = $("nf-n-salvar"); if (s) s.disabled = !(num > 0 && f.data && cli && lerValor(f.valor) != null) || !!N.salvando;
+  const d = $("nf-n-dest"); if (!d) return;
+  if (!num) { d.textContent = ""; return; }
+  const P = CONFIG.notasPastas, nac = N.dados?.nac !== false, pb = pastaBoletosNf(cli, orcN);
+  const linhas = [`Nota: ${nac ? P.nac : P.mun} › ${nomeArqNf(num, orcN, cli, nac)}`];
+  N.bols.forEach(b => linhas.push(`Boleto: ${[P.boletos, ...(pb?.caminho || [])].join(" › ")} › ${nomeBoletoNf(num, normParcela(b.parcela))}`));
+  if (N.ligar.size) linhas.push(N.ligar.size > 1 ? `${N.ligar.size} boletos da pasta ganham o número da nota.` : "1 boleto da pasta ganha o número da nota.");
+  d.textContent = `Vai para ${CONFIG.notasNome}:\n` + linhas.join("\n");
+}
+async function salvarNovaNf() {
+  const N = nfTela?.nova;
+  if (!N || N.salvando || !N.arq) return;
+  const f = N.f, num = +digitos(f.num), valor = lerValor(f.valor), cli = f.cli.trim(), orcN = +digitos(f.orc) || null;
+  if (!num || !f.data || !cli || valor == null) { aviso("Preencha número, emissão, cliente e valor.", true); return; }
+  if (!navigator.onLine || !conta) { aviso("Sem internet: a nota é salva direto no OneDrive. Tente de novo quando a conexão voltar.", true); return; }
+  const nac = N.dados?.nac !== false, P = CONFIG.notasPastas;
+  const existe = (nf?.itens || []).find(n => n.nac === nac && (nfCorr[n.id]?.num ?? n.numNome) === num);
+  if (existe && !confirm(`Já existe a nota ${num} na pasta ("${existe.nome}"). Salvar esta por cima dela? (O OneDrive guarda a versão anterior.)`)) return;
+  N.salvando = true; atualizarNovaNf(); $("nf-n-salvar").textContent = "Salvando…";
+  try {
+    const base = await baseNotas();
+    nf ||= { quando: Date.now(), itens: [], boletos: [], pastasBol: [], pastas: { base } };
+    const k = nac ? "nac" : "mun", pastaNf = nf.pastas[k] || (nf.pastas[k] = (await garantirFilhas(base, [nac ? P.nac : P.mun])).id);
+    const it = await enviarArquivo(pastaNf, existe ? existe.nome : nomeArqNf(num, orcN, cli, nac), N.arq, undefined, !!existe);
+    if (!it?.id) throw new Error("o OneDrive não confirmou o envio");
+    guardarArqLocal(it, N.arq, cli);
+    let pb = pastaBoletosNf(cli, orcN);
+    if (!pb && N.bols.length) { pb = { id: nf.pastas.boletos || (nf.pastas.boletos = (await garantirFilhas(base, [P.boletos])).id), caminho: [] }; nf.pastasBol.push(pb); }
+    for (const b of N.bols) {
+      const ib = await enviarArquivo(pb.id, nomeBoletoNf(num, normParcela(b.parcela)), b.arq);
+      if (!ib?.id) continue;
+      nf.boletos.push({ ...lerNomeBoleto(ib.name), id: ib.id, nome: ib.name, mod: ib.lastModifiedDateTime, web: ib.webUrl, size: ib.size, caminho: pb.caminho, pasta: pb.id });
+      guardarArqLocal(ib, b.arq, cli);
+    }
+    // boletos que já estavam na pasta sem o número da nota: ganham o número ("NFxxx" → "NF007")
+    const usados = new Set(N.bols.map(b => semAcento(nomeBoletoNf(num, normParcela(b.parcela)))));
+    for (const id of N.ligar) {
+      const b = nf.boletos.find(x => x.id === id);
+      if (!b) continue;
+      const novo = /NF ?x{2,4}/i.test(b.nome) ? b.nome.replace(/NF ?x{2,4}/i, "NF" + pad3(num)) : nomeBoletoNf(num, b.parc ? `${b.parc} de ${b.de}` : "");
+      if (usados.has(semAcento(novo))) continue;     // um boleto novo já ficou com este nome
+      try {
+        const r = await graph(`/drives/${CONFIG.driveId}/items/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: novo }) });
+        Object.assign(b, lerNomeBoleto(r.name), { nome: r.name, mod: r.lastModifiedDateTime, web: r.webUrl || b.web });
+      } catch (e) { console.error(e); aviso(`O boleto "${b.nome}" não ganhou o número da nota: ${e.message}`, true); }
+    }
+    // a lista já mostra a nota nova com os dados conferidos (sem esperar a próxima leitura das pastas)
+    nfPdf[it.id] = { m: it.lastModifiedDateTime, ...(N.dados || {}) };
+    nfCorr[it.id] = { num, data: f.data, cli, orc: orcN, valor, parcela: normParcela(f.parcela), iss: !!f.iss, canc: false, em: new Date().toISOString(), por: nomeColaborador() };
+    nf.itens = nf.itens.filter(n => n.id !== it.id);
+    nf.itens.push({ ...lerNomeNf(it.name), numNome: num, id: it.id, nome: it.name, nac, mod: it.lastModifiedDateTime, web: it.webUrl, size: it.size, pasta: pastaNf });
+    gravarLS("vpx_nf", nf); gravarLS("vpx_nf_pdf", nfPdf); gravarLS("vpx_nf_corr", nfCorr);
+    gravarIndiceNf();
+    if (nfTela?.nova === N) { nfTela = { det: it.id }; desenharNf(true); $("tela-nf").querySelector(".avcb-corpo").scrollTop = 0; }
+    aviso("Nota fiscal salva no OneDrive.");
+  } catch (e) {
+    console.error(e);
+    N.salvando = false;
+    if (nfTela?.nova === N) { atualizarNovaNf(); $("nf-n-salvar").textContent = "Salvar nota fiscal"; }
+    aviso(e.semAcesso ? `Sem acesso à pasta "${CONFIG.notasNome}" no OneDrive.` : "Não foi possível salvar a nota: " + e.message, true);
+  }
+}
+
 // "Continuar de onde parou": rascunhos e fotos ainda não salvas
 function itensContinuar() {
   const out = [];
@@ -9613,6 +10548,7 @@ function desenharPaginaCliente() {
   if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", () => abrirEq(c)));
   if (pode("laudo")) g.appendChild(tile("salvo", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
   if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos(c)));   // a lista de todos, já buscando este cliente
+  if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas(c)));             // idem, notas fiscais
   if (g.children.length) { g.style.marginTop = "12px"; if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
   if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
   // ordens de serviço abertas deste cliente e "Nova OS"
@@ -9636,13 +10572,14 @@ function desenharReg() {
   const t = $("tela-reg"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Registros"));
   const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (!modos.length && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
+  if (!modos.length && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc") && !pode("nf")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
   const g = el("div", "hub-grade");
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
   if (pode("avcb")) g.appendChild(tile("escudo", "Validade AVCB / CLCB", abrirAvcb));   // saiu do Mais (pedido do Gustavo em 19/10/2026)
   if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", abrirEqv));   // vencimentos de todos os clientes; saiu do Mais (pedido do Gustavo em 19/10/2026)
   if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos()));   // de todos os clientes (pedido do Gustavo em 05/11/2026)
+  if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas()));              // emitidas para os clientes (pedido do Gustavo em 06/11/2026)
   t.appendChild(g);
 }
 
@@ -9780,7 +10717,7 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => { if (fecharT
 computador.addEventListener("change", () => { if (conta && secao === "inicio") desenharInicio(); });   // janela passou da largura do celular para a do computador (ou o contrário)
 // no computador: Esc fecha a tela aberta por cima (o mesmo que "‹ Voltar"); num campo de texto, só sai do campo
 document.addEventListener("keydown", e => {
-  if (e.key !== "Escape" || $("dlg").open || cam) return;   // a lista de clientes fecha sozinha com o Esc; a câmera tem o próprio botão
+  if (e.key !== "Escape" || $("dlg").open || $("dlg-enviar").open || cam) return;   // a lista de clientes (e o "Enviar agora") fecha sozinha com o Esc; a câmera tem o próprio botão
   if (e.target.matches?.("input, textarea, select")) { e.target.blur(); return; }
   if (!$("visor-pdf").hidden) { fecharVisor(); return; }
   const voltar = [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).at(-1)?.querySelector(".avcb-voltar");   // a última aberta no HTML fica por cima
@@ -9792,11 +10729,14 @@ const podeSoltar = () => secao === "trabalho" && !$("tela-app").hidden && !docum
 // e o PDF ou a foto do AVCB na tela Validade AVCB/CLCB (o mesmo que os botões PDF e Galeria)
 const podeSoltarAvcb = () => pode("avcbFoto") && $("visor-pdf").hidden && !$("dlg").open
   && [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).at(-1)?.id === "tela-avcb";
+// e o PDF da nota fiscal (e do boleto) na tela "Nova nota fiscal"
+const podeSoltarNf = () => !!nfTela?.nova && !nfTela.nova.salvando && !nfTela.nova.lendo && $("visor-pdf").hidden && !$("dlg").open
+  && [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).at(-1)?.id === "tela-nf";
 const comArquivos = e => [...(e.dataTransfer?.types || [])].includes("Files");
 document.addEventListener("dragover", e => {
   if (!comArquivos(e)) return;
   e.preventDefault();                              // sem isto o Chrome abriria o arquivo no lugar do app
-  const ok = podeSoltar() || podeSoltarAvcb();
+  const ok = podeSoltar() || podeSoltarAvcb() || podeSoltarNf();
   e.dataTransfer.dropEffect = ok ? "copy" : "none";
   document.body.classList.toggle("soltando", ok);
 });
@@ -9808,6 +10748,16 @@ document.addEventListener("drop", e => {
   if (podeSoltarAvcb()) {
     const f = [...e.dataTransfer.files].find(f => ehPdfAvcb(f) || f.type.startsWith("image/") || ehImgArq(f.name));
     if (f) abrirNovoAvcb(f); else aviso("Aqui só entram o PDF ou a foto do AVCB.", true);
+    return;
+  }
+  if (podeSoltarNf()) {                            // sem a nota escolhida: o PDF que não é boleto é a nota; o resto, boletos
+    const pdfs = [...e.dataTransfer.files].filter(ehPdfAvcb);
+    if (!pdfs.length) { aviso("Aqui só entram PDFs (a nota e o boleto).", true); return; }
+    if (!nfTela.nova.arq) {
+      const i = Math.max(0, pdfs.findIndex(f => !/boleto/i.test(f.name)));
+      const [nota] = pdfs.splice(i, 1);
+      escolherPdfNf(nota).then(() => { if (pdfs.length) adicionarBoletosNf(pdfs); });
+    } else adicionarBoletosNf(pdfs);
     return;
   }
   if (podeSoltar()) {
@@ -9874,7 +10824,8 @@ window.addEventListener("popstate", () => {
   if (!$("tela-assinar").hidden) { fecharAssinar(false); return; }
   if (history.state?.avcbNovo && !$("tela-avcb-novo").hidden) return;   // voltou do visualizador (documento ampliado) para o "Novo AVCB"
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
-  if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch || history.state?.orc) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes / orçamentos
+  if (!$("tela-nf").hidden && (nfTela?.det || nfTela?.nova) && !history.state?.nfSub) { nfTela = {}; desenharNf(true); return; }   // "voltar" numa nota fiscal: volta para a lista
+  if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch || history.state?.orc || history.state?.nf) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes / orçamentos / notas fiscais
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
   if (history.state?.eqv && !$("tela-eq").hidden) { fecharEq(false); return; }   // voltou de um cliente para a lista de vencimentos
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
@@ -9884,7 +10835,7 @@ window.addEventListener("popstate", () => {
     if (enviando) { history.pushState({ trab: true }, ""); return; }   // enviando: fica no formulário
     irPara(trabDe || "inicio"); return;
   }
-  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharOS(false); fecharMenu();
+  if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharNf(false); fecharOS(false); fecharMenu();
 });
 $("os-voltar").onclick = () => { if (osTela?.nova || osTela?.aberta) { osTela.nova = null; osTela.aberta = null; desenharOS(); } else fecharOS(); };
 $("eq-voltar").onclick =() => { if (eq?.editando) { eq.editando = null; desenharEq(); } else fecharEq(); };
@@ -9901,6 +10852,22 @@ $("tela-orc").querySelectorAll("thead button").forEach(b => b.onclick = () => {
 $("orc-ler").onclick = () => lerPdfsOrc(true);
 $("orc-atualizar").onclick = atualizarOrc;
 $("orc-exportar").onclick = exportarOrc;
+// notas fiscais: "‹ Voltar" de uma nota (ou da nota nova) volta para a lista; da lista, fecha
+$("nf-voltar").onclick = () => { if (nfTela?.det || nfTela?.nova) fecharSubNf(); else fecharNf(); };
+$("nf-busca").oninput = () => { clearTimeout(desenharNf.t); desenharNf.t = setTimeout(desenharNf, 200); };
+$("nf-periodo").onchange = $("nf-sit").onchange = () => desenharNf();
+$("tela-nf").querySelectorAll("thead button").forEach(b => b.onclick = () => {
+  const c = b.dataset.col;
+  nfOrdem = nfOrdem.col === c ? { col: c, desc: !nfOrdem.desc } : { col: c, desc: c === "num" || c === "valor" || c === "data" };
+  desenharNf();
+});
+$("nf-ler").onclick = () => lerPdfsNf(true);
+$("nf-atualizar").onclick = atualizarNf;
+$("nf-exportar").onclick = exportarNf;
+$("nf-nova").onclick = abrirNovaNf;
+$("nf-in-pdf").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (f) escolherPdfNf(f); };
+$("nf-in-bol").onchange = e => { const fs = [...e.target.files]; e.target.value = ""; if (fs.length) adicionarBoletosNf(fs); };
+$("env-nao").onclick = () => $("dlg-enviar").close();
 $("eqv-exportar").onclick = () => exportarEq(Object.keys(eqDados));
 $("eqv-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { eqvFiltro = b.dataset.f; desenharEqv(); });
 $("btn-arq").onclick = abrirArquivos;
