@@ -17,7 +17,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
    <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<style>
+<style id="estilo-app">
 :root{
   --marinho:#1C3C61; --laranja:#EB9D2B; --tinta:#13253B; --fundo:#F2F4F7;
   --papel:#FFFFFF; --linha:#D3DAE3; --suave:#5B6B80; --erro:#B3261E; --ok:#1E7A46;
@@ -724,6 +724,7 @@ p{margin:0 0 14px;max-width:60ch}
 
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:0 18px;border-radius:10px;border:0;font-weight:600;cursor:pointer;text-decoration:none;user-select:none}
 .btn:focus-visible,.cliente:focus-visible,.conta:focus-visible,.item:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.btn[hidden]{display:none!important}   /* o display:flex do .btn vencia o [hidden]: botões que deviam sumir apareciam (ex.: "Ver relatório" depois de uma visita) */
 .prim{background:var(--laranja);color:var(--marinho);font-family:var(--titulo-fonte);font-size:21px;font-weight:700;width:100%}
 .prim:disabled{background:var(--linha);color:var(--suave);cursor:default}
 .sec{background:var(--papel);color:var(--tinta);border:1.5px solid var(--linha);flex:1}
@@ -982,6 +983,18 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .aviso{position:fixed;left:18px;right:18px;bottom:calc(200px + env(safe-area-inset-bottom,0px));max-width:684px;margin:0 auto;background:var(--tinta);color:var(--fundo);padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:70}   /* acima das telas que abrem por cima (antes ficava escondido atrás delas) */
 .aviso.ver{opacity:1;transform:none}
 .aviso.erro{background:var(--erro);color:#fff}
+/* versão nova do app: embaixo — acima da barra de baixo nas telas de navegação e da barra de Salvar nos formulários; o fim
+   da página ganha um espaço do tamanho dele (nada fica preso embaixo); fica por baixo da câmera (30) e das telas por cima (34+) */
+.versao-nova{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:25;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:8px 8px 8px 16px;border-radius:14px;background:var(--tinta);color:var(--fundo);box-shadow:0 8px 24px rgba(0,0,0,.25);font-weight:600;line-height:1.3}
+.versao-nova[hidden]{display:none}
+body.hub-on .versao-nova{bottom:calc(77px + env(safe-area-inset-bottom,0px))}
+body.form-on .versao-nova{bottom:calc(200px + env(safe-area-inset-bottom,0px))}
+body.versao-on.hub-on main{padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))}
+body.versao-on.form-on main{padding-bottom:calc(280px + env(safe-area-inset-bottom,0px))}
+.versao-nova span{flex:1;min-width:0}
+.versao-nova .btn{width:auto;flex:none;min-height:46px;padding:0 18px;font-size:18px}
+.vn-depois{flex:none;min-height:46px;padding:0 10px;border:0;border-radius:10px;background:none;color:inherit;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;opacity:.85}
+.vn-depois:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
 
 /* câmera em sequência: visual inspirado na câmera do iPhone (amarelo #FFD60A nos itens ativos) */
 .cam{position:fixed;inset:0;z-index:30;background:#000;color:#fff;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
@@ -1079,6 +1092,10 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   .barra-in,.ld-prog-in{max-width:760px}
   .ld-prog{top:var(--topo-pc);left:var(--lateral)}
   .aviso{left:calc(var(--lateral) + 24px);right:24px;max-width:760px}
+  .versao-nova{left:calc(var(--lateral) + 24px);right:24px}
+  body.hub-on .versao-nova{bottom:24px}
+  body.versao-on.hub-on main{padding-bottom:100px}
+  body.versao-on.form-on main{padding-bottom:280px}
   body.hub-on .aviso{bottom:32px}
   body.soltando #tela-app::before{left:calc(var(--lateral) + 24px);top:calc(var(--topo-pc) + 24px);bottom:24px;right:24px}
   /* telas do menu: conteúdo até 1080 px, quadrados e listas em colunas */
@@ -1405,7 +1422,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <button data-s="reg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><path d="M16.75 14v5.5M14 16.75h5.5"/></svg>Registros</button>
   <button data-s="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
   <!-- no computador (menu lateral) o que fica no Mais aparece direto; no celular, só o Mais (pedido do Gustavo em 06/11/2026) -->
-  <!-- tarefas e funil comercial (pedido do Gustavo em 07/11/2026): no computador, direto no menu; no celular, em Registros e no Início -->
+  <!-- tarefas e funil comercial (pedido do Gustavo em 07/11/2026): no computador, direto no menu; no celular, no Mais, em Registros e no Início -->
   <button class="so-pc" data-acao="tar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1M14.4 9.6h2.6M14.4 15.8h2.6"/></svg>Tarefas<span class="avcb-qtd" id="nav-tar-qtd" hidden></span></button>
   <button class="so-pc" data-acao="funil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/></svg>Funil comercial</button>
   <button class="so-pc" data-s="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></svg>Financeiro<span class="avcb-qtd" id="nav-fin-qtd-pc" hidden></span></button>
@@ -1883,8 +1900,14 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
 </div>
 
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+<!-- versão nova do app publicada: o app instalado no celular fica aberto por dias e não a pegava sozinho -->
+<div class="versao-nova" id="versao-nova" role="status" hidden>
+  <span>Há uma versão nova do app.</span>
+  <button type="button" class="vn-depois" id="versao-depois">Depois</button>
+  <button type="button" class="btn prim" id="versao-atualizar">Atualizar</button>
+</div>
 
-<script>
+<script id="codigo-app">
 /* ================== CONFIGURAÇÃO ================== */
 const CONFIG = {
   clientId: "76fc51aa-584c-443a-9170-bf123e698cfe",   // Entra ID > Registros de aplicativo > ID do aplicativo (cliente)
@@ -2027,6 +2050,7 @@ function mostrar(tela) {
   const hub = hubs.includes(tela);
   $("nav").hidden = !hub;                          // barra de baixo só nas telas de navegação
   document.body.classList.toggle("hub-on", hub);
+  document.body.classList.toggle("form-on", tela === "tela-app");
   if (tela === "tela-app" || tela === "tela-ok") secao = "trabalho";
 }
 const pad = n => String(n).padStart(2, "0");
@@ -2094,20 +2118,28 @@ async function token() {
 }
 
 async function graph(caminho, opcoes = {}, tentativa = 0) {
-  const url = caminho.startsWith("http") ? caminho : GRAPH + caminho;
-  const res = await fetch(url, { ...opcoes, headers: { Authorization: "Bearer " + await token(), ...(opcoes.headers || {}) } });
-  if ((res.status === 429 || res.status >= 500) && tentativa < 3) {
-    const seg = Number(res.headers.get("Retry-After")) || 2 ** (tentativa + 1);
-    await espera(seg * 1000);
-    return graph(caminho, opcoes, tentativa + 1);
-  }
-  if (!res.ok) {
-    let msg = "Erro " + res.status;
-    try { msg = (await res.json()).error.message || msg; } catch {}
-    const err = new Error(msg); err.status = res.status; throw err;
-  }
-  return res.status === 204 ? null : res.json();
+  const escreve = (opcoes.method || "GET") !== "GET" && caminho !== "/$batch";   // gravações em andamento (o $batch do graphLote só lê)
+  if (escreve) graph.escrevendo = (graph.escrevendo || 0) + 1;
+  try {
+    const url = caminho.startsWith("http") ? caminho : GRAPH + caminho;
+    const res = await fetch(url, { ...opcoes, headers: { Authorization: "Bearer " + await token(), ...(opcoes.headers || {}) } });
+    if ((res.status === 429 || res.status >= 500) && tentativa < 3) {
+      const seg = Number(res.headers.get("Retry-After")) || 2 ** (tentativa + 1);
+      await espera(seg * 1000);
+      return await graph(caminho, opcoes, tentativa + 1);
+    }
+    if (!res.ok) {
+      let msg = "Erro " + res.status;
+      try { msg = (await res.json()).error.message || msg; } catch {}
+      const err = new Error(msg); err.status = res.status; throw err;
+    }
+    return res.status === 204 ? null : await res.json();
+  } finally { if (escreve) graph.escrevendo--; }
 }
+// gravações de ponta a ponta (ler, baixar, enviar em pedaços, esperar e tentar de novo, renomear): enquanto houver uma,
+// o app não recarrega sozinho para pegar uma versão nova (ver conferirVersao)
+let gravacoes = 0;
+async function comGravacao(fn) { gravacoes++; try { return await fn(); } finally { gravacoes--; } }
 
 /* ---------- clientes ---------- */
 async function carregarClientes() {
@@ -4440,7 +4472,8 @@ async function garantirPasta(caminho) {
 
 // avancou(n) informa quantos bytes já chegaram ao OneDrive (para a barra de progresso)
 // substituir = grava por cima do arquivo de mesmo nome (laudo reaberto); senão o OneDrive cria uma cópia com outro nome
-async function enviarArquivo(pastaId, nome, blob, avancou = () => {}, substituir = false) {
+function enviarArquivo(...a) { return comGravacao(() => enviarArquivoJa(...a)); }   // conta a gravação inteira
+async function enviarArquivoJa(pastaId, nome, blob, avancou = () => {}, substituir = false) {
   const alvo = `/drives/${CONFIG.driveId}/items/${pastaId}:/${encodeURIComponent(nome)}:`;
   const conflito = substituir ? "replace" : "rename";
   if (blob.size < 4 * 1024 * 1024) {
@@ -4701,6 +4734,7 @@ async function salvar() {
   if (novos.length) {
     const d = destinoAtual();
     novos.forEach(f => { f.dest = d; f.prefixo = prefixoDe(f, d); guardarItem(f); });
+    if (d.modo === "comp") limparComp();         // já está tudo no destino e no nome: o próximo comprovante começa em branco
   }
   const fila = fotos.filter(f => f.st !== "ok");
   if (!fila.length) return;
@@ -6259,7 +6293,8 @@ async function sincronizarEq() {
   if (secao === "inicio" && !$("tela-inicio").hidden) desenharInicio();
 }
 // grava a lista do cliente (precisa de internet); 412 = outra pessoa mudou antes: recarrega e pede para refazer
-async function gravarEq(cli, ext, mang) {
+function gravarEq(...a) { return comGravacao(() => gravarEqJa(...a)); }   // conta a gravação inteira
+async function gravarEqJa(cli, ext, mang) {
   if (!navigator.onLine) throw new Error("Sem internet: para salvar, conecte o celular.");
   const pasta = await pastaEquip();
   const atual = eqDados[cli], corpo = { versao: 1, cliente: cli, ext, mang, atualizado: new Date().toISOString(), por: nomeColaborador() };
@@ -6653,7 +6688,8 @@ async function criarOS(d) {
   throw new Error("Não foi possível reservar um número de OS. Tente de novo.");
 }
 // altera a OS no OneDrive: lê a versão mais nova, aplica a mudança (fn devolve texto de erro para desistir) e grava com If-Match
-async function alterarOS(numero, fn, acao) {
+function alterarOS(...a) { return comGravacao(() => alterarOSJa(...a)); }   // conta a gravação inteira
+async function alterarOSJa(numero, fn, acao) {
   if (!navigator.onLine) throw new Error("Sem internet: para alterar a OS, conecte o celular.");
   const o = osDados[numero]; if (!o?.itemId) throw new Error("OS não encontrada. Atualize a lista.");
   const item = await graph(`/drives/${CONFIG.driveId}/items/${o.itemId}`);
@@ -7293,7 +7329,8 @@ const compartilharPasta = (itemId, email, papel) => graph(`/drives/${CONFIG.driv
   method: "POST", headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ recipients: [{ email }], roles: [papel], requireSignIn: true, sendInvitation: false })
 });
-async function liberarAcesso(x, funcoes, botao) {
+function liberarAcesso(...a) { return comGravacao(() => liberarAcessoJa(...a)); }   // conta a gravação inteira
+async function liberarAcessoJa(x, funcoes, botao) {
   if (!navigator.onLine) { aviso("Sem internet: conecte para liberar.", true); return; }
   if (!funcoes.length) { aviso("Marque pelo menos uma função.", true); return; }
   botao.disabled = true; botao.textContent = "Liberando…";
@@ -7328,7 +7365,8 @@ async function desfazerRecusa(x) {
   atualizarPedidosAcesso(); desenharAdmin();
 }
 // tira o acesso de um convidado: descompartilha as pastas, apaga as funções e marca como recusado (não volta para os pedidos)
-async function removerAcesso(email, nome) {
+function removerAcesso(...a) { return comGravacao(() => removerAcessoJa(...a)); }   // conta a gravação inteira
+async function removerAcessoJa(email, nome) {
   if (!navigator.onLine) { aviso("Sem internet: conecte para remover o acesso.", true); return; }
   if (!confirm(`Remover o acesso de ${nome || email}?\n\nO app tira o compartilhamento das pastas com a pessoa e ela volta para a tela de espera.`)) return;
   try {
@@ -8079,7 +8117,8 @@ function desenharDetalhePC(p) {
 }
 
 // muda a situação no .json do OneDrive (lê a versão mais nova e grava com If-Match)
-async function mudarStatusPC(p, status, pedirMotivo, extra) {
+function mudarStatusPC(...a) { return comGravacao(() => mudarStatusPCJa(...a)); }   // conta a gravação inteira
+async function mudarStatusPCJa(p, status, pedirMotivo, extra) {
   if (!navigator.onLine) { aviso("Sem internet para alterar o pedido.", true); return; }
   let obs = "";
   if (pedirMotivo) { obs = prompt(status === "recusado" ? "Motivo da recusa (opcional):" : "Motivo do cancelamento (opcional):", ""); if (obs === null) return; }
@@ -8112,7 +8151,7 @@ function marcarComprado(p) {
 function marcarPago(p) {
   if (!navigator.onLine) { aviso("Sem internet para registrar o pagamento.", true); return; }
   const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*,application/pdf";
-  inp.onchange = async () => {
+  inp.onchange = () => comGravacao(async () => {   // enviar o comprovante e marcar como pago: uma gravação só
     const f = inp.files[0]; if (!f) return;
     const hoje = dataBRde(dataISO());
     const r = prompt("Data do pagamento (dd/mm/aaaa):", hoje); if (r === null) return;
@@ -8124,7 +8163,7 @@ function marcarPago(p) {
       await enviarArquivo(await basePedidos("pag"), nome, f);
       await mudarStatusPC(p, "pago", false, { pagamento: { data, comprovante: nome.slice(p.id.length + 3), por: nomeColaborador() } });
     } catch (e) { aviso("Não foi possível enviar o comprovante: " + e.message, true); }
-  };
+  });
   inp.click();
 }
 
@@ -9495,12 +9534,14 @@ async function restaurarItens() {
   atualizar();
 }
 
+// zera os campos do comprovante (o que foi preenchido já está no destino e no nome de cada item salvo)
+function limparComp() { $("descricao").value = ""; $("comp-valor").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo(null); }
 function novaVisita() {
   fotos.filter(f => f.st === "ok").forEach(liberar);
   fotos = fotos.filter(f => f.st !== "ok");        // o que ainda está na fila continua na lista
   cliente = null;
   relatorio = null;
-  if (ehComp()) { $("descricao").value = ""; $("comp-valor").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo(null); }
+  if (ehComp()) limparComp();
   mostrar("tela-app"); atualizar();
   window.scrollTo(0, 0);
 }
@@ -9565,7 +9606,7 @@ function irPara(s, deMenu) {                       // deMenu: tocado na barra de
   if (enviando) return;
   if (s === "agenda") {                            // abre por cima da seção atual, mas com a barra de baixo visível
     if (secao === "agenda") return;
-    agendaDe = TELA_SECAO[secao] ? secao : "inicio";
+    agendaDe = TELA_SECAO[secao] || secao === "trabalho" ? secao : "inicio";   // computador: a Agenda pode abrir por cima de um formulário
     secao = "agenda"; atualizarNav();
     abrirAgenda(true);
     return;
@@ -10181,7 +10222,8 @@ async function sincronizarFichas(forcar) {
   if (secao === "clientes" && !$("tela-clientes").hidden) redesenharClientesQuieto();   // a tabela mostra o contato principal (sem trocar as linhas embaixo do dedo)
 }
 // grava a ficha (precisa de internet). Outra pessoa mudou antes (412) ou criou a mesma ficha (409): atualiza e avisa
-async function gravarFicha(cli, dados) {
+function gravarFicha(...a) { return comGravacao(() => gravarFichaJa(...a)); }   // conta a gravação inteira
+async function gravarFichaJa(cli, dados) {
   if (!navigator.onLine) throw new Error("Sem internet: para salvar a ficha, conecte o aparelho.");
   const pasta = await pastaFichas(), atual = fichas[cli];
   const corpo = { versao: 1, cliente: cli, ...dados, atualizado: new Date().toISOString(), por: nomeColaborador() };
@@ -11204,7 +11246,8 @@ function atualizarNovaNf() {
   if (N.ligar.size) linhas.push(N.ligar.size > 1 ? `${N.ligar.size} boletos da pasta ganham o número da nota.` : "1 boleto da pasta ganha o número da nota.");
   d.textContent = `Vai para ${CONFIG.notasNome}:\n` + linhas.join("\n");
 }
-async function salvarNovaNf() {
+function salvarNovaNf(...a) { return comGravacao(() => salvarNovaNfJa(...a)); }   // conta a gravação inteira
+async function salvarNovaNfJa() {
   const N = nfTela?.nova;
   if (!N || N.salvando || !N.arq) return;
   const f = N.f, num = +digitos(f.num), valor = lerValor(f.valor), cli = f.cli.trim(), orcN = +digitos(f.orc) || null;
@@ -11520,6 +11563,7 @@ function aoMudarTar() {
   if (secao === "inicio" && !$("tela-inicio").hidden) desenharInicio();
   if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
   if (secao === "reg" && !$("tela-reg").hidden) desenharReg();
+  if (secao === "mais" && !$("tela-mais").hidden) desenharMais();
 }
 const colTar = colecao({ chave: "vpx_tar", pasta: CONFIG.pastaTarefas, prefixo: "tarefas", n: 8, pode: () => liberado(), aoMudar: aoMudarTar });
 let tarTela = null, tarVoltando = false;   // { vista, filtro, pessoa, aberta, nova, verFeitas, direto, mais }
@@ -12632,6 +12676,14 @@ function desenharMais() {
     f.appendChild(linha("dinheiro", "Financeiro", aguard ? (ehAdmin() ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : `${aguard} pagamento${aguard > 1 ? "s" : ""} aprovado${aguard > 1 ? "s" : ""} para pagar`) : "Comprovantes e pedidos de compra e pagamento", () => irPara("fin"), aguard));
     t.appendChild(f);
   }
+  // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também em Registros e no Início)
+  const tf = el("div", "hub-lista");
+  if (podeVerTarefas()) {
+    const minhas = tarefas().filter(x => minhaTar(x) && abertaTar(x)), atr = minhas.filter(atrasadaTar).length, hj = minhas.filter(hojeTar).length;
+    tf.appendChild(linha("tarefas", "Tarefas", minhas.length ? `${minhas.length} com você` + (atr ? ` · ${atr} atrasada${atr > 1 ? "s" : ""}` : hj ? ` · ${hj} para hoje` : "") : "Nenhuma tarefa com você", () => abrirTar(), atr + hj));
+  }
+  if (pode("funil")) tf.appendChild(linha("funil", "Funil comercial", "Oportunidades, propostas e ligações", () => abrirFunil()));
+  if (tf.children.length) t.appendChild(tf);
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
   if (ehAdmin()) { const n = pedidosAcesso.length; l.appendChild(linha("ajustes", "Administração", n ? `${n} pedido${n > 1 ? "s" : ""} de acesso esperando você` : "Permissões da equipe", abrirAdmin, n)); }
@@ -13023,6 +13075,91 @@ window.addEventListener("online", () => { atualizar(); tentarPendentes(); });
 window.addEventListener("offline", atualizar);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) tentarPendentes(); });
 setInterval(tentarPendentes, 60000);
+/* ---------- versão nova do app ---------- */
+// O app instalado no celular fica aberto por dias (sai da tela e volta) e só pegava a versão publicada quando era fechado e
+// aberto de novo: Tarefas e Funil já estavam no site e não apareciam no celular do Gustavo (07/11/2026). Agora ele compara a
+// data de publicação da versão aberta (document.lastModified: vem com a página, da internet ou da cópia do sw.js) com a do
+// site (pedido HEAD, que o sw.js deixa passar: ele só intercepta GET). Se o site for mais novo, baixa a página uma vez (com
+// ?versao=, que o sw.js também deixa passar) e compara o código (scripts e estilos): publicar só as anotações (.md) ou só o
+// sw.js muda a data de todos os arquivos do site, mas não é versão nova. Confere 15 s depois de abrir (já com o login
+// resolvido), ao voltar para o app, quando a internet volta e a cada 30 min.
+// Versão nova: recarrega sozinho só na tela de entrada, ou quando o app acabou de abrir / a pessoa volta depois de 3 min
+// fora e está no Início, em Registros ou no Mais, sem nada aberto nem em andamento, sem nada sendo salvo e sem mexer no app
+// há 20 s (no máximo 1× a cada 10 min). Senão mostra embaixo "Há uma versão nova do app" com "Atualizar".
+function dataDoc(s) {                              // "11/07/2026 03:25:36" (hora local) → milissegundos
+  const m = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})$/.exec(s || "");
+  return m ? new Date(+m[3], m[1] - 1, +m[2], +m[4], +m[5], +m[6]).getTime() : 0;
+}
+function assinaturaApp(doc) {                      // "impressão digital" do código da página: o estilo e o script do app
+  // pelos ids (estilos e scripts que extensões do navegador põem na página não entram); sem os ids, todos os da página
+  const proprios = ["estilo-app", "codigo-app"].map(id => doc.getElementById(id));
+  const s = (proprios.every(Boolean) ? proprios : [...doc.querySelectorAll("script:not([src]), style")]).map(x => x.textContent).join("\n\u0000\n");
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36) + "." + s.length;
+}
+const versaoApp = { aberta: dataDoc(document.lastModified), assin: assinaturaApp(document), nova: 0, conferida: 0, saiu: 0 };
+let ultimoToque = 0;                               // a pessoa está mexendo no app: não recarrega embaixo do dedo
+["pointerdown", "keydown", "scroll", "wheel"].forEach(t => document.addEventListener(t, () => { ultimoToque = Date.now(); }, { capture: true, passive: true }));
+const campoComFoco = () => { const a = document.activeElement; return !!a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); };
+const salvandoAlgo = () => enviando || enviandoFundo || gravacoes > 0 || graph.escrevendo > 0 || [colTar, colFu].some(c => Object.keys(c.pend).length > 0);
+// algo que a pessoa está fazendo e que a recarga atrapalharia ou perderia (o cliente escolhido e os campos do comprovante
+// ficam só na memória; os rascunhos ficam no celular, mas sem o cliente)
+function trabalhoAberto() {
+  if (!$("tela-app").hidden || !$("tela-ok").hidden) return true;   // formulário ou tela de sucesso à vista
+  if (secao === "trabalho" || secao === "agenda" || cam || visor || campoComFoco()) return true;
+  if ([...document.querySelectorAll(".tela-avcb")].some(x => !x.hidden) || document.querySelector("dialog[open]")) return true;
+  if (tipo || pagamento || $("descricao").value.trim() || $("comp-valor").value.trim() || $("centro-sel").value || $("centro").value.trim()) return true;
+  return !!conta && itensContinuar().length > 0;
+}
+function podeRecarregar() {                        // recarregar sem perguntar
+  if (document.body.classList.contains("entrada-on")) return !campoComFoco();   // tela de entrada: nada a perder
+  if (!conta || !document.body.classList.contains("logado")) return false;       // ainda entrando na conta
+  if (salvandoAlgo() || trabalhoAberto()) return false;
+  return ["inicio", "reg", "mais"].includes(secao) && !$(TELA_SECAO[secao]).hidden && Date.now() - ultimoToque > 20000;
+}
+function verVersao(on) {                           // o aviso embaixo e, no fim da página, um espaço do tamanho dele
+  $("versao-nova").hidden = !on;
+  document.body.classList.toggle("versao-on", on);
+}
+function recarregarApp() {
+  try { sessionStorage.setItem("vpx_recarregou", String(Date.now())); } catch {}
+  location.reload();
+}
+async function conferirVersao(sozinho) {          // sozinho: pode recarregar sem perguntar (app abrindo, ou voltando depois de um tempo)
+  if (!versaoApp.aberta || !navigator.onLine || conferirVersao.rodando) return;
+  conferirVersao.rodando = true;
+  versaoApp.conferida = Date.now();
+  try {
+    const base = location.href.split(/[?#]/)[0];
+    const r = await fetch(base, { method: "HEAD", cache: "no-store" });
+    const pub = Date.parse(r.headers.get("last-modified") || "");
+    if (!r.ok || !(pub - versaoApp.aberta > 2000)) return;
+    if (versaoApp.nova !== pub) {                  // publicação nova: o código mudou? (uma vez por publicação)
+      const r2 = await fetch(base + "?versao=" + pub, { cache: "no-store" });
+      if (!r2.ok || Date.parse(r2.headers.get("last-modified") || "") !== pub) return;   // respondeu outra cópia do site: tenta depois
+      if (assinaturaApp(new DOMParser().parseFromString(await r2.text(), "text/html")) === versaoApp.assin) { versaoApp.aberta = pub; return; }
+      versaoApp.nova = pub;
+    }
+    let desde = Infinity;                          // recarregou por versão nova há pouco (a página pode ter vindo da cópia)
+    try { const q = Number(sessionStorage.getItem("vpx_recarregou")); if (q) desde = Date.now() - q; } catch {}
+    if (sozinho && desde > 600000 && podeRecarregar()) { recarregarApp(); return; }
+    if (!cam && !document.body.classList.contains("entrada-on")) verVersao(true);   // na entrada o aviso cobriria o "Entrar"
+  } catch {} finally { conferirVersao.rodando = false; }
+}
+$("versao-atualizar").onclick = () => {
+  if (salvandoAlgo()) { aviso("Espere terminar de enviar e salvar para atualizar o app."); return; }
+  if (trabalhoAberto() && !confirm("Atualizar o app agora?\n\nO app vai recarregar. Se estiver preenchendo algo, termine antes.")) return;
+  recarregarApp();
+};
+$("versao-depois").onclick = () => verVersao(false);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { versaoApp.saiu = Date.now(); return; }
+  const fora = versaoApp.saiu ? Date.now() - versaoApp.saiu : 0;
+  if (fora >= 180000 || Date.now() - versaoApp.conferida >= 600000) conferirVersao(fora >= 180000);
+});
+window.addEventListener("online", () => conferirVersao(false));
+setInterval(() => { if (!document.hidden) conferirVersao(false); }, 1800000);
 try { navigator.storage?.persist?.(); } catch {}   // pede ao navegador para não apagar as fotos guardadas
 // cópia do app no celular, para abrir mesmo sem internet (sw.js)
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(e => console.error(e));
@@ -13048,7 +13185,7 @@ travarVertical(true);
     gravarLS("vpx_pediu_acesso", false);
   }
   if (conta) iniciarApp(); else mostrar("tela-login");
-})();
+})().finally(() => setTimeout(() => conferirVersao(true), 15000));   // versão nova: só depois do login resolvido
 </script>
 </body>
 </html>

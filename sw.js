@@ -16,13 +16,17 @@ const PRE = [
 ];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => Promise.all(PRE.map(u => c.add(u).catch(() => {})))));
+  // só o que ainda não está guardado (uma troca do sw.js não baixa de novo as bibliotecas; trocar o CACHE baixa tudo)
+  e.waitUntil(caches.open(CACHE).then(c => Promise.all(PRE.map(u => c.match(u).then(g => g || c.add(u)).catch(() => {})))));
   self.skipWaiting();
 });
 
 self.addEventListener("activate", e => {
   // apaga só as cópias antigas do app; "vpx-arquivos" (arquivos de clientes baixados para usar sem internet) fica
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== "vpx-arquivos" && k !== "vpx-normas").map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== "vpx-arquivos" && k !== "vpx-normas").map(k => caches.delete(k))))
+    // cópias da conferência de versão guardadas pelo sw.js anterior (ele guardava todo GET do site)
+    .then(() => caches.open(CACHE)).then(c => c.keys().then(rs => Promise.all(rs.filter(r => new URL(r.url).searchParams.has("versao")).map(r => c.delete(r)))))
+    .then(() => self.clients.claim()));
 });
 
 self.addEventListener("fetch", e => {
@@ -33,6 +37,7 @@ self.addEventListener("fetch", e => {
   const externo = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)$/.test(url.hostname);
   if (!doApp && !externo) return;
   if (doApp && url.pathname.includes("/it/")) return;   // ITs do CBM-BA: o próprio app guarda no cache "vpx-normas" (sem duplicar aqui)
+  if (doApp && url.searchParams.has("versao")) return;  // conferência de versão nova do app: sempre da internet, sem guardar cópia
   if (req.mode === "navigate") e.respondWith(paginaRedePrimeiro(req));
   else e.respondWith(copiaPrimeiro(req));
 });

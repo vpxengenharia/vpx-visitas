@@ -11,8 +11,8 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 ## 1. O que o app faz hoje
 
 ### Navegação
-- **Barra de baixo (celular)** com 5 seções: **Início · Clientes · Registros · Agenda · Mais**. No Mais ficam o Financeiro, as ITs, a Administração e a conta.
-- **No computador** a barra vira um menu lateral **sem o Mais** (desde 06/11/2026): **Início · Clientes · Registros · Agenda · Financeiro · ITs do CBM-BA · Administração** e, embaixo, a conta com **Sair da conta**.
+- **Barra de baixo (celular)** com 5 seções: **Início · Clientes · Registros · Agenda · Mais**. No Mais ficam o Financeiro, **Tarefas e Funil comercial** (desde 07/11/2026), as ITs, a Administração e a conta.
+- **No computador** a barra vira um menu lateral **sem o Mais** (desde 06/11/2026): **Início · Clientes · Registros · Agenda · Tarefas · Funil comercial · Financeiro · ITs do CBM-BA · Administração** e, embaixo, a conta com **Sair da conta**.
 - **Topo:** a logo da VPX no centro e o aviso "⏳ X na fila" quando há envios pendentes.
 - **Início:**
   - saudação;
@@ -86,6 +86,8 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 - **Orçamentos (desde 05/11/2026):** todos os orçamentos de todos os clientes numa tabela, como planilha (Registros › Orçamentos, ou a página do cliente): número, cliente, tipo, **valor** e data, lidos de dentro de cada PDF. Busca, filtros por período e tipo, ordem tocando no título da coluna, total do que está filtrado, abrir o PDF, **compartilhar com o cliente** (WhatsApp, e-mail…), abrir a planilha e exportar para Excel. Só aparece para quem tiver a função "Orçamentos" liberada na Administração (o administrador vê sempre). Os valores lidos ficam em `VPX Visitas - Configuração/orcamentos.json`, para os outros aparelhos não precisarem baixar os PDFs.
 - **Notas fiscais (desde 06/11/2026):** todas as notas emitidas aos clientes numa tabela como a dos orçamentos (Registros › Notas fiscais, ou a página do cliente): número, cliente, orçamento, valor e emissão, com busca, filtros por período e situação (canceladas, ISS retido, com boleto, nacionais, antigas), total sem as canceladas e exportação para Excel. Entram as **antigas da Nota Salvador** (NF 090 a 245; são imagens, lidas pela leitura de imagem do próprio app) e as **nacionais (NFS-e)**, com os **boletos** ligados pelo número da nota. Cada nota tem "Enviar nota e boleto ao cliente" (WhatsApp, e-mail…) e, para o administrador, "Corrigir os dados". **"+ Nova nota fiscal":** escolher o PDF da nota, o app preenche tudo, juntar o boleto e salvar na pasta `06 - Comercial › 04 - Notas Fiscais e Boletos` com o nome no padrão (`NF 007 - C1034.pdf`); o boleto `NFxxx` da mesma parcela, se já estiver na pasta, ganha o número da nota. Só aparece para quem tiver a função "Notas fiscais" (o administrador vê sempre). Os dados lidos e as correções ficam em `VPX Visitas - Configuração/notas-fiscais.json`.
 - **Ficha do cliente (desde 06/11/2026):** dados e contatos de cada cliente (síndico, administradora, zelador, portaria, financeiro…), com **Ligar, WhatsApp e E-mail** num toque. Aparece na página do cliente (os 2 primeiros contatos), no atalho "Contatos" dos formulários e no detalhe da OS. Dados: razão social, CNPJ/CPF, tipo, endereço (abre no mapa), acesso e observações. A busca da aba Clientes também acha o cliente pelo nome do contato, telefone, e-mail ou CNPJ, e no fim da aba Clientes dá para exportar os contatos de todos para o Excel. Fica em `02 - Clientes › 00 - Fichas dos Clientes` (um arquivo por cliente) e dá para ver sem internet; para salvar precisa de internet. Toda a equipe vê e edita (função "Ficha do cliente", já liberada no perfil padrão e para a equipe de campo).
+- **Tarefas e funil comercial (desde 07/11/2026):** como no monday.com, mais simples. Tarefas da equipe em lista ou quadro (responsáveis, prazo, prioridade, subtarefas e comentários) e o funil com as etapas do monday, valores, registro de ligações e tarefas de cada oportunidade (o que estava no monday foi importado). No celular ficam no **Mais**, em **Registros** e no **Início**; no computador, no menu lateral. O funil só aparece para quem o Gustavo liberar (tem os valores).
+- **Versão nova do app (desde 08/11/2026):** o app confere sozinho se há versão nova publicada (ao abrir, ao voltar para ele e a cada 30 min). Se a pessoa está no Início, em Registros ou no Mais, sem nada aberto nem em andamento, ele recarrega na hora; nas outras telas aparece embaixo "Há uma versão nova do app" com o botão **Atualizar**. Publicar só as anotações não conta como versão nova.
 - **ITs do CBM-BA:** funcionam sem internet, com busca por palavra.
 - **Arquivos e histórico do cliente.**
 - **Visualizador de PDF:** zoom e arrasto com a pinça dos dedos.
@@ -124,6 +126,7 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 ## 3. O que falta / pendências
 
 ### Testar no celular (feito só no navegador do computador, sem login)
+- **Versão nova sozinha (08/11/2026):** fechar e abrir o app uma vez no celular; depois de uma próxima publicação, deixar o app no Início, sair por uns minutos e voltar (ele deve recarregar sozinho), ou ver o aviso "Atualizar" nas outras telas. Testado só com publicações simuladas; conferir no iPhone e no Android.
 - **Versão para computador:** abrir no Chrome do PC com o login real e passar pelas telas (testada só com dados de exemplo).
 - **Ordens de serviço** com OneDrive real: criar, pegar, executar e ver a baixa automática. Também conferir se a pasta `00 - Ordens de Serviço` foi criada.
 - **Extintores e mangueiras:** primeiro cadastro real. Conferir se a pasta `00 - Extintores e Mangueiras` foi criada.
@@ -168,4 +171,4 @@ Resumo em 18/10/2026. Detalhes técnicos de cada função estão no `CLAUDE.md`.
 ## 4. Como publicar uma mudança
 1. Fazer a mudança num ramo separado e testar no navegador (tamanho de celular).
 2. Juntar no `main` e enviar para o GitHub. O site atualiza em 1 a 2 minutos.
-3. Nos celulares: fechar e abrir o app para pegar a versão nova.
+3. Nos celulares o app pega a versão nova sozinho (ao abrir, ao voltar para ele depois de uns minutos, ou pelo aviso "Atualizar"). Celular com o app aberto antes de 08/11/2026: fechar e abrir o app uma última vez.
