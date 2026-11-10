@@ -1230,6 +1230,34 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 @media (prefers-color-scheme:dark) and (hover:none){
   .btn:active,.hub-tile:active,.hub-card:active,.hub-linha:active,.cli-ac:active,.os-card:active,.tar-card:active,.fu-card:active,.ag-ev:active,.arq-item:active,.item:active,.cliente:active,.chips button:active,.li-st button:active,.li-foto:active,.li-obs-btn:active,.avcb-qt:active,.avcb-voltar:active,.hub-voltar:active,.trab-voltar:active,.laudo-tipos button:active,.tipos button:active{filter:brightness(1.25)}
 }
+/* ===== Pacote 3 da revisão de design (aprovado pelo Gustavo em 10/11/2026): organização das telas ===== */
+/* celular: os filtros e os números do resumo ficam numa linha só, que rola de lado (a lista começa mais em cima);
+   na Validade AVCB, Fotografar, Galeria e PDF numa linha só */
+@media (max-width:599px){
+  .chips.avcb-filtro,#avcb-resumo{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+  .chips.avcb-filtro::-webkit-scrollbar,#avcb-resumo::-webkit-scrollbar{display:none}
+  .chips.avcb-filtro > *,#avcb-resumo > *{flex:none}
+  .chips.avcb-filtro{gap:6px}
+  .chips.avcb-filtro button{padding:6px 11px}   /* sobra um pedaço do chip seguinte: dá para ver que a linha rola */
+  .avcb-acoes .ic.in{width:22px;height:22px;margin:0}
+  .avcb-acoes{grid-template-columns:1.25fr 1fr 1fr}
+  .avcb-acoes .btn,.avcb-acoes .btn.prim{grid-column:auto;flex-direction:column;gap:2px;min-height:64px;padding:6px 4px;font-size:15px;line-height:1.15;text-align:center}
+}
+/* página do cliente: "Novo para este cliente" logo abaixo do nome, em quadrados mais baixos */
+.hub-grade.compacta{gap:8px;margin-bottom:6px}
+.hub-grade.compacta .hub-tile{min-height:72px;padding:8px 4px;gap:4px;font-size:14px}
+/* Início: atalho para fotografar e clientes recentes */
+.ini-atalho{width:100%;margin:0 0 10px}
+.ini-recentes{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -18px 12px;padding:0 18px;align-items:center}
+.ini-recentes::-webkit-scrollbar{display:none}
+.ini-recentes p{flex:none;flex-basis:auto;margin:0 2px 0 0}
+.ini-recentes button{flex:none;max-width:240px}
+/* Início: os avisos gerais (AVCB, extintores) ficam em cartão branco com o número colorido; o fundo vermelho fica para o que é da pessoa e de hoje */
+.hub-card.alerta.crit,.hub-card.alerta.warn,.hub-card.alerta.okv{background:var(--papel);border-color:var(--linha);color:var(--tinta)}
+.hub-card.alerta.okv b{color:var(--okv-tx)}
+.hub-card.alerta.crit b{color:var(--crit-tx)}
+.hub-card.alerta.warn b{color:var(--warn-tx)}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){.ini-recentes{flex-wrap:wrap;margin:0 0 12px;padding:0}.ini-atalho{width:fit-content;padding:0 28px}}
 </style>
 </head>
 <body>
@@ -2358,7 +2386,7 @@ async function criarCliente(nome) {
 // clientes recentes na tela principal (sem cliente escolhido): um toque escolhe, sem abrir a lista
 function desenharRecentes() {
   const caixa = $("recentes");
-  const rec = cliente || ehComp() ? [] : lerLS("vpx_recentes", []).filter(c => clientes.includes(c));
+  const rec = cliente || ehComp() ? [] : lerLS("vpx_recentes", []).filter(c => clientes.includes(c)).slice(0, 4);   // no formulário só 4 (a lista quebra em linhas)
   caixa.hidden = !rec.length;
   caixa.innerHTML = "";
   if (!rec.length) return;
@@ -2368,7 +2396,7 @@ function desenharRecentes() {
 
 function escolher(nome) {
   if (nome && clientes.includes(nome)) {
-    const rec = [nome, ...lerLS("vpx_recentes", []).filter(c => c !== nome)].slice(0, 4);
+    const rec = [nome, ...lerLS("vpx_recentes", []).filter(c => c !== nome)].slice(0, 8);
     gravarLS("vpx_recentes", rec);
   }
   if (escolhaCliente && $("dlg").open) { const f = escolhaCliente; escolhaCliente = null; $("dlg").close(); f(nome); return; }
@@ -12497,6 +12525,21 @@ function desenharInicio() {
       esq.appendChild(b);
     });
   }
+  // atalho para o trabalho mais comum do campo (eram 5 toques a partir do Início) e os clientes recentes (aprovado pelo Gustavo em 10/11/2026)
+  if (pode("visita")) {
+    const b = comIc(el("button", "btn prim ini-atalho"), "camera", "Fotografar visita"); b.type = "button";
+    b.onclick = () => abrirTrabalho("visita");
+    if (computador.matches) t.insertBefore(b, esq.parentNode); else esq.appendChild(b);   // no computador, acima das duas colunas
+  }
+  {
+    const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c)).slice(0, 8);
+    if (rec.length) {
+      const cx = el("div", "recentes ini-recentes");
+      cx.appendChild(el("p", "", "Recentes:"));
+      rec.forEach(c => { const b = el("button", "", c); b.type = "button"; b.onclick = () => abrirCliente(c); cx.appendChild(b); });
+      if (computador.matches) t.insertBefore(cx, esq.parentNode); else esq.appendChild(cx);
+    }
+  }
   const temEq = pode("equip") && Object.keys(eqDados).length;
   const partes = [pode("os") && "ordens de serviço", podeVerTarefas() && "tarefas", (pode("avcb") || temEq) && "avisos"].filter(Boolean);
   if (computador.matches && partes.length) { const s = partes.length > 1 ? partes.slice(0, -1).join(", ") + " e " + partes.at(-1) : partes[0]; esq.appendChild(el("p", "hub-rot", s[0].toUpperCase() + s.slice(1))); }
@@ -12518,6 +12561,7 @@ function desenharInicio() {
     if (urg) b.appendChild(el("small", "", "Há OS urgente ou atrasada"));
     b.onclick = () => abrirOS();
     esq.appendChild(b);
+    [...minhas.sort(ordemOS), ...fila.filter(o => !minhas.includes(o)).sort(ordemOS)].slice(0, 3).forEach(o => esq.appendChild(cartaoOS(o, () => abrirOS({ aberta: o.numero }))));   // quais são, sem abrir a lista
   }
   // tarefas com a pessoa: quantas, atrasadas e as próximas (pedido do Gustavo em 07/11/2026)
   if (podeVerTarefas()) {
@@ -12560,7 +12604,7 @@ function desenharInicio() {
   if (pode("avcb")) {
     const sts = listaAvcb().filter(v => v.categoria === "cliente").map(situacaoAvcb);
     const venc = sts.filter(s => s.cls === "crit").length, logo = sts.filter(s => s.cls === "warn").length;
-    const b = el("button", "hub-card " + (venc ? "crit" : logo ? "warn" : "okv")); b.type = "button";
+    const b = el("button", "hub-card alerta " + (venc ? "crit" : logo ? "warn" : "okv")); b.type = "button";
     b.appendChild(el("b", "", venc || logo ? [venc && `${venc} AVCB${venc > 1 ? "s" : ""} vencido${venc > 1 ? "s" : ""}`, logo && `${logo} vence${logo > 1 ? "m" : ""} em até 90 dias`].filter(Boolean).join(" · ") : "AVCBs dos clientes em dia"));
     b.appendChild(el("small", "", "Validade AVCB / CLCB"));
     b.onclick = abrirAvcb;
@@ -12570,7 +12614,7 @@ function desenharInicio() {
   if (temEq) {
     const sits = Object.keys(eqDados).map(sitCliente).filter(Boolean);
     const venc = sits.filter(s => s === "crit").length, logo = sits.filter(s => s === "warn").length;
-    const b = el("button", "hub-card " + (venc ? "crit" : logo ? "warn" : "okv")); b.type = "button";
+    const b = el("button", "hub-card alerta " + (venc ? "crit" : logo ? "warn" : "okv")); b.type = "button";
     b.appendChild(el("b", "", venc || logo ? [venc && `${venc} cliente${venc > 1 ? "s" : ""} com extintor ou mangueira vencido`, logo && `${logo} com vencimento em 60 dias`].filter(Boolean).join(" · ") : "Extintores e mangueiras dos clientes em dia"));
     b.appendChild(el("small", "", "Extintores e mangueiras"));
     b.onclick = () => { eqvFiltro = venc ? "crit" : logo ? "warn" : "todos"; abrirEqv(); };
@@ -12759,7 +12803,11 @@ async function exportarClientes() {
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
-function abrirCliente(c, de = null) { cliPagina = c; cliDe = de; irPara("cliente"); }   // de "avcb": aberta pela tabela de validade AVCB
+function abrirCliente(c, de = null) {
+  cliPagina = c; cliDe = de;
+  if (clientes.includes(c)) gravarLS("vpx_recentes", [c, ...lerLS("vpx_recentes", []).filter(x => x !== c)].slice(0, 8));
+  irPara("cliente");
+}   // de "avcb": aberta pela tabela de validade AVCB
 // usa as telas que já existem (arquivos, pasta técnica, histórico) para o cliente da página
 function comCliente(c, fn) { const ant = cliente; cliente = c; try { fn(); } finally { cliente = ant; } }
 function desenharPaginaCliente() {
@@ -12769,17 +12817,16 @@ function desenharPaginaCliente() {
   t.append(v, el("h1", "hub-tit", c));
   const av = avcbDoCliente(c);
   if (av) { const s = situacaoAvcb(av); t.appendChild(el("p", "avcb-aviso " + s.cls, (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto)); }
+  // ordem da página (aprovada pelo Gustavo em 10/11/2026): o que o campo usa primeiro — novo registro, contatos, pendências —,
+  // depois as consultas, o aviso ao cliente e o funil (antes "Novo para este cliente" ficava no fim de uma página de várias telas)
+  const modos = MODOS_APP.filter(([m]) => m !== "comp" && pode(m));
+  if (modos.length) {
+    t.appendChild(el("p", "hub-rot", "Novo para este cliente"));
+    const g2 = el("div", "hub-grade compacta");
+    modos.forEach(([m, ico, nome]) => g2.appendChild(tile(ico, nome, () => abrirTrabalho(m, c))));
+    t.appendChild(g2);
+  }
   if (pode("ficha")) { t.appendChild(resumoFicha(c)); sincronizarFichas(); }   // contatos com Ligar e WhatsApp (pedido do Gustavo em 06/11/2026)
-  const g = el("div", "hub-grade");
-  if (pode("arquivos")) g.appendChild(tile("pasta", "Arquivos", () => comCliente(c, abrirArquivos)));
-  if (pode("pastaTec")) g.appendChild(tile("pastatec", "Pasta técnica", () => comCliente(c, abrirPastaTec)));
-  if (pode("hist")) g.appendChild(tile("historico", "Histórico", () => comCliente(c, abrirHistorico)));
-  if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", () => abrirEq(c)));
-  if (pode("laudo")) g.appendChild(tile("salvo", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
-  if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos(c)));   // a lista de todos, já buscando este cliente
-  if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas(c)));             // idem, notas fiscais
-  if (g.children.length) { g.style.marginTop = "12px"; if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
-  if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
   // ordens de serviço abertas deste cliente e "Nova OS"
   if (pode("os")) {
     const abertas = Object.values(osDados).filter(o => o.cliente === c && (o.status === "aberta" || o.status === "andamento")).sort(ordemOS);
@@ -12795,16 +12842,19 @@ function desenharPaginaCliente() {
     if (tCli.length > 5) { const m = el("button", "laudo-link", `Ver as ${tCli.length} tarefas deste cliente`); m.type = "button"; m.onclick = () => abrirTar({ filtro: "todas", busca: c }); t.appendChild(m); }
     if (pode("tarefas")) { const n = comIc(el("button", "btn sec"), "tarefas", "Nova tarefa para este cliente"); n.type = "button"; n.style.width = "100%"; n.onclick = () => abrirTar({ nova: { cliente: c } }); t.appendChild(n); }
   }
+  const g = el("div", "hub-grade");
+  if (pode("arquivos")) g.appendChild(tile("pasta", "Arquivos", () => comCliente(c, abrirArquivos)));
+  if (pode("pastaTec")) g.appendChild(tile("pastatec", "Pasta técnica", () => comCliente(c, abrirPastaTec)));
+  if (pode("hist")) g.appendChild(tile("historico", "Histórico", () => comCliente(c, abrirHistorico)));
+  if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", () => abrirEq(c)));
+  if (pode("laudo")) g.appendChild(tile("salvo", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
+  if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos(c)));   // a lista de todos, já buscando este cliente
+  if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas(c)));             // idem, notas fiscais
+  if (g.children.length) { t.appendChild(el("p", "hub-rot", "Documentos e controles")); if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
+  if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
   if (pode("funil")) {
     const ops = oportunidades().filter(o => o.cliente === c).sort((a, b) => (b.atualizado || "").localeCompare(a.atualizado || ""));
     if (ops.length) { t.appendChild(el("p", "hub-rot", "Funil comercial")); ops.slice(0, 5).forEach(o => t.appendChild(cartaoFu(o, { etapa: true, abrir: () => abrirFunil({ aberta: o.id }) }))); }
-  }
-  const modos = MODOS_APP.filter(([m]) => m !== "comp" && pode(m));
-  if (modos.length) {
-    t.appendChild(el("p", "hub-rot", "Novo para este cliente"));
-    const g2 = el("div", "hub-grade");
-    modos.forEach(([m, ico, nome]) => g2.appendChild(tile(ico, nome, () => abrirTrabalho(m, c))));
-    t.appendChild(g2);
   }
 }
 
@@ -12814,16 +12864,20 @@ function desenharReg() {
   t.appendChild(el("h1", "hub-tit", "Registros"));
   const modos = MODOS_APP.filter(([m]) => pode(m));
   if (!modos.length && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc") && !pode("nf") && !podeVerTarefas() && !pode("funil")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
-  const g = el("div", "hub-grade");
+  // três grupos com título, na mesma ordem de antes (aprovado pelo Gustavo em 10/11/2026): filas de trabalho, novo registro, consultas e controles
+  let g = el("div", "hub-grade");
+  const grupo = titulo => { if (g.children.length) { g.classList.add("compacta"); t.appendChild(el("p", "hub-rot", titulo)); t.appendChild(g); } g = el("div", "hub-grade"); };   // quadrados mais baixos: os três grupos cabem numa tela
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   if (podeVerTarefas()) g.appendChild(tile("tarefas", "Tarefas", () => abrirTar()));             // como no monday (pedido do Gustavo em 07/11/2026)
   if (pode("funil")) g.appendChild(tile("funil", "Funil comercial", () => abrirFunil()));
+  grupo("Filas de trabalho");
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
+  grupo("Novo registro");
   if (pode("avcb")) g.appendChild(tile("escudo", "Validade AVCB / CLCB", abrirAvcb));   // saiu do Mais (pedido do Gustavo em 19/10/2026)
   if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", abrirEqv));   // vencimentos de todos os clientes; saiu do Mais (pedido do Gustavo em 19/10/2026)
   if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos()));   // de todos os clientes (pedido do Gustavo em 05/11/2026)
   if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas()));              // emitidas para os clientes (pedido do Gustavo em 06/11/2026)
-  t.appendChild(g);
+  grupo("Consultas e controles");
 }
 
 // Financeiro (dentro de Mais, ou pelo quadrado Comprovante em Registros): comprovantes (total do mês) e pedidos
@@ -13368,6 +13422,16 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("online", () => conferirVersao(false));
 setInterval(() => { if (!document.hidden) conferirVersao(false); }, 1800000);
+// filtros numa linha que rola de lado (celular): a tela é redesenhada a cada toque e a linha voltava ao começo, escondendo o chip marcado
+function mostrarChipMarcado(ch) {
+  const p = ch.querySelector('[aria-pressed="true"]'); if (!p) return;
+  const d = p.getBoundingClientRect().right + 16 - ch.getBoundingClientRect().right;
+  if (d > 0) ch.scrollLeft += d;
+}
+{
+  const olhar = new MutationObserver(() => document.querySelectorAll(".chips.avcb-filtro").forEach(mostrarChipMarcado));
+  ["os-corpo", "fu-grupos", "tar-filtro"].forEach(id => olhar.observe($(id), { childList: true }));
+}
 document.addEventListener("touchstart", () => {}, { passive: true });   // iPhone: sem um ouvinte de toque, o :active (botão que escurece ao tocar) não aparece
 try { navigator.storage?.persist?.(); } catch {}   // pede ao navegador para não apagar as fotos guardadas
 // cópia do app no celular, para abrir mesmo sem internet (sw.js)
