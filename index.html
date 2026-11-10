@@ -1335,6 +1335,29 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
   .hub .hub-lista{box-shadow:none}               /* no computador a lista é só a grade dos cartões */
   .hub .hub-lista .hub-linha{border:1px solid var(--linha-cartao);border-radius:var(--r-l);box-shadow:var(--sombra-1)}
 }
+/* ===== Uso mais fluido (pacote B da 2ª análise da interface, aprovado pelo Gustavo em 10/11/2026) ===== */
+html,body{overscroll-behavior-y:contain}          /* Android: puxar a tela para baixo não recarrega mais o app por engano */
+.avcb-corpo{overscroll-behavior:contain}
+/* título da tarefa e da oportunidade: cresce com o texto (antes cortava) */
+textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
+/* quadro: o título do cartão usa a largura toda e o selo da situação fica embaixo */
+.kb .tar-l1{flex-wrap:wrap}.kb .tar-tit{order:-1;flex-basis:100%;padding-top:0}
+/* contato: os três botões cabem sem encostar na borda */
+@media not all and (min-width:900px) and (hover:hover) and (pointer:fine){.fc-bt{flex:1 1 auto;padding:0 6px}}
+.btn-arq{align-items:center}
+/* letras que são lidas: no mínimo 13 px */
+.orc-sub,.avcb-c-sit small,.pc-l3,.adm-tag,.li-serv-rot,.fu-tab .fu-n small,.avcb-card .cat,.avcb-card .l4,.nf-serie,.its-res small{font-size:13px}
+/* lista vazia: ícone, o que falta e o próximo passo */
+.vazio{display:flex;flex-direction:column;align-items:center;gap:6px;padding:28px 16px 12px;text-align:center;color:var(--suave)}
+.vazio b{font-size:17px;color:var(--tinta)}.vazio small{font-size:15px;max-width:34ch}
+/* Agenda: deslizar o dedo no calendário troca de mês */
+.ag-cal{touch-action:pan-y}
+@media (prefers-reduced-motion:no-preference){
+  @keyframes ag-lado{from{opacity:0;transform:translateX(var(--dx,0))}}
+  .ag-cal.ag-entra{animation:ag-lado .16s ease-out}
+  @keyframes selo-entra{from{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}}
+  #tela-ok:not([hidden]) .selo{animation:selo-entra .34s ease-out}
+}
 </style>
 </head>
 <body>
@@ -1474,7 +1497,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
       <button role="tab" id="aba-comp" aria-selected="false">Comprovantes</button>
     </div>
     <div id="form-comp" hidden>
-      <button class="btn-arq ch-abrir" id="btn-comphist" type="button"><span><svg class="ic in" aria-hidden="true"><use href="#i-historico"/></svg>Histórico de comprovantes</span><small>enviados</small></button>
+      <button class="btn-arq ch-abrir" id="btn-comphist" type="button"><span><svg class="ic in" aria-hidden="true"><use href="#i-historico"/></svg>Histórico de comprovantes</span></button>
       <div class="tipos">
         <button id="tipo-compra" aria-pressed="false">Compra<small>nota fiscal</small></button>
         <button id="tipo-reembolso" aria-pressed="false">Reembolso<small>gasto pago por você</small></button>
@@ -1890,6 +1913,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
   <p id="perg-titulo"></p>
   <p id="perg-texto" class="perg-texto" hidden></p>
   <label class="campo" id="perg-campo-rot" hidden><span id="perg-campo-nome"></span><textarea id="perg-campo" rows="2" maxlength="300"></textarea></label>
+  <div id="perg-campos"></div>
   <div class="env-acoes perg-acoes"><button class="btn prim" id="perg-sim" type="button"></button><button class="btn sec" id="perg-nao" type="button"></button></div>
 </dialog>
 
@@ -2255,20 +2279,32 @@ function aviso(msg, erro = false, acao = null) {
 function fecharAviso() { clearTimeout(aviso.t); $("aviso").className = "aviso"; }
 
 // pergunta numa janela do próprio app, com botões que dizem o que fazem ("Sim, cancelar a OS" / "Não, manter a OS").
-// Devolve null (desistiu) ou { valor } (texto do campo opcional). O "voltar" do celular e o Esc desistem: a pergunta
+// Devolve null (desistiu) ou { valor, campos } (valor = texto do campo opcional; campos = { id: valor } dos campos pedidos em
+// "campos": [{ id, rotulo, tipo: "data" | "valor" | "texto", valor, dica }] — a data usa o calendário do aparelho e volta AAAA-MM-DD). O "voltar" do celular e o Esc desistem: a pergunta
 // guarda um passo no histórico e só responde quando esse passo sai (popstate), para o que está embaixo não fechar junto.
 let pergAtual = null;
-function perguntar({ titulo, texto = "", campo = "", sim, nao = "Voltar", perigo = false }) {
+function perguntar({ titulo, texto = "", campo = "", campos = [], sim, nao = "Voltar", perigo = false }) {
   return new Promise(ok => {
     if (pergAtual) { ok(null); return; }
     $("perg-titulo").textContent = titulo;
     $("perg-texto").textContent = texto; $("perg-texto").hidden = !texto;
     $("perg-campo-rot").hidden = !campo; $("perg-campo-nome").textContent = campo; $("perg-campo").value = "";
+    const cx = $("perg-campos"); cx.innerHTML = "";
+    for (const c of campos) {
+      const l = el("label", "campo"); l.appendChild(el("span", "", c.rotulo));
+      const i = document.createElement("input"); i.dataset.id = c.id;
+      if (c.tipo === "data") { i.type = "date"; i.min = "2000-01-01"; i.max = "2100-12-31"; }   // digitada no computador: ano com 2 dígitos virava o ano 0027
+      else { i.type = "text"; i.autocomplete = "off"; i.maxLength = c.max || 80; if (c.tipo === "valor") i.inputMode = "decimal"; }
+      i.value = c.valor || ""; if (c.dica) i.placeholder = c.dica;
+      i.onkeydown = e => { if (e.key === "Enter" && !e.repeat) { e.preventDefault(); $("perg-sim").click(); } };   // tecla presa (o Enter que abriu a janela) não confirma
+      l.appendChild(i); cx.appendChild(l);
+    }
     $("perg-sim").textContent = sim; $("perg-sim").classList.toggle("perigo", perigo); $("perg-nao").textContent = nao;
     pergAtual = { ok, resp: null };
     history.pushState({ ...(history.state || {}), perg: true }, "");
     $("dlg-perg").showModal();
-    $("perg-nao").focus();                         // o foco começa no botão que não muda nada
+    // o foco começa no botão que não muda nada; no computador, a janela de preencher começa no 1º campo (como era na caixinha do navegador)
+    ((campos.length && !perigo && computador.matches && cx.querySelector("input")) || $("perg-nao")).focus();
   });
 }
 function fecharPergunta(resp) {
@@ -2280,9 +2316,17 @@ function concluirPergunta() {                      // chamada pelo popstate (o p
   const p = pergAtual; if (!p) return;
   pergAtual = null;
   if ($("dlg-perg").open) $("dlg-perg").close();
-  p.ok(p.resp);
+  setTimeout(() => p.ok(p.resp), 0);               // responde depois que o navegador repõe a rolagem do passo do histórico (senão ele desfaz o scrollTo(0, 0) de quem perguntou)
 }
-$("perg-sim").onclick = () => fecharPergunta({ valor: $("perg-campo").value.trim() });
+$("perg-sim").onclick = () => {
+  const ins = [...$("perg-campos").querySelectorAll("input")];
+  // data digitada pela metade (o navegador devolve vazio, que viraria "sem data") ou com ano fora de 2000-2100: não responde; o navegador mostra o balão no campo
+  const ruim = ins.find(i => i.type === "date" && !i.checkValidity());
+  if (ruim) { ruim.reportValidity(); return; }
+  fecharPergunta({ valor: $("perg-campo").value.trim(), campos: Object.fromEntries(ins.map(i => [i.dataset.id, i.value.trim()])) });
+};
+// pergunta antes de apagar algo: botão vermelho que diz o que faz; devolve true só se a pessoa confirmar
+const confirmarApagar = async (titulo, texto, sim, nao = "Voltar") => !!(await perguntar({ titulo, texto, sim, nao, perigo: true }));
 $("perg-nao").onclick = () => fecharPergunta(null);
 $("dlg-perg").addEventListener("cancel", e => { e.preventDefault(); fecharPergunta(null); });
 function mostrar(tela) {
@@ -2305,6 +2349,44 @@ function encPath(p) { return p.split("/").filter(Boolean).map(encodeURIComponent
 function lerLS(k, padrao) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch { return padrao; } }
 function gravarLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 const espera = ms => new Promise(r => setTimeout(r, ms));
+const vibrar = p => { try { navigator.vibrate?.(p); } catch {} };   // só Android; o iPhone não vibra por site
+// lista → item → lista (Tarefas, Funil, OS, Pedidos, Notas): guarda a rolagem da lista ao abrir um item e repõe ao voltar
+// (antes a lista voltava ao começo; só a aba Clientes guardava o ponto)
+const rolLista = {};
+function guardarRol(tela) { const c = $(tela).querySelector(".avcb-corpo"); rolLista[tela] = { y: c.scrollTop, xs: [...c.querySelectorAll(".kb")].map(k => k.scrollLeft) }; }
+function reporRol(tela) {
+  const r = rolLista[tela]; if (!r) return; delete rolLista[tela];
+  const c = $(tela).querySelector(".avcb-corpo"); c.scrollTop = r.y;
+  c.querySelectorAll(".kb").forEach((k, i) => { k.scrollLeft = r.xs[i] || 0; });
+}
+// redesenho pedido por gravação/sincronização: o quadro (Tarefas, Funil) continua na coluna em que estava
+function manterQuadro(tela, desenhar) {
+  return () => {
+    const xs = [...$(tela).querySelectorAll(".kb")].map(k => k.scrollLeft);
+    desenhar();
+    $(tela).querySelectorAll(".kb").forEach((k, i) => { if (xs[i]) k.scrollLeft = xs[i]; });
+  };
+}
+// lista vazia: ícone, título e dica (sem emojis)
+function vazio(icone, titulo, dica) {
+  const w = el("div", "vazio"); w.append(icCaixa(icone), el("b", "", titulo));
+  if (dica) w.appendChild(el("small", "", dica));
+  return w;
+}
+// título que cresce com o texto (antes era uma linha só e cortava os títulos compridos); o Enter sai do campo
+function campoTitulo() {
+  const ti = el("textarea", "tar-tit-in"); ti.rows = 1;
+  const ajustar = () => { if (!ti.scrollHeight) return; ti.style.height = "auto"; ti.style.height = ti.scrollHeight + 3 + "px"; };
+  ti.addEventListener("input", () => { if (ti.value.includes("\n")) ti.value = ti.value.replace(/\s*\n\s*/g, " "); ajustar(); });
+  ti.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); ti.blur(); } });
+  ti.addEventListener("focus", ajustar);
+  ti.addEventListener("blur", () => setTimeout(ajustar, 0));   // título reposto pelo onchange (campo esvaziado) aparece inteiro
+  ti.ajustar = ajustar;
+  requestAnimationFrame(ajustar); setTimeout(ajustar, 400);   // de novo depois que a letra do título carrega
+  return ti;
+}
+// a largura mudou (janela do computador): o título quebra em outras linhas e a altura acompanha
+window.addEventListener("resize", () => document.querySelectorAll("textarea.tar-tit-in").forEach(x => x.ajustar?.()));
 
 /* ---------- fotos guardadas no celular (IndexedDB) ----------
    Cada foto/vídeo/PDF fica guardado assim que entra na lista, e só é apagado depois de chegar ao OneDrive.
@@ -3034,13 +3116,13 @@ const inspVazio = () => ({ ...laudoVazio("insp"), sist: [] });
 const defDe = l => l.tipo === "insp" ? { ...INSPECAO, secoes: INSPECOES.filter(s => (l.sist || []).includes(s.id)) } : LAUDOS[l.tipo];
 const ehInsp = (l = laudo) => l.tipo === "insp";
 
-function alternarSistema(id) {
+async function alternarSistema(id) {
   if (enviando) return;
   const s = INSPECOES.find(x => x.id === id);
   if (laudo.sist.includes(id)) {
     const prefixos = s.repetir ? (laudo.rep[id] || []) : [id];
     const chaves = Object.keys(laudo.r).filter(k => prefixos.some(p => k.startsWith(p + ".")));
-    if (chaves.length && !confirm(`Tirar "${s.titulo}" do relatório? O que foi preenchido nele será apagado.`)) return;
+    if (chaves.length && !(await confirmarApagar(`Tirar "${s.titulo}" do relatório?`, "O que foi preenchido nele será apagado.", "Tirar e apagar", "Manter"))) return;
     chaves.forEach(k => { (laudo.r[k].fotos || []).forEach(apagarFotoLaudo); delete laudo.r[k]; });
     Object.keys(laudo.med).filter(k => prefixos.some(p => k.startsWith(p + "."))).forEach(k => delete laudo.med[k]);
     delete laudo.rep[id];
@@ -3260,7 +3342,16 @@ function pintarDatas(cx = $("ld-datas")?.querySelector(".chips")) {
   cx.innerHTML = "";
   (laudo.datas || []).forEach(d => {
     const c = el("button", "", `${dataBRde(d)}  ×`); c.type = "button"; c.setAttribute("aria-label", `Tirar a data ${dataBRde(d)}`);
-    c.onclick = () => { if (!confirm(`Tirar a data ${dataBRde(d)}?`)) return; laudo.datas = laudo.datas.filter(x => x !== d); pintarDatas(cx); gravarLaudo(); };
+    c.onclick = () => {
+      const l = laudo;                               // o laudo/relatório de onde a data saiu
+      l.datas = l.datas.filter(x => x !== d); pintarDatas(cx); gravarLaudo();
+      aviso(`Data ${dataBRde(d)} tirada.`, false, { rotulo: "Desfazer", fn: () => {
+        if (rascunhos[chaveRasc(l)] !== l) return;   // foi descartado, reaberto, trocado de tipo ou virou PDF: não há onde repor
+        l.datas = [...new Set([...(l.datas || []), d])].sort();
+        gravarLS("vpx_" + chaveRasc(l), l);
+        if (l === laudo) pintarDatas(cx.isConnected ? cx : undefined);   // formulário refeito: pinta o quadro que está na tela
+      } });
+    };
     cx.appendChild(c);
   });
   if (!laudo.datas?.length) cx.appendChild(el("p", "laudo-dica", "A data de hoje entra sozinha quando você começar a preencher."));
@@ -3364,7 +3455,7 @@ async function reabrirLaudo(m) {
   if (enviando) return;
   const insp = ehInsp(m.laudo), qual = insp ? "relatório" : "laudo";
   if (laudo.id === m.laudo.id && laudo.tipo) { $("ld-salvos").hidden = true; aviso(`Este ${qual} já está aberto.`); return; }
-  if (laudo.tipo && laudoIniciado() && !confirm(`O ${qual} que está aberto neste celular será apagado. Para guardá-lo, toque antes em "Pausar e continuar depois" no fim do formulário. Continuar?`)) return;
+  if (laudo.tipo && laudoIniciado() && !(await confirmarApagar(`Abrir outro ${qual}?`, `O ${qual} que está aberto neste celular será apagado. Para guardá-lo, toque antes em "Pausar e continuar depois" no fim do formulário.`, "Apagar e abrir o outro"))) return;
   let fotosLd = {};
   if (todasFotosLaudo(m.laudo).length) {
     aviso("Baixando as fotos…");
@@ -3399,9 +3490,9 @@ async function reduzirFotoLaudo(arquivo) {
 }
 const todasFotosLaudo = (l = laudo) => Object.values(l.r).flatMap(x => x.fotos || []);
 
-function escolherTipoLaudo(t) {
+async function escolherTipoLaudo(t) {
   if (enviando || t === laudo.tipo) return;
-  if (laudo.tipo && laudoIniciado() && !confirm(`Trocar para ${LAUDOS[t].nome}? O que foi preenchido no ${defLaudo().nome} será apagado.`)) return;
+  if (laudo.tipo && laudoIniciado() && !(await confirmarApagar(`Trocar para ${LAUDOS[t].nome}?`, `O que foi preenchido no ${defLaudo().nome} será apagado.`, "Trocar e apagar", "Manter"))) return;
   todasFotosLaudo().forEach(apagarFotoLaudo);
   laudo = laudoVazio(t);
   for (const s of LAUDOS[t].secoes) if (s.repetir) laudo.rep[s.id] = [s.id + "#1"];
@@ -3412,10 +3503,10 @@ function limparLaudo() {
   laudo = ehInsp() ? inspVazio() : laudoVazio();
   gravarLaudo(); montarLaudo();
 }
-function descartarLaudo() {
+async function descartarLaudo() {
   const qual = ehInsp() ? "relatório" : "laudo";
-  if (!confirm(laudo.cli ? `Apagar deste celular o que foi preenchido neste ${qual}? A cópia salva na pasta do cliente (${rotuloSalvos()}) continua lá.`
-    : `Apagar tudo o que foi preenchido neste ${qual}?`)) return;
+  if (!(await confirmarApagar(`Descartar este ${qual}?`, laudo.cli ? `O que foi preenchido será apagado deste celular. A cópia salva na pasta do cliente (${rotuloSalvos()}) continua lá.`
+    : "Tudo o que foi preenchido será apagado.", `Apagar o ${qual}`, `Manter o ${qual}`))) return;
   limparLaudo(); atualizarBotao(); window.scrollTo(0, 0);
 }
 
@@ -3556,8 +3647,8 @@ function blocoRepetido(s, uid, n) {
   const topo = el("div", "laudo-bloco-topo");
   topo.appendChild(el("strong", "", `${s.repetir} ${n}`));
   const rm = el("button", "laudo-link perigo", "Remover"); rm.type = "button";
-  rm.onclick = () => {
-    if (!confirm(`Remover ${s.repetir.toLowerCase()} ${n} e o que foi preenchido nele?`)) return;
+  rm.onclick = async () => {
+    if (!(await confirmarApagar(`Remover ${s.repetir.toLowerCase()} ${n}?`, "O que foi preenchido nele será apagado.", "Remover", "Manter"))) return;
     s.itens.forEach(([id]) => { const k = chaveItem(uid, id); (laudo.r[k]?.fotos || []).forEach(apagarFotoLaudo); delete laudo.r[k]; });
     Object.keys(laudo.med).filter(k => k.startsWith(uid + ".")).forEach(k => delete laudo.med[k]);
     laudo.rep[s.id] = laudo.rep[s.id].filter(u => u !== uid);
@@ -3740,16 +3831,19 @@ function padAssinatura() {
     if (laudo.assin) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0, r.width, r.height); im.src = laudo.assin; }
   };
   requestAnimationFrame(preparar);
-  let ult = null;
+  let ult = null, traco = 0, xMin = Infinity, xMax = -Infinity;   // só vale como assinatura um traço de verdade: 120 px riscados e 40 px de largura
   const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-  cv.onpointerdown = e => { if (enviando) return; if (!cv.width) preparar(); cv.setPointerCapture(e.pointerId); ult = pos(e); };
+  let tSome = 0;
+  const zerar = () => { clearTimeout(tSome); cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); traco = 0; xMin = Infinity; xMax = -Infinity; };
+  if (laudo.assin) traco = 1e6;
+  cv.onpointerdown = e => { if (enviando) return; clearTimeout(tSome); if (!cv.width) preparar(); cv.setPointerCapture(e.pointerId); ult = pos(e); };
   cv.onpointermove = e => {
     if (!ult) return;
     const g = cv.getContext("2d"), p = pos(e);
-    g.beginPath(); g.moveTo(...ult); g.lineTo(...p); g.stroke(); ult = p;
+    g.beginPath(); g.moveTo(...ult); g.lineTo(...p); g.stroke(); traco += Math.hypot(p[0] - ult[0], p[1] - ult[1]); xMin = Math.min(xMin, ult[0], p[0]); xMax = Math.max(xMax, ult[0], p[0]); ult = p;
   };
-  cv.onpointerup = cv.onpointercancel = () => { if (!ult) return; ult = null; laudo.assin = cv.toDataURL("image/png"); mudouLaudo(); };
-  limpar.onclick = () => { laudo.assin = ""; cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); mudouLaudo(); };
+  cv.onpointerup = cv.onpointercancel = () => { if (!ult) return; ult = null; if (traco < 120 || (traco < 1e6 && xMax - xMin < 40)) { tSome = setTimeout(zerar, 2500); return; } laudo.assin = cv.toDataURL("image/png"); mudouLaudo(); };   // não vale: se a pessoa não continuar, some do quadro
+  limpar.onclick = () => { laudo.assin = ""; zerar(); mudouLaudo(); };
   return w;
 }
 
@@ -5010,11 +5104,26 @@ function atualizar() {
   if (cliente !== atualizar.cliSalvos || modo !== atualizar.modoSalvos) { atualizar.cliSalvos = cliente; atualizar.modoSalvos = modo; $("ld-salvos").hidden = true; }
   if (cliente !== atualizar.cliHist || comp !== atualizar.compHist) { atualizar.cliHist = cliente; atualizar.compHist = comp; atualizarResumoHist(); }   // resumo do histórico ao trocar de cliente
 
+  // a grade reaproveita os quadradinhos que já existem: só entram os novos, saem os removidos e muda a situação (✓, ⏳).
+  // Antes era refeita inteira a cada mudança (duas vezes por foto durante o envio) e as miniaturas piscavam.
   const g = $("grade");
-  g.innerHTML = "";
+  const chaveDe = f => [f.id, f.url || "", f.video ? f.capa || "" : "", f.dur || ""].join("|");
+  const validos = new Map(fotos.map(f => [String(f.id), chaveDe(f)]));
+  [...g.children].forEach(d => { if (validos.get(d.dataset.id) !== d.dataset.chave) d.remove(); });   // removidos e os que mudaram (ex.: chegou a capa do vídeo)
+  const atuais = new Map([...g.children].map(d => [d.dataset.id, d]));
   fotos.forEach((f, i) => {
-    const d = document.createElement("div");
     const rotulo = f.video ? "vídeo" : f.pdf ? "PDF" : "foto";
+    const pronto = atuais.get(String(f.id));
+    if (pronto) {
+      pronto.dataset.st = f.st;
+      pronto.querySelector(".num").textContent = i + 1;
+      pronto.querySelector("img")?.setAttribute("alt", `${rotulo} ${i + 1}`);
+      pronto.querySelector(".tirar").setAttribute("aria-label", `Remover ${rotulo} ${i + 1}`);
+      if (g.children[i] !== pronto) g.insertBefore(pronto, g.children[i] || null);
+      return;
+    }
+    const d = document.createElement("div");
+    d.dataset.id = f.id; d.dataset.chave = chaveDe(f);
     d.className = "foto" + (f.video ? " video" : "") + (f.pdf ? " pdf" : ""); d.dataset.st = f.st;
     d.innerHTML = `<img alt="${rotulo} ${i + 1}" loading="lazy"><span class="num">${i + 1}</span><button class="tirar" aria-label="Remover ${rotulo} ${i + 1}">×</button>`;
     const img = d.querySelector("img");
@@ -5029,7 +5138,7 @@ function atualizar() {
       d.prepend(t);
     } else img.src = f.url;
     d.querySelector(".tirar").onclick = () => remover(f.id);
-    g.appendChild(d);
+    g.insertBefore(d, g.children[i] || null);
   });
   $("semfotos").hidden = fotos.length > 0;
 
@@ -5037,11 +5146,12 @@ function atualizar() {
   const k = todosItens().filter(f => f.dest && f.st !== "ok").length;
   const qtd = `${k} ${k > 1 ? "itens" : "item"}`;
   $("fila").hidden = !k;
-  $("topo-fila").hidden = !k || !conta;            // aviso da fila no topo, visível em qualquer tela
-  $("topo-fila").textContent = enviandoFundo ? `⏳ Enviando ${k}` : `⏳ ${k} na fila`;
+  const semNet = !navigator.onLine;                // sem internet o aviso aparece mesmo sem nada a enviar (antes a pessoa só descobria ao tentar abrir algo)
+  $("topo-fila").hidden = !conta || (!k && !semNet);   // aviso no topo, visível em qualquer tela
+  $("topo-fila").textContent = semNet ? "Sem internet" : enviandoFundo ? `⏳ Enviando ${k}` : `⏳ ${k} a enviar`;   // "fila" fica só para as OS
   if (k) $("fila").textContent = enviandoFundo ? `⏳ Enviando ${qtd} da fila…`
     : !navigator.onLine ? `⏳ ${qtd} aguardando internet. ${k > 1 ? "Serão enviados" : "Será enviado"} sozinho${k > 1 ? "s" : ""} quando o sinal voltar, com o app aberto.`
-    : `⏳ ${qtd} na fila de envio. O app tenta de novo sozinho.`;
+    : `⏳ ${qtd} aguardando envio. O app tenta de novo sozinho.`;
   atualizarBotao();
 }
 
@@ -5410,11 +5520,13 @@ async function salvar() {
     $("ok-texto").textContent = ehLaudo
       ? "Sem internet agora: o laudo fica guardado no celular e vai para o OneDrive sozinho quando o sinal voltar. Você já pode ver e compartilhar o laudo."
       : "Sem internet agora: o relatório e as fotos ficam guardados no celular e vão para o OneDrive sozinhos quando o sinal voltar. Você já pode ver e compartilhar o relatório.";
+    vibrar(45);                                    // ficou guardado no celular para enviar depois
     mostrar("tela-ok");
     return;
   }
   if (r.pendentes || r.erros) {
     const falhas = fila.filter(f => f.st !== "ok");
+    vibrar(r.semAcesso ? [60, 40, 60] : 45);
     if (r.semAcesso) aviso(`Sem acesso à pasta "${CONFIG.comprovantesNome}". Peça para ela ser compartilhada com você com permissão de edição. Os comprovantes ficam guardados no celular.`, true);
     else if (!r.erros) aviso(`Sem internet. Está tudo guardado no celular (${descrever(falhas)}) e o envio será feito sozinho quando o sinal voltar.`, "espera");
     else aviso(`Não foi possível enviar agora (${descrever(falhas)}). Está tudo guardado no celular e o app tenta de novo sozinho.`, "espera");
@@ -5433,6 +5545,7 @@ async function salvar() {
     + (relatorio?.servicos ? `. Lista de ${relatorio.servicos} serviço${relatorio.servicos > 1 ? "s" : ""} (planilha e PDF) em ${CONFIG.pastaOrcamento}.` : "");
   $("ok-link").href = r.pasta?.webUrl || "#";
   telaFinal(false);
+  vibrar([18, 60, 18]);                            // tudo chegou ao OneDrive
   mostrar("tela-ok");
 }
 
@@ -5674,6 +5787,7 @@ const fmtCpf = c => digitos(c).replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.
 
 // quadro de assinatura com o dedo; exporta a imagem reduzida (600 px de largura) para não pesar no celular nem no PDF
 function ligarPad(cv, inicial, aoMudar) {
+  clearTimeout(cv.tSome);                          // o quadro dos participantes é o mesmo para todos: cancela a espera de quem assinou antes
   const preparar = () => {
     const r = cv.getBoundingClientRect(); if (!r.width) return;
     const dpr = window.devicePixelRatio || 1;
@@ -5682,17 +5796,20 @@ function ligarPad(cv, inicial, aoMudar) {
     if (inicial) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0, r.width, r.height); im.src = inicial; }
   };
   requestAnimationFrame(preparar);
-  let ult = null;
+  let ult = null, traco = 0, xMin = Infinity, xMax = -Infinity;   // só vale como assinatura um traço de verdade: 120 px riscados e 40 px de largura
   const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-  cv.onpointerdown = e => { if (!cv.width) preparar(); cv.setPointerCapture(e.pointerId); ult = pos(e); };
-  cv.onpointermove = e => { if (!ult) return; const g = cv.getContext("2d"), p = pos(e); g.beginPath(); g.moveTo(...ult); g.lineTo(...p); g.stroke(); ult = p; };
+  const zerar = () => { clearTimeout(cv.tSome); cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); traco = 0; xMin = Infinity; xMax = -Infinity; };
+  if (inicial) traco = 1e6;                        // já estava assinado: o que for riscado a mais vale
+  cv.onpointerdown = e => { clearTimeout(cv.tSome); if (!cv.width) preparar(); cv.setPointerCapture(e.pointerId); ult = pos(e); };
+  cv.onpointermove = e => { if (!ult) return; const g = cv.getContext("2d"), p = pos(e); g.beginPath(); g.moveTo(...ult); g.lineTo(...p); g.stroke(); traco += Math.hypot(p[0] - ult[0], p[1] - ult[1]); xMin = Math.min(xMin, ult[0], p[0]); xMax = Math.max(xMax, ult[0], p[0]); ult = p; };
   cv.onpointerup = cv.onpointercancel = () => {
     if (!ult) return; ult = null;
+    if (traco < 120 || (traco < 1e6 && xMax - xMin < 40)) { cv.tSome = setTimeout(zerar, 2500); return; }   // um toque sem querer, ou o dedo passando ao rolar a página: não vale e, se a pessoa não continuar, some do quadro
     const o = document.createElement("canvas"); o.width = 600; o.height = Math.round(600 * cv.height / cv.width);
     o.getContext("2d").drawImage(cv, 0, 0, o.width, o.height);
     aoMudar(o.toDataURL("image/png"));
   };
-  return () => { cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); aoMudar(""); };
+  return () => { zerar(); aoMudar(""); };
 }
 
 function escolherModeloTrein(m) {
@@ -5773,7 +5890,17 @@ function montarTrein() {
     const bA = el("button", p.assin ? "trein-assinado" : "btn prim trein-assinar", p.assin ? "✓ Assinado" : "Assinar"); bA.type = "button";
     bA.onclick = () => abrirAssinar(i);
     const bR = el("button", "trein-rm", "×"); bR.type = "button"; bR.setAttribute("aria-label", "Remover " + p.nome);
-    bR.onclick = () => { if (!confirm(`Remover ${p.nome} da lista?`)) return; trein.part.splice(i, 1); gravarTrein(); montarTrein(); atualizarBotao(); };
+    bR.onclick = () => {
+      const lista = trein.part;                      // a mesma lista continua ao trocar de modelo; muda ao descartar ou gerar o PDF
+      lista.splice(i, 1); gravarTrein(); montarTrein(); atualizarBotao();
+      aviso(`${p.nome} saiu da lista.`, false, { rotulo: "Desfazer", fn: () => {
+        if (trein.part !== lista || lista.includes(p)) return;   // já é outro treinamento, ou já voltou
+        const pos = Math.min(i, lista.length);
+        lista.splice(pos, 0, p);
+        if (assinando && assinando.i >= pos) assinando.i++;      // a tela de assinar aberta continua na mesma pessoa
+        gravarTrein(); if (modo === "trein") montarTrein(); atualizarBotao();
+      } });
+    };
     li.append(t, bA, bR);
     lista.appendChild(li);
   });
@@ -5791,7 +5918,7 @@ function montarTrein() {
   raiz.appendChild(w);
   raiz.appendChild(el("p", "laudo-dica", "Fotos da parte prática (opcional): use Câmera ou Galeria embaixo. Elas entram no PDF e também ficam na pasta."));
   const desc = el("button", "laudo-link perigo", "Descartar este treinamento"); desc.type = "button";
-  desc.onclick = () => { if (confirm("Apagar tudo o que foi preenchido neste treinamento?")) { limparTrein(); atualizarBotao(); window.scrollTo(0, 0); } };
+  desc.onclick = async () => { if (await confirmarApagar("Descartar este treinamento?", "Tudo o que foi preenchido será apagado.", "Apagar o treinamento", "Manter o treinamento")) { limparTrein(); atualizarBotao(); window.scrollTo(0, 0); } };
   raiz.appendChild(desc);
 }
 function mudouTrein() { gravarTrein(); atualizarBotao(); }
@@ -6117,7 +6244,7 @@ function montarServ() {
     topo.appendChild(el("strong", "", `Atividade ${i + 1}`));
     if (serv.ativ.length > 1) {
       const rm = el("button", "laudo-link perigo", "Remover"); rm.type = "button";
-      rm.onclick = () => { if (!confirm(`Remover a atividade ${i + 1} e as fotos dela?`)) return; [...a.antes, ...a.depois].forEach(apagarFotoLaudo); serv.ativ.splice(i, 1); mudouServ(); montarServ(); };
+      rm.onclick = async () => { if (!(await confirmarApagar(`Remover a atividade ${i + 1}?`, "As fotos dela também serão apagadas.", "Remover", "Manter"))) return; [...a.antes, ...a.depois].forEach(apagarFotoLaudo); serv.ativ.splice(i, 1); mudouServ(); montarServ(); };
       topo.appendChild(rm);
     }
     card.appendChild(topo);
@@ -6178,7 +6305,7 @@ function montarServ() {
   raiz.appendChild(campo("Nome de quem acompanhou pelo cliente (opcional)", serv.respCli, v => serv.respCli = v, { dica: "Ex.: Carlos, zelador" }));
   raiz.appendChild(pad("Assinatura do cliente (opcional)", "", serv.assinCli, url => serv.assinCli = url));
   const desc = el("button", "laudo-link perigo", "Descartar este relatório"); desc.type = "button";
-  desc.onclick = () => { if (confirm("Apagar tudo o que foi preenchido neste relatório de serviço?")) { limparServ(); atualizarBotao(); window.scrollTo(0, 0); } };
+  desc.onclick = async () => { if (await confirmarApagar("Descartar este relatório de serviço?", "Tudo o que foi preenchido será apagado.", "Apagar o relatório", "Manter o relatório")) { limparServ(); atualizarBotao(); window.scrollTo(0, 0); } };
   raiz.appendChild(desc);
 }
 
@@ -6690,7 +6817,7 @@ function desenharHistorico() {
   lista.innerHTML = "";
   const f = hist.filtro;
   const evs = hist.eventos.filter(e => f === "todos" || e.tipo === f || (f === "visita" && (e.tipo === "relvisita" || e.tipo === "avcb")));
-  if (!evs.length) { lista.appendChild(el("p", "avcb-nota", "Nenhum registro.")); return; }
+  if (!evs.length) { lista.appendChild(vazio("historico", "Nenhum registro", "As visitas, laudos e relatórios deste cliente aparecem aqui.")); return; }
   let mes = "";
   for (const e of evs) {
     const m = e.data ? `${MESES[+e.data.slice(5, 7) - 1]} de ${e.data.slice(0, 4)}` : "Sem data";
@@ -6950,7 +7077,7 @@ async function sincronizarEq() {
   finally { sincronizarEq.rodando = false; }
   if (eq && !eq.editando) desenharEq();
   if (!$("tela-eqv").hidden) desenharEqv();
-  if (secao === "inicio" && !$("tela-inicio").hidden) desenharInicio();
+  if (secao === "inicio" && !$("tela-inicio").hidden) redesenharInicio();
 }
 // grava a lista do cliente (precisa de internet); 412 = outra pessoa mudou antes: recarrega e pede para refazer
 function gravarEq(...a) { return comGravacao(() => gravarEqJa(...a)); }   // conta a gravação inteira
@@ -7090,7 +7217,7 @@ function formEq() {
   if (!novo) {
     const rm = el("button", "laudo-link perigo", "Excluir este grupo"); rm.type = "button";
     rm.onclick = async () => {
-      if (!confirm(`Excluir ${descGrupo(t, g)}?`)) return;
+      if (!(await confirmarApagar(`Excluir ${descGrupo(t, g)}?`, "", "Excluir", "Manter"))) return;
       const d = JSON.parse(JSON.stringify(eqDados[eq.cliente]));
       d[t] = d[t].filter(x => x.id !== g.id);
       try { await gravarEq(eq.cliente, d.ext || [], d.mang || []); eq.editando = null; aviso("Excluído."); } catch (e) { aviso(e.message, true); }
@@ -7326,8 +7453,8 @@ async function sincronizarOS() {
   } catch (e) { console.error(e); }
   finally { sincronizarOS.rodando = false; }
   if (osTela) desenharOS();
-  if (!$("tela-inicio").hidden) desenharInicio();
-  if (!$("tela-cliente").hidden) desenharPaginaCliente();
+  if (!$("tela-inicio").hidden) redesenharInicio();
+  if (!$("tela-cliente").hidden) redesenharCliente();
 }
 // cria a OS com o próximo número livre (conflictBehavior=fail: se outra pessoa usou o número ao mesmo tempo, tenta o seguinte)
 async function criarOS(d) {
@@ -7389,7 +7516,7 @@ async function executarOS(numero) {
   const jaEsta = osAtiva?.numero === numero && osAtiva.modo === m;
   if (!jaEsta) {
     const ocupado = m === "serv" ? servIniciado() : m === "trein" ? !!trein.modelo : (rascunhos[m]?.tipo && (m !== "insp" || rascunhos[m].sist?.length));
-    if (ocupado && !confirm(`Já existe um ${NOME_MODO[m].toLowerCase()} em andamento neste celular. Ele será apagado para começar o da ${numero}. Continuar?`)) return;
+    if (ocupado && !(await confirmarApagar(`Começar o da ${numero}?`, `Já existe um ${NOME_MODO[m].toLowerCase()} em andamento neste celular. Ele será apagado.`, "Apagar e começar"))) return;
     if (m === "serv") {
       fotosServ().forEach(apagarFotoLaudo);
       serv = { ...servVazio(), ...(t.serv?.tipo ? { tipo: t.serv.tipo } : {}), sist: [...(t.serv?.sist || [])] };
@@ -7451,7 +7578,7 @@ async function atualizarEqPelaOS(o) {
 // tela das OS: lista (filtros), detalhe e nova OS
 function abrirOS(op = {}) {
   osTela = { filtro: op.filtro || (listaOS().some(comigoOS) ? "minhas" : "fila"), aberta: op.aberta || null, nova: op.nova || null };
-  $("tela-os").hidden = false;
+  $("tela-os").hidden = false; delete rolLista["tela-os"];
   document.body.style.overflow = "hidden";
   history.pushState({ os: true }, "");
   desenharOS();
@@ -7476,16 +7603,17 @@ function cartaoOS(o, onclick) {
   { const s = el("small", "os-tipo"); s.append(ic(TIPOS_OS[o.tipo]?.ico || "chave", "in"), descTipoOS(o)); b.appendChild(s); }
   const quem = o.status === "andamento" ? `Com ${o.tecnico?.nome || "-"}` : o.status === "aberta" ? (o.para ? `Para ${o.para.nome}` : "Para qualquer técnico") : o.status === "concluida" ? `Concluída por ${o.concluida?.por?.nome || "-"} em ${o.concluida?.em ? dataBRde(o.concluida.em.slice(0, 10)) : "-"}` : "";
   b.appendChild(el("small", "", [quem, o.prevista && `Prevista ${dataBRde(o.prevista)}${atrasadaOS(o) ? " (atrasada)" : ""}`].filter(Boolean).join(" · ")));
-  b.onclick = onclick || (() => { osTela.aberta = o.numero; desenharOS(); });
+  b.onclick = onclick || (() => { guardarRol("tela-os"); osTela.aberta = o.numero; desenharOS(); $("os-corpo").scrollTop = 0; });
   return b;
 }
 function desenharOS() {
   if (!osTela) return;
   const c = $("os-corpo"); c.innerHTML = "";
+  $("os-voltar").textContent = osTela.nova || osTela.aberta ? "‹ Ordens" : "‹ Voltar";
   $("os-titulo").textContent = osTela.nova ? (osTela.nova.editando ? "Editar " + osTela.nova.editando : "Nova ordem de serviço") : osTela.aberta || "Ordens de serviço";
   if (osTela.nova) { c.appendChild(formOS()); return; }
   if (osTela.aberta) { c.appendChild(detalheOS(osDados[osTela.aberta])); return; }
-  if (pode("osCriar")) { const n = el("button", "btn prim", "+ Nova ordem de serviço"); n.type = "button"; n.style.marginBottom = "12px"; n.onclick = () => { osTela.nova = {}; desenharOS(); }; c.appendChild(n); }
+  if (pode("osCriar")) { const n = el("button", "btn prim", "+ Nova ordem de serviço"); n.type = "button"; n.style.marginBottom = "12px"; n.onclick = () => { guardarRol("tela-os"); osTela.nova = {}; desenharOS(); $("os-corpo").scrollTop = 0; }; c.appendChild(n); }
   const filtros = [["fila", "Fila"], ["minhas", "Minhas"], ["andamento", "Em andamento"], ["concluidas", "Concluídas"]];
   const ch = el("div", "chips avcb-filtro");
   const contar = f => listaOS().filter(filtroOS(f)).length;
@@ -7494,14 +7622,13 @@ function desenharOS() {
   const lista = listaOS().filter(filtroOS(osTela.filtro)).sort(osTela.filtro === "concluidas" ? (a, b) => (b.concluida?.em || b.criadoEm || "").localeCompare(a.concluida?.em || a.criadoEm || "") : ordemOS);
   const pend = lerLS("vpx_os_baixas", []).length;
   if (pend) c.appendChild(el("p", "ld-aviso", `⏳ ${pend} baixa${pend > 1 ? "s" : ""} aguardando internet para ser enviada${pend > 1 ? "s" : ""}.`));
-  if (!lista.length) c.appendChild(el("p", "avcb-nota", { fila: "Nenhuma OS na fila.", minhas: "Nenhuma OS com você agora.", andamento: "Nenhuma OS em andamento.", concluidas: "Nenhuma OS concluída ainda." }[osTela.filtro]));
+  if (!lista.length) c.appendChild(vazio("os", { fila: "Nenhuma OS na fila", minhas: "Nenhuma OS com você agora", andamento: "Nenhuma OS em andamento", concluidas: "Nenhuma OS concluída ainda" }[osTela.filtro], osTela.filtro === "minhas" && listaOS().some(naFilaOS) ? "Veja em Fila as que esperam um técnico." : ""));
   lista.slice(0, osTela.filtro === "concluidas" ? 60 : 500).forEach(o => c.appendChild(cartaoOS(o)));
   if (!navigator.onLine) c.appendChild(el("p", "avcb-nota", "Sem internet: mostrando a última lista guardada."));
 }
 const filtroOS = f => f === "fila" ? naFilaOS : f === "minhas" ? comigoOS : f === "andamento" ? (o => o.status === "andamento") : (o => o.status === "concluida" || o.status === "cancelada");
 function detalheOS(o) {
   const w = el("div", "os-det");
-  const v = el("button", "hub-voltar", "‹ Lista"); v.type = "button"; v.onclick = () => { osTela.aberta = null; desenharOS(); }; w.appendChild(v);
   if (!o) { w.appendChild(el("p", "avcb-nota", "OS não encontrada.")); return w; }
   w.appendChild(cartaoOS(o, () => {}));
   const dl = el("dl");
@@ -8232,14 +8359,9 @@ function desenharPT() {
 
 // incluir documento: pergunta a validade e põe na fila para a subpasta da seção
 async function adicionarDocPT(sec, item, arquivos) {
-  const r = prompt(`${item[1]}\n\nVálido até (dd/mm/aaaa)?\nDeixe em branco se o documento não tiver validade.`, "");
-  if (r === null) return;
-  let validade = "";
-  if (r.trim()) {
-    const m = r.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!m) { aviso("Data inválida. Use o formato dd/mm/aaaa.", true); return; }
-    validade = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
-  }
+  const r = await perguntar({ titulo: item[1], texto: "Deixe a validade em branco se o documento não tiver validade.", campos: [{ id: "validade", rotulo: "Válido até", tipo: "data" }], sim: "Adicionar", nao: "Cancelar" });
+  if (!r) return;
+  const validade = r.campos.validade || "";
   const cli = pt.cliente, hoje = dataISO();
   for (const a of arquivos) {
     const it = { id: ++seq, modo: "pt", arquivo: a, url: "", st: "pendente", pdf: true,
@@ -8265,15 +8387,9 @@ async function abrirDocPT(doc) {
 }
 async function mudarValidadePT(sec, item, doc) {
   if (!navigator.onLine) { aviso("Sem internet para alterar a validade.", true); return; }
-  const atual = doc.info.validade ? dataBRde(doc.info.validade) : "";
-  const r = prompt(`${item[1]} de ${dataBRde(doc.info.data)}\n\nVálido até (dd/mm/aaaa)? Em branco = sem validade.`, atual);
-  if (r === null) return;
-  let validade = "";
-  if (r.trim()) {
-    const m = r.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!m) { aviso("Data inválida. Use dd/mm/aaaa.", true); return; }
-    validade = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
-  }
+  const r = await perguntar({ titulo: `${item[1]} de ${dataBRde(doc.info.data)}`, texto: "Deixe em branco se o documento não tiver validade.", campos: [{ id: "validade", rotulo: "Válido até", tipo: "data", valor: doc.info.validade || "" }], sim: "Salvar a validade", nao: "Cancelar" });
+  if (!r) return;
+  const validade = r.campos.validade || "";
   const resto = doc.nome.match(/((?:_\d+)?(?: \d+)?\.[^.]+)$/)[1];
   try {
     await graph(`/drives/${CONFIG.driveId}/items/${doc.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
@@ -8680,7 +8796,7 @@ function abrirPedidos() {
   $("tela-pc").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ pc: true }, "");
-  pcAberto = null;
+  pcAberto = null; delete rolLista["tela-pc"];
   if (!podeTipo(pcTipo)) pcTipo = Object.keys(TIPOS_PED).find(podeTipo) || "compra";
   $("pc-exportar").hidden = !ehAdmin();
   desenharPedidos();
@@ -8711,7 +8827,7 @@ function desenharPedidos() {
   const todos = meusPedidos().filter(p => tipoDe(p) === pcTipo).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
   const vis = todos.filter(p => pcFiltro === "todos" || (pcFiltro === "aguardando" ? p.status === "aguardando" : abertos.includes(p.status)));
   lista.innerHTML = "";
-  if (!vis.length) lista.appendChild(el("p", "avcb-nota", pcFiltro === "todos" ? "Nenhum pedido ainda." : "Nenhum pedido em aberto."));
+  if (!vis.length) lista.appendChild(vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhum pedido ainda" : "Nenhum pedido em aberto", pcFiltro === "todos" ? "" : "Em Todos aparecem os já resolvidos."));
   for (const p of vis) {
     const [rot, cls] = ST_PC[p.status] || [p.status, ""];
     const b = el("button", "pc-card " + cls); b.type = "button";
@@ -8724,7 +8840,7 @@ function desenharPedidos() {
       b.appendChild(el("div", "pc-l2", `${p.itens.length} ite${p.itens.length > 1 ? "ns" : "m"} · ${centroPC(p)}${p.urgencia === "Urgente" ? " · URGENTE" : ""}`));
       b.appendChild(el("div", "pc-l3", `${p.solicitante?.nome || ""} · ${new Date(p.criadoEm).toLocaleDateString("pt-BR")}${p.precisaAte ? " · precisa até " + dataBRde(p.precisaAte) : ""}`));
     }
-    b.onclick = () => { pcAberto = p.id; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };
+    b.onclick = () => { guardarRol("tela-pc"); pcAberto = p.id; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };
     lista.appendChild(b);
   }
   $("pc-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última consulta." : (sincronizarPedidos.erros || []).join(" ");
@@ -8738,7 +8854,7 @@ function desenharDetalhePC(p) {
   const det = $("pc-detalhe"), pag = tipoDe(p) === "pag";
   det.innerHTML = "";
   const voltar = el("button", "laudo-link", "‹ Todos os pedidos"); voltar.type = "button";
-  voltar.onclick = () => { pcAberto = null; desenharPedidos(); };
+  voltar.onclick = () => { pcAberto = null; desenharPedidos(); reporRol("tela-pc"); };
   det.appendChild(voltar);
   const [rot, cls] = ST_PC[p.status] || [p.status, ""];
   det.appendChild(el("h2", "secao", `${TIPOS_PED[tipoDe(p)].nome} ${p.numero}`));
@@ -8808,30 +8924,34 @@ async function mudarStatusPCJa(p, status, pedirMotivo, extra) {
     sincronizarPedidos();
   }
 }
-function marcarComprado(p) {
-  const fornecedor = prompt("Fornecedor:", p.compra?.fornecedor || ""); if (fornecedor === null) return;
-  const valor = prompt("Valor total (R$):", p.compra?.valor || ""); if (valor === null) return;
-  const prev = prompt("Previsão de entrega (dd/mm/aaaa, opcional):", ""); if (prev === null) return;
-  const m = prev.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  mudarStatusPC(p, "comprado", false, { compra: { fornecedor: fornecedor.trim(), valor: valor.trim(), previsao: m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : "" } });
+async function marcarComprado(p) {                 // uma janela só, com o calendário do aparelho na previsão (antes: três caixinhas do navegador)
+  const r = await perguntar({ titulo: `Pedido ${p.numero}: comprado`, campos: [
+    { id: "fornecedor", rotulo: "Fornecedor", tipo: "texto", valor: p.compra?.fornecedor || "" },
+    { id: "valor", rotulo: "Valor total (R$)", tipo: "valor", valor: p.compra?.valor || "", max: 20 },
+    { id: "previsao", rotulo: "Previsão de entrega (opcional)", tipo: "data", valor: p.compra?.previsao || "" }], sim: "Marcar como comprado", nao: "Cancelar" });
+  if (!r) return;
+  mudarStatusPC(p, "comprado", false, { compra: { fornecedor: r.campos.fornecedor, valor: r.campos.valor, previsao: r.campos.previsao || "" } });
 }
 // pago: escolhe o comprovante (foto ou PDF), informa a data e envia o arquivo junto do pedido
 function marcarPago(p) {
   if (!navigator.onLine) { aviso("Sem internet para registrar o pagamento.", true); return; }
   const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*,application/pdf";
-  inp.onchange = () => comGravacao(async () => {   // enviar o comprovante e marcar como pago: uma gravação só
+  inp.onchange = async () => {
     const f = inp.files[0]; if (!f) return;
-    const hoje = dataBRde(dataISO());
-    const r = prompt("Data do pagamento (dd/mm/aaaa):", hoje); if (r === null) return;
-    const m = r.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    const data = m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : dataISO();
+    // a data vem do calendário do aparelho (antes era digitada e, escrita errado, virava a data de hoje sem avisar)
+    const r = await perguntar({ titulo: `Pedido ${p.numero}: pago`, texto: `Comprovante: ${f.name}`, campos: [{ id: "data", rotulo: "Data do pagamento", tipo: "data", valor: dataISO() }], sim: "Marcar como pago", nao: "Cancelar" });
+    if (!r) return;
+    if (!r.campos.data) { aviso("Escolha a data do pagamento.", true); return; }
+    const data = r.campos.data;
+    await comGravacao(async () => {                // enviar o comprovante e marcar como pago: uma gravação só
     const nome = `${p.id} - comprovante.${(f.name.split(".").pop() || "jpg").toLowerCase()}`;
     try {
       aviso("Enviando o comprovante…");
       await enviarArquivo(await basePedidos("pag"), nome, f);
       await mudarStatusPC(p, "pago", false, { pagamento: { data, comprovante: nome.slice(p.id.length + 3), por: nomeColaborador() } });
     } catch (e) { aviso("Não foi possível enviar o comprovante: " + e.message, true); }
-  });
+    });
+  };
   inp.click();
 }
 
@@ -8958,7 +9078,6 @@ function alternarFavoritoPP() {
   const nome = (pcNovo.favorecido || "").trim();
   if (!nome) { aviso("Escreva o favorecido primeiro.", true); return; }
   if (ehFavPP(nome)) {
-    if (!confirm(`Tirar ${nome} dos favoritos?`)) return;
     favPP.itens = favPP.itens.filter(x => chaveFavPP(x.favorecido) !== chaveFavPP(nome));
     aviso(`${nome} saiu dos favoritos.`);
   } else {
@@ -9105,7 +9224,7 @@ async function enviarNovoPC() {
   pedidos[id] = { ...ped, pendente: true };
   gravarLS("vpx_pc", pedidos);
   try { localStorage.removeItem(t.rasc); } catch {}
-  $("pc-novo").hidden = true; pcNovo = null; pcAberto = id; desenharPedidos();
+  $("pc-novo").hidden = true; pcNovo = null; delete rolLista["tela-pc"]; pcAberto = id; desenharPedidos();
   aviso(navigator.onLine ? "Pedido enviado. O administrador vai aprovar no app." : "Pedido guardado no celular. Será enviado quando a internet voltar.");
   await tentarPendentes();
 }
@@ -9823,7 +9942,7 @@ function desenharAgenda(eventos) {
   const m1 = new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1), ano = m1.getFullYear(), mes = m1.getMonth();
   // cabeçalho: ‹ mês ›
   const cab = el("div", "ag-mes-cab");
-  const seta = (txt, rot, d) => { const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-label", rot); b.disabled = agMes + d < -AG_MESES || agMes + d > AG_MESES; b.onclick = () => { agMes += d; buscarMesAgenda.erro = ""; const p = chaveDia(new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1)); agSel = p.slice(0, 7) === hoje.slice(0, 7) ? hoje : p; desenharAgenda(); }; return b; };
+  const seta = (txt, rot, d) => { const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-label", rot); b.disabled = agMes + d < -AG_MESES || agMes + d > AG_MESES; b.onclick = () => mudarMesAgenda(d, true); return b; };
   cab.append(seta("‹", "Mês anterior", -1), el("strong", "", `${MESES[mes][0].toUpperCase() + MESES[mes].slice(1)} de ${ano}`), seta("›", "Próximo mês", 1));
   lista.appendChild(cab);
   // grade do mês (a semana começa no domingo)
@@ -9856,6 +9975,28 @@ function desenharAgenda(eventos) {
   if (!evs.length) grupo.appendChild(el("p", "ag-vazio", "Nada marcado."));
   for (const e of evs) grupo.appendChild(cartaoEvento(e));
   lista.appendChild(grupo);
+}
+// troca o mês à vista (setas ou o dedo deslizando no calendário); os dias entram do lado certo
+function mudarMesAgenda(d, foco) {
+  if (agMes + d < -AG_MESES || agMes + d > AG_MESES) return;
+  agMes += d; buscarMesAgenda.erro = "";
+  const hoje = chaveDia(new Date()), p = chaveDia(new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1));
+  agSel = p.slice(0, 7) === hoje.slice(0, 7) ? hoje : p;
+  desenharAgenda();
+  const cal = $("agenda-lista").querySelector(".ag-cal");
+  if (cal) { cal.style.setProperty("--dx", (d > 0 ? 24 : -24) + "px"); cal.classList.add("ag-entra"); }
+  if (foco) $("agenda-lista").querySelector(".ag-mes-cab button" + (d < 0 ? ":first-child" : ":last-child"))?.focus({ preventScroll: true });   // a seta usada continua com o foco
+}
+{
+  let ini = null;                                  // onde o dedo encostou no calendário
+  const al = $("agenda-lista");
+  al.addEventListener("pointerdown", e => { ini = e.pointerType !== "mouse" && e.target.closest?.(".ag-cal") && e.clientX > 24 && e.clientX < innerWidth - 24 ? { x: e.clientX, y: e.clientY, t: Date.now() } : null; });   // perto da borda é o gesto de voltar do iPhone
+  al.addEventListener("pointerup", e => {
+    const i = ini; ini = null; if (!i) return;
+    const dx = e.clientX - i.x, dy = e.clientY - i.y;
+    if (Math.abs(dx) > 56 && Math.abs(dx) > 2 * Math.abs(dy) && Date.now() - i.t < 600) mudarMesAgenda(dx < 0 ? 1 : -1);
+  });
+  al.addEventListener("pointercancel", () => { ini = null; });
 }
 // mostra um dia no calendário (depois de criar ou mudar um compromisso); fora dos três meses buscados, fica onde está
 function irParaDiaAgenda(k) {
@@ -10163,7 +10304,7 @@ async function salvarEvento(botao) {
   fecharFormAgenda();
   await carregarAgenda();
   if (dia) irParaDiaAgenda(dia);                    // mostra o dia do compromisso criado ou alterado
-  if (!$("tela-inicio").hidden) desenharInicio();
+  if (!$("tela-inicio").hidden) redesenharInicio();
 }
 async function cancelarEvento(e) {
   if (!navigator.onLine) { aviso("Sem internet: conecte-se para cancelar.", true); return; }
@@ -10190,7 +10331,7 @@ async function cancelarEvento(e) {
   }
   aviso(e.conv?.length ? "Compromisso cancelado. Os convidados foram avisados." : "Compromisso cancelado.");
   await carregarAgenda();
-  if (!$("tela-inicio").hidden) desenharInicio();
+  if (!$("tela-inicio").hidden) redesenharInicio();
 }
 // compartilhar os dados do compromisso (WhatsApp ou outro app), inclusive para quem não é da VPX
 function textoEvento(e) {
@@ -10463,10 +10604,10 @@ function desenharModulo() {
   }
 }
 // "+ Novo": se já houver um em andamento, pergunta antes de apagar; o formulário pede o cliente
-function novoDoModulo(m) {
+async function novoDoModulo(m) {
   const andamento = itensContinuar().find(c => c.m === m);
   if (andamento && m !== "visita") {
-    if (!confirm(`Já existe um ${NOME_MODO[m].toLowerCase()} em andamento (${andamento.titulo}${andamento.cli ? " · " + andamento.cli : ""}).\n\nComeçar um novo apaga o que está em andamento. Para guardar, toque nele e use "Pausar e continuar depois".\n\nComeçar um novo?`)) return;
+    if (!(await confirmarApagar("Começar um novo?", `Já existe um ${NOME_MODO[m].toLowerCase()} em andamento (${andamento.titulo}${andamento.cli ? " · " + andamento.cli : ""}) e ele será apagado. Para guardar, toque nele e use "Pausar e continuar depois".`, "Apagar e começar um novo"))) return;
     if (m === "laudo" || m === "insp") {
       todasFotosLaudo(rascunhos[m]).forEach(apagarFotoLaudo);
       rascunhos[m] = m === "insp" ? inspVazio() : laudoVazio(); gravarLS("vpx_" + m, rascunhos[m]);
@@ -10956,7 +11097,7 @@ async function sincronizarFichas(forcar) {
   finally { sincronizarFichas.rodando = false; }
   if (assinatura() === antes) return;              // nada mudou: não redesenha
   if (fichaTela && !fichaTela.editando) desenharFicha();
-  if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
+  if (secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
   if (secao === "clientes" && !$("tela-clientes").hidden) redesenharClientesQuieto();   // a tabela mostra o contato principal (sem trocar as linhas embaixo do dedo)
 }
 // grava a ficha (precisa de internet). Outra pessoa mudou antes (412) ou criou a mesma ficha (409): atualiza e avisa
@@ -11122,7 +11263,14 @@ function formFicha() {
   E.contatos.forEach((x, k) => {
     const b = el("div", "fc-ed"); b.id = "fc-ed-" + x.id;
     const cab = el("div", "fc-ed-cab"), rm = el("button", "laudo-link perigo", "Remover"); rm.type = "button";
-    rm.onclick = () => { if ((x.nome || x.tel || x.email) && !confirm(`Remover o contato${x.nome ? " " + x.nome : ""}?`)) return; E.contatos.splice(k, 1); mudou(); desenharFicha(); };
+    rm.onclick = () => {
+      E.contatos.splice(k, 1); mudou(); desenharFicha();
+      if (x.nome || x.tel || x.email) aviso(`Contato${x.nome ? " " + x.nome : ""} removido.`, false, { rotulo: "Desfazer", fn: () => {
+        if (fichaTela?.editando !== E || E.contatos.includes(x)) return;
+        if (x.principal && E.contatos.some(y => y.principal)) x.principal = false;   // outro virou o principal enquanto este estava fora
+        E.contatos.splice(Math.min(k, E.contatos.length), 0, x); desenharFicha();
+      } });
+    };
     cab.append(el("span", "", `Contato ${k + 1}`), rm); b.appendChild(cab);
     campo(b, x, "Nome", "nome", "text", { maxlength: "80" });
     escolha(b, x, "Função", "funcao", FUNCOES_CONTATO);
@@ -11534,7 +11682,7 @@ function abrirNotas(busca = "") {
   $("nf-busca").value = busca;
   $("nf-periodo").value = ""; $("nf-sit").value = "";
   $("tela-nf").hidden = false;
-  $("tela-nf").querySelector(".avcb-corpo").scrollTop = 0;
+  $("tela-nf").querySelector(".avcb-corpo").scrollTop = 0; delete rolLista["tela-nf"];
   document.body.style.overflow = "hidden";
   history.pushState({ nf: true }, "");             // o "voltar" do celular fecha a tela
   desenharNf(true);
@@ -11600,6 +11748,7 @@ function desenharNf(forcar) {
   if ($("tela-nf").hidden || !nfTela) return;
   const sub = !!(nfTela.det || nfTela.nova);
   $("nf-lista-tela").hidden = sub; $("nf-sub").hidden = !sub;
+  $("nf-voltar").textContent = sub ? "‹ Notas" : "‹ Voltar";
   if (nfTela.nova) { if (forcar) { $("nf-titulo").textContent = "Nova nota fiscal"; desenharNovaNf(); } return; }
   const prep = prepararNf();
   if (nfTela.det) {
@@ -11671,6 +11820,7 @@ function linhaNf(x) {
 
 // uma nota: dados, "Enviar ao cliente", "Ver nota fiscal", boletos e (administrador) "Corrigir"
 function abrirDetNf(id) {
+  if (!nfTela?.det && !nfTela?.nova) guardarRol("tela-nf");
   nfTela = { det: id };
   history.pushState({ nf: true, nfSub: true }, "");   // o "voltar" do celular volta para a lista
   desenharNf(true);
@@ -11678,11 +11828,10 @@ function abrirDetNf(id) {
 }
 function fecharSubNf() {
   if (history.state?.nfSub) { history.back(); return; }   // o popstate volta para a lista
-  nfTela = {}; desenharNf(true);
+  nfTela = {}; desenharNf(true); reporRol("tela-nf");
 }
 function desenharDetNf(x) {
   const w = $("nf-sub"); w.innerHTML = "";
-  const v = el("button", "hub-voltar", "‹ Lista"); v.type = "button"; v.onclick = fecharSubNf; w.appendChild(v);
   if (!x) { w.appendChild(el("p", "avcb-nota", "Esta nota não está mais na lista (pode ter sido apagada ou movida).")); return; }
   const card = el("div", "nf-card" + (x.canc ? " canc" : ""));
   const l1 = el("span", "os-num", "NF " + x.num);
@@ -11906,7 +12055,6 @@ function desenharNovaNf() {
   const N = nfTela?.nova, w = $("nf-sub");
   if (!N) return;
   w.innerHTML = "";
-  const v = el("button", "hub-voltar", "‹ Lista"); v.type = "button"; v.onclick = fecharSubNf; w.appendChild(v);
   if (!N.arq) {
     w.appendChild(el("p", "laudo-dica", "Escolha o PDF da nota fiscal que você emitiu (o arquivo baixado do emissor de notas). O app lê número, data, cliente e valor; você confere, junta o boleto e salva na pasta das notas."));
     const b = comIc(el("button", "btn prim"), "doc", "Escolher o PDF da nota"); b.type = "button"; b.onclick = () => $("nf-in-pdf").click();
@@ -12165,7 +12313,7 @@ function redesenhoSeguro(idTela, desenhar) {
   const digitando = () => t.contains(document.activeElement) && document.activeElement.matches("input:not([type=checkbox]):not([type=radio]), textarea, select");
   const tentar = () => { if (pend && !aperto && !digitando() && !t.hidden) { pend = false; desenhar(); } };
   t.addEventListener("pointerdown", () => { aperto = true; }, true);
-  for (const ev of ["pointerup", "pointercancel"]) t.addEventListener(ev, () => { aperto = false; setTimeout(tentar, 0); }, true);
+  for (const ev of ["pointerup", "pointercancel"]) window.addEventListener(ev, () => { aperto = false; setTimeout(tentar, 0); }, true);   // na janela: com mouse, soltar fora da tela não chega nela
   t.addEventListener("focusout", () => setTimeout(tentar, 0));
   return () => { if (t.hidden) return; pend = true; tentar(); };
 }
@@ -12291,15 +12439,21 @@ function arrastavel(b, id) {
 const ST_TAR = { nao: "Não iniciado", andamento: "Em andamento", parado: "Parado", feito: "Feito" };
 const PRI = { critica: "Crítica", alta: "Alta", media: "Média", baixa: "Baixa" };
 const RANK_PRI = { critica: 0, alta: 1, media: 2, baixa: 3 };
-const OPC_PRI = [...Object.entries(PRI), ["", "Sem"]];
+const OPC_PRI = [...Object.entries(PRI), ["", "Sem prioridade"]];
 let redesenharTarSeguro = null, redesenharFuSeguro = null;
+// Início e página do cliente: o redesenho pedido por uma sincronização junta os pedidos seguidos (150 ms) e não acontece com o dedo
+// na tela (antes, ao abrir o app chegavam 5 ou 6 seguidos e o toque num cartão se perdia quando a tela era refeita embaixo do dedo)
+// criadas já na carga do app: a proteção só enxerga o dedo pelos toques que ela mesma escuta, então precisa existir antes do primeiro pedido
+const redInicio = redesenhoSeguro("tela-inicio", () => desenharInicio()), redCliente = redesenhoSeguro("tela-cliente", () => desenharPaginaCliente());
+function redesenharInicio() { clearTimeout(redesenharInicio.t); redesenharInicio.t = setTimeout(redInicio, 150); }
+function redesenharCliente() { clearTimeout(redesenharCliente.t); redesenharCliente.t = setTimeout(redCliente, 150); }
 function aoMudarTar() {
-  (redesenharTarSeguro ||= redesenhoSeguro("tela-tar", desenharTar))();
-  if (fuTela?.aberta) (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", desenharFunil))();   // tarefas da oportunidade aberta
+  (redesenharTarSeguro ||= redesenhoSeguro("tela-tar", manterQuadro("tela-tar", desenharTar)))();
+  if (fuTela?.aberta) (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", manterQuadro("tela-funil", desenharFunil)))();   // tarefas da oportunidade aberta
   if (!conta || !document.body.classList.contains("logado")) return;
   atualizarNav();
-  if (secao === "inicio" && !$("tela-inicio").hidden) desenharInicio();
-  if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
+  if (secao === "inicio" && !$("tela-inicio").hidden) redesenharInicio();
+  if (secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
   if (secao === "reg" && !$("tela-reg").hidden) desenharReg();
   if (secao === "mais" && !$("tela-mais").hidden) desenharMais();
 }
@@ -12325,7 +12479,7 @@ function abrirTar(op = {}) {
   if (tudo && !op.filtro && !tarefas().some(t => minhaTar(t) && abertaTar(t))) tarTela.filtro = "todas";
   $("tar-busca").value = op.busca || "";
   $("tela-tar").hidden = false;
-  $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0;
+  $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0; delete rolLista["tela-tar"];
   document.body.style.overflow = "hidden";
   history.pushState({ tar: true }, "");            // o "voltar" do celular fecha a tela (ou volta do detalhe para a lista)
   if (op.nova) novaTarefa(op.nova); else if (op.aberta) abrirTarefa(op.aberta); else desenharTar();
@@ -12345,6 +12499,7 @@ function fecharTar(voltar = true) {
   return false;
 }
 function abrirTarefa(id) {
+  if (!tarTela.aberta && !tarTela.nova && !tarTela.direto) guardarRol("tela-tar");   // saindo da lista: guarda onde ela estava
   tarTela.aberta = id; tarTela.nova = null;
   if (!tarTela.direto && !history.state?.tarSub) history.pushState({ tar: true, tarSub: true }, "");   // o "voltar" volta para a lista
   desenharTar();
@@ -12352,6 +12507,7 @@ function abrirTarefa(id) {
 }
 function novaTarefa(base = {}) {
   if (!tarTela || !pode("tarefas")) return;
+  if (!tarTela.aberta && !tarTela.nova && !tarTela.direto) guardarRol("tela-tar");
   tarTela.nova = { titulo: "", status: "nao", prioridade: "", prazo: "", resp: [eu()], cliente: "", funil: "", desc: "", ...base };
   tarTela.aberta = null;
   if (!tarTela.direto && !history.state?.tarSub) history.pushState({ tar: true, tarSub: true }, "");
@@ -12362,7 +12518,7 @@ function novaTarefa(base = {}) {
 function voltarListaTar() {                        // "‹ Tarefas" no detalhe ou na tarefa nova
   if (!tarTela || tarTela.direto) { fecharTar(); return; }
   if (history.state?.tarSub) { history.back(); return; }   // o popstate volta para a lista
-  tarTela.aberta = tarTela.nova = null; desenharTar();
+  tarTela.aberta = tarTela.nova = null; desenharTar(); reporRol("tela-tar");
 }
 function desenharTar() {
   if (!tarTela) return;
@@ -12474,7 +12630,7 @@ function detalheTar(t) {
   const tudo = pode("tarefas"), mexe = tudo || minhaTar(t);
   const salvar = (fn, acao) => mudarReg(colTar, t.id, fn, acao);
   if (tudo) {
-    const ti = el("input", "tar-tit-in"); ti.type = "text"; ti.value = t.titulo || ""; ti.setAttribute("aria-label", "Título da tarefa");
+    const ti = campoTitulo(); ti.value = t.titulo || ""; ti.setAttribute("aria-label", "Título da tarefa");
     ti.onchange = () => { const v = ti.value.trim(); if (!v) { ti.value = t.titulo || ""; return; } if (v !== t.titulo) salvar(r => { r.titulo = v; }, "Título: " + v); };
     ti.onkeydown = e => { if (e.key === "Enter") ti.blur(); };
     w.appendChild(ti);
@@ -12551,7 +12707,7 @@ function detalheTar(t) {
       const d = el("div", "tar-com"); d.append(el("small", "", `${c.por || "-"} · ${dataHoraBR(c.em)}`), el("p", "", c.t));
       if (c.por === nomeColaborador()) {
         const x = el("button", "tar-x", "×"); x.type = "button"; x.title = "Apagar o comentário"; x.setAttribute("aria-label", "Apagar o comentário");
-        x.onclick = () => { if (confirm("Apagar este comentário?")) salvar(r => { r.coment = (r.coment || []).filter(y => y.id !== c.id); }); };
+        x.onclick = async () => { if (await confirmarApagar("Apagar este comentário?", "", "Apagar", "Manter")) salvar(r => { r.coment = (r.coment || []).filter(y => y.id !== c.id); }); };
         d.appendChild(x);
       }
       lc.appendChild(d);
@@ -12562,14 +12718,14 @@ function detalheTar(t) {
   w.appendChild(el("p", "tar-rodape", origemReg(t, "Criada")));
   if (tudo) {
     const x = el("button", "btn sec perigo tar-excluir", "Excluir tarefa"); x.type = "button";
-    x.onclick = async () => { if (!confirm(`Excluir a tarefa "${t.titulo}"?`)) return; voltarListaTar(); if (await apagarReg(colTar, t.id)) aviso("Tarefa excluída."); };
+    x.onclick = async () => { if (!(await confirmarApagar("Excluir esta tarefa?", t.titulo, "Excluir a tarefa", "Manter"))) return; voltarListaTar(); if (await apagarReg(colTar, t.id)) aviso("Tarefa excluída."); };
     w.appendChild(x);
   }
   return w;
 }
 function formNovaTar() {
   const n = tarTela.nova, f = el("div", "tar-det");
-  const ti = el("input", "tar-tit-in"); ti.type = "text"; ti.id = "tar-novo-tit"; ti.placeholder = "O que precisa ser feito?"; ti.value = n.titulo;
+  const ti = campoTitulo(); ti.id = "tar-novo-tit"; ti.placeholder = "O que precisa ser feito?"; ti.value = n.titulo;
   ti.setAttribute("aria-label", "Título da tarefa");
   ti.oninput = () => { n.titulo = ti.value; };
   ti.onkeydown = e => { if (e.key === "Enter") ti.blur(); };
@@ -12614,8 +12770,8 @@ const ORDEM_SIT = ["Interesse", "Marcar visita", "Visita marcada", "Ligar novame
   "Em andamento", "Já foi feito contato", "A definir", "Não atendeu", "Parado", "Sem telefone", "Inválido"];
 const rankSit = s => { const i = ORDEM_SIT.indexOf(s || "A definir"); return i < 0 ? 11 : i; };
 function aoMudarFu() {
-  (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", desenharFunil))();
-  if (conta && secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();
+  (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", manterQuadro("tela-funil", desenharFunil)))();
+  if (conta && secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
 }
 const colFu = colecao({ chave: "vpx_funil", pasta: CONFIG.pastaFunil, prefixo: "funil", n: 32, pode: () => pode("funil"), aoMudar: aoMudarFu });
 let fuTela = null, fuVoltando = false;   // { vista, grupo, pessoa, sit, aberta, nova, direto, mais, ordem, limTab }
@@ -12668,7 +12824,7 @@ function abrirFunil(op = {}) {
     direto: !!(op.aberta || op.nova), mais: {}, ordem: { col: "etapa", desc: false }, limTab: 150 };
   $("fu-busca").value = op.busca || "";
   $("tela-funil").hidden = false;
-  $("tela-funil").querySelector(".avcb-corpo").scrollTop = 0;
+  $("tela-funil").querySelector(".avcb-corpo").scrollTop = 0; delete rolLista["tela-funil"];
   document.body.style.overflow = "hidden";
   history.pushState({ fu: true }, "");
   if (op.nova) novaOport(op.nova); else if (op.aberta) abrirOport(op.aberta); else desenharFunil();
@@ -12688,6 +12844,7 @@ function fecharFunil(voltar = true) {
 }
 function abrirOport(id) {
   if (!fuTela) { abrirFunil({ aberta: id }); return; }
+  if (!fuTela.aberta && !fuTela.nova && !fuTela.direto) guardarRol("tela-funil");
   fuTela.aberta = id; fuTela.nova = null;
   if (!fuTela.direto && !history.state?.fuSub) history.pushState({ fu: true, fuSub: true }, "");   // o "voltar" volta para o funil
   desenharFunil();
@@ -12695,6 +12852,7 @@ function abrirOport(id) {
 }
 function novaOport(base = {}) {
   if (!fuTela) return;
+  if (!fuTela.aberta && !fuTela.nova && !fuTela.direto) guardarRol("tela-funil");
   const g = fuTela.grupo;
   fuTela.nova = { nome: "", etapa: g === "prosp" ? "01" : g === "fim" ? "09" : "03", prioridade: "", resp: [eu()], cliente: "", ...base };
   fuTela.aberta = null;
@@ -12706,7 +12864,7 @@ function novaOport(base = {}) {
 function voltarListaFu() {
   if (!fuTela || fuTela.direto) { fecharFunil(); return; }
   if (history.state?.fuSub) { history.back(); return; }
-  fuTela.aberta = fuTela.nova = null; desenharFunil();
+  fuTela.aberta = fuTela.nova = null; desenharFunil(); reporRol("tela-funil");
 }
 function buscaFu(o, q) {
   if (semAcento([o.nome, o.contato, o.empresa, o.local, o.fonte, o.indicacao, o.situacao, o.obs, o.cliente, o.orc, o.email, ...(o.resp || []).map(nomePessoa)].filter(Boolean).join(" ")).includes(q)) return true;
@@ -12745,8 +12903,8 @@ function desenharFunil() {
   };
   const pessoas = new Map(); let semResp = false;
   lista.forEach(o => { if (!(o.resp || []).length) semResp = true; (o.resp || []).forEach(p => pessoas.set(p.email, nomePessoa(p))); });
-  fuTela.pessoa = opcoes($("fu-pessoa"), "Todos os responsáveis", [...[...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")), ...(semResp ? [["-", "Sem responsável"]] : [])], fuTela.pessoa);
-  fuTela.sit = opcoes($("fu-sit"), "Todas as situações", [...new Set(lista.map(o => o.situacao || "A definir"))].sort((a, b) => rankSit(a) - rankSit(b)).map(s => [s, s]), fuTela.sit);
+  fuTela.pessoa = opcoes($("fu-pessoa"), "Responsável", [...[...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")), ...(semResp ? [["-", "Sem responsável"]] : [])], fuTela.pessoa);
+  fuTela.sit = opcoes($("fu-sit"), "Situação", [...new Set(lista.map(o => o.situacao || "A definir"))].sort((a, b) => rankSit(a) - rankSit(b)).map(s => [s, s]), fuTela.sit);
   if (fuTela.pessoa) lista = lista.filter(o => fuTela.pessoa === "-" ? !(o.resp || []).length : (o.resp || []).some(p => p.email === fuTela.pessoa));
   if (fuTela.sit) lista = lista.filter(o => (o.situacao || "A definir") === fuTela.sit);
   const q = semAcento($("fu-busca").value.trim());
@@ -12815,7 +12973,7 @@ function detalheFu(o) {
     const f = op.fmt && v ? op.fmt(v) : v; if (op.fmt) i.value = f;
     salvar(r => { r[k] = f; }, op.area ? "Editou: " + rot.toLowerCase() : `${rot}: ${op.tipo === "date" && f ? dataBRde(f) : f || "(vazio)"}`);
   }, op);
-  const ti = el("input", "tar-tit-in"); ti.type = "text"; ti.value = o.nome || ""; ti.setAttribute("aria-label", "Nome da oportunidade");
+  const ti = campoTitulo(); ti.value = o.nome || ""; ti.setAttribute("aria-label", "Nome da oportunidade");
   ti.onchange = () => { const v = ti.value.trim(); if (!v) { ti.value = o.nome || ""; return; } if (v !== o.nome) salvar(r => { r.nome = v; }, "Nome: " + v); };
   ti.onkeydown = e => { if (e.key === "Enter") ti.blur(); };
   w.appendChild(ti);
@@ -12914,7 +13072,7 @@ function detalheFu(o) {
   w.appendChild(el("p", "tar-rodape", origemReg(o, "Criada")));
   const x = el("button", "btn sec perigo tar-excluir", "Excluir oportunidade"); x.type = "button";
   x.onclick = async () => {
-    if (!confirm(`Excluir "${o.nome}" do funil?\n\nPara tirar do funil sem apagar, mude a etapa para Perdido ou Não qualificado.`)) return;
+    if (!(await confirmarApagar(`Excluir "${o.nome}" do funil?`, "Para tirar do funil sem apagar, mude a etapa para Perdido ou Não qualificado.", "Excluir do funil", "Manter"))) return;
     voltarListaFu(); if (await apagarReg(colFu, o.id)) aviso("Oportunidade excluída.");
   };
   w.appendChild(x);
@@ -12922,7 +13080,7 @@ function detalheFu(o) {
 }
 function formNovaFu() {
   const n = fuTela.nova, f = el("div", "tar-det");
-  const ti = el("input", "tar-tit-in"); ti.type = "text"; ti.id = "fu-novo-nome"; ti.placeholder = "Nome (condomínio, empresa…)"; ti.value = n.nome || "";
+  const ti = campoTitulo(); ti.id = "fu-novo-nome"; ti.placeholder = "Nome (condomínio, empresa…)"; ti.value = n.nome || "";
   ti.setAttribute("aria-label", "Nome da oportunidade");
   ti.oninput = () => { n.nome = ti.value; };
   ti.onkeydown = e => { if (e.key === "Enter") ti.blur(); };
@@ -13104,7 +13262,7 @@ function desenharInicio() {
     dir.appendChild(b);
     if (navigator.onLine && conta && (!ag || Date.now() - ag.quando > 15 * 60000) && !desenharInicio.buscando) {
       desenharInicio.buscando = true;
-      buscarAgenda().then(eventos => { gravarLS(chaveAgenda(), { quando: Date.now(), eventos }); if (secao === "inicio") desenharInicio(); })
+      buscarAgenda().then(eventos => { gravarLS(chaveAgenda(), { quando: Date.now(), eventos }); if (secao === "inicio") redesenharInicio(); })
         .catch(() => {}).finally(() => { desenharInicio.buscando = false; });
     }
   }
@@ -13437,7 +13595,7 @@ function desenharMais() {
   if (podeFin()) {                                 // Financeiro saiu da barra de baixo e fica aqui, com o contador de pedidos
     const aguard = esperandoMim();
     const f = el("div", "hub-lista");
-    f.appendChild(linha("dinheiro", "Financeiro", aguard ? (ehAdmin() ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : `${aguard} pagamento${aguard > 1 ? "s" : ""} aprovado${aguard > 1 ? "s" : ""} para pagar`) : "Comprovantes e pedidos de compra e pagamento", () => irPara("fin"), aguard));
+    f.appendChild(linha("dinheiro", "Financeiro", aguard ? (ehAdmin() ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : `${aguard} pagamento${aguard > 1 ? "s" : ""} aprovado${aguard > 1 ? "s" : ""} para pagar`) : "Comprovantes e pedidos", () => irPara("fin"), aguard));
     t.appendChild(f);
   }
   // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também em Registros e no Início)
@@ -13502,11 +13660,11 @@ async function iniciarApp() {
   sincronizarOS();                                // ordens de serviço (fila no Início) e baixas que ficaram sem internet
   sincronizarCol(colTar, true);                   // tarefas (cartão no Início e número no menu lateral); o funil só ao abrir
   await restaurarItens();                         // fotos guardadas no celular da última vez
-  if (secao === "inicio") desenharInicio();       // "Continuar de onde parou" com o que foi recuperado
+  if (secao === "inicio") redesenharInicio();     // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
   if (lerLS("vpx_abrir_agenda", false)) { gravarLS("vpx_abrir_agenda", false); irPara("agenda"); }   // voltou da autorização da agenda
   // administrador: pedidos de acesso da equipe de campo (cartão no Início e número no Mais)
-  if (ehAdmin()) carregarPedidosAcesso().then(() => { if (secao === "inicio") desenharInicio(); else if (secao === "mais") desenharMais(); }).catch(e => console.error("pedidos de acesso:", e));
+  if (ehAdmin()) carregarPedidosAcesso().then(() => { if (secao === "inicio") redesenharInicio(); else if (secao === "mais") desenharMais(); }).catch(e => console.error("pedidos de acesso:", e));
   if (lerLS("vpx_abrir_admin", false)) { gravarLS("vpx_abrir_admin", false); abrirAdmin(); }   // voltou da autorização para ler os pedidos de acesso
 }
 
@@ -13617,7 +13775,7 @@ $("cl-tab").querySelectorAll("thead button").forEach(b => b.onclick = () => {
 $("cl-exportar").onclick = exportarClientes;
 $("cl-exp-contatos").onclick = exportarFichas;
 new ResizeObserver(ajustarCabCl).observe(document.querySelector("#tela-clientes .cl-cab"));
-$("topo-fila").onclick = () => aviso($("fila").textContent || "Itens aguardando envio.");
+$("topo-fila").onclick = () => aviso(!$("fila").hidden && $("fila").textContent ? $("fila").textContent : navigator.onLine ? "Itens aguardando envio." : "Sem internet: o app mostra o que está guardado no aparelho e envia sozinho o que faltar quando o sinal voltar.", "espera");
 $("btn-cliente").onclick = abrirDialogo;
 $("dlg-fechar").onclick = () => $("dlg").close();
 $("busca").oninput = desenharLista;
@@ -13686,17 +13844,17 @@ window.addEventListener("popstate", () => {
   // tarefas e funil: "voltar" no detalhe volta para a lista; na lista, fecha (as tarefas podem estar por cima do funil)
   if (!$("tela-tar").hidden) {
     if (!history.state?.tar) { fecharTar(false); return; }
-    if ((tarTela?.aberta || tarTela?.nova) && !tarTela.direto && !history.state?.tarSub) { tarTela.aberta = tarTela.nova = null; desenharTar(); return; }
+    if ((tarTela?.aberta || tarTela?.nova) && !tarTela.direto && !history.state?.tarSub) { tarTela.aberta = tarTela.nova = null; desenharTar(); reporRol("tela-tar"); return; }
   }
   if (!$("tela-funil").hidden && $("tela-tar").hidden) {
     if (!history.state?.fu) { fecharFunil(false); return; }
-    if ((fuTela?.aberta || fuTela?.nova) && !fuTela.direto && !history.state?.fuSub) { fuTela.aberta = fuTela.nova = null; desenharFunil(); return; }
+    if ((fuTela?.aberta || fuTela?.nova) && !fuTela.direto && !history.state?.fuSub) { fuTela.aberta = fuTela.nova = null; desenharFunil(); reporRol("tela-funil"); return; }
   }
   // "voltar" na página do cliente aberta pela tabela de validade AVCB: volta para a tabela como estava
   if (history.state?.avcbVolta && cliDe === "avcb" && secao === "cliente" && ![...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden)) { reabrirAvcb(); return; }
   if (history.state?.avcbNovo && !$("tela-avcb-novo").hidden) return;   // voltou do visualizador (documento ampliado) para o "Novo AVCB"
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
-  if (!$("tela-nf").hidden && (nfTela?.det || nfTela?.nova) && !history.state?.nfSub) { nfTela = {}; desenharNf(true); return; }   // "voltar" numa nota fiscal: volta para a lista
+  if (!$("tela-nf").hidden && (nfTela?.det || nfTela?.nova) && !history.state?.nfSub) { nfTela = {}; desenharNf(true); reporRol("tela-nf"); return; }   // "voltar" numa nota fiscal: volta para a lista
   if (history.state?.arq || history.state?.pt || history.state?.its || history.state?.ch || history.state?.orc || history.state?.nf) return;   // voltou do visualizador para os arquivos do cliente / pasta técnica / comprovantes / orçamentos / notas fiscais
   if (history.state?.hist) { fecharArquivos(false); return; }        // voltou dos arquivos (abertos pelo histórico) para o histórico
   if (history.state?.eqv && !$("tela-eq").hidden) { fecharEq(false); return; }   // voltou de um cliente para a lista de vencimentos
@@ -13716,7 +13874,7 @@ window.addEventListener("popstate", () => {
   // a página interna voltou a aparecer sem o passo dela (ex.: "voltar" com a Agenda aberta por cima): repõe
   if (SECOES_SUB.includes(secao) && !history.state?.sub && !(secao === "cliente" && cliDe === "avcb") && !(secao === "fin" && finDe === "fin")) history.pushState({ sub: true }, "");
 });
-$("os-voltar").onclick = () => { if (osTela?.nova || osTela?.aberta) { osTela.nova = null; osTela.aberta = null; desenharOS(); } else fecharOS(); };
+$("os-voltar").onclick = () => { if (osTela?.nova || osTela?.aberta) { osTela.nova = null; osTela.aberta = null; desenharOS(); reporRol("tela-os"); } else fecharOS(); };
 $("eq-voltar").onclick =() => { if (eq?.editando) { eq.editando = null; desenharEq(); } else fecharEq(); };
 $("eqv-voltar").onclick = () => fecharEqv();
 $("orc-voltar").onclick = () => fecharOrc();
@@ -13843,7 +14001,11 @@ window.addEventListener("beforeunload", e => {
   if (enviando || enviandoFundo) { e.preventDefault(); e.returnValue = ""; }
 });
 // fila: tenta de novo quando a internet volta, quando o app volta para a tela e a cada minuto
-window.addEventListener("online", () => { atualizar(); tentarPendentes(); });
+window.addEventListener("online", () => {
+  const k = conta ? todosItens().filter(f => f.dest && f.st !== "ok").length : 0;
+  if (k) aviso(`Internet de volta. Enviando ${k} ${k > 1 ? "itens" : "item"}…`);
+  atualizar(); tentarPendentes();
+});
 window.addEventListener("offline", atualizar);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) tentarPendentes(); });
 setInterval(tentarPendentes, 60000);
