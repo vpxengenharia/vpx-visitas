@@ -1258,6 +1258,27 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 .hub-card.alerta.crit b{color:var(--crit-tx)}
 .hub-card.alerta.warn b{color:var(--warn-tx)}
 @media (min-width:900px) and (hover:hover) and (pointer:fine){.ini-recentes{flex-wrap:wrap;margin:0 0 12px;padding:0}.ini-atalho{width:fit-content;padding:0 28px}}
+/* ===== Agenda em calendário (pedido do Gustavo em 10/11/2026): o mês em cima; embaixo, os compromissos do dia tocado ===== */
+.ag-mes-cab{display:flex;align-items:center;gap:8px;margin:0 0 6px}
+.ag-mes-cab strong{flex:1;font-family:var(--titulo-fonte);font-size:22px;color:var(--tinta)}
+.ag-mes-cab button{flex:none;width:46px;height:46px;border-radius:12px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);font-size:22px;font-weight:700;line-height:1;cursor:pointer}
+.ag-mes-cab button:disabled{opacity:.35;cursor:default}
+.ag-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-bottom:6px}
+.ag-cal .ag-sem{text-align:center;font-size:13px;font-weight:700;color:var(--suave);padding:4px 0}
+.ag-cal button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-height:46px;padding:3px 0 3px;border:0;border-radius:12px;background:none;color:var(--tinta);font:inherit;font-size:18px;font-weight:600;cursor:pointer}
+.ag-cal button .n{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%}
+.ag-cal button.fds{color:var(--suave)}
+.ag-cal button.hoje .n{box-shadow:inset 0 0 0 2px var(--laranja)}
+.ag-cal button[aria-pressed="true"] .n{background:var(--marinho);color:#fff;box-shadow:none}
+.ag-cal button[aria-pressed="true"].hoje .n{background:var(--laranja);color:var(--marinho)}
+.ag-cal .pts{display:flex;gap:3px;height:6px}
+.ag-cal .pts i{width:6px;height:6px;border-radius:50%;background:var(--laranja)}
+.ag-cal .pts i.mais{width:12px;border-radius:3px}
+.ag-cal button:focus-visible{outline:3px solid var(--laranja);outline-offset:-2px}
+.ag-dia-sel{border-top:1.5px solid var(--linha);padding-top:4px}
+@media (prefers-color-scheme:dark){.ag-cal button[aria-pressed="true"] .n{background:var(--laranja);color:var(--marinho)}.ag-cal button[aria-pressed="true"].hoje .n{box-shadow:0 0 0 2px var(--tinta)}}
+@media (hover:none){.ag-cal button:not([aria-pressed="true"]):active .n{background:rgba(127,127,127,.2)}}
+@media (hover:hover) and (pointer:fine){.ag-cal button:not([aria-pressed="true"]):hover .n{background:rgba(127,127,127,.12)}}
 </style>
 </head>
 <body>
@@ -9273,7 +9294,7 @@ async function salvarAvcb() {
 
 /* ---------- agenda do Outlook (de cada pessoa) ----------
    Permissão delegada Calendars.Read, pedida à parte (só quando a agenda é aberta), para não atrapalhar o login
-   e o envio de fotos. Mostra de 30 dias atrás a 30 dias à frente; a última agenda fica guardada no celular. */
+   e o envio de fotos. Mostra do mês passado ao mês que vem, em calendário; a última agenda fica guardada no celular. */
 const ESCOPOS_AGENDA = ["Calendars.Read"];
 const ESCOPOS_AGENDA_ESC = ["Calendars.ReadWrite"];   // criar, editar e cancelar compromissos (pedida só quando a pessoa vai criar)
 const chaveAgenda = () => "vpx_agenda_" + (conta?.username || "");
@@ -9297,8 +9318,8 @@ function horarioAgenda(t, diaTodo) {
 }
 
 async function buscarAgenda() {
-  const ini = new Date(); ini.setHours(0, 0, 0, 0); ini.setDate(ini.getDate() - 30);
-  const fim = new Date(); fim.setHours(0, 0, 0, 0); fim.setDate(fim.getDate() + 31);
+  const h = new Date();                            // meses inteiros, para o calendário: do dia 1º do mês passado ao fim do mês que vem
+  const ini = new Date(h.getFullYear(), h.getMonth() - 1, 1), fim = new Date(h.getFullYear(), h.getMonth() + 2, 1);
   const tk = await tokenAgenda(false);
   let url = `${GRAPH}/me/calendarView?startDateTime=${ini.toISOString()}&endDateTime=${fim.toISOString()}`
     + "&$select=id,type,isOrganizer,subject,start,end,isAllDay,location,bodyPreview,organizer,attendees,webLink,isCancelled,onlineMeeting,isOnlineMeeting,isReminderOn,reminderMinutesBeforeStart&$orderby=start/dateTime&$top=200";
@@ -9329,30 +9350,69 @@ const nomeDia = k => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
+// Agenda em calendário (pedido do Gustavo em 10/11/2026, a partir do calendário do celular dele): o mês em cima, com uma
+// marca nos dias que têm compromisso; embaixo, os compromissos do dia tocado. Dá para ir ao mês passado e ao mês que vem
+// (é o período que o app busca no Outlook). agSel: dia escolhido (AAAA-MM-DD); agMes: mês à vista (0 = este, -1, +1).
+let agSel = null, agMes = 0, agEventos = [], agBase = null;   // agBase: dia 1º do mês em que a Agenda foi aberta (o "mês 0")
 function desenharAgenda(eventos) {
+  if (eventos) agEventos = eventos;
   const lista = $("agenda-lista");
   lista.innerHTML = "";
-  const hoje = chaveDia(Date.now());
+  const agora = new Date(), hoje = chaveDia(agora);
+  if (!agSel) agSel = hoje;
+  if (!agBase) agBase = new Date(agora.getFullYear(), agora.getMonth(), 1);
   const porDia = new Map();
-  for (const e of eventos.slice().sort((a, b) => a.ini - b.ini)) {
-    const k = chaveDia(e.ini);
-    if (!porDia.has(k)) porDia.set(k, []);
-    porDia.get(k).push(e);
+  // um compromisso de vários dias entra em todos os dias que cobre, dentro dos três meses mostrados
+  // (fim - 1: o fim do "dia todo" é o dia seguinte, e quem termina à meia-noite não entra no outro dia)
+  const lim0 = new Date(agBase.getFullYear(), agBase.getMonth() - 1, 1).getTime(), lim1 = new Date(agBase.getFullYear(), agBase.getMonth() + 2, 1).getTime();
+  for (const e of agEventos.slice().sort((a, b) => a.ini - b.ini)) {
+    const ult = chaveDia(Math.max(e.ini, e.fim - 1));
+    const d = new Date(Math.max(e.ini, lim0)); d.setHours(0, 0, 0, 0);
+    for (; d.getTime() < lim1; d.setDate(d.getDate() + 1)) {
+      const k = chaveDia(d);
+      if (!porDia.has(k)) porDia.set(k, []);
+      porDia.get(k).push(e);
+      if (k >= ult) break;
+    }
   }
-  if (!porDia.has(hoje)) porDia.set(hoje, []);          // "Hoje" sempre aparece, mesmo sem compromissos
-  for (const k of [...porDia.keys()].sort()) {
-    const grupo = document.createElement("section");
-    if (k < hoje) grupo.className = "ag-passado";
-    const h = document.createElement("h3");
-    h.className = "ag-dia" + (k === hoje ? " hoje" : "");
-    h.id = k === hoje ? "ag-hoje" : "";
-    h.textContent = nomeDia(k);
-    grupo.appendChild(h);
-    const evs = porDia.get(k);
-    if (!evs.length) { const p = document.createElement("p"); p.className = "ag-vazio"; p.textContent = "Nada marcado."; grupo.appendChild(p); }
-    for (const e of evs) grupo.appendChild(cartaoEvento(e));
-    lista.appendChild(grupo);
+  const m1 = new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1), ano = m1.getFullYear(), mes = m1.getMonth();
+  // cabeçalho: ‹ mês ›
+  const cab = el("div", "ag-mes-cab");
+  const seta = (txt, rot, d) => { const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-label", rot); b.disabled = agMes + d < -1 || agMes + d > 1; b.onclick = () => { agMes += d; const p = chaveDia(new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1)); agSel = p.slice(0, 7) === hoje.slice(0, 7) ? hoje : p; desenharAgenda(); }; return b; };
+  cab.append(seta("‹", "Mês anterior", -1), el("strong", "", `${MESES[mes][0].toUpperCase() + MESES[mes].slice(1)} de ${ano}`), seta("›", "Próximo mês", 1));
+  lista.appendChild(cab);
+  // grade do mês (a semana começa no domingo)
+  const cal = el("div", "ag-cal");
+  ["D", "S", "T", "Q", "Q", "S", "S"].forEach(s => { const x = el("span", "ag-sem", s); x.setAttribute("aria-hidden", "true"); cal.appendChild(x); });
+  for (let i = 0; i < m1.getDay(); i++) cal.appendChild(el("span"));
+  const dias = new Date(ano, mes + 1, 0).getDate();
+  for (let d = 1; d <= dias; d++) {
+    const k = `${ano}-${pad(mes + 1)}-${pad(d)}`, evs = (porDia.get(k) || []).filter(e => !e.cancelado), sem = new Date(ano, mes, d).getDay();
+    const b = el("button", [k === hoje && "hoje", (sem === 0 || sem === 6) && "fds"].filter(Boolean).join(" ")); b.type = "button";
+    b.setAttribute("aria-pressed", String(k === agSel));
+    b.setAttribute("aria-label", `${nomeDia(k)}${k === hoje ? ", hoje" : ""}: ${evs.length ? evs.length + (evs.length > 1 ? " compromissos" : " compromisso") : "nada marcado"}`);
+    b.appendChild(el("span", "n", String(d)));
+    const pts = el("span", "pts");
+    if (evs.length >= 3) pts.appendChild(el("i", "mais")); else evs.forEach(() => pts.appendChild(el("i")));
+    b.appendChild(pts);
+    b.onclick = () => { agSel = k; desenharAgenda(); $("agenda-lista").querySelector('.ag-cal [aria-pressed="true"]')?.focus({ preventScroll: true }); };
+    cal.appendChild(b);
   }
+  lista.appendChild(cal);
+  // compromissos do dia escolhido
+  const grupo = el("section", "ag-dia-sel");
+  const h = el("h3", "ag-dia" + (agSel === hoje ? " hoje" : ""), nomeDia(agSel));
+  grupo.appendChild(h);
+  const evs = porDia.get(agSel) || [];
+  if (!evs.length) grupo.appendChild(el("p", "ag-vazio", "Nada marcado."));
+  for (const e of evs) grupo.appendChild(cartaoEvento(e));
+  lista.appendChild(grupo);
+}
+// mostra um dia no calendário (depois de criar ou mudar um compromisso); fora dos três meses buscados, fica onde está
+function irParaDiaAgenda(k) {
+  const [a, m] = k.split("-").map(Number), base = agBase || new Date(), d = (a - base.getFullYear()) * 12 + (m - 1 - base.getMonth());
+  if (d < -1 || d > 1) return;
+  agMes = d; agSel = k; desenharAgenda();
 }
 
 // cartão do compromisso; tocar mostra/esconde os detalhes
@@ -9406,7 +9466,7 @@ function cartaoEvento(e) {
   return b;
 }
 
-const irParaHoje = () => $("ag-hoje")?.scrollIntoView({ block: "start" });
+const irParaHoje = () => { agBase = null; agMes = 0; agSel = chaveDia(Date.now()); desenharAgenda(); $("agenda-corpo").scrollTop = 0; };
 
 // comoSecao: aberta pela barra de baixo (fica com a barra visível, como Início/Clientes/Financeiro/Mais)
 async function abrirAgenda(comoSecao) {
@@ -9417,6 +9477,7 @@ async function abrirAgenda(comoSecao) {
   if (!comoSecao) history.pushState({ agenda: true }, "");   // o "voltar" do Android fecha a tela
   fecharFormAgenda(false);
   $("agenda-novo").hidden = !pode("agenda");
+  agBase = null; agMes = 0; agSel = chaveDia(Date.now());   // abre no mês de hoje, com hoje escolhido
   const rasc = lerLS("vpx_ag_rasc", null);               // voltou da autorização: continua o compromisso que estava preenchendo
   if (rasc) { gravarLS("vpx_ag_rasc", null); abrirFormAgenda(null, rasc); }
   await carregarAgenda();
@@ -9424,7 +9485,7 @@ async function abrirAgenda(comoSecao) {
 async function carregarAgenda() {
   const guardada = lerLS(chaveAgenda(), null);
   const estado = $("agenda-estado");
-  if (guardada) { desenharAgenda(guardada.eventos); if (!agForm) irParaHoje(); }
+  if (guardada) desenharAgenda(guardada.eventos);
   estado.textContent = guardada ? "Atualizando…" : "Carregando a agenda…";
   if (!navigator.onLine) {
     estado.textContent = guardada ? `Sem internet: mostrando a agenda salva em ${new Date(guardada.quando).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}.` : "Sem internet e ainda sem agenda salva no celular.";
@@ -9434,8 +9495,7 @@ async function carregarAgenda() {
     const eventos = await buscarAgenda();
     gravarLS(chaveAgenda(), { quando: Date.now(), eventos });
     desenharAgenda(eventos);
-    if (!agForm) irParaHoje();
-    estado.textContent = `Sua agenda do Outlook, de 30 dias atrás a 30 dias à frente. Atualizada às ${horaMin(Date.now())}.`;
+    estado.textContent = `Sua agenda do Outlook, do mês passado ao mês que vem. Atualizada às ${horaMin(Date.now())}.`;
   } catch (e) {
     console.error(e);
     const semPermissao = e instanceof msal.InteractionRequiredAuthError || e.status === 401 || e.status === 403 || /consent|AADSTS65001/i.test(e.message);
@@ -9652,7 +9712,7 @@ async function salvarEvento(botao) {
   const dia = f.data;
   fecharFormAgenda();
   await carregarAgenda();
-  document.querySelectorAll("#agenda-lista .ag-dia").forEach(h => { if (h.textContent === nomeDia(dia)) h.scrollIntoView({ block: "start" }); });
+  if (dia) irParaDiaAgenda(dia);                    // mostra o dia do compromisso criado ou alterado
   if (!$("tela-inicio").hidden) desenharInicio();
 }
 async function cancelarEvento(e) {
