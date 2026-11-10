@@ -982,6 +982,15 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 
 .aviso{position:fixed;left:18px;right:18px;bottom:calc(200px + env(safe-area-inset-bottom,0px));max-width:684px;margin:0 auto;background:var(--tinta);color:var(--fundo);padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none;z-index:70}   /* acima das telas que abrem por cima (antes ficava escondido atrás delas) */
 .aviso.ver{opacity:1;transform:none}
+.aviso.ver button{pointer-events:auto}   /* só o botão recebe o toque: o resto do aviso deixa passar para o que está embaixo */
+.aviso.com-acao{display:flex;align-items:center;gap:12px}
+.aviso button{flex:none;margin-left:auto;min-height:44px;padding:0 16px;border:1.5px solid currentColor;border-radius:10px;background:none;color:inherit;font-weight:700;cursor:pointer}
+/* pergunta do próprio app (no lugar da caixinha OK/Cancelar do navegador): os botões dizem o que fazem */
+.dlg-enviar p.perg-texto{font-size:15.5px;font-weight:400;color:var(--suave);margin-top:-8px}
+.dlg-enviar .campo textarea{min-height:64px}
+.perg-acoes{grid-template-columns:1fr}
+.perg-acoes .btn{width:100%}
+.perg-acoes .perigo{background:var(--erro);color:#fff}
 .aviso.erro{background:var(--erro);color:#fff}
 /* versão nova do app: embaixo — acima da barra de baixo nas telas de navegação e da barra de Salvar nos formulários; o fim
    da página ganha um espaço do tamanho dele (nada fica preso embaixo); fica por baixo da câmera (30) e das telas por cima (34+) */
@@ -1714,6 +1723,12 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <p id="env-texto">Arquivos prontos para enviar.</p>
   <div class="env-acoes"><button class="btn sec" id="env-nao" type="button">Cancelar</button><button class="btn prim" id="env-ok" type="button">Enviar agora</button></div>
 </dialog>
+<dialog id="dlg-perg" class="dlg-enviar" aria-labelledby="perg-titulo">
+  <p id="perg-titulo"></p>
+  <p id="perg-texto" class="perg-texto" hidden></p>
+  <label class="campo" id="perg-campo-rot" hidden><span id="perg-campo-nome"></span><textarea id="perg-campo" rows="2" maxlength="300"></textarea></label>
+  <div class="env-acoes perg-acoes"><button class="btn prim" id="perg-sim" type="button"></button><button class="btn sec" id="perg-nao" type="button"></button></div>
+</dialog>
 
 <div class="tela-avcb" id="tela-admin" hidden role="dialog" aria-label="Administração">
   <div class="avcb-topo"><button class="avcb-voltar" id="adm-voltar">‹ Voltar</button><strong>Administração</strong></div>
@@ -2034,13 +2049,78 @@ const todosItens = () => [...listaDe("visita"), ...listaDe("com"), ...listaDe("l
 let enviandoFundo = false;                                         // envio automático dos pendentes (sem travar a tela)
 
 /* ---------- utilidades ---------- */
-function aviso(msg, erro = false) {
-  const el = $("aviso");
-  el.textContent = msg;
-  el.className = "aviso ver" + (erro ? " erro" : "");
-  clearTimeout(aviso.t);
-  aviso.t = setTimeout(() => el.className = "aviso", erro ? 6000 : 3000);
+// erro que chega ao usuário: o texto cru do navegador ou da Microsoft (em inglês) vira uma frase em português.
+// Só na hora de mostrar: o e.message continua como veio, porque a fila e as autorizações olham esse texto.
+const ERROS_PT = [
+  [/failed to fetch|load failed|networkerror|network request failed/i, "sem internet ou com sinal fraco. Tente de novo quando o sinal voltar."],
+  [/access ?(is )?denied|forbidden|erro 403/i, "você não tem permissão para isso. Peça ao administrador."],
+  [/could not be found|itemnotfound|item not found|resource not found|erro 404/i, "isso não existe mais (foi apagado ou mudou de lugar). Atualize e tente de novo."],
+  [/erro 401|unauthenticated|invalidauthenticationtoken/i, "o login venceu. Feche o app e abra de novo."],
+  [/erro 423|resource is locked|is locked/i, "o arquivo está aberto por outra pessoa. Tente daqui a pouco."],
+  [/erro 429|erro 50[0-4]|too many requests|throttl|service unavailable|gateway/i, "a Microsoft está lenta agora. Tente de novo em 1 minuto."],
+  [/quotaexceeded|quota (has been )?exceeded|exceeded the quota/i, "o celular está sem espaço. Apague fotos ou arquivos guardados e tente de novo."],
+  [/erro 507|insufficient storage|quotalimitreached/i, "o OneDrive está sem espaço."],
+  [/erro 409|erro 412|precondition|etag|name already exists|namealreadyexists/i, "outra pessoa mexeu nisso agora há pouco. Atualize e tente de novo."],
+  [/access_denied|user_cancelled|user cancelled/i, "a entrada foi cancelada. Toque em Entrar de novo."],
+  [/AADSTS\d+|interaction_required|login_required|consent_required/i, "a Microsoft não concluiu a entrada. Tente de novo; se continuar, avise a VPX."]
+];
+function erroEmPortugues(msg) {
+  msg = String(msg ?? "");
+  const r = ERROS_PT.find(([re]) => re.test(msg));
+  if (!r) return msg;
+  const i = msg.lastIndexOf(": ", r[0].exec(msg).index), inicio = i > 0 ? msg.slice(0, i + 2) : "";   // o começo em português ("Não foi possível abrir: ") continua
+  const cod = (msg.match(/AADSTS\d+/) || [])[0];
+  const txt = r[1] + (cod ? " (" + cod + ")" : "");
+  return inicio ? inicio + txt : txt[0].toUpperCase() + txt.slice(1);
 }
+// acao (opcional): { rotulo, fn } vira um botão dentro do aviso (ex.: "Desfazer")
+function aviso(msg, erro = false, acao = null) {
+  const el = $("aviso");
+  if (erro) msg = erroEmPortugues(msg);
+  el.textContent = msg;
+  if (acao) {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = acao.rotulo;
+    b.onclick = ev => { ev.stopPropagation(); fecharAviso(); acao.fn(); };
+    el.appendChild(b);
+  }
+  el.className = "aviso ver" + (erro ? " erro" : "") + (acao ? " com-acao" : "");
+  clearTimeout(aviso.t);
+  // fica mais tempo quanto mais comprido (antes: 3 s para qualquer texto); com botão, 8 s
+  aviso.t = setTimeout(fecharAviso, acao ? 8000 : Math.min(12000, Math.max(erro ? 6000 : 3000, 1500 + 60 * String(msg).length)));
+}
+function fecharAviso() { clearTimeout(aviso.t); $("aviso").className = "aviso"; }
+
+// pergunta numa janela do próprio app, com botões que dizem o que fazem ("Sim, cancelar a OS" / "Não, manter a OS").
+// Devolve null (desistiu) ou { valor } (texto do campo opcional). O "voltar" do celular e o Esc desistem: a pergunta
+// guarda um passo no histórico e só responde quando esse passo sai (popstate), para o que está embaixo não fechar junto.
+let pergAtual = null;
+function perguntar({ titulo, texto = "", campo = "", sim, nao = "Voltar", perigo = false }) {
+  return new Promise(ok => {
+    if (pergAtual) { ok(null); return; }
+    $("perg-titulo").textContent = titulo;
+    $("perg-texto").textContent = texto; $("perg-texto").hidden = !texto;
+    $("perg-campo-rot").hidden = !campo; $("perg-campo-nome").textContent = campo; $("perg-campo").value = "";
+    $("perg-sim").textContent = sim; $("perg-sim").classList.toggle("perigo", perigo); $("perg-nao").textContent = nao;
+    pergAtual = { ok, resp: null };
+    history.pushState({ ...(history.state || {}), perg: true }, "");
+    $("dlg-perg").showModal();
+    $("perg-nao").focus();                         // o foco começa no botão que não muda nada
+  });
+}
+function fecharPergunta(resp) {
+  if (!pergAtual) return;
+  pergAtual.resp = resp;
+  if (history.state?.perg) history.back(); else concluirPergunta();
+}
+function concluirPergunta() {                      // chamada pelo popstate (o passo da pergunta saiu do histórico)
+  const p = pergAtual; if (!p) return;
+  pergAtual = null;
+  if ($("dlg-perg").open) $("dlg-perg").close();
+  p.ok(p.resp);
+}
+$("perg-sim").onclick = () => fecharPergunta({ valor: $("perg-campo").value.trim() });
+$("perg-nao").onclick = () => fecharPergunta(null);
+$("dlg-perg").addEventListener("cancel", e => { e.preventDefault(); fecharPergunta(null); });
 function mostrar(tela) {
   const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-reg", "tela-mod", "tela-fin", "tela-mais"];
   ["tela-config", "tela-login", "tela-espera", "tela-app", "tela-ok", ...hubs].forEach(t => $(t).hidden = t !== tela);
@@ -3377,7 +3457,12 @@ function botaoTudoConforme(s, uid) {
     if (!vazios.length) { aviso("Todos os itens desta parte já têm resposta."); return; }
     vazios.forEach(k => { (laudo.r[k] ||= {}).st = "C"; const w = $("li-" + k); if (w) pintarItem(w, k); });
     mudouLaudo();
-    aviso(`${vazios.length} ${vazios.length > 1 ? "itens marcados" : "item marcado"} como Conforme. Troque os que tiverem problema.`);
+    const ld = laudo;
+    aviso(`${vazios.length} ${vazios.length > 1 ? "itens marcados" : "item marcado"} como Conforme.`, false, { rotulo: "Desfazer", fn: () => {
+      if (laudo !== ld) return;                    // outro laudo aberto nesse meio-tempo
+      vazios.forEach(k => { const r = laudo.r[k]; if (r && r.st === "C") { delete r.st; const w = $("li-" + k); if (w) pintarItem(w, k); } });   // só os que o botão marcou e continuam Conforme
+      mudouLaudo();
+    } });
   };
   return b;
 }
@@ -3462,7 +3547,15 @@ function pintarItem(w, k) {
     if (u) img.src = u;
     else lerFotoLaudo(chave).then(b => { if (b) { const nu = URL.createObjectURL(b); urlsFotoLaudo.set(chave, nu); img.src = nu; } }).catch(() => {});
     const rm = el("button", "", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Remover foto");
-    rm.onclick = () => { x.fotos = x.fotos.filter(c => c !== chave); apagarFotoLaudo(chave); pintarItem(w, k); mudouLaudo(); };
+    rm.onclick = () => {
+      x.fotos = x.fotos.filter(c => c !== chave); pintarItem(w, k); mudouLaudo();
+      fotoLaudoRemovida(chave, () => {
+        if (laudo.r[k] !== x) return false;        // o laudo foi trocado, pausado ou virou PDF nesse meio-tempo
+        if (!(x.fotos ||= []).includes(chave)) x.fotos.push(chave);
+        const w2 = $("li-" + k); if (w2) pintarItem(w2, k);
+        mudouLaudo();
+      });
+    };
     t.append(img, rm);
     caixa.appendChild(t);
   }
@@ -3891,14 +3984,42 @@ function liberar(f) {
   if (f.capa) URL.revokeObjectURL(f.capa);
 }
 
+// tirar um item da grade: ele some na hora, mas só é apagado do celular 9 s depois, e o aviso traz "Desfazer"
+// (antes um toque no × apagava de vez, até um vídeo gravado no app). Se o app fechar nesses segundos, o item volta.
+const removidos = new Map();                       // id → temporizador do apagar de vez
 function remover(id) {
   const i = fotos.findIndex(f => f.id === id);
   if (i < 0) return;
-  liberar(fotos[i]);
-  apagarItem(id);
+  const f = fotos[i];
   fotos.splice(i, 1);
   atualizar();
+  const daFila = !!f.dest;                         // já salvo, esperando internet: sai do celular na hora (senão, fechando o app, ele seria enviado)
+  if (daFila) apagarItem(id);
+  removidos.set(id, setTimeout(() => { if (removidos.delete(id)) { liberar(f); if (!daFila) apagarItem(id); } }, 9000));
+  aviso((f.video ? "Vídeo removido" : f.pdf ? "Arquivo removido" : "Foto removida") + ".", false, { rotulo: "Desfazer", fn: () => {
+    if (!removidos.has(id)) return;
+    clearTimeout(removidos.get(id)); removidos.delete(id);
+    const lista = listaDe(f.modo);                 // a lista da aba do item (pode não ser mais a aba aberta)
+    if (lista.some(x => x.id === id)) return;
+    lista.splice(Math.min(i, lista.length), 0, f);
+    if (daFila) guardarItem(f, true);
+    atualizar();
+  } });
 }
+// fotos dos itens do laudo, da inspeção e do relatório de serviço: a mesma espera antes de apagar do celular
+const fotosLdRemovidas = new Map();
+const anotarFotosApagar = () => gravarLS("vpx_fotos_apagar", [...fotosLdRemovidas.keys()]);
+function fotoLaudoRemovida(chave, devolver) {     // devolver(): põe a foto de volta; false = não deu (o rascunho mudou)
+  fotosLdRemovidas.set(chave, setTimeout(() => { if (fotosLdRemovidas.delete(chave)) { apagarFotoLaudo(chave); anotarFotosApagar(); } }, 9000));
+  anotarFotosApagar();
+  aviso("Foto removida.", false, { rotulo: "Desfazer", fn: () => {
+    if (!fotosLdRemovidas.has(chave)) return;
+    clearTimeout(fotosLdRemovidas.get(chave)); fotosLdRemovidas.delete(chave); anotarFotosApagar();
+    if (devolver() === false) apagarFotoLaudo(chave);
+  } });
+}
+// app fechado antes dos 9 s: as fotos que já tinham saído do rascunho são apagadas agora
+lerLS("vpx_fotos_apagar", []).forEach(k => apagarFotoLaudo(k)); gravarLS("vpx_fotos_apagar", []);
 
 // "3 fotos e 1 vídeo"
 function descrever(lista) {
@@ -5367,7 +5488,7 @@ function caixaFotosServ(lista, aoMudar) {
     if (u) img.src = u;
     else lerFotoLaudo(chave).then(b => { if (b) { const nu = URL.createObjectURL(b); urlsFotoLaudo.set(chave, nu); img.src = nu; } }).catch(() => {});
     const rm = el("button", "", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Remover foto");
-    rm.onclick = () => { lista.splice(lista.indexOf(chave), 1); apagarFotoLaudo(chave); aoMudar(); };
+    rm.onclick = () => { lista.splice(lista.indexOf(chave), 1); aoMudar(); fotoLaudoRemovida(chave, () => { if (!serv.ativ.some(a => a.antes === lista || a.depois === lista)) return false; if (!lista.includes(chave)) lista.push(chave); aoMudar(); }); };
     t.append(img, rm);
     caixa.appendChild(t);
   }
@@ -6714,7 +6835,8 @@ async function acaoOS(numero, fn, acao, ok) {
 const pegarOS = n => acaoOS(n, a => a.status !== "aberta" ? "Esta OS já foi pega por " + (a.tecnico?.nome || "outra pessoa") + "." : (a.status = "andamento", a.tecnico = eu(), ""), "Pegou a OS", `${n} está com você.`);
 const devolverOS = n => acaoOS(n, a => (a.status = "aberta", a.tecnico = null, ""), "Devolveu para a fila", `${n} voltou para a fila.`);
 async function cancelarOS(n) {
-  const motivo = prompt(`Cancelar a ${n}? Motivo (opcional):`, ""); if (motivo === null) return;
+  const r = await perguntar({ titulo: `Cancelar a ${n}?`, campo: "Motivo (opcional)", sim: "Sim, cancelar a OS", nao: "Não, manter a OS", perigo: true }); if (!r) return;
+  const motivo = r.valor;
   await acaoOS(n, a => a.status === "concluida" ? "Esta OS já foi concluída." : (a.status = "cancelada", a.cancelamento = { em: new Date().toISOString(), por: nomeColaborador(), motivo: motivo.trim() }, ""), "Cancelou" + (motivo.trim() ? ": " + motivo.trim() : ""), `${n} cancelada.`);
 }
 
@@ -8121,7 +8243,13 @@ function mudarStatusPC(...a) { return comGravacao(() => mudarStatusPCJa(...a)); 
 async function mudarStatusPCJa(p, status, pedirMotivo, extra) {
   if (!navigator.onLine) { aviso("Sem internet para alterar o pedido.", true); return; }
   let obs = "";
-  if (pedirMotivo) { obs = prompt(status === "recusado" ? "Motivo da recusa (opcional):" : "Motivo do cancelamento (opcional):", ""); if (obs === null) return; }
+  if (pedirMotivo) {
+    const rec = status === "recusado";
+    const r = await perguntar({ titulo: `${rec ? "Recusar" : "Cancelar"} o pedido ${p.numero}?`, campo: "Motivo (opcional)",
+      sim: rec ? "Sim, recusar o pedido" : "Sim, cancelar o pedido", nao: rec ? "Não, voltar" : "Não, manter o pedido", perigo: true });
+    if (!r) return;
+    obs = r.valor;
+  }
   try {
     const item = await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}`);
     const atual = await (await fetch(item["@microsoft.graph.downloadUrl"])).json();
@@ -9440,10 +9568,14 @@ async function salvarEvento(botao) {
 async function cancelarEvento(e) {
   if (!navigator.onLine) { aviso("Sem internet: conecte-se para cancelar.", true); return; }
   let msg = "";
-  if (e.conv?.length) {
-    msg = prompt(`Cancelar "${e.titulo}"?\nOs ${e.conv.length} convidado(s) recebem o aviso de cancelamento.\n\nMensagem para eles (opcional):`, "");
-    if (msg === null) return;
-  } else if (!confirm(`Cancelar "${e.titulo}" e tirar da sua agenda?`)) return;
+  {
+    const nC = e.conv?.length || 0;
+    const r = await perguntar({ titulo: `Cancelar "${e.titulo}"?`,
+      texto: nC ? `${nC > 1 ? `Os ${nC} convidados recebem` : "O convidado recebe"} o aviso de cancelamento.` : "O compromisso sai da sua agenda.",
+      campo: nC ? "Mensagem para os convidados (opcional)" : "", sim: "Sim, cancelar o compromisso", nao: "Não, manter o compromisso", perigo: true });
+    if (!r) return;
+    msg = r.valor;
+  }
   try {
     await tokenAgenda(false, ESCOPOS_AGENDA_ESC).catch(async err => {
       if (!(err instanceof msal.InteractionRequiredAuthError)) throw err;
@@ -9602,6 +9734,8 @@ function atualizarNav() {
 }
 
 // troca de seção pela barra de baixo (a Agenda abre por cima, como antes)
+const SECOES_SUB = ["cliente", "mod", "fin"];
+const voltarSub = () => history.go(history.state?.dup ? -2 : -1);   // o "voltar" da tela numa página interna (pula o passo repetido)
 function irPara(s, deMenu) {                       // deMenu: tocado na barra de baixo / no menu lateral
   if (enviando) return;
   if (s === "agenda") {                            // abre por cima da seção atual, mas com a barra de baixo visível
@@ -9617,8 +9751,12 @@ function irPara(s, deMenu) {                       // deMenu: tocado na barra de
   if (s !== "cliente") cliDe = null;               // saiu da página do cliente aberta pela tabela de validade AVCB
   // de onde veio o Financeiro: Registros (quadrado Comprovante), Mais (celular) ou o próprio menu lateral (computador: "fin")
   if (s === "fin" && (secao !== "fin" || deMenu)) finDe = deMenu && computador.matches ? "fin" : secao === "reg" || secao === "mod" ? "reg" : computador.matches ? "fin" : "mais";
+  // páginas internas (cliente, página do assunto, Financeiro): guardam um passo no histórico, para o "voltar" do celular
+  // voltar para a lista em vez de fechar o app; saindo delas pela barra, o passo é esvaziado (como no formulário)
+  if (SECOES_SUB.includes(secao) && !SECOES_SUB.includes(s) && history.state?.sub) history.replaceState(null, "");
   secao = s;
   mostrar(TELA_SECAO[s]);
+  if (SECOES_SUB.includes(s) && !history.state?.sub && !(s === "cliente" && cliDe === "avcb") && !(s === "fin" && finDe === "fin")) history.pushState({ sub: true }, "");
   if (s === "inicio") desenharInicio();
   if (s === "reg") desenharReg();
   if (s === "clientes") { $("cl-busca").value = ""; desenharClientesHub(); if (computador.matches) $("cl-busca").focus(); }   // no computador já dá para digitar o nome
@@ -9641,7 +9779,7 @@ function fecharTelasPorCima() {
   fecharAssinar(false); fecharNovoAvcb(false); fecharAdmin(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
   fecharFicha(false); fecharTar(false); fecharFunil(false);
   fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharNf(false); fecharOS(false); fecharAvcb(false);
-  if (havia) { document.body.style.overflow = ""; history.replaceState(null, ""); }
+  if (havia) { document.body.style.overflow = ""; history.replaceState(SECOES_SUB.includes(secao) && !(secao === "cliente" && cliDe === "avcb") && !(secao === "fin" && finDe === "fin") ? { sub: true, dup: true } : null, ""); }   // numa página interna o passo dela continua (dup: há outro igual embaixo)
   return true;
 }
 
@@ -9685,7 +9823,7 @@ let modAtual = "laudo";
 function abrirModulo(m) { modAtual = m; irPara("mod"); }
 function desenharModulo() {
   const m = modAtual, info = MOD_INFO[m], t = $("tela-mod"); t.innerHTML = "";
-  const v = el("button", "hub-voltar", "‹ Registros"); v.type = "button"; v.onclick = () => irPara("reg");
+  const v = el("button", "hub-voltar", "‹ Registros"); v.type = "button"; v.onclick = () => history.state?.sub ? voltarSub() : irPara("reg");
   { const h = el("h1", "hub-tit"); h.append(icCaixa(info.ico), info.tit); t.append(v, h); }
   const n = el("button", "btn prim", "+ " + info.novo); n.type = "button"; n.style.marginBottom = "14px"; n.onclick = () => novoDoModulo(m);
   t.appendChild(n);
@@ -12565,7 +12703,7 @@ function comCliente(c, fn) { const ant = cliente; cliente = c; try { fn(); } fin
 function desenharPaginaCliente() {
   const t = $("tela-cliente"), c = cliPagina; t.innerHTML = "";
   const v = el("button", "hub-voltar", cliDe === "avcb" ? "‹ Validade AVCB" : "‹ Clientes"); v.type = "button";
-  v.onclick = () => { if (cliDe === "avcb") voltarParaAvcb(); else voltarParaClientes(); };   // a lista volta no mesmo ponto
+  v.onclick = () => { if (cliDe === "avcb") voltarParaAvcb(); else if (history.state?.sub) voltarSub(); else voltarParaClientes(); };   // a lista volta no mesmo ponto (pelo popstate)
   t.append(v, el("h1", "hub-tit", c));
   const av = avcbDoCliente(c);
   if (av) { const s = situacaoAvcb(av); t.appendChild(el("p", "avcb-aviso " + s.cls, (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto)); }
@@ -12630,7 +12768,7 @@ function desenharReg() {
 function desenharFin() {
   const t = $("tela-fin"); t.innerHTML = "";
   // no computador o Financeiro está no menu lateral: só tem "voltar" quando veio do quadrado Comprovante (Registros)
-  if (finDe === "reg" || !computador.matches) { const v = el("button", "hub-voltar", finDe === "reg" ? "‹ Registros" : "‹ Mais"); v.type = "button"; v.onclick = () => irPara(finDe === "fin" ? "mais" : finDe); t.appendChild(v); }
+  if (finDe === "reg" || !computador.matches) { const v = el("button", "hub-voltar", finDe === "reg" ? "‹ Registros" : "‹ Mais"); v.type = "button"; v.onclick = () => history.state?.sub ? voltarSub() : irPara(finDe === "fin" ? "mais" : finDe); t.appendChild(v); }
   t.appendChild(el("h1", "hub-tit", "Financeiro"));
   if (pode("comp")) {
     const mes = dataISO().slice(0, 7), eu = semAcento(nomeColaborador());
@@ -12787,7 +12925,7 @@ computador.addEventListener("change", () => {      // janela passou da largura d
 });
 // no computador: Esc fecha a tela aberta por cima (o mesmo que "‹ Voltar"); num campo de texto, só sai do campo
 document.addEventListener("keydown", e => {
-  if (e.key !== "Escape" || $("dlg").open || $("dlg-enviar").open || cam) return;   // a lista de clientes (e o "Enviar agora") fecha sozinha com o Esc; a câmera tem o próprio botão
+  if (e.key !== "Escape" || $("dlg").open || $("dlg-enviar").open || $("dlg-perg").open || cam) return;   // a lista de clientes (e o "Enviar agora") fecha sozinha com o Esc; a câmera tem o próprio botão
   if (e.target.matches?.("input, textarea, select")) { e.target.blur(); return; }
   if (!$("visor-pdf").hidden) { fecharVisor(); return; }
   if ($("menu-op") && !$("menu-op").hidden) { $("menu-op").hidden = true; return; }   // menu da situação da tarefa
@@ -12901,6 +13039,7 @@ document.querySelectorAll("#cam-modos button").forEach(b => b.onclick = () => de
 $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
 window.addEventListener("popstate", () => {
+  if (pergAtual) { concluirPergunta(); return; }                    // a pergunta do app saiu do histórico: responde (o "voltar" desiste)
   if (agVoltando) { agVoltando = false; return; }                  // o próprio app tirou o passo do formulário da agenda
   if (fichaVoltando) { fichaVoltando = false; return; }            // idem, da ficha do cliente (o que estava embaixo continua aberto)
   if (tarVoltando || fuVoltando) {                                 // idem, das tarefas e do funil; depois abre o que foi pedido (ex.: a oportunidade)
@@ -12938,11 +13077,18 @@ window.addEventListener("popstate", () => {
   if (!$("tela-admin").hidden) { fecharAdmin(false); return; }
   // "voltar" do celular no formulário (sem nada aberto por cima): volta ao Início
   const porCima = cam || !$("menu").hidden || [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden);
+  // "voltar" numa página interna: cliente → Clientes (no mesmo ponto), página do assunto → Registros, Financeiro → de onde veio
+  if (!porCima && SECOES_SUB.includes(secao) && !history.state?.sub && !(secao === "cliente" && cliDe === "avcb") && !(secao === "fin" && finDe === "fin")) {
+    if (secao === "cliente") voltarParaClientes(); else irPara(secao === "mod" ? "reg" : finDe);
+    return;
+  }
   if (!porCima && secao === "trabalho" && !history.state?.trab) {
     if (enviando) { history.pushState({ trab: true }, ""); return; }   // enviando: fica no formulário
     irPara(trabDe || "inicio"); return;
   }
   if (cam) fecharCamera(false); fecharAvcb(false); fecharAgenda(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false); fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharNf(false); fecharOS(false); fecharMenu();
+  // a página interna voltou a aparecer sem o passo dela (ex.: "voltar" com a Agenda aberta por cima): repõe
+  if (SECOES_SUB.includes(secao) && !history.state?.sub && !(secao === "cliente" && cliDe === "avcb") && !(secao === "fin" && finDe === "fin")) history.pushState({ sub: true }, "");
 });
 $("os-voltar").onclick = () => { if (osTela?.nova || osTela?.aberta) { osTela.nova = null; osTela.aberta = null; desenharOS(); } else fecharOS(); };
 $("eq-voltar").onclick =() => { if (eq?.editando) { eq.editando = null; desenharEq(); } else fecharEq(); };
