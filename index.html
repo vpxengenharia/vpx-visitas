@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"><!-- maximum-scale: o iPhone não dá zoom ao tocar num campo -->
 <title>VPX Engenharia</title>
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFFFFF">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#162638">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="VPX Engenharia">
@@ -438,7 +439,7 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .pc-l1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .pc-l1 strong{font-size:15.5px}
 .pc-st{font-size:12.5px;font-weight:700;color:var(--suave);text-align:right}
-.pc-card.warn .pc-st{color:#B07800}.pc-card.ok .pc-st{color:#1F7A45}.pc-card.crit .pc-st{color:#C0392B}
+.pc-card.warn .pc-st{color:var(--warn-tx)}.pc-card.ok .pc-st{color:var(--okv-tx)}.pc-card.crit .pc-st{color:var(--crit-tx)}
 .pc-l2{font-size:14px;margin-top:3px}
 .pc-l3{font-size:12.5px;color:var(--suave);margin-top:2px}
 .pc-dados{margin:8px 0}
@@ -1172,6 +1173,63 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   }
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ===== Pacote 2 da revisão de design (pedido do Gustavo em 09/11/2026): uso no sol, com uma mão ===== */
+select,textarea{font-family:inherit}              /* as caixas de escolha saíam com a letra do aparelho, não a Barlow */
+::placeholder{color:var(--suave);opacity:1}
+.busca::placeholder{color:#5B6B80}               /* a busca da janela "Escolher cliente" é sempre branca */
+/* contorno dos campos mais marcado (no sol a borda clara sumia); cartões, chips e tabelas continuam com --linha */
+:root{--borda-campo:#8C9AAD}
+.campo input,.campo select,.campo textarea,.avcb-busca,.orc-filtros select,.tar-ctrl select,.li-obs,.li-serv input,.entrada-campo{border-color:var(--borda-campo)}
+.hub-busca{border:1.5px solid var(--borda-campo)}
+/* alvos de toque: os que ficavam abaixo de 44 px e são usados o tempo todo */
+.li-foto,.li-obs-btn{min-height:46px;padding:0 16px;font-size:15px;color:var(--marinho)}
+.laudo-link{min-height:44px;padding:10px 6px;font-size:15px}
+.tar-links{gap:4px 20px}
+.tar-st{position:relative}
+.tar-st::after{content:"";position:absolute;inset:-7px -4px}   /* o selo fica igual; a área de toque cresce */
+.foto .tirar::after{content:"";position:absolute;inset:-5px}
+.li-mini button::after{content:"";position:absolute;inset:-2px -9px -16px -16px}   /* cresce para dentro da miniatura, sem subir nos botões Foto/Obs. */
+.topo-fila{min-height:40px;font-size:14px}
+.pt-doc,.arq-trilha button,.hub-voltar,.trab-voltar{min-height:44px}
+.cam-modos button{min-height:44px;padding:8px 10px}
+/* contraste de textos de situação */
+.li-st .st-NA[aria-pressed="true"]{background:#66758A;border-color:#66758A}
+.os-st.cancelada{color:var(--tinta)}
+.ag-passado{opacity:.8}
+/* formulário de fotos: a Câmera é o primeiro passo e ganha peso; o botão de baixo fica contornado enquanto falta algo */
+#btn-seq{background:var(--marinho);border-color:var(--marinho);color:#fff;flex:1.4;font-size:16px}
+.captura .btn{font-size:15px}
+.prim.falta{background:var(--papel);color:var(--tinta);border:2px solid var(--laranja)}
+/* aviso de "está guardado no celular": não é erro, sai em âmbar */
+.aviso.espera{background:var(--warn-bg);color:var(--warn-tx);border:1.5px solid currentColor}
+/* resposta ao toque (celular): o que é tocado escurece um pouco */
+@media (hover:none){
+  .btn:active,.hub-tile:active,.hub-card:active,.hub-linha:active,.cli-ac:active,.os-card:active,.tar-card:active,.fu-card:active,.ag-ev:active,.arq-item:active,.item:active,.cliente:active,.chips button:active,.li-st button:active,.li-foto:active,.li-obs-btn:active,.avcb-qt:active,.avcb-voltar:active,.hub-voltar:active,.trab-voltar:active,.laudo-tipos button:active,.tipos button:active{filter:brightness(.92)}
+  .btn:active,.hub-tile:active{transform:scale(.98)}
+  .nav button:active,.orc-tab tbody tr:not(.avcb-det):active{background-color:rgba(127,127,127,.16)}
+  /* cartões e linhas de lista: o efeito entra com um pequeno atraso, para não piscar quando o dedo só começa a rolar */
+  .hub-card:active,.hub-linha:active,.os-card:active,.tar-card:active,.fu-card:active,.ag-ev:active,.arq-item:active,.item:active,.cliente:active{transition:filter 0s .08s}
+  .orc-tab tbody tr:active{transition:background-color 0s .08s}
+}
+@media (hover:hover) and (pointer:fine){#btn-seq{transition:filter .12s}#btn-seq:hover{filter:brightness(1.12)}}
+@media (prefers-color-scheme:dark){
+  :root{--borda-campo:#5A7391}
+  /* a faixa do topo e a busca de Clientes ficavam brancas no modo escuro (um bloco claro forte numa tela escura) */
+  .topo,.avcb-topo{background:var(--papel);color:var(--tinta)}
+  .avcb-voltar,.trab-voltar{color:var(--tinta)}
+  .hub-busca{background:var(--papel);color:var(--tinta)}
+  .hub-busca::placeholder{color:var(--suave)}
+  /* azul-marinho e vermelho-escuro sumiam no fundo escuro */
+  #btn-seq{background:var(--laranja);border-color:var(--laranja);color:var(--marinho)}
+  .li-foto,.li-obs-btn{color:var(--tinta)}
+  .ag-ev{border-left-color:var(--laranja)}
+  .ag-ev.cancelado{border-left-color:var(--crit-tx)}
+  .tar-card.pri-critica,.fu-card.pri-critica{border-left-color:var(--crit-tx)}
+  .os-st.andamento{background:rgba(255,255,255,.1);color:var(--tinta)}
+}
+@media (prefers-color-scheme:dark) and (hover:none){
+  .btn:active,.hub-tile:active,.hub-card:active,.hub-linha:active,.cli-ac:active,.os-card:active,.tar-card:active,.fu-card:active,.ag-ev:active,.arq-item:active,.item:active,.cliente:active,.chips button:active,.li-st button:active,.li-foto:active,.li-obs-btn:active,.avcb-qt:active,.avcb-voltar:active,.hub-voltar:active,.trab-voltar:active,.laudo-tipos button:active,.tipos button:active{filter:brightness(1.25)}
+}
 </style>
 </head>
 <body>
@@ -1227,7 +1285,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   <symbol id="i-funil" viewBox="0 0 24 24"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/><path style="stroke:var(--ic-ac)" d="M7.6 9.2h8.8"/></symbol>
 </svg>
 <header class="topo">
-  <p class="marca"><img src="logo.png" alt="VPX Engenharia" width="100" height="56"></p>
+  <p class="marca"><picture><source srcset="logo-branco.png" media="(prefers-color-scheme: dark)"><img src="logo.png" alt="VPX Engenharia" width="100" height="56"></picture></p>
   <div class="topo-dir">
     <button class="topo-fila" id="topo-fila" hidden type="button"></button>
     <button class="agenda-btn" id="btn-agenda" hidden aria-label="Agenda">
@@ -2076,14 +2134,15 @@ function erroEmPortugues(msg) {
 // acao (opcional): { rotulo, fn } vira um botão dentro do aviso (ex.: "Desfazer")
 function aviso(msg, erro = false, acao = null) {
   const el = $("aviso");
-  if (erro) msg = erroEmPortugues(msg);
+  const espera = erro === "espera";               // "está guardado no celular, vai depois": não é erro (âmbar)
+  if (erro && !espera) msg = erroEmPortugues(msg);
   el.textContent = msg;
   if (acao) {
     const b = document.createElement("button"); b.type = "button"; b.textContent = acao.rotulo;
     b.onclick = ev => { ev.stopPropagation(); fecharAviso(); acao.fn(); };
     el.appendChild(b);
   }
-  el.className = "aviso ver" + (erro ? " erro" : "") + (acao ? " com-acao" : "");
+  el.className = "aviso ver" + (espera ? " espera" : erro ? " erro" : "") + (acao ? " com-acao" : "");
   clearTimeout(aviso.t);
   // fica mais tempo quanto mais comprido (antes: 3 s para qualquer texto); com botão, 8 s
   aviso.t = setTimeout(fecharAviso, acao ? 8000 : Math.min(12000, Math.max(erro ? 6000 : 3000, 1500 + 60 * String(msg).length)));
@@ -4511,21 +4570,22 @@ function atualizar() {
 function atualizarBotao() {
   const pend = fotos.filter(f => f.st !== "ok");
   const b = $("btn-salvar");
+  let faltaAlgo = false;                           // habilitado, mas ainda falta algo (o toque leva até lá): botão contornado
   if (pend.length && pend.every(f => f.dest) && !(modo === "com" && fichaPreenchida()) && !((modo === "laudo" || modo === "insp") && laudo.tipo) && !(modo === "trein" && trein.modelo) && modo !== "serv") {   // só sobraram itens da fila
     b.disabled = enviando;
     b.textContent = enviando ? "Salvando…" : "Tentar enviar agora";
   } else if (modo === "serv") {
     // fica habilitado mesmo faltando algo: o toque leva até o que falta
-    const falta = cliente ? faltaServ() : { texto: "Escolha o cliente" };
+    const falta = cliente ? faltaServ() : { texto: "Escolha o cliente" }; faltaAlgo = !!falta;
     b.disabled = enviando;
     b.textContent = enviando ? "Salvando…" : falta ? falta.texto : "Gerar relatório em PDF";
   } else if (modo === "trein") {
-    const falta = cliente ? faltaTrein() : { texto: "Escolha o cliente" };
+    const falta = cliente ? faltaTrein() : { texto: "Escolha o cliente" }; faltaAlgo = !!falta;
     b.disabled = enviando || !trein.modelo;
     b.textContent = enviando ? "Salvando…" : falta ? falta.texto : "Gerar lista e certificados";
   } else if (modo === "laudo" || modo === "insp") {
     // fica habilitado mesmo faltando algo: o toque leva até o que falta
-    const falta = cliente ? faltaLaudo() : { texto: "Escolha o cliente" };
+    const falta = cliente ? faltaLaudo() : { texto: "Escolha o cliente" }; faltaAlgo = !!falta;
     b.disabled = enviando || !laudo.tipo;
     b.textContent = enviando ? "Salvando…" : falta ? falta.texto : modo === "insp" ? "Gerar relatório em PDF" : "Gerar laudo em PDF";
   } else if (modo === "com") {
@@ -4552,6 +4612,7 @@ function atualizarBotao() {
     else if (!pend.length) b.textContent = "Salvar no cliente";
     else b.textContent = `Salvar ${descrever(pend.filter(f => !f.dest))} no cliente`;
   }
+  b.classList.toggle("falta", faltaAlgo && !enviando && !b.disabled);
   $("captura").style.display = enviando ? "none" : "";
   ["aba-visita", "aba-com", "aba-laudo", "aba-insp", "aba-trein", "aba-comp", "tipo-compra", "tipo-reembolso", "pag-cartao", "pag-conta", "descricao", "comp-valor", "centro-sel", "centro"].forEach(id => $(id).disabled = enviando);
   pintarProgresso();
@@ -4877,8 +4938,8 @@ async function salvar() {
   if (r.pendentes || r.erros) {
     const falhas = fila.filter(f => f.st !== "ok");
     if (r.semAcesso) aviso(`Sem acesso à pasta "${CONFIG.comprovantesNome}". Peça para ela ser compartilhada com você com permissão de edição. Os comprovantes ficam guardados no celular.`, true);
-    else if (!r.erros) aviso(`Sem internet. Está tudo guardado no celular (${descrever(falhas)}) e o envio será feito sozinho quando o sinal voltar.`, true);
-    else aviso(`Não foi possível enviar agora (${descrever(falhas)}). Está tudo guardado no celular e o app tenta de novo sozinho.`, true);
+    else if (!r.erros) aviso(`Sem internet. Está tudo guardado no celular (${descrever(falhas)}) e o envio será feito sozinho quando o sinal voltar.`, "espera");
+    else aviso(`Não foi possível enviar agora (${descrever(falhas)}). Está tudo guardado no celular e o app tenta de novo sozinho.`, "espera");
     return;
   }
   const d = fila[0].dest;
@@ -6828,7 +6889,8 @@ async function alterarOSJa(numero, fn, acao) {
   }
 }
 async function acaoOS(numero, fn, acao, ok) {
-  try { await alterarOS(numero, fn, acao); if (ok) aviso(ok); }
+  aviso("Salvando…");
+  try { await alterarOS(numero, fn, acao); if (ok) aviso(ok); else fecharAviso(); }
   catch (e) { aviso(e.message, true); }
   desenharOS();
 }
@@ -13306,6 +13368,7 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("online", () => conferirVersao(false));
 setInterval(() => { if (!document.hidden) conferirVersao(false); }, 1800000);
+document.addEventListener("touchstart", () => {}, { passive: true });   // iPhone: sem um ouvinte de toque, o :active (botão que escurece ao tocar) não aparece
 try { navigator.storage?.persist?.(); } catch {}   // pede ao navegador para não apagar as fotos guardadas
 // cópia do app no celular, para abrir mesmo sem internet (sw.js)
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(e => console.error(e));
