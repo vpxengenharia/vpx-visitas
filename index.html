@@ -3758,7 +3758,8 @@ function mudouLaudo() { marcarDiaLaudo(); gravarLaudo(); atualizarBotao(); }
 // na inspeção, o bloco repetido leva o nome do sistema na frente (ex.: "Extintores - Pavimento/área 2 - Garagem")
 function naoConformes(l = laudo) {
   return blocosLaudo(l).flatMap(b => b.s.itens.filter(([id]) => l.r[chaveItem(b.uid, id)]?.st === "NC")
-    .map(([id, texto]) => ({ bloco: (ehInsp(l) && b.s.repetir ? b.s.titulo + " - " : "") + rotuloBloco(b, l), texto, obs: (l.r[chaveItem(b.uid, id)].obs || "").trim() })));
+    .map(([id, texto]) => ({ bloco: (ehInsp(l) && b.s.repetir ? b.s.titulo + " - " : "") + rotuloBloco(b, l), texto, obs: (l.r[chaveItem(b.uid, id)].obs || "").trim(),
+      ref: refLaudo(l, b.s.id, id) })));
 }
 // o que falta para gerar o laudo; alvo = elemento para onde rolar a tela
 function faltaLaudo() {
@@ -3777,6 +3778,296 @@ function faltaLaudo() {
   if (!ehInsp() && !laudo.conclusao) return { texto: "Escolha o resultado da vistoria", alvo: "ld-conc" };
   if (!laudo.assin) return { texto: ehInsp() ? "Assine o relatório" : "Assine o laudo", alvo: "ld-assin" };
   return null;
+}
+
+/* ---------- conteúdo dos laudos para o cliente (pedido do Gustavo em 10/11/2026) ----------
+   O PDF do laudo/relatório de inspeção traz: (1) "Objetivo e método" (objetivo, normas de referência, como a vistoria foi
+   feita e critérios) e (2) em cada item NÃO CONFORME, a referência da norma, o que ela exige, o risco e a prioridade sugerida.
+   Decisões dele: só nos reprovados; vale para laudos e inspeções; ITs do CBMBA citadas com o número do item (conferido no
+   texto de it/indice.json); NBR citadas só pelo número da norma, com a exigência escrita com as nossas palavras (as NBR têm
+   direito autoral e não há o texto delas aqui: não pôr número de item de NBR sem o Gustavo conferir na norma).
+   REFS_LD: mesma chave do SERVICOS ("tipoLaudo:seção.item"; inspeção "i:sistema.item") → [referência, exigência, risco,
+   prioridade 1 = imediata | 2 = curto prazo | 3 = programada]. Não mexe nos itens de LAUDOS/INSPECOES (aprovados pelo Gustavo):
+   item sem entrada aqui sai no PDF como antes. */
+const PRIO_LD = {
+  1: { nome: "Imediata", cor: [178, 34, 34], txt: "Compromete o funcionamento do sistema ou a segurança das pessoas. Corrigir de imediato." },
+  2: { nome: "Curto prazo", cor: [176, 110, 0], txt: "Reduz a confiabilidade ou a eficiência do sistema. Corrigir nas próximas semanas." },
+  3: { nome: "Programada", cor: [28, 60, 97], txt: "Não impede o funcionamento do sistema. Incluir na próxima manutenção programada." }
+};
+const REFS_LD = {
+  // Laudo de Hidrantes
+  "hidrantes:res.rti": ["IT 22/2016 do CBMBA, itens 5.9.1 e B.1.2; ABNT NBR 13714", "O reservatório deve manter, o tempo todo, o volume de água da reserva técnica de incêndio definido para a edificação.", "Sem a reserva completa, a água pode acabar antes do fim do combate ao incêndio.", 1],
+  "hidrantes:res.estado": ["ABNT NBR 13714", "O reservatório deve ser estanque, fechado e mantido em condições que garantam a reserva de incêndio e a qualidade da água para o sistema.", "Vazamentos reduzem a reserva de incêndio; a sujeira que entra no reservatório pode entupir bombas, válvulas e esguichos.", 2],
+  "hidrantes:res.registros": ["IT 22/2016 do CBMBA, itens B.2.3 e 5.11.5.6", "A saída do reservatório para a rede de incêndio deve ter registro e válvula de retenção. Os registros que cortam a água do sistema devem indicar se estão abertos ou fechados, e a IT recomenda mantê-los travados na posição aberta.", "Um registro fechado ou emperrado deixa toda a rede de hidrantes sem água na hora do incêndio.", 1],
+  "hidrantes:bombas.auto": ["IT 22/2016 do CBMBA, itens C.1.8 e C.1.15.2; ABNT NBR 13714", "Na bomba com partida automática, a abertura de qualquer hidrante deve ser suficiente para a bomba entrar em funcionamento, com a partida comandada por pressostato.", "Se a bomba não parte sozinha, os hidrantes ficam sem pressão para o combate ao incêndio.", 1],
+  "hidrantes:bombas.jockey": ["IT 22/2016 do CBMBA, itens C.1.15 e C.1.15.2", "Sistemas com mais de seis pontos de hidrante devem ter bomba de pressurização (jockey), ligada e desligada por pressostato, para manter a rede pressurizada e repor pequenas perdas de pressão.", "A rede perde pressão, a bomba principal passa a partir sem necessidade e pequenos vazamentos deixam de ser percebidos.", 2],
+  "hidrantes:bombas.painel": ["IT 22/2016 do CBMBA, itens C.1.16 e C.1.16.1", "O painel da bomba deve permitir a partida manual e sinalizar, com aviso luminoso e sonoro, as condições de funcionamento e de falha (painel energizado, bomba em funcionamento, falta de fase e falta de energia no comando).", "Com o painel fora do automático ou em falha, a bomba pode não partir e ninguém é avisado do defeito.", 1],
+  "hidrantes:bombas.manual": ["IT 22/2016 do CBMBA, itens C.1.7 e C.2.2", "A bomba automática deve ter pelo menos um ponto de acionamento manual, em local seguro e de fácil acesso. Se o acionamento for só manual, deve haver botoeira liga-desliga junto de cada hidrante.", "Se a partida automática falhar, não há outra forma rápida de ligar a bomba.", 1],
+  "hidrantes:bombas.manometro": ["IT 22/2016 do CBMBA, item C.1.17", "Cada bomba principal deve ter manômetro na descarga, para a leitura da pressão.", "Sem manômetro, não é possível conferir a pressão da bomba nos testes e nas manutenções.", 2],
+  "hidrantes:bombas.vazam": ["IT 22/2016 do CBMBA, item 5.11.6.9; ABNT NBR 13714", "As ligações entre tubos, conexões e acessórios devem ser estanques e firmes, e o conjunto de bombas deve funcionar sem vazamentos nem ruídos ou vibrações fora do normal.", "Vazamentos derrubam a pressão da rede; ruídos anormais indicam desgaste que pode parar a bomba durante o uso.", 2],
+  "hidrantes:bombas.alim": ["IT 22/2016 do CBMBA, itens C.2.7 e C.2.10; ABNT NBR 13714", "A alimentação elétrica da bomba de incêndio deve ser independente da instalação geral, para continuar ligada quando a energia do prédio for desligada, e as chaves devem ser identificadas como da bomba de incêndio.", "Ao desligar a energia do prédio no incêndio, a bomba para e os hidrantes ficam sem pressão.", 1],
+  "hidrantes:hid.abrigo": ["IT 22/2016 do CBMBA, itens D.1.1 e D.1.4; IT 20/2017 do CBMBA, item 6.1.4", "O abrigo de mangueiras deve ser sinalizado conforme a IT de sinalização de emergência, com a placa logo acima do equipamento, e permitir acesso rápido e uso de todo o seu conteúdo.", "Abrigo escondido, obstruído ou danificado atrasa o uso do hidrante.", 2],
+  "hidrantes:hid.mangueiras": ["IT 22/2016 do CBMBA, itens 5.6.1.4 e 5.11.3.3; ABNT NBR 12779", "Cada hidrante deve ter as mangueiras e os acessórios previstos para o sistema, com comprimento suficiente para alcançar toda a área protegida. As mangueiras devem ser mantidas em bom estado.", "Mangueira faltando, curta ou danificada não alcança o fogo ou rompe ao ser pressurizada.", 1],
+  "hidrantes:hid.teste": ["ABNT NBR 12779", "As mangueiras de incêndio devem passar por inspeção periódica e por ensaio hidrostático a cada 12 meses, feitos por empresa capacitada, com registro da data.", "Mangueira sem teste em dia pode romper ou vazar ao ser pressurizada.", 2],
+  "hidrantes:hid.esguicho": ["IT 22/2016 do CBMBA, itens 5.6.1.4 e D.3", "Cada ponto de hidrante deve ter, no abrigo, todos os materiais previstos nas tabelas da IT (mangueiras, esguicho e acessórios).", "Sem esguicho ou sem chave de mangueira, o hidrante não pode ser usado corretamente.", 1],
+  "hidrantes:hid.valvula": ["IT 22/2016 do CBMBA, item 5.11.5.4", "As válvulas dos hidrantes devem ser estanques e funcionar normalmente.", "Válvula emperrada impede o uso do hidrante; vazamento derruba a pressão da rede.", 1],
+  "hidrantes:hid.engates": ["IT 22/2016 do CBMBA, itens 5.5.1.1 e 5.11.4.2", "A válvula do hidrante e as mangueiras devem ter engates rápidos (storz) compatíveis com os do Corpo de Bombeiros, em bom estado.", "Engate danificado ou sem vedação não acopla ou vaza, e a mangueira pode se soltar sob pressão.", 2],
+  "hidrantes:recalque.tampa": ["IT 22/2016 do CBMBA, itens 5.3.4 e 5.3.5.2", "O registro de recalque deve ficar em local de acesso livre para a viatura do Corpo de Bombeiros. No passeio, a tampa deve ser articulada e identificada com a palavra HIDRANTE.", "Os bombeiros perdem tempo para achar ou alcançar o recalque e abastecer a rede do prédio.", 2],
+  "hidrantes:recalque.adaptador": ["IT 22/2016 do CBMBA, itens 5.3.1 e 5.11.4.3", "Todo sistema deve ter registro de recalque com engates e adaptadores compatíveis com os do Corpo de Bombeiros.", "Sem o adaptador, os bombeiros não conseguem ligar a viatura à rede do prédio.", 1],
+  "hidrantes:recalque.registro": ["IT 22/2016 do CBMBA, item 5.3.5.6; IT 20/2017 do CBMBA, item 6.2.6.4", "O registro de recalque deve poder ser manobrado sem dificuldade e permitir a passagem da água, e a tampa do abrigo do recalque deve ser pintada de vermelho.", "Registro emperrado ou não sinalizado impede ou atrasa o abastecimento da rede pelos bombeiros.", 2],
+  "hidrantes:tub.pintura": ["IT 22/2016 do CBMBA, itens 5.11.6.4 e 5.11.6.6", "A tubulação aparente do sistema de hidrantes deve ser vermelha ou, quando admitido, identificada com anéis vermelhos.", "Tubulação sem identificação pode ser confundida com outras redes e sofrer intervenção indevida.", 3],
+  "hidrantes:tub.vazam": ["IT 22/2016 do CBMBA, item 5.11.6.9; ABNT NBR 13714", "As ligações entre tubos, conexões e acessórios devem ser estanques, e a tubulação deve ser mantida sem corrosão que comprometa a sua resistência.", "Vazamentos e corrosão derrubam a pressão e podem romper a tubulação quando a bomba entrar.", 2],
+  "hidrantes:tub.suportes": ["IT 22/2016 do CBMBA, item 5.11.6.10", "A tubulação deve ser fixada à estrutura por suportes metálicos rígidos, espaçados no máximo a cada 4 m.", "Tubulação mal fixada pode se soltar ou romper com o golpe de pressão da bomba.", 3],
+  // Laudo de Instalações Elétricas
+  "eletrica:qd.ident": ["IT 41/2018 do CBMBA, item 6.8; ABNT NBR 5410", "Os quadros devem ter identificação legível e durável, de modo que se saiba a que circuito pertence cada dispositivo.", "Numa emergência ou manutenção, não se sabe qual disjuntor desligar, o que atrasa o corte de energia e favorece acidentes.", 3],
+  "eletrica:qd.disj": ["IT 41/2018 do CBMBA, item 6.2; ABNT NBR 5410", "Todo circuito deve ter proteção contra sobrecarga e curto-circuito, com o disjuntor dimensionado para a capacidade do condutor que ele protege.", "Disjuntor acima da capacidade do fio deixa o condutor superaquecer sem desligar: é uma das principais causas de incêndio de origem elétrica.", 1],
+  "eletrica:qd.dr": ["IT 41/2018 do CBMBA, item 6.6; ABNT NBR 5410", "Os circuitos devem ser protegidos por dispositivo diferencial-residual (DR), que desliga a alimentação quando há fuga de corrente, nos casos em que a norma o exige.", "Sem o DR, uma fuga de corrente pode causar choque elétrico grave ou princípio de incêndio sem que o circuito desligue.", 2],
+  "eletrica:qd.dps": ["ABNT NBR 5410 (exigida pela IT 41/2018 do CBMBA, item 2.1)", "A instalação deve ter dispositivos de proteção contra surtos (DPS) nos casos previstos na norma, e os DPS atuados ou queimados devem ser substituídos.", "Surtos de tensão (raios e manobras da rede) podem queimar equipamentos e iniciar incêndio nos quadros.", 2],
+  "eletrica:qd.barra": ["ABNT NBR 5410 (exigida pela IT 41/2018 do CBMBA, item 2.1)", "Os quadros devem ter barramentos de proteção (terra) e de neutro próprios, com os condutores firmemente conectados, mantendo separados o neutro e a proteção onde o esquema de aterramento assim exige.", "Ligação errada ou frouxa de terra e neutro deixa as carcaças sem proteção contra choque e causa aquecimento nas conexões.", 2],
+  "eletrica:qd.aquec": ["ABNT NBR 5410 (exigida pela IT 41/2018 do CBMBA, item 2.1)", "Os componentes devem trabalhar dentro da temperatura para a qual foram projetados. Sinais de aquecimento, de queima ou de arco elétrico indicam sobrecarga ou mau contato e devem ser corrigidos.", "Aquecimento anormal é o estágio anterior ao incêndio no quadro elétrico.", 1],
+  "eletrica:qd.contato": ["IT 41/2018 do CBMBA, item 6.3; ABNT NBR 5410", "As partes energizadas devem estar isoladas ou protegidas por barreiras ou invólucros (tampa, espelho e porta do quadro), sem acesso para pessoas leigas.", "Risco de choque elétrico para quem abre ou encosta no quadro.", 1],
+  "eletrica:qd.condut": ["IT 41/2018 do CBMBA, item 6.3; ABNT NBR 5410", "Os condutores devem estar com a isolação íntegra e com as conexões e emendas firmes e isoladas, sem partes energizadas expostas.", "Isolação danificada e emenda solta causam curto-circuito, aquecimento e choque elétrico.", 1],
+  "eletrica:qd.sinal": ["IT 41/2018 do CBMBA, item 6.8; IT 20/2017 do CBMBA", "Os quadros elétricos devem ter, do lado de fora, a sinalização de alerta de risco elétrico prevista na IT de sinalização de emergência.", "Pessoas leigas não são avisadas do risco de choque ao abrir o quadro.", 3],
+  "eletrica:aterr.existe": ["ABNT NBR 5410 (exigida pela IT 41/2018 do CBMBA, item 2.1)", "Toda instalação deve ter infraestrutura de aterramento, com ponto acessível para inspeção e medição.", "Sem aterramento, as proteções contra choque não atuam; sem acesso, não é possível inspecionar nem medir.", 1],
+  "eletrica:aterr.pe": ["IT 41/2018 do CBMBA, item 6.4; ABNT NBR 5410", "Todo circuito deve ter condutor de proteção (fio-terra) em toda a sua extensão.", "Sem o fio-terra, um defeito de isolação deixa a carcaça do equipamento energizada e quem tocar leva choque.", 2],
+  "eletrica:aterr.equip": ["IT 41/2018 do CBMBA, itens 5.9 e 6.4; ABNT NBR 5410", "As massas metálicas devem ser ligadas a condutores de proteção, e a edificação deve ter uma equipotencialização principal reunindo o aterramento, o neutro, os condutores de proteção e as canalizações metálicas.", "Partes metálicas podem ficar energizadas num defeito, com risco de choque.", 2],
+  "eletrica:geral.tomadas": ["IT 41/2018 do CBMBA, item 6.5; ABNT NBR 5410 e NBR 14136", "As tomadas fixas devem ter contato de aterramento (2P+T ou 3P+T) e seguir o padrão brasileiro.", "Equipamentos ligados sem terra ficam sem proteção contra choque; adaptadores e tomadas fora do padrão aquecem.", 3],
+  "eletrica:geral.eletrod": ["IT 41/2018 do CBMBA, item 6.1; ABNT NBR 5410", "Os condutores com isolação simples só podem ser instalados dentro de condutos fechados (eletrodutos ou eletrocalhas com tampa), que devem estar fixados e íntegros.", "Fios expostos ficam sujeitos a danos mecânicos, que causam curto-circuito e choque.", 2],
+  "eletrica:geral.improv": ["IT 41/2018 do CBMBA, itens 6.1 e 6.3; ABNT NBR 5410", "As partes energizadas devem estar isoladas e protegidas e os condutores instalados em condutos adequados, sem emendas expostas nem ligações provisórias.", "Instalações improvisadas estão entre as principais causas de curto-circuito e de incêndio.", 1],
+  "eletrica:geral.ilum": ["Boa prática de manutenção predial (sem item específico de norma)", "A iluminação das áreas comuns deve ser mantida em funcionamento, com as luminárias e os comandos em bom estado.", "Áreas comuns escuras aumentam o risco de quedas e dificultam a circulação e a saída.", 3],
+  "eletrica:geral.deposito": ["IT 41/2018 do CBMBA, item 6.8; ABNT NBR 5410", "Os quadros devem ficar em local de fácil acesso, com espaço livre para operação e manutenção. Salas de quadros e casas de máquinas não devem guardar materiais.", "Materiais junto aos quadros dificultam o desligamento na emergência e servem de combustível para um princípio de incêndio.", 2],
+  // Laudo do Sistema de Alarme
+  "alarme:central.local": ["IT 19/2017 do CBMBA, item 5.5", "A central de alarme deve ficar em local com vigilância humana constante e de fácil visualização.", "Um alarme ou uma falha na central pode passar despercebido.", 2],
+  "alarme:central.normal": ["ABNT NBR 17240 (adotada pela IT 19/2017 do CBMBA, item 2.2)", "A central deve permanecer em operação normal, sem indicações de falha pendentes. Toda falha sinalizada deve ser investigada e corrigida.", "Central em falha pode não detectar o incêndio nem acionar os avisadores.", 1],
+  "alarme:central.bateria": ["IT 19/2017 do CBMBA, item 5.3; ABNT NBR 17240", "A fonte auxiliar (baterias) deve manter o sistema por pelo menos 24 horas em supervisão e mais 15 minutos em alarme. Para isso, as baterias precisam estar em bom estado e dentro da vida útil.", "Na falta de energia, o sistema desliga antes do tempo e o prédio fica sem alarme.", 1],
+  "alarme:central.fonte": ["IT 19/2017 do CBMBA, item 5.3", "O sistema deve ter duas fontes de alimentação: a principal, da rede elétrica da edificação, e a auxiliar (baterias, nobreak ou gerador).", "O sistema passa a depender só das baterias, que se esgotam, e o prédio fica sem alarme.", 1],
+  "alarme:central.comuta": ["IT 19/2017 do CBMBA, item 5.3", "Na falta da alimentação principal, a fonte auxiliar deve assumir e manter o sistema por pelo menos 24 horas em supervisão e 15 minutos em alarme.", "Na falta de energia, o sistema de alarme desliga.", 1],
+  "alarme:central.zonas": ["IT 19/2017 do CBMBA, item 5.17", "A central deve ter painel, esquema ou display que identifique o local de cada acionador ou detector acionado.", "Sem saber de onde veio o alarme, a brigada perde tempo para chegar ao local do incêndio.", 2],
+  "alarme:disp.acion": ["IT 19/2017 do CBMBA, itens 5.7 e 5.16; IT 20/2017 do CBMBA, item 6.1.4", "Deve haver acionador manual a no máximo 30 m de qualquer ponto da área protegida, sinalizado e em funcionamento (nas centrais convencionais, com indicação luminosa de funcionamento e de alarme).", "Quem percebe o incêndio não consegue dar o alarme.", 1],
+  "alarme:disp.fumaca": ["ABNT NBR 17240 (adotada pela IT 19/2017 do CBMBA, item 2.2)", "Os detectores de fumaça devem ser ensaiados periodicamente e responder ao teste, sinalizando o alarme na central.", "O incêndio não é detectado no início, quando ainda é fácil controlar o fogo e abandonar o local.", 1],
+  "alarme:disp.temp": ["ABNT NBR 17240 (adotada pela IT 19/2017 do CBMBA, item 2.2)", "Os detectores de temperatura devem ser ensaiados periodicamente e responder ao teste, sinalizando o alarme na central.", "O incêndio não é detectado no início, quando ainda é fácil controlar o fogo e abandonar o local.", 1],
+  "alarme:disp.aviso": ["IT 19/2017 do CBMBA, itens 5.6 e 5.11", "O alarme geral deve ser ouvido em toda a edificação. Onde o ruído do ambiente não permitir, devem existir avisadores sonoros e visuais.", "As pessoas não são avisadas do incêndio e demoram a sair.", 1],
+  "alarme:disp.danos": ["ABNT NBR 17240 (adotada pela IT 19/2017 do CBMBA, item 2.2)", "Os dispositivos devem ser mantidos íntegros, limpos, sem pintura e sem obstáculos que prejudiquem o seu funcionamento.", "Detector pintado ou coberto não percebe a fumaça; acionador danificado não dá o alarme.", 2],
+  "alarme:teste.audivel": ["IT 19/2017 do CBMBA, itens 5.6 e 5.11", "O alarme geral deve ser ouvido em toda a edificação. Onde o ruído do ambiente não permitir, devem existir avisadores sonoros e visuais.", "Parte dos ocupantes não ouve o alarme e demora a abandonar o prédio.", 1],
+  "alarme:teste.superv": ["ABNT NBR 17240 (adotada pela IT 19/2017 do CBMBA, item 2.2)", "Os circuitos de detecção e de alarme devem ser supervisionados: a central deve indicar falha quando houver rompimento ou defeito na fiação.", "Um cabo rompido deixa parte do prédio sem detecção ou sem alarme, sem que ninguém perceba.", 1],
+  "alarme:teste.cabo": ["IT 19/2017 do CBMBA, item 5.15; ABNT NBR 17240", "Os eletrodutos e a fiação do sistema de alarme devem atender à ABNT NBR 17240, em infraestrutura própria e em bom estado.", "Danos ou interferências na fiação causam falhas e alarmes falsos.", 2],
+  "alarme:teste.manut": ["ABNT NBR 17240 (adotada pela IT 19/2017 do CBMBA, item 2.2)", "O sistema deve passar por manutenção preventiva periódica, com registro das inspeções e dos ensaios realizados.", "Sem manutenção registrada, não há garantia de que o sistema funcionará e falta a comprovação para o Corpo de Bombeiros.", 3],
+  // Laudo de Instalações de Gás
+  "gas:central.vent": ["IT 28/2021 do CBMBA, itens 5.3.1 e 5.3.2; ABNT NBR 13523", "Os recipientes de GLP devem ficar no exterior da edificação, em local ventilado, e não podem ser instalados em locais confinados. O abrigo e as suas portas devem ser mantidos em bom estado.", "Sem ventilação, o gás de um vazamento se acumula e pode causar explosão.", 1],
+  "gas:central.sinal": ["IT 28/2021 do CBMBA, item 5.3.9", "A central deve ter avisos de 'Perigo', 'Inflamável' e 'Não fume', com letras de pelo menos 50 mm, visíveis de qualquer direção de acesso.", "As pessoas não são avisadas do risco e podem fumar ou produzir faíscas perto da central.", 2],
+  "gas:central.extintor": ["IT 28/2021 do CBMBA, item 5.3.4", "A central de GLP deve ser protegida por extintores na quantidade e na capacidade definidas na tabela da IT, conforme a quantidade de gás armazenada.", "Um princípio de incêndio junto à central não pode ser combatido de imediato.", 1],
+  "gas:central.afast": ["IT 28/2021 do CBMBA, item 5.3.1 e Anexo B; ABNT NBR 13523", "A central deve respeitar os afastamentos mínimos do Anexo B da IT em relação a aberturas da edificação (inclusive as situadas em nível inferior), fontes de ignição, materiais combustíveis e divisas.", "O gás que vazar pode entrar na edificação ou alcançar uma fonte de ignição.", 1],
+  "gas:central.cilindros": ["IT 28/2021 do CBMBA, item 5.3.8; ABNT NBR 13523", "Os recipientes não podem apresentar vazamento, corrosão, amassados ou outros sinais de insegurança, e as válvulas, conexões e acessórios devem estar em bom estado. Os recipientes devem ficar estáveis e protegidos contra queda.", "Recipiente danificado pode vazar ou romper; se tombar, pode romper as ligações.", 1],
+  "gas:central.deposito": ["IT 28/2021 do CBMBA, item 5.3.10", "É proibido guardar qualquer material na central de GLP ou usá-la para outro fim.", "Materiais guardados alimentam um incêndio junto ao gás e dificultam o acesso para fechar os registros.", 1],
+  "gas:reg.regulador": ["IT 28/2021 do CBMBA, itens 5.3.8 e 5.4.6.2; ABNT NBR 15526", "Os reguladores de pressão devem estar em bom estado, protegidos contra danos e em posição de fácil acesso, e ser substituídos no fim da vida útil indicada pelo fabricante.", "Regulador com defeito deixa passar pressão acima da prevista para a rede e os aparelhos, com risco de vazamento.", 2],
+  "gas:reg.manometro": ["ABNT NBR 13523 e NBR 15526", "Os manômetros da instalação devem estar funcionando e em bom estado, para permitir o controle da pressão.", "Sem manômetro confiável, não se percebe uma pressão anormal na rede.", 3],
+  "gas:reg.bloqueio": ["IT 28/2021 do CBMBA, itens 5.4.2 e 5.4.6.2", "A instalação deve ter válvulas de fechamento manual nos pontos necessários à segurança, à operação e à manutenção, em posição de fácil acesso e em condições de uso.", "Numa emergência, não é possível cortar rapidamente o gás.", 1],
+  "gas:tub.pintura": ["ABNT NBR 15526", "A tubulação de gás aparente deve ser identificada, normalmente pela pintura na cor amarela.", "A tubulação pode ser confundida com outras redes e sofrer cortes ou furos por engano.", 3],
+  "gas:tub.danos": ["IT 28/2021 do CBMBA, item 5.4.6.1; ABNT NBR 15526", "A tubulação deve ser mantida íntegra, sem corrosão ou amassados, e protegida onde houver risco de choques mecânicos.", "Corrosão e amassados evoluem para vazamento de gás.", 1],
+  "gas:tub.fix": ["ABNT NBR 15526", "A tubulação deve ser apoiada e fixada por suportes adequados, sem esforços sobre as conexões.", "Tubulação solta força as conexões, que podem vazar.", 2],
+  "gas:tub.locais": ["IT 28/2021 do CBMBA, item 5.4.5; ABNT NBR 15526", "A tubulação de gás não pode passar por poços de elevador, dutos em uso, escadas enclausuradas, dormitórios, forros falsos, compartimentos de equipamentos elétricos nem por locais sem ventilação onde o gás possa se acumular.", "Um vazamento nesses locais acumula gás sem ser percebido, com risco de explosão e de intoxicação.", 1],
+  "gas:tub.estanq": ["IT 28/2021 do CBMBA, item 5.4.1; ABNT NBR 15526", "As tubulações de gás devem ser estanques, o que é comprovado por ensaio de estanqueidade sem queda de pressão.", "Vazamento de gás na rede, com risco de incêndio e de explosão.", 1],
+  "gas:pontos.medidor": ["ABNT NBR 15526", "Os medidores devem estar em bom estado, identificados por unidade e instalados em local ventilado e acessível.", "Medidor danificado pode vazar; sem identificação, não se sabe qual registro fechar na emergência.", 3],
+  "gas:pontos.valvula": ["IT 28/2021 do CBMBA, item 5.4.2; ABNT NBR 15526", "Cada ponto de consumo deve ter válvula de fechamento manual acessível e em condições de uso.", "Não é possível isolar o aparelho em caso de vazamento ou de manutenção.", 1],
+  "gas:pontos.vent": ["ABNT NBR 13103", "Os ambientes com aparelhos a gás devem ter ventilação permanente adequada.", "Acúmulo de gás e de produtos da combustão (monóxido de carbono), com risco de intoxicação e de explosão.", 1],
+  "gas:pontos.flexivel": ["ABNT NBR 15526", "As mangueiras e os tubos flexíveis de ligação dos aparelhos devem ser de tipo normalizado e estar dentro do prazo de validade gravado na peça.", "Flexível vencido resseca e racha, causando vazamento junto ao aparelho.", 1],
+  // Laudo do Grupo Gerador
+  "gerador:insp.oleo": ["Manual do fabricante e plano de manutenção do equipamento", "O nível e o estado do óleo lubrificante devem ser mantidos dentro da faixa indicada pelo fabricante.", "Óleo baixo ou vencido pode travar o motor durante o funcionamento.", 2],
+  "gerador:insp.arref": ["Manual do fabricante e plano de manutenção do equipamento", "O sistema de arrefecimento deve estar com o nível correto e sem vazamentos.", "O motor superaquece e desliga em poucos minutos de uso.", 2],
+  "gerador:insp.comb": ["Manual do fabricante e plano de manutenção do equipamento; IT 41/2018 do CBMBA, item 7.1.6.1", "O tanque deve ter combustível suficiente para a autonomia exigida das cargas de segurança e não pode apresentar vazamentos.", "Sem combustível, o gerador não sustenta as cargas de emergência; vazamento de combustível é risco de incêndio.", 1],
+  "gerador:insp.bateria": ["Manual do fabricante e plano de manutenção do equipamento", "A bateria de partida deve estar carregada, com os terminais limpos e apertados.", "Bateria fraca é a causa mais comum de o gerador não partir na falta de energia.", 1],
+  "gerador:insp.vazam": ["Manual do fabricante e plano de manutenção do equipamento", "O grupo gerador deve operar sem vazamentos de óleo, de combustível ou de água.", "Vazamentos causam falha do motor e, no caso de óleo e combustível, risco de incêndio.", 2],
+  "gerador:insp.correias": ["Manual do fabricante e plano de manutenção do equipamento", "Correias, mangueiras e filtros devem ser inspecionados e trocados nos prazos do fabricante.", "O rompimento de uma correia ou mangueira para o gerador durante o uso.", 3],
+  "gerador:teste.partida": ["IT 41/2018 do CBMBA, item 7.1.6.1, alínea a", "O motogerador que alimenta equipamentos de segurança deve partir automaticamente quando faltar a energia normal.", "Na falta de energia, as cargas de emergência (bomba de incêndio, iluminação, alarme, elevador de emergência) ficam desligadas.", 1],
+  "gerador:teste.qta": ["Manual do fabricante e plano de manutenção do equipamento; ABNT NBR 5410", "O quadro de transferência automática deve passar as cargas para o gerador na falta de energia e devolvê-las à rede no retorno, sem falhas.", "Mesmo com o gerador funcionando, a energia não chega às cargas de emergência.", 1],
+  "gerador:teste.cargas": ["IT 41/2018 do CBMBA, item 7.1.6.1, alíneas b e c", "O motogerador deve ter autonomia para alimentar os equipamentos de segurança que ele atende e, em caso de incêndio, alimentar os quadros e circuitos de segurança.", "Equipamentos de segurança ficam sem energia no momento em que são necessários.", 1],
+  "gerador:teste.ruido": ["Manual do fabricante e plano de manutenção do equipamento", "O grupo gerador deve funcionar de forma estável, sem ruídos ou vibrações fora do normal.", "Ruído ou vibração anormal indica defeito mecânico que pode parar o gerador em uso.", 2],
+  "gerador:sala.vent": ["Manual do fabricante e plano de manutenção do equipamento", "A sala deve ter entrada e saída de ar suficientes para o arrefecimento e a combustão do motor.", "Com pouca ventilação, o motor superaquece e desliga, e os gases podem se acumular na sala.", 2],
+  "gerador:sala.escape": ["Manual do fabricante e plano de manutenção do equipamento", "Os gases do escapamento devem ser conduzidos para a área externa, longe de aberturas e de locais com pessoas, por tubulação estanque.", "Os gases contêm monóxido de carbono, que pode intoxicar as pessoas dentro da edificação.", 1],
+  "gerador:sala.extintor": ["IT 21/2017 do CBMBA, item 5.2.1.10", "Os locais de risco específico, como os geradores, devem ter extintores próprios, independentes da proteção geral da edificação.", "Um princípio de incêndio no gerador não pode ser combatido de imediato.", 2],
+  "gerador:sala.sinal": ["IT 20/2017 do CBMBA; IT 18/2017 do CBMBA", "A sala deve ter sinalização de emergência e de risco e iluminação de emergência, para permitir a operação na falta de energia.", "Sem iluminação de emergência, não é possível operar o gerador com segurança justamente quando falta energia.", 3],
+  "gerador:sala.acesso": ["Manual do fabricante e plano de manutenção do equipamento", "A sala do gerador deve ter acesso livre e não pode ser usada como depósito.", "Materiais dificultam a operação e a manutenção e servem de combustível em caso de incêndio.", 2],
+  "gerador:sala.manut": ["Manual do fabricante e plano de manutenção do equipamento; IT 01/2016 do CBMBA, item 6.2.1", "A manutenção periódica do grupo gerador deve ser feita e registrada. Para a vistoria do Corpo de Bombeiros é exigida a ART de instalação ou manutenção do grupo motogerador.", "Sem manutenção registrada, não há garantia de que o gerador funcionará nem comprovação para a vistoria.", 3],
+  // Laudo de SPDA
+  "spda:capt.captores": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "O subsistema de captação (captores, mastros e condutores) deve estar completo e firmemente fixado, conforme o projeto.", "Sem captação íntegra, a descarga atinge diretamente a estrutura, com risco de danos, de incêndio e de acidentes.", 1],
+  "spda:capt.condut": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "Os condutores de captação devem ser contínuos, sem rompimentos nem emendas soltas.", "Um condutor rompido interrompe o caminho da descarga, que passa a procurar outro caminho pela estrutura.", 1],
+  "spda:capt.metais": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "As estruturas e os equipamentos metálicos da cobertura (antenas, escadas, guarda-corpos, tubulações) devem ser interligados ao SPDA.", "Centelhamento entre as partes metálicas e o SPDA, com risco de incêndio e de danos.", 2],
+  "spda:desc.qtd": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "As descidas devem existir na quantidade e na distribuição previstas em projeto.", "Menos descidas concentram a corrente da descarga e aumentam o risco de centelhamento e de danos.", 2],
+  "spda:desc.fix": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "Os condutores de descida devem estar bem fixados, contínuos e sem danos.", "Descida solta ou rompida não conduz a descarga até o solo.", 1],
+  "spda:desc.conex": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "As conexões devem estar firmes e sem corrosão, garantindo a continuidade elétrica.", "Conexão corroída aumenta a resistência e pode abrir no momento da descarga.", 2],
+  "spda:desc.protecao": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "Os condutores de descida devem ter proteção mecânica no trecho próximo ao piso, onde ficam sujeitos a danos.", "O condutor pode ser danificado ou rompido por impactos.", 3],
+  "spda:aterr.caixas": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "O aterramento deve ter pontos acessíveis para inspeção e medição.", "Sem acesso, não é possível inspecionar nem medir o aterramento.", 3],
+  "spda:aterr.malha": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "O subsistema de aterramento deve ser contínuo e interligado, para dispersar a corrente da descarga no solo.", "Aterramento interrompido não dispersa a corrente, que retorna pela estrutura e pelas instalações.", 1],
+  "spda:aterr.bep": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9); ABNT NBR 5410", "O SPDA deve ser interligado ao barramento de equipotencialização principal (BEP), junto com as demais instalações (elétrica, telecomunicações e tubulações metálicas).", "Diferenças de tensão entre os sistemas durante a descarga queimam equipamentos e causam choque.", 2],
+  "spda:geral.dps": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9); ABNT NBR 5410", "A entrada de energia deve ter dispositivos de proteção contra surtos (DPS) coordenados com o SPDA.", "Os surtos da descarga entram pela rede elétrica e queimam equipamentos, com risco de incêndio.", 2],
+  "spda:geral.doc": ["IT 41/2018 do CBMBA, item 8.3; IT 01/2016 do CBMBA, Anexo R; ABNT NBR 5419", "A documentação do SPDA (projeto e relatórios de inspeção) deve ser mantida disponível. No pedido de vistoria do Corpo de Bombeiros é anexado o atestado de conformidade das instalações elétricas, que inclui o SPDA.", "Sem a documentação, não há como comprovar a conformidade do SPDA na vistoria nem acompanhar a sua manutenção.", 3],
+  "spda:geral.danos": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "Depois de uma descarga atmosférica, o SPDA deve ser inspecionado e os componentes danificados devem ser reparados.", "Componentes danificados por uma descarga anterior podem falhar na próxima.", 2],
+  // Laudo de Aterramento
+  "aterramento:eletr.caixa": ["ABNT NBR 5410 e NBR 5419-3", "Os pontos de inspeção do aterramento devem ser acessíveis, protegidos e identificados.", "Sem acesso, não é possível inspecionar nem medir; caixa aberta deixa a conexão sujeita a danos.", 3],
+  "aterramento:eletr.haste": ["ABNT NBR 5410 e NBR 5419-3", "Os eletrodos de aterramento e as suas conexões devem estar íntegros, firmes e sem corrosão.", "Eletrodo corroído ou solto aumenta a resistência do aterramento e prejudica as proteções.", 2],
+  "aterramento:eletr.conector": ["ABNT NBR 5410 e NBR 5419-3", "As conexões do aterramento (conectores ou soldas exotérmicas) devem garantir continuidade elétrica durável.", "Conexão ruim interrompe o aterramento sem que ninguém perceba.", 2],
+  "aterramento:eletr.condutor": ["ABNT NBR 5410", "O condutor de aterramento deve ser contínuo, íntegro e ter seção compatível com a instalação.", "Condutor rompido ou subdimensionado não conduz a corrente de falta, e as proteções não atuam.", 1],
+  "aterramento:bep.bep": ["ABNT NBR 5410; IT 41/2018 do CBMBA, item 5.9", "A edificação deve ter equipotencialização principal, com barramento (BEP) acessível e identificado.", "Sem o BEP, as instalações ficam em potenciais diferentes, com risco de choque e de queima de equipamentos.", 2],
+  "aterramento:bep.lig": ["ABNT NBR 5410 e NBR 5419-3; IT 41/2018 do CBMBA, item 5.9", "Devem ser ligados ao BEP o aterramento, o neutro e os condutores de proteção principais, o SPDA, as tubulações metálicas e os elementos metálicos da estrutura.", "Partes metálicas não interligadas podem ficar em tensões diferentes, com risco de choque e de centelhamento.", 2],
+  "aterramento:bep.conex": ["ABNT NBR 5410", "As conexões da equipotencialização devem estar firmes, limpas e sem oxidação.", "Mau contato interrompe a equipotencialização.", 3],
+  "aterramento:bep.cont": ["ABNT NBR 5410 e NBR 5419-3", "Deve haver continuidade elétrica entre o BEP e o eletrodo (malha) de aterramento, comprovada por medição.", "Sem continuidade, o BEP não está de fato aterrado.", 1],
+  "aterramento:quad.pe": ["IT 41/2018 do CBMBA, item 6.4; ABNT NBR 5410", "Todo circuito deve ter condutor de proteção (fio-terra) em toda a sua extensão.", "Sem o fio-terra, um defeito de isolação deixa a carcaça do equipamento energizada e quem tocar leva choque.", 2],
+  "aterramento:quad.barra": ["ABNT NBR 5410", "Os quadros devem ter barramento de proteção (terra) próprio. Depois do ponto em que o neutro e a proteção são separados, eles não podem voltar a ser interligados.", "Neutro e terra misturados nos quadros fazem circular corrente pelas carcaças e prejudicam a atuação do DR.", 2],
+  "aterramento:quad.cor": ["ABNT NBR 5410", "O condutor de proteção deve ser identificado pela cor verde-amarela ou verde.", "Erros de ligação em manutenções futuras, como usar o condutor de proteção como fase ou neutro.", 3],
+  "aterramento:quad.tomadas": ["IT 41/2018 do CBMBA, item 6.5; ABNT NBR 5410", "As tomadas fixas devem ter contato de aterramento efetivamente ligado ao condutor de proteção.", "Tomada com o pino terra desligado dá falsa segurança: o equipamento fica sem proteção contra choque.", 2],
+  "aterramento:quad.massas": ["IT 41/2018 do CBMBA, item 6.4; ABNT NBR 5410", "Todas as massas metálicas (quadros, equipamentos, eletrocalhas) devem ser ligadas a condutores de proteção.", "Carcaça energizada num defeito, com risco de choque.", 1],
+  "aterramento:quad.dps": ["ABNT NBR 5410", "Os DPS devem ser ligados ao barramento de proteção por condutores curtos e diretos.", "DPS mal aterrado não desvia o surto, e os equipamentos queimam.", 2],
+  "aterramento:geral.unico": ["ABNT NBR 5410 e NBR 5419-3", "A edificação deve ter uma infraestrutura de aterramento única: os aterramentos da instalação elétrica, do SPDA e de telecomunicações devem ser interligados.", "Aterramentos separados ficam em tensões diferentes durante uma descarga, o que queima equipamentos e causa choque.", 1],
+  "aterramento:geral.doc": ["ABNT NBR 5410 e NBR 5419", "A documentação do aterramento (projeto ou diagrama) deve ser mantida atualizada e disponível.", "Sem documentação, é difícil inspecionar, manter e ampliar o sistema com segurança.", 3],
+  "aterramento:geral.anteriores": ["ABNT NBR 5419 e NBR 15749", "As inspeções e medições periódicas devem ser registradas, para acompanhar a evolução do aterramento ao longo do tempo.", "Sem histórico, não se percebe a piora do aterramento com o tempo.", 3],
+  // Inspeção: iluminação e sinalização de emergência
+  "i:ilum.acende": ["ABNT NBR 10898 (adotada pela IT 18/2017 do CBMBA, item 2.2)", "As luminárias de emergência devem acender automaticamente na falta de energia da rede.", "Na falta de energia, as rotas de fuga ficam no escuro.", 1],
+  "i:ilum.autonomia": ["ABNT NBR 10898 (adotada pela IT 18/2017 do CBMBA, item 2.2)", "O sistema deve manter a iluminação durante todo o tempo de autonomia previsto, o que é verificado em testes periódicos.", "As luminárias apagam antes de as pessoas saírem do prédio.", 1],
+  "i:ilum.indicador": ["ABNT NBR 10898 (adotada pela IT 18/2017 do CBMBA, item 2.2)", "As luminárias devem permanecer ligadas à rede e em carga, com o indicador de funcionamento aceso.", "Bateria sem carga: a luminária não acende quando faltar energia.", 2],
+  "i:ilum.fixacao": ["ABNT NBR 10898 (adotada pela IT 18/2017 do CBMBA, item 2.2)", "As luminárias devem ser mantidas bem fixadas, limpas e sem danos, passando por inspeção periódica.", "Luminária solta pode cair; suja ou danificada ilumina menos que o necessário.", 3],
+  "i:ilum.cobertura": ["IT 18/2017 do CBMBA, itens 5.4.2 e 5.4.2.1", "Os pontos de iluminação de emergência devem ficar a no máximo 15 m um do outro e a 7,5 m das paredes, garantindo pelo menos 3 lux em locais planos e 5 lux em escadas e locais com obstáculos.", "Trechos escuros na rota de fuga causam quedas e desorientação na saída.", 2],
+  "i:sinal.saida": ["IT 20/2017 do CBMBA, itens 6.1.3 e 6.3", "A sinalização de saída deve indicar todas as mudanças de direção, as saídas e as escadas, instalada de modo a ser vista com facilidade.", "As pessoas não encontram a saída, principalmente com fumaça ou sem luz.", 1],
+  "i:sinal.equip": ["IT 20/2017 do CBMBA, item 6.1.4", "Cada equipamento de combate a incêndio deve ter a sua placa logo acima dele, com a base a 1,80 m do piso.", "Os equipamentos demoram a ser encontrados na emergência.", 2],
+  "i:sinal.fotolum": ["IT 20/2017 do CBMBA, itens 6.3 e 6.6", "As placas de saída, de alarme e de equipamentos devem ser fotoluminescentes, e a sinalização deve ser inspecionada, limpa e substituída quando perder o efeito visual.", "Placa gasta não brilha no escuro e deixa de orientar a saída.", 2],
+  "i:sinal.alerta": ["IT 20/2017 do CBMBA, itens 6.1.1 e 6.1.2", "As placas de proibição e de alerta devem ficar em local visível, a 1,80 m do piso, próximas ao risco e no máximo a 15 m uma da outra.", "As pessoas não são avisadas dos riscos e das proibições do local.", 3],
+  "i:sinal.piso": ["IT 20/2017 do CBMBA, item 6.1.4, alínea d", "Em garagens, áreas de fabricação, depósitos e locais de movimentação de mercadorias, os extintores e hidrantes devem ter também sinalização no piso.", "Veículos e mercadorias acabam obstruindo o acesso aos equipamentos.", 3],
+  // Inspeção: portas corta-fogo, corrimãos e rotas de fuga
+  "i:portas.fecha": ["IT 11/2016 do CBMBA, item 5.5.4.5; ABNT NBR 11742", "As portas das escadas e antecâmaras devem ter dispositivo mecânico e automático que as mantenha fechadas, mas destrancadas no sentido da saída.", "Porta que não fecha deixa a fumaça e o calor entrarem na escada, que é o caminho de fuga de todos os andares.", 1],
+  "i:portas.livre": ["IT 11/2016 do CBMBA, item 5.5.4.5; IT 09/2016 do CBMBA, item 6.3.1.4", "As portas corta-fogo devem permanecer fechadas. Só podem ficar abertas se presas por dispositivo que as solte e feche automaticamente em caso de incêndio.", "Porta calçada aberta deixa a fumaça tomar a escada.", 1],
+  "i:portas.macaneta": ["ABNT NBR 11742 (exigida pela IT 11/2016 do CBMBA, item 5.5.4.4)", "As ferragens da porta corta-fogo (maçaneta, fechadura e dobradiças) devem funcionar corretamente, permitindo abrir a porta pelo lado da fuga sem chave e mantê-la fechada.", "Maçaneta com defeito pode impedir a abertura da porta na fuga ou não manter a porta fechada.", 1],
+  "i:portas.barra": ["IT 11/2016 do CBMBA, item 5.5.4.6; ABNT NBR 11785", "Onde a barra antipânico é exigida (locais de reunião de público com mais de 100 pessoas), ela deve abrir a porta com um simples empurrão. A barra existente deve ser mantida em funcionamento.", "Barra travada ou com defeito retém as pessoas na saída, com risco de pânico e de esmagamento.", 1],
+  "i:portas.estado": ["ABNT NBR 11742 (exigida pela IT 11/2016 do CBMBA, item 5.5.4.4)", "A folha, o batente e as vedações da porta corta-fogo devem estar íntegros, sem furos, empenos ou alterações que reduzam a resistência ao fogo.", "Porta danificada deixa passar fumaça e calor e perde a resistência ao fogo.", 2],
+  "i:portas.etiqueta": ["ABNT NBR 11742 (exigida pela IT 11/2016 do CBMBA, item 5.5.4.4)", "A porta corta-fogo deve ter a identificação do fabricante e da sua classificação de resistência ao fogo.", "Sem identificação, não há como comprovar na vistoria que a porta é corta-fogo.", 3],
+  "i:corrimao.continuo": ["IT 11/2016 do CBMBA, itens 5.8.2.1 e 5.8.2.6", "As escadas e rampas devem ter corrimãos nos dois lados, contínuos, sem interrupção nos patamares.", "Sem apoio contínuo, aumenta o risco de quedas na descida, principalmente com muita gente ou pouca luz.", 2],
+  "i:corrimao.fixo": ["IT 11/2016 do CBMBA, itens 5.8.2.6 e 5.8.3.2", "Os corrimãos devem resistir a uma carga de 900 N aplicada em qualquer ponto e ter as extremidades voltadas para a parede.", "Corrimão solto pode ceder quando alguém se apoiar; pontas soltas prendem roupas e machucam.", 2],
+  "i:corrimao.altura": ["IT 11/2016 do CBMBA, itens 5.8.1.2 e 5.8.2.1", "Os corrimãos devem ficar entre 80 cm e 92 cm acima do piso, e os guarda-corpos devem ter no mínimo 1,10 m de altura.", "Altura fora do padrão não oferece apoio nem proteção contra quedas.", 2],
+  "i:corrimao.vaos": ["IT 11/2016 do CBMBA, item 5.8.1.4, alínea a", "Nos guarda-corpos vazados, nenhum vão pode permitir a passagem de uma esfera de 15 cm de diâmetro.", "Risco de queda de crianças pelos vãos.", 1],
+  "i:corrimao.estado": ["IT 11/2016 do CBMBA, itens 5.8.2.3 e 5.8.3.2", "Os corrimãos devem permitir o deslizamento contínuo da mão, sem obstruções ou arestas, e manter a resistência exigida (900 N). Peças corroídas, quebradas ou soltas não atendem.", "Peças soltas ou corroídas podem ceder com o apoio das pessoas.", 2],
+  "i:rotas.desobs": ["IT 11/2016 do CBMBA, itens 5.5.1.1 e 5.5.1.2", "Os acessos das saídas de emergência devem permanecer livres de móveis, divisórias, mercadorias e outros obstáculos, em todos os pavimentos.", "Obstáculos atrasam a saída e provocam quedas e aglomeração.", 1],
+  "i:rotas.portas": ["IT 11/2016 do CBMBA, itens 5.5.4.1 e 5.5.4.9", "As portas das rotas de saída devem abrir no sentido da fuga. Fechadura com chave só é admitida se a porta puder ser aberta por dentro sem chave.", "Porta trancada ou que abre contra o fluxo retém as pessoas na saída.", 1],
+  "i:rotas.piso": ["IT 11/2016 do CBMBA, itens 5.6.2.6 e 5.7.1.1", "Os pisos das escadas e rampas devem ser antiderrapantes e permanecer assim com o uso.", "Piso liso ou danificado causa quedas, que bloqueiam a saída dos demais.", 2],
+  "i:rotas.deposito": ["IT 11/2016 do CBMBA, item 5.7.4.2", "A caixa da escada não pode ser usada como depósito nem guardar lixeiras, móveis ou equipamentos, mesmo por pouco tempo.", "Materiais na escada obstruem a fuga e podem pegar fogo, enchendo de fumaça o caminho de saída.", 1],
+  // Inspeção: extintores, hidrantes, bomba e sprinklers
+  "i:ext.local": ["IT 21/2017 do CBMBA, itens 5.1.4 e 5.2.1.3", "Os extintores devem estar distribuídos respeitando a distância máxima de caminhamento, fora das escadas, e permanecer desobstruídos e sinalizados.", "O extintor não é encontrado ou alcançado a tempo de apagar o princípio de incêndio.", 1],
+  "i:ext.tipo": ["IT 21/2017 do CBMBA, itens 5.2.1.4 e 5.2.1.6", "O extintor deve ser adequado à classe de incêndio predominante na área, e cada pavimento deve ter no mínimo duas unidades extintoras (uma para a classe A e outra para as classes B e C, ou duas de pó ABC).", "Extintor inadequado não apaga o fogo e pode pôr em risco quem o usa (por exemplo, água em equipamento elétrico).", 1],
+  "i:ext.recarga": ["IT 21/2017 do CBMBA, item 5.3.2; ABNT NBR 12962", "A carga do extintor deve estar dentro do prazo de validade dado pelo fabricante ou pela empresa de manutenção certificada pelo Inmetro.", "Extintor vencido pode não funcionar no momento do uso.", 1],
+  "i:ext.hidro": ["ABNT NBR 12962 e NBR 13485", "O cilindro do extintor deve passar por ensaio hidrostático periódico (a cada 5 anos), feito por empresa certificada.", "Cilindro sem ensaio pode não resistir à pressão e romper.", 2],
+  "i:ext.manometro": ["IT 21/2017 do CBMBA, item 5.3.1", "Os extintores devem estar com a pressão adequada, lacrados e com o selo de conformidade do Inmetro.", "Extintor despressurizado não expele o agente extintor.", 1],
+  "i:ext.lacre": ["IT 21/2017 do CBMBA, item 5.3.1", "Os extintores devem estar lacrados, com a pressão adequada e com o selo de conformidade do Inmetro.", "Lacre rompido indica que o extintor pode ter sido usado ou violado e não estar carregado.", 2],
+  "i:ext.estado": ["ABNT NBR 12962", "O extintor e os seus componentes (mangueira, difusor, válvula e cilindro) devem estar sem danos. O que apresentar defeito deve ir para manutenção.", "Mangueira ou difusor danificado impede o uso; cilindro corroído pode romper.", 2],
+  "i:ext.fixacao": ["IT 21/2017 do CBMBA, itens 5.2.1.1 e 5.2.1.2", "Na parede, o suporte deve ficar a no máximo 1,60 m do piso, com a parte inferior do extintor a pelo menos 0,10 m. No piso, somente em suporte apropriado, com altura entre 0,10 m e 0,20 m.", "Extintor alto demais ou solto no piso é difícil de pegar, pode cair e se danifica.", 3],
+  "i:hid.abrigo": ["IT 22/2016 do CBMBA, itens D.1.1, D.1.4 e D.3", "Cada abrigo deve ser sinalizado, permitir acesso rápido ao seu conteúdo e guardar, no mínimo, os equipamentos previstos nas tabelas da IT (mangueiras, esguicho e acessórios).", "Abrigo incompleto ou obstruído impede ou atrasa o uso do hidrante.", 1],
+  "i:hid.mangueiras": ["ABNT NBR 12779", "As mangueiras de incêndio devem ser mantidas sem danos e passar por inspeção periódica e por ensaio hidrostático a cada 12 meses, com registro da data.", "Mangueira danificada ou sem teste pode romper ao ser pressurizada.", 1],
+  "i:hid.valvula": ["IT 22/2016 do CBMBA, item 5.11.5.4", "As válvulas dos hidrantes devem ser estanques.", "Vazamento derruba a pressão da rede e indica válvula com defeito.", 2],
+  "i:hid.recalque": ["IT 22/2016 do CBMBA, item 5.3.4; IT 20/2017 do CBMBA, item 6.2.6.4", "O registro de recalque deve ficar em local de acesso livre para a viatura do Corpo de Bombeiros, com a tampa do abrigo pintada de vermelho.", "Os bombeiros perdem tempo para achar ou alcançar o recalque.", 2],
+  "i:bomba.auto": ["IT 22/2016 do CBMBA, itens C.1.16 e C.1.16.1", "O painel da bomba deve sinalizar as condições de funcionamento e de falha e permanecer pronto para a partida.", "Com o painel desligado ou em falha, a bomba não parte quando um hidrante é aberto.", 1],
+  "i:bomba.partida": ["IT 22/2016 do CBMBA, itens C.1.8 e C.1.9", "Com a bomba em automático, a abertura de qualquer hidrante deve colocá-la em funcionamento, atingindo o regime pleno em cerca de 30 segundos.", "Sem a bomba, os hidrantes ficam sem pressão para o combate.", 1],
+  "i:bomba.vazam": ["IT 22/2016 do CBMBA, item 5.11.6.9", "As ligações entre tubos, conexões e acessórios devem ser estanques.", "Vazamentos derrubam a pressão da rede e danificam os equipamentos da casa de bombas.", 2],
+  "i:bomba.rti": ["IT 22/2016 do CBMBA, itens 5.9.1 e B.1.2", "O reservatório deve manter, o tempo todo, o volume da reserva técnica de incêndio definido para a edificação.", "Sem a reserva, a água acaba antes do fim do combate.", 1],
+  "i:spk.bicos": ["IT 23/2018 do CBMBA, Anexo C, itens 1.5 e 1.9; ABNT NBR 10897", "Os chuveiros automáticos devem estar livres de tinta e de corpos estranhos, sem danos físicos e sem obstrução por luminárias, dutos ou eletrocalhas.", "Bico pintado ou obstruído não abre ou não distribui a água sobre o fogo.", 1],
+  "i:spk.distancia": ["IT 23/2018 do CBMBA, Anexo C, item 1.13; ABNT NBR 10897", "Deve ser mantida a distância livre adequada entre os chuveiros e o topo dos materiais armazenados.", "Materiais muito próximos bloqueiam o jato, e o fogo se espalha por baixo.", 2],
+  "i:spk.vga": ["IT 23/2018 do CBMBA, Anexo C, itens 2.1 e 2.2; ABNT NBR 10897", "As válvulas de bloqueio da válvula de governo e alarme devem estar identificadas e travadas na posição totalmente aberta.", "Válvula fechada deixa todo o sistema de chuveiros sem água.", 1],
+  "i:spk.manometros": ["IT 23/2018 do CBMBA, Anexo C, item 2.13; ABNT NBR 10897", "Os manômetros da válvula de governo e alarme devem estar instalados, em boas condições e indicando a pressão normal do sistema.", "Pressão fora do normal indica falta de água ou vazamento; sem manômetro confiável, isso não é percebido.", 2],
+  // Inspeção: alarme, gás, SPDA, pressurização, compartimentação e documentação
+  "i:alarme.central": ["ABNT NBR 17240 (adotada pela IT 19/2017 do CBMBA, item 2.2)", "A central deve permanecer em operação normal, sem falhas pendentes no painel.", "Central em falha pode não detectar o incêndio nem acionar as sirenes.", 1],
+  "i:alarme.acion": ["IT 19/2017 do CBMBA, item 5.16; IT 20/2017 do CBMBA, item 6.1.4", "Os acionadores manuais devem estar sinalizados e em funcionamento (nas centrais convencionais, com indicação luminosa de funcionamento e de alarme).", "Quem percebe o incêndio não consegue dar o alarme.", 1],
+  "i:alarme.detect": ["ABNT NBR 17240 (adotada pela IT 19/2017 do CBMBA, item 2.2)", "Os detectores devem ser mantidos limpos, sem pintura, danos ou obstáculos.", "Detector pintado ou coberto não percebe a fumaça.", 2],
+  "i:alarme.sirene": ["IT 19/2017 do CBMBA, item 5.6", "O alarme geral deve ser ouvido em toda a edificação.", "As pessoas não são avisadas do incêndio.", 1],
+  "i:gas.abrigo": ["IT 28/2021 do CBMBA, itens 5.3.1, 5.3.9 e 5.3.10", "A central de GLP deve ficar em local ventilado, ter os avisos de 'Perigo', 'Inflamável' e 'Não fume' e não pode guardar materiais nem ser usada para outro fim.", "Gás acumulado, falta de aviso e materiais guardados aumentam o risco de incêndio e de explosão.", 1],
+  "i:gas.extintor": ["IT 28/2021 do CBMBA, item 5.3.4", "A central de GLP deve ser protegida por extintores na quantidade e na capacidade definidas na tabela da IT, conforme a quantidade de gás armazenada.", "Um princípio de incêndio junto à central não pode ser combatido de imediato.", 1],
+  "i:gas.vazam": ["IT 28/2021 do CBMBA, itens 5.3.8 e 5.4.1", "Os recipientes não podem apresentar vazamento, e as tubulações de gás devem ser estanques.", "Vazamento de gás: risco de incêndio, de explosão e de intoxicação.", 1],
+  "i:gas.tubul": ["ABNT NBR 15526; IT 28/2021 do CBMBA, item 5.4.6.1", "A tubulação de gás aparente deve ser identificada (cor amarela), mantida sem corrosão e protegida contra choques mecânicos.", "Corrosão evolui para vazamento; tubulação sem identificação pode ser danificada por engano.", 2],
+  "i:spda.captores": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "Os captores e os condutores da cobertura devem estar completos, fixados e contínuos.", "Sem captação íntegra, a descarga atinge diretamente a estrutura.", 1],
+  "i:spda.descidas": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "Os condutores de descida devem estar fixados, contínuos e sem danos.", "Descida rompida não conduz a descarga até o solo.", 1],
+  "i:spda.caixas": ["ABNT NBR 5419 (exigida pela IT 41/2018 do CBMBA, item 6.9)", "O aterramento do SPDA deve ter pontos acessíveis para inspeção e medição.", "Sem acesso, não é possível inspecionar nem medir o aterramento.", 3],
+  "i:spda.laudo": ["IT 41/2018 do CBMBA, itens 6.9 e 8.3; ABNT NBR 5419", "O SPDA deve estar em conformidade com a ABNT NBR 5419 e passar por inspeções periódicas documentadas. No pedido de vistoria é anexado o atestado de conformidade das instalações elétricas, que inclui o SPDA.", "Sem inspeção em dia, não há garantia de que o SPDA protege a edificação.", 2],
+  "i:pressur.partida": ["IT 13/2022 do CBMBA, itens 5.3.7 e 5.3.9", "O sistema de pressurização deve ser acionado automaticamente pela detecção de fumaça e ser posto em funcionamento periodicamente, para confirmar que os ventiladores operam.", "Sem a pressurização, a fumaça entra na escada de emergência.", 1],
+  "i:pressur.portas": ["IT 13/2022 do CBMBA, item 5.2.1, alíneas e, h; ABNT NBR 11742", "As portas corta-fogo da escada pressurizada devem fechar e permanecer fechadas mesmo com o sistema em funcionamento.", "Porta aberta deixa o ar escapar: a escada perde a pressão e a fumaça entra.", 1],
+  "i:pressur.grelhas": ["IT 13/2022 do CBMBA, itens 5.3.4 e 5.3.6", "As grelhas de insuflamento devem distribuir o ar de forma equilibrada ao longo da escada, e o registro de sobrepressão (damper) deve funcionar.", "Grelha obstruída reduz a pressão na escada; damper travado dificulta a abertura das portas.", 2],
+  "i:compart.shafts": ["IT 09/2016 do CBMBA, itens 6.2.2.4 e 6.3.4", "As aberturas nas lajes para passagem de cabos e tubulações devem ser seladas com vedação corta-fogo.", "Fogo e fumaça sobem de um pavimento para o outro pelos shafts.", 2],
+  "i:compart.portas": ["IT 09/2016 do CBMBA, itens 5.3.2.1 e 6.3.2.1", "As portas de andar dos elevadores devem ser para-chamas e as portas em paredes de compartimentação devem ser corta-fogo, mantidas em condições de cumprir essa função.", "Porta danificada deixa o fogo e a fumaça passarem para o poço do elevador e para outros pavimentos.", 2],
+  "i:compart.aberturas": ["IT 09/2016 do CBMBA, itens 5.3.1 e 5.3.4.1", "As aberturas em paredes de compartimentação, inclusive as de passagem de instalações, devem ser protegidas ou seladas com elementos corta-fogo.", "Fogo e fumaça passam de um compartimento para o outro.", 2],
+  "i:doc.avcb": ["IT 01/2016 do CBMBA, item 6.4.9; Decreto Estadual 16.302/2015, art. 13", "O AVCB deve estar dentro da validade e ser mantido na entrada da edificação, em local visível ao público.", "Edificação irregular perante o Corpo de Bombeiros, sujeita a notificação, multa e interdição.", 1],
+  "i:doc.plano": ["IT 16/2018 do CBMBA, itens 5.5.1 e 6.1.2", "Uma cópia atualizada do plano de emergência deve ficar disponível em local com presença permanente (portaria ou sala de segurança), e o plano deve ser revisado pelo menos a cada 12 meses.", "Na emergência, ninguém sabe o que fazer, quem chamar nem por onde sair.", 2],
+  "i:doc.brigada": ["IT 17/2016 do CBMBA, itens 6.3.2 e 6.3.4", "Os brigadistas devem passar por reciclagem anual do treinamento, com atestado de brigada de incêndio para apresentação ao Corpo de Bombeiros.", "Sem brigada treinada, não há quem faça o primeiro combate e oriente o abandono do prédio.", 2],
+  "i:doc.manut": ["Decreto Estadual 16.302/2015, art. 21; IT 01/2016 do CBMBA, item 6.2.1.3", "O proprietário ou responsável pelo uso deve manter as medidas de segurança contra incêndio em condições de funcionamento, com manutenção adequada. Na renovação do AVCB é exigida a ART de manutenção dos sistemas.", "Sem registros, não se comprova a manutenção na vistoria nem se sabe o estado real dos sistemas.", 3],
+  "i:doc.laudos": ["IT 01/2016 do CBMBA, item 6.2.1; IT 41/2018 do CBMBA, item 8.3", "Para a vistoria do Corpo de Bombeiros são exigidas as ART dos sistemas de gás, do grupo motogerador e das instalações elétricas, e o atestado de conformidade das instalações elétricas, que inclui o SPDA.", "Sem os laudos em dia, o AVCB não é renovado e os riscos dessas instalações ficam sem avaliação.", 2]
+};
+const refLaudo = (l, sec, id) => {
+  const r = REFS_LD[(ehInsp(l) ? "i" : l.tipo) + ":" + sec + "." + id];
+  return r ? { norma: r[0], exige: r[1], risco: r[2], prio: r[3] } : null;
+};
+/* introdução de cada laudo: objetivo, normas (id de NORMAS = IT do CBMBA, ou [sigla, título]) e como a vistoria é feita */
+const INTRO_LD = {
+  hidrantes: {
+    objetivo: "Avaliar as condições de funcionamento e de conservação do sistema de hidrantes da edificação (reservatório, bombas de incêndio, tubulação, hidrantes, mangueiras e registro de recalque), indicando o que está em conformidade com as normas e o que precisa ser corrigido.",
+    normas: ["it-22-2016", ["ABNT NBR 13714", "Sistemas de hidrantes e de mangotinhos para combate a incêndio"], ["ABNT NBR 12779", "Mangueira de incêndio - Inspeção, manutenção e cuidados"], "it-20-2017"],
+    metodo: "Inspeção visual dos componentes acessíveis do sistema, teste de funcionamento das bombas de incêndio e dos seus comandos e leitura das pressões da rede, com registro fotográfico. Os valores medidos estão registrados nas seções deste laudo."
+  },
+  eletrica: {
+    objetivo: "Avaliar, por inspeção visual, as condições de segurança das instalações elétricas de baixa tensão da edificação (quadros, aterramento e instalações gerais), com foco na prevenção de choques elétricos e de incêndios de origem elétrica.",
+    normas: ["it-41-2018", ["ABNT NBR 5410", "Instalações elétricas de baixa tensão"], ["ABNT NBR 14136", "Plugues e tomadas para uso doméstico e análogo - Padronização"], "it-20-2017"],
+    metodo: "Inspeção visual dos quadros elétricos e das instalações acessíveis, com verificação dos dispositivos de proteção, dos condutores e do aterramento, e registro fotográfico. As medições realizadas (temperatura dos quadros e resistência de aterramento) estão registradas nas seções deste laudo."
+  },
+  alarme: {
+    objetivo: "Avaliar as condições de funcionamento do sistema de detecção e alarme de incêndio (central, fontes de alimentação, acionadores manuais, detectores e avisadores), indicando o que está em conformidade com as normas e o que precisa ser corrigido.",
+    normas: ["it-19-2017", ["ABNT NBR 17240", "Sistemas de detecção e alarme de incêndio"], "it-20-2017"],
+    metodo: "Inspeção visual da central e dos dispositivos e testes funcionais: simulação de falta da alimentação principal, acionamento de acionadores manuais e de detectores e verificação dos avisadores e da supervisão dos circuitos, com registro fotográfico."
+  },
+  gas: {
+    objetivo: "Avaliar as condições de segurança da instalação de gás da edificação (central, reguladores e válvulas, tubulação e pontos de consumo), indicando o que está em conformidade com as normas e o que precisa ser corrigido.",
+    normas: ["it-28-2021", "it-29-2021", ["ABNT NBR 13523", "Central de gás liquefeito de petróleo (GLP)"], ["ABNT NBR 15526", "Redes de distribuição interna para gases combustíveis - Projeto e execução"], ["ABNT NBR 13103", "Instalação de aparelhos a gás - Requisitos"]],
+    metodo: "Inspeção visual da central, dos reguladores, das válvulas, da tubulação aparente e dos pontos de consumo e ensaio de estanqueidade da rede, com registro fotográfico. As pressões e a duração do ensaio estão registradas neste laudo."
+  },
+  gerador: {
+    objetivo: "Avaliar as condições de conservação e de funcionamento do grupo gerador e da sua sala, com atenção à alimentação das cargas de emergência da edificação.",
+    normas: ["it-41-2018", ["ABNT NBR 5410", "Instalações elétricas de baixa tensão"], ["Manual do fabricante", "Recomendações de operação e de manutenção do equipamento"]],
+    metodo: "Inspeção visual do grupo gerador e da sala e teste de funcionamento com simulação de falta de energia (partida, transferência das cargas e retorno), com registro fotográfico. As leituras estão registradas neste laudo."
+  },
+  spda: {
+    objetivo: "Avaliar as condições do sistema de proteção contra descargas atmosféricas (SPDA) da edificação: captação, descidas, aterramento e equipotencialização.",
+    normas: [["ABNT NBR 5419", "Proteção contra descargas atmosféricas (partes 1 a 4)"], "it-41-2018", ["ABNT NBR 5410", "Instalações elétricas de baixa tensão"]],
+    metodo: "Inspeção visual dos subsistemas de captação, de descida e de aterramento e medições de continuidade elétrica e de resistência de aterramento nos pontos acessíveis, com registro fotográfico. Os valores medidos estão registrados neste laudo."
+  },
+  aterramento: {
+    objetivo: "Avaliar as condições do sistema de aterramento e de equipotencialização da edificação e registrar os valores medidos.",
+    normas: [["ABNT NBR 5410", "Instalações elétricas de baixa tensão"], ["ABNT NBR 5419-3", "Proteção contra descargas atmosféricas - Parte 3: Danos físicos a estruturas e perigos à vida"], ["ABNT NBR 15749", "Medição de resistência de aterramento e de potenciais na superfície do solo em sistemas de aterramento"], "it-41-2018"],
+    metodo: "Inspeção visual dos eletrodos, das conexões, do barramento de equipotencialização e dos quadros e medições de resistência de aterramento e de continuidade, com registro fotográfico. O método de medição, o instrumento utilizado e a condição do solo estão registrados na identificação do sistema."
+  },
+  insp: {
+    objetivo: "Registrar as condições dos sistemas de segurança contra incêndio da edificação observadas na inspeção, indicando o que está em conformidade e o que precisa ser corrigido para manter a edificação segura e regular perante o Corpo de Bombeiros.",
+    normas: ["decreto-16302-2015"],
+    metodo: "Inspeção visual e testes funcionais simples dos sistemas listados neste relatório, com registro fotográfico. Não foram feitos ensaios nem medições que dependem de laudo técnico específico."
+  }
+};
+// normas de referência de cada sistema da inspeção (a lista do relatório junta as dos sistemas marcados)
+const NORMAS_INSP = {
+  ilum: ["it-18-2017", ["ABNT NBR 10898", "Sistema de iluminação de emergência"]],
+  sinal: ["it-20-2017"],
+  portas: ["it-11-2016", ["ABNT NBR 11742", "Porta corta-fogo para saída de emergência"]],
+  corrimao: ["it-11-2016"],
+  ext: ["it-21-2017", ["ABNT NBR 12962", "Extintores de incêndio - Inspeção e manutenção"]],
+  rotas: ["it-11-2016"],
+  hid: ["it-22-2016", ["ABNT NBR 12779", "Mangueira de incêndio - Inspeção, manutenção e cuidados"]],
+  bomba: ["it-22-2016"],
+  spk: ["it-23-2018", ["ABNT NBR 10897", "Sistemas de proteção contra incêndio por chuveiros automáticos"]],
+  alarme: ["it-19-2017", ["ABNT NBR 17240", "Sistemas de detecção e alarme de incêndio"]],
+  gas: ["it-28-2021", ["ABNT NBR 15526", "Redes de distribuição interna para gases combustíveis - Projeto e execução"]],
+  spda: ["it-41-2018", ["ABNT NBR 5419", "Proteção contra descargas atmosféricas (partes 1 a 4)"]],
+  pressur: ["it-13-2022"],
+  compart: ["it-09-2016"],
+  doc: ["it-01-2016", "it-16-2018", "it-17-2016"]
+};
+const normaLD = n => {
+  if (Array.isArray(n)) return n;
+  const x = NORMAS.find(([a]) => a === n);
+  return x ? [x[1].startsWith("IT ") ? x[1] + " do CBMBA" : x[1], x[2]] : [n, ""];
+};
+function introLaudo(l) {
+  if (!ehInsp(l)) return INTRO_LD[l.tipo] || null;
+  const vistos = new Set(), normas = [];
+  (defDe(l)?.secoes || []).forEach(s => (NORMAS_INSP[s.id] || []).forEach(n => { const k = String(n); if (!vistos.has(k)) { vistos.add(k); normas.push(n); } }));
+  return { ...INTRO_LD.insp, normas: [...INTRO_LD.insp.normas, ...normas] };
 }
 
 // monta o PDF do laudo (A4, no padrão dos relatórios da VPX)
@@ -3813,14 +4104,32 @@ async function gerarLaudoPDF(l, cli, autor) {
     doc.text(titulo.toUpperCase(), M + 3, y + 5.6);
     y += 13;
   };
-  const linha = (r, v) => {
+  const linha = (r, v, cor = CINZA) => {
     doc.setFontSize(10);
     const tr = doc.splitTextToSize(r, 52), tv = doc.splitTextToSize(String(v), L - 56);
     const h = Math.max(tr.length, tv.length) * 4.6 + 2.2;
     cabe(h);
-    doc.setFont("helvetica", "bold"); doc.setTextColor(...CINZA); doc.text(tr, M, y);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(...cor); doc.text(tr, M, y);
     doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tv, M + 56, y);
     y += h;
+  };
+  const sub = (t, junto = 16) => {                  // subtítulo dentro de uma seção (junto = altura do que não pode se separar dele)
+    cabe(junto);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(...AZUL);
+    doc.text(t, M, y); y += 5.6;
+  };
+  const paragrafo = t => {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...TINTA);
+    const ls = doc.splitTextToSize(pdfTx(t), L);
+    cabe(ls.length * 4.6 + 3);
+    doc.text(ls, M, y); y += ls.length * 4.6 + 3;
+  };
+  // "Rótulo: texto" com o rótulo em negrito na mesma linha (a 1ª linha do texto é mais curta)
+  const comRotulo = (rot, txt, larg) => {
+    doc.setFont("helvetica", "bold"); const wr = doc.getTextWidth(rot + " ");
+    doc.setFont("helvetica", "normal");
+    const a = doc.splitTextToSize(pdfTx(txt), larg - wr);
+    return { rot, wr, linhas: [a[0], ...(a.length > 1 ? doc.splitTextToSize(a.slice(1).join(" "), larg) : [])] };
   };
 
   secao("Identificação");
@@ -3829,6 +4138,27 @@ async function gerarLaudoPDF(l, cli, autor) {
    ["ART", insp ? "" : l.art], [insp ? "Referência" : "Referência normativa", def.norma],
    ["Sistemas inspecionados", insp ? def.secoes.map(s => s.titulo).join(", ") : ""]].filter(([, v]) => (v || "").trim()).forEach(([r, v]) => linha(r, v));
   y += 3;
+
+  // objetivo, normas de referência, como a vistoria foi feita e critérios
+  const intro = introLaudo(l);
+  if (intro) {
+    secao("Objetivo e método");
+    sub("Objetivo"); paragrafo(intro.objetivo);
+    sub("Normas de referência");
+    intro.normas.map(normaLD).forEach(([n, t]) => linha(n, pdfTx(t || " ")));
+    y += 2;
+    sub("Como a vistoria foi feita"); paragrafo(intro.metodo);
+    sub("Critérios de avaliação", 42);
+    linha("Conforme", "O item atende ao que as normas de referência exigem, no que foi possível verificar na vistoria.", COR.C);
+    linha("Não conforme", "O item não atende à exigência indicada e precisa de correção. Cada não conformidade traz a referência da norma, o risco e a prioridade sugerida.", COR.NC);
+    linha("Não se aplica (N/A)", "O item não existe na edificação ou não é exigido para ela.", COR.NA);
+    y += 2;
+    sub("Prioridade sugerida para as correções", 48);
+    [1, 2, 3].forEach(p => linha(PRIO_LD[p].nome, PRIO_LD[p].txt, PRIO_LD[p].cor));
+    doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); doc.setTextColor(...CINZA);
+    const obsP = doc.splitTextToSize("A prioridade é uma orientação técnica para a ordem das correções. Todas as não conformidades devem ser corrigidas.", L);
+    cabe(obsP.length * 4 + 3); doc.text(obsP, M, y); y += obsP.length * 4 + 4;
+  }
 
   // resumo
   const blocos = blocosLaudo(l);
@@ -3849,13 +4179,26 @@ async function gerarLaudoPDF(l, cli, autor) {
     cabe(12);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(...COR.NC);
     doc.text(`Não conformidades encontradas (${nc.length})`, M, y); y += 6;
+    const comPrio = nc.some(x => PRIO_LD[x.ref?.prio]);
+    if (comPrio) {                                   // quantas de cada prioridade
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+      doc.text("Por prioridade:  " + [1, 2, 3].map(p => `${PRIO_LD[p].nome}: ${nc.filter(x => x.ref?.prio === p).length}`).join("   |   "), M, y);
+      y += 6;
+    }
     nc.forEach((x, i) => {
       doc.setFontSize(9.5);
-      const t = doc.splitTextToSize(`${i + 1}. ${x.bloco}: ${x.texto}${x.obs ? " - " + x.obs : ""}`, L - 4);
+      const pr = PRIO_LD[x.ref?.prio];
+      const t = doc.splitTextToSize(`${i + 1}. ${x.bloco}: ${x.texto}${x.obs ? " - " + x.obs : ""}`, L - 4 - (comPrio ? 26 : 0));
       cabe(t.length * 4.3 + 1);
       doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(t, M + 2, y);
+      if (pr) { doc.setFont("helvetica", "bold"); doc.setTextColor(...pr.cor); doc.text(pr.nome, 210 - M, y, { align: "right" }); }
       y += t.length * 4.3 + 1;
     });
+    if (nc.some(x => x.ref)) {
+      doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); doc.setTextColor(...CINZA);
+      const t = doc.splitTextToSize("A exigência da norma e o risco de cada não conformidade estão detalhados junto de cada item, nas páginas seguintes.", L);
+      cabe(t.length * 4 + 2); y += 1.5; doc.text(t, M, y); y += t.length * 4;
+    }
     y += 3;
   }
 
@@ -3879,16 +4222,46 @@ async function gerarLaudoPDF(l, cli, autor) {
       const x = l.r[chaveItem(b.uid, id)] || {};
       doc.setFontSize(10);
       const tt = doc.splitTextToSize(texto, L - 36);
-      cabe(tt.length * 4.6 + 2);
+      doc.setFontSize(9);
+      const to = (x.obs || "").trim() ? doc.splitTextToSize("Obs.: " + x.obs.trim(), L - 40) : [];
+      // não conforme: quadro com a referência da norma, o que ela exige, o risco e a prioridade sugerida
+      const ref = x.st === "NC" ? refLaudo(l, b.s.id, id) : null;
+      let quadro = null;
+      if (ref) {
+        const partes = [["Referência:", ref.norma], ["O que a norma exige:", ref.exige], ["Risco:", ref.risco]].filter(([, t]) => t).map(([r, t]) => comRotulo(r, t, L - 11));
+        const pr = PRIO_LD[ref.prio];
+        quadro = { partes, pr, h: (partes.reduce((s, p) => s + p.linhas.length, 0) + (pr ? 1 : 0)) * 4 + (partes.length + (pr ? 1 : 0)) * 1 + 3.4 };
+      }
+      const hItem = tt.length * 4.6 + 2 + to.length * 4.1 + (quadro ? quadro.h + 3 : 0);
+      cabe(hItem <= 250 ? hItem : tt.length * 4.6 + 2);   // o item, a observação e o quadro ficam juntos na mesma página
+      doc.setFontSize(10);
       doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tt, M, y);
       doc.setFont("helvetica", "bold"); doc.setTextColor(...(COR[x.st] || CINZA));
       doc.text(x.st === "NA" ? "N/A" : ST_LAUDO[x.st] || "-", 210 - M, y, { align: "right" });
       y += tt.length * 4.6 + 0.6;
-      if ((x.obs || "").trim()) {
+      if (to.length) {
         doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(...CINZA);
-        const to = doc.splitTextToSize("Obs.: " + x.obs.trim(), L - 40);
         cabe(to.length * 4.1);
         doc.text(to, M + 4, y); y += to.length * 4.1;
+      }
+      if (quadro) {
+        cabe(quadro.h + 3);
+        y -= 1.5;
+        doc.setFillColor(251, 244, 243); doc.rect(M + 2, y, L - 2, quadro.h, "F");
+        doc.setFillColor(...COR.NC); doc.rect(M + 2, y, 0.9, quadro.h, "F");
+        let yy = y + 4.4;
+        doc.setFontSize(9);
+        quadro.partes.forEach(p => {
+          doc.setFont("helvetica", "bold"); doc.setTextColor(...TINTA); doc.text(p.rot, M + 6, yy);
+          doc.setFont("helvetica", "normal");
+          p.linhas.forEach((t, i) => { doc.text(t, M + 6 + (i ? 0 : p.wr), yy); yy += 4; });
+          yy += 1;
+        });
+        if (quadro.pr) {
+          doc.setFont("helvetica", "bold"); doc.setTextColor(...TINTA); doc.text("Prioridade sugerida:", M + 6, yy);
+          doc.setTextColor(...quadro.pr.cor); doc.text(quadro.pr.nome, M + 6 + doc.getTextWidth("Prioridade sugerida: "), yy);
+        }
+        y += quadro.h + 4.5;
       }
       const fts = await fotosDe(x.fotos);
       if (fts.length) {
