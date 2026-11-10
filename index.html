@@ -20,7 +20,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style id="estilo-app">
 :root{
-  --marinho:#1C3C61; --laranja:#EB9D2B; --tinta:#13253B; --fundo:#F2F4F7;
+  --marinho:#1C3C61; --laranja:#EB9D2B; --tinta:#13253B; --fundo:#EDF0F4; --topo-h:60px;
   --papel:#FFFFFF; --linha:#D3DAE3; --suave:#5B6B80; --erro:#B3261E; --ok:#1E7A46;
   --texto-fonte:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --titulo-fonte:"Barlow Semi Condensed","Barlow",system-ui,sans-serif;
@@ -35,13 +35,13 @@ body{font-family:var(--texto-fonte);font-size:17px;line-height:1.45;color:var(--
 button,input,label{font:inherit}
 .oculto{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 
-.topo{background:#fff;color:var(--marinho);padding:calc(env(safe-area-inset-top,0px) + 24px) 18px 12px;height:calc(env(safe-area-inset-top,0px) + 96px);display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:5;border-bottom:4px solid var(--laranja)}
+.topo{background:#fff;color:var(--marinho);padding:env(safe-area-inset-top,0px) 18px 0;height:calc(env(safe-area-inset-top,0px) + var(--topo-h));display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:5;border-bottom:4px solid var(--laranja)}
 .marca{font-family:var(--titulo-fonte);font-weight:700;font-size:22px;letter-spacing:.01em;margin:0}
 .marca{display:flex;align-items:center}
-.marca img{height:56px;width:auto;display:block}
+.marca img{height:36px;width:auto;display:block}
 .conta{background:transparent;border:1.5px solid rgba(28,60,97,.45);color:var(--marinho);border-radius:999px;width:38px;height:38px;font-weight:600;cursor:pointer}
 .topo-dir{display:flex;align-items:center;gap:10px}
-@media (max-width:420px){.topo{padding-left:12px;padding-right:12px}.topo-dir{gap:6px}.marca img{height:48px}}   /* cabe todos os botões do topo no celular */
+@media (max-width:420px){.topo{padding-left:12px;padding-right:12px}.topo-dir{gap:6px}}   /* cabe todos os botões do topo no celular */
 /* botões do topo com o nome embaixo do ícone (Agenda, AVCB, Menu) */
 .topo-dir #btn-agenda,.topo-dir #btn-avcb,.topo-dir #btn-menu{width:auto;min-width:54px;height:52px;padding:4px 8px 3px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
 .topo-dir #btn-agenda svg,.topo-dir #btn-avcb svg,.topo-dir #btn-menu svg{width:21px;height:21px;flex:none}
@@ -332,7 +332,7 @@ button,input,label{font:inherit}
 .topo-dir #btn-its,.topo-dir #btn-admin,.topo-dir #btn-agenda,.topo-dir #btn-avcb,.topo-dir #btn-menu{display:none!important}
 /* logo no centro do topo; as iniciais saíram (a conta fica em Mais) e só o aviso da fila fica à direita */
 .topo{justify-content:center}
-.topo-dir{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 24px);bottom:12px}
+.topo-dir{position:absolute;right:14px;top:env(safe-area-inset-top,0px);bottom:0}
 .topo-dir #btn-conta{display:none!important}
 .topo-fila{min-height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--warn-bg);color:var(--warn-tx);font-size:13px;font-weight:700;cursor:pointer}
 .topo-fila[hidden]{display:none}
@@ -353,13 +353,13 @@ body.hub-on main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
    da barra de rolagem reservado dos dois lados; assim nada "pula" de lugar ao trocar de aba (a lista de Clientes
    é a única longa e fazia o topo, a barra de baixo e o conteúdo andarem 7 px). No celular continua como antes. */
 @media (hover:hover) and (pointer:fine){
-  body.hub-on main{position:fixed;top:calc(env(safe-area-inset-top,0px) + 96px);bottom:calc(65.5px + env(safe-area-inset-bottom,0px));left:0;right:0;max-width:none;margin:0;overflow-y:auto;scrollbar-gutter:stable both-edges;padding:18px max(18px, calc((100% - 684px) / 2)) 24px}
+  body.hub-on main{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--topo-h));bottom:calc(65.5px + env(safe-area-inset-bottom,0px));left:0;right:0;max-width:none;margin:0;overflow-y:auto;scrollbar-gutter:stable both-edges;padding:18px max(18px, calc((100% - 684px) / 2)) 24px}
   body.hub-on .cl-cab{top:-18px}                  /* encosta no topo da área que rola (cobre o espaço de 18 px de cima) */
 }
 /* Agenda aberta pela barra de baixo: vira uma seção como as outras (barra de baixo visível, sem "Voltar") */
 body.agenda-secao .nav{z-index:35}
 #tela-agenda.como-secao #agenda-voltar{display:none}
-#tela-agenda.como-secao{top:calc(env(safe-area-inset-top,0px) + 96px)}   /* o topo do app (logo) continua visível */
+#tela-agenda.como-secao{top:calc(env(safe-area-inset-top,0px) + var(--topo-h))}   /* o topo do app (logo) continua visível */
 #tela-agenda.como-secao .avcb-topo{background:transparent;border-bottom:0;padding:14px 18px 0;max-width:720px;width:100%;margin:0 auto}
 #tela-agenda.como-secao .avcb-topo strong{font-size:26px;color:var(--tinta)}
 #tela-agenda.como-secao .avcb-corpo{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
@@ -408,7 +408,7 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .hub-linha .qtd{background:var(--erro);color:#fff;border-radius:10px;font-size:12px;font-weight:700;padding:1px 7px}
 .hub-busca{margin-bottom:12px}
 /* Clientes: título e busca grudados logo abaixo do topo (logo) enquanto a lista rola */
-.cl-cab{position:sticky;top:calc(env(safe-area-inset-top,0px) + 96px);z-index:4;background:var(--fundo);margin:-18px -18px 0;padding:18px 18px 2px}
+.cl-cab{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--topo-h));z-index:4;background:var(--fundo);margin:-18px -18px 0;padding:18px 18px 2px}
 .hub-voltar{background:none;border:0;color:var(--marinho);font-size:16px;font-weight:700;padding:6px 0;cursor:pointer;min-height:40px}
 @media (prefers-color-scheme:dark){.hub-voltar,.trab-voltar{color:var(--laranja)}}
 .hub-valor{font-family:var(--titulo-fonte);font-size:26px;font-weight:700;color:var(--marinho)}
@@ -546,7 +546,7 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .an-ampliar{font-size:13px;color:var(--suave);text-align:center;margin:-4px 0 10px}
 .an-foto:not([src]),.an-foto:not([src]) + .an-ampliar{display:none}   /* PDF: a imagem aparece quando a 1ª página fica pronta */
 /* arrastar a foto ou o PDF do AVCB para a tela de Validade AVCB (computador) */
-body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do AVCB";position:absolute;z-index:5;inset:12px;display:grid;place-items:center;border:3px dashed var(--laranja);border-radius:18px;background:rgba(242,244,247,.92);font-family:var(--titulo-fonte);font-size:26px;font-weight:700;color:var(--marinho);pointer-events:none}
+body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do AVCB";position:absolute;z-index:5;inset:12px;display:grid;place-items:center;border:3px dashed var(--laranja);border-radius:18px;background:rgba(237,240,244,.92);font-family:var(--titulo-fonte);font-size:26px;font-weight:700;color:var(--marinho);pointer-events:none}
 @media (prefers-color-scheme:dark){body.soltando #tela-avcb:not([hidden])::before{background:rgba(14,26,41,.92);color:var(--tinta)}}
 .avcb-filtro{margin-bottom:12px}
 .avcb-card .cat{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8;margin-left:6px}
@@ -719,7 +719,7 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .ag-acoes button.perigo{color:var(--erro)}
 @media (prefers-color-scheme:dark){.ag-acoes button{color:var(--tinta)}}
 
-main{padding:calc(env(safe-area-inset-top,0px) + 96px + 18px) 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
+main{padding:calc(env(safe-area-inset-top,0px) + var(--topo-h) + 18px) 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
 h1{font-family:var(--titulo-fonte);font-weight:700;font-size:30px;line-height:1.1;margin:24px 0 10px}
 p{margin:0 0 14px;max-width:60ch}
 
@@ -813,7 +813,7 @@ p{margin:0 0 14px;max-width:60ch}
 .ld-tudo-c small{font-weight:400;font-size:13px;color:var(--suave)}
 @media (prefers-color-scheme:dark){.ld-tudo-c{color:#6FCE97;border-color:#6FCE97}}
 /* barra fixa do laudo: seção atual, quantos itens já têm resposta e atalho para o próximo que falta */
-.ld-prog{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 96px);z-index:4;background:var(--papel);border-bottom:1.5px solid var(--linha);box-shadow:0 4px 10px rgba(0,0,0,.08);padding:6px 18px 7px;cursor:pointer}
+.ld-prog{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + var(--topo-h));z-index:4;background:var(--papel);border-bottom:1.5px solid var(--linha);box-shadow:0 4px 10px rgba(0,0,0,.08);padding:6px 18px 7px;cursor:pointer}
 .ld-prog[hidden]{display:none}
 .ld-prog-in{max-width:684px;margin:0 auto;display:flex;align-items:center;gap:10px}
 .ld-prog-txt{flex:1;min-width:0}
@@ -1065,7 +1065,7 @@ body.versao-on.form-on main{padding-bottom:calc(280px + env(safe-area-inset-bott
   .cam-miniatura{grid-column:1;grid-row:3;justify-self:center}
 }
 /* arrastar arquivos para o formulário (computador): aviso por cima da tela enquanto arrasta */
-body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fixed;z-index:20;inset:12px;display:grid;place-items:center;border:3px dashed var(--laranja);border-radius:18px;background:rgba(242,244,247,.92);font-family:var(--titulo-fonte);font-size:26px;font-weight:700;color:var(--marinho);pointer-events:none}
+body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fixed;z-index:20;inset:12px;display:grid;place-items:center;border:3px dashed var(--laranja);border-radius:18px;background:rgba(237,240,244,.92);font-family:var(--titulo-fonte);font-size:26px;font-weight:700;color:var(--marinho);pointer-events:none}
 @media (prefers-color-scheme:dark){body.soltando #tela-app::before{background:rgba(14,26,41,.92);color:var(--tinta)}}
 
 /* ===== computador (Chrome no PC: tela larga e mouse) =====
@@ -1253,7 +1253,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 .ini-recentes p{flex:none;flex-basis:auto;margin:0 2px 0 0}
 .ini-recentes button{flex:none;max-width:240px}
 /* Início: os avisos gerais (AVCB, extintores) ficam em cartão branco com o número colorido; o fundo vermelho fica para o que é da pessoa e de hoje */
-.hub-card.alerta.crit,.hub-card.alerta.warn,.hub-card.alerta.okv{background:var(--papel);border-color:var(--linha);color:var(--tinta)}
+.hub-card.alerta.crit,.hub-card.alerta.warn,.hub-card.alerta.okv{background:var(--papel);border-color:var(--linha-cartao);color:var(--tinta)}
 .hub-card.alerta.okv b{color:var(--okv-tx)}
 .hub-card.alerta.crit b{color:var(--crit-tx)}
 .hub-card.alerta.warn b{color:var(--warn-tx)}
@@ -1279,6 +1279,62 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 @media (prefers-color-scheme:dark){.ag-cal button[aria-pressed="true"] .n{background:var(--laranja);color:var(--marinho)}.ag-cal button[aria-pressed="true"].hoje .n{box-shadow:0 0 0 2px var(--tinta)}}
 @media (hover:none){.ag-cal button:not([aria-pressed="true"]):active .n{background:rgba(127,127,127,.2)}}
 @media (hover:hover) and (pointer:fine){.ag-cal button:not([aria-pressed="true"]):hover .n{background:rgba(127,127,127,.12)}}
+/* ===== Visual mais moderno (pacote A da 2ª análise da interface, aprovado pelo Gustavo em 10/11/2026) =====
+   A faixa do topo ficou com 60 px no celular (--topo-h, no começo do estilo). Aqui: cartões mais leves, cantos numa
+   escala só, títulos e rótulos mais fortes, aba marcada mais legível, selos iguais, foco suave, lupa nas buscas e
+   a entrada suave das telas. Tabelas tipo planilha e o contorno dos campos (pacote 2) não mudam. */
+:root{--r-m:12px;--r-l:14px;--linha-cartao:#C6CFDB;--sombra-1:0 1px 2px rgba(19,37,59,.08),0 2px 6px rgba(19,37,59,.05)}
+@media (prefers-color-scheme:dark){:root{--linha-cartao:var(--linha);--sombra-1:none}}
+/* cartões: contorno fino (um pouco mais escuro, para não sumir no sol) + sombra suave; os que têm barra colorida à esquerda continuam com ela */
+.hub-card,.hub-tile,.hub-lista,.arq-item{border-width:1px;border-color:var(--linha-cartao);border-radius:var(--r-l);box-shadow:var(--sombra-1)}
+.os-card,.tar-card,.fu-card,.pc-card,.laudo-item,.ficha-contato,.ag-ev,.cliente{border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-top-color:var(--linha-cartao);border-right-color:var(--linha-cartao);border-bottom-color:var(--linha-cartao);border-radius:var(--r-l);box-shadow:var(--sombra-1)}
+.cli-ac{border-width:1px;border-color:var(--linha-cartao);box-shadow:var(--sombra-1)}
+/* controles com o mesmo canto */
+.btn,.campo input,.campo select,.campo textarea,.avcb-busca,.busca,.os-form select,.orc-filtros select,.tar-ctrl select,.tipos button,.sv-mat-add input,.trein-add input,.avcb-voltar{border-radius:var(--r-m)}
+/* rótulos dos campos e nomes dos grupos mais fortes (como na tela de entrada); o cinza fica para o texto de apoio */
+.campo > span,.rotulo{font-size:15px;font-weight:600;color:var(--tinta)}
+.hub-rot{font-family:var(--titulo-fonte);font-size:17px;font-weight:700;color:var(--tinta);margin:20px 2px 8px}
+.fr-cab{margin-top:12px}.fr-cab > span:first-child{font-family:var(--titulo-fonte);font-size:17px;font-weight:700;color:var(--tinta)}
+/* barra de baixo: a aba marcada fica com o ícone e o nome escuros e um traço laranja em cima (o ícone laranja sobre branco sumia no sol) */
+.nav button[aria-current="page"]{font-weight:700}
+@media not all and (min-width:900px) and (hover:hover) and (pointer:fine){
+  .nav button{font-size:13px}
+  .nav button[aria-current="page"] svg{color:inherit}
+  .nav button[aria-current="page"]::before{content:"";position:absolute;top:-5.5px;left:50%;margin-left:-14px;width:28px;height:3px;border-radius:0 0 3px 3px;background:var(--laranja)}
+  .avcb-topo{padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:6px}   /* as telas por cima acompanham o topo mais baixo */
+  #tela-agenda.como-secao .avcb-topo{padding-top:14px;padding-bottom:0}
+}
+/* selos de situação do mesmo tamanho em todas as listas */
+.os-st,.avcb-sit,.fu-sit,.tar-st,.pc-st{font-size:13px;font-weight:700;border-radius:999px}
+.os-st,.avcb-sit,.fu-sit{padding:2px 10px;line-height:1.5}
+.tar-meta{align-items:center}   /* o selo ficou mais alto que o texto ao lado: centra todos na mesma linha */
+.pc-st{flex:none;padding:2px 10px;line-height:1.5;background:var(--linha);color:var(--tinta)}
+.pc-card.warn .pc-st{background:var(--warn-bg)}.pc-card.ok .pc-st{background:var(--okv-bg)}.pc-card.crit .pc-st{background:var(--crit-bg)}
+.ag-dia.hoje::after{font-size:13px;background:var(--warn-bg);color:var(--warn-tx);border-radius:999px;padding:2px 10px}
+/* "voltar" ao lado de um título (formulários e telas por cima): o mesmo botão */
+.trab-voltar{min-height:44px;padding:0 12px;border-radius:var(--r-m);font-size:16px;font-weight:600}
+/* foco igual em todos os campos: borda escura + brilho laranja (vários mostravam o aro escuro do navegador) */
+.campo input:focus,.campo select:focus,.campo textarea:focus,.li-obs:focus,.li-serv input:focus,.avcb-busca:focus,.hub-busca:focus,.tar-ctrl select:focus,.orc-filtros select:focus,.sv-mat-add input:focus,.trein-add input:focus,.os-form select:focus,.tar-novo-com textarea:focus,.tar-add input:focus{outline:none;border-color:var(--marinho);box-shadow:0 0 0 3px rgba(235,157,43,.45)}
+.laudo-item[data-st="NC"] .li-obs:focus{border-color:var(--marinho)}   /* ganha da borda vermelha de "obrigatória" enquanto o cursor está no campo */
+/* lupa nos campos de busca */
+.avcb-busca,.busca{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235B6B80' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:14px center;background-size:20px;padding-left:44px}
+@media (prefers-color-scheme:dark){
+  .campo input:focus,.campo select:focus,.campo textarea:focus,.li-obs:focus,.li-serv input:focus,.avcb-busca:focus,.hub-busca:focus,.tar-ctrl select:focus,.orc-filtros select:focus,.sv-mat-add input:focus,.trein-add input:focus,.os-form select:focus,.tar-novo-com textarea:focus,.tar-add input:focus{border-color:var(--laranja);box-shadow:0 0 0 3px rgba(235,157,43,.7)}
+  .laudo-item[data-st="NC"] .li-obs:focus{border-color:var(--laranja)}
+  .avcb-busca,.hub-busca{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239AAABD' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E")}
+}
+/* entrada suave das telas (antes trocavam em corte seco); sem animação de saída e nada para quem pede menos movimento */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes entra-tela{from{opacity:0;transform:translateY(6px)}}
+  @keyframes entra-leve{from{opacity:0}}
+  main > section.hub:not([hidden]),#tela-ok:not([hidden]),#tela-agenda.como-secao:not([hidden]){animation:entra-tela .14s ease-out}
+  #tela-app:not([hidden]){animation:entra-leve .14s ease-out}   /* só opacidade: o formulário tem partes fixas */
+  .tela-avcb:not([hidden]):not(.como-secao):not(.sem-entrada):not(#tela-assinar),dialog[open]{animation:entra-tela .17s ease-out}
+}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  .hub .hub-lista{box-shadow:none}               /* no computador a lista é só a grade dos cartões */
+  .hub .hub-lista .hub-linha{border:1px solid var(--linha-cartao);border-radius:var(--r-l);box-shadow:var(--sombra-1)}
+}
 </style>
 </head>
 <body>
@@ -1485,7 +1541,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
   <section id="tela-clientes" class="hub" hidden>
     <div class="cl-cab">                              <!-- título e busca ficam fixos no topo ao rolar a lista -->
       <h1 class="hub-tit">Clientes</h1>
-      <input class="busca hub-busca" id="cl-busca" type="search" placeholder="Buscar por nome, contato ou CNPJ" autocomplete="off">
+      <input class="busca hub-busca" id="cl-busca" type="search" placeholder="Buscar nome, contato ou CNPJ" autocomplete="off">
     </div>
     <!-- tabela como planilha, igual às de notas fiscais e validade AVCB (pedido do Gustavo em 07/11/2026) -->
     <div class="recentes" id="cl-recentes" hidden></div>
@@ -1660,7 +1716,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 <div class="tela-avcb" id="tela-its" hidden role="dialog" aria-label="ITs do CBM-BA">
   <div class="avcb-topo"><button class="avcb-voltar" id="its-voltar">‹ Voltar</button><strong>ITs do CBM-BA</strong></div>
   <div class="avcb-corpo">
-    <input class="avcb-busca" id="its-busca" type="search" placeholder="Buscar: número, nome ou palavra (ex.: corrimão)" autocomplete="off">
+    <input class="avcb-busca" id="its-busca" type="search" placeholder="Número, nome ou palavra" aria-label="Buscar: número, nome ou palavra (ex.: corrimão)" autocomplete="off">
     <p class="avcb-nota" id="its-estado" style="margin-top:0"></p>
     <div id="its-lista"></div>
     <button class="btn sec" id="its-guardar" style="margin-top:12px">⬇ Guardar todas no celular (53 MB)</button>
@@ -1711,7 +1767,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
   <div class="avcb-topo"><button class="avcb-voltar" id="orc-voltar">‹ Voltar</button><strong>Orçamentos</strong></div>
   <div class="avcb-corpo">
     <div class="orc-filtros">
-      <input class="avcb-busca" id="orc-busca" type="search" placeholder="Buscar por número, cliente ou tipo" autocomplete="off">
+      <input class="avcb-busca" id="orc-busca" type="search" placeholder="Buscar número, cliente ou tipo" autocomplete="off">
       <select id="orc-periodo" aria-label="Período"><option value="">Todos os períodos</option></select>
       <select id="orc-tipo" aria-label="Tipo de serviço"><option value="">Todos os tipos</option></select>
     </div>
@@ -1743,7 +1799,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
     <div id="nf-lista-tela">
       <button class="btn prim" id="nf-nova" type="button">+ Nova nota fiscal</button>
       <div class="orc-filtros">
-        <input class="avcb-busca" id="nf-busca" type="search" placeholder="Buscar por número, cliente, CNPJ ou valor" autocomplete="off">
+        <input class="avcb-busca" id="nf-busca" type="search" placeholder="Buscar número, cliente ou valor" aria-label="Buscar por número, cliente, CNPJ ou valor" autocomplete="off">
         <select id="nf-periodo" aria-label="Período"><option value="">Todos os períodos</option></select>
         <select id="nf-sit" aria-label="Situação">
           <option value="">Todas as notas</option>
@@ -1790,7 +1846,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
     <div id="fu-lista-tela">
       <div class="tar-ctrl">
         <div class="tar-vistas" id="fu-vistas"><button type="button" data-v="quadro" aria-pressed="true">Quadro</button><button type="button" data-v="lista" aria-pressed="false">Lista</button></div>
-        <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar nome, contato, telefone ou endereço" autocomplete="off">
+        <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar no funil" aria-label="Buscar nome, contato, telefone ou endereço" autocomplete="off">
         <select id="fu-pessoa" aria-label="Responsável"></select>
         <select id="fu-sit" aria-label="Situação do contato"></select>
       </div>
@@ -1808,7 +1864,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
     <div id="tar-lista-tela">
       <div class="tar-ctrl">
         <div class="tar-vistas" id="tar-vistas"><button type="button" data-v="lista" aria-pressed="true">Lista</button><button type="button" data-v="quadro" aria-pressed="false">Quadro</button></div>
-        <input class="avcb-busca" id="tar-busca" type="search" placeholder="Buscar tarefa, cliente ou pessoa" autocomplete="off">
+        <input class="avcb-busca" id="tar-busca" type="search" placeholder="Buscar tarefa" aria-label="Buscar tarefa, cliente ou pessoa" autocomplete="off">
         <select id="tar-pessoa" aria-label="Pessoa"></select>
       </div>
       <div class="chips avcb-filtro" id="tar-filtro"></div>
@@ -1957,7 +2013,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
     </div>
     <!-- tabela como planilha, igual à das notas fiscais (pedido do Gustavo em 07/11/2026) -->
     <div class="orc-filtros">
-      <input class="avcb-busca" id="avcb-busca" type="search" placeholder="Buscar por cliente, endereço ou CNPJ" autocomplete="off">
+      <input class="avcb-busca" id="avcb-busca" type="search" placeholder="Buscar cliente, endereço ou CNPJ" autocomplete="off">
       <label class="orc-sel"><span>Situação</span>
         <select id="avcb-sit">
           <option value="">Todas</option>
@@ -8965,6 +9021,7 @@ function voltarParaAvcb() {
 function reabrirAvcb() {
   if (avcbDe !== secao && TELA_SECAO[avcbDe]) irPara(avcbDe);   // embaixo, a seção de onde a tabela foi aberta
   cliDe = null;
+  $("tela-avcb").classList.add("sem-entrada");      // volta sem a animação de entrada (a seção de baixo acabou de trocar e apareceria de relance)
   $("tela-avcb").hidden = false;
   document.body.style.overflow = "hidden";
   if (history.state?.avcbVolta) history.replaceState({ avcb: true }, ""); else history.pushState({ avcb: true }, "");
@@ -8997,6 +9054,7 @@ function abrirAvcb() {
   avcbAberto = null;
   avcbDe = TELA_SECAO[secao] ? secao : "inicio";   // a seção que fica embaixo (para voltar da página do cliente)
   desenharAvcb();
+  if ($("tela-avcb").hidden) $("tela-avcb").classList.remove("sem-entrada");
   $("tela-avcb").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ avcb: true }, "");           // o "voltar" do Android fecha a tela
@@ -12740,7 +12798,7 @@ function ajustarCabCl() {
 function desenharClientesHub() {
   const q = semAcento($("cl-busca").value.trim()), fa = $("cl-avcb").value, temEq = pode("equip"), temFicha = pode("ficha");
   const fe = temEq ? $("cl-ext").value : "";
-  $("cl-busca").placeholder = temFicha ? "Buscar por nome, contato ou CNPJ" : "Buscar por nome ou CNPJ";
+  $("cl-busca").placeholder = temFicha ? "Buscar nome, contato ou CNPJ" : "Buscar nome ou CNPJ";
   $("cl-ext-rot").hidden = !temEq;
   $("cl-tab").classList.toggle("sem-ext", !temEq);
   $("cl-tab").classList.toggle("sem-cont", !temFicha);
