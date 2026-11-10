@@ -9317,9 +9317,9 @@ function horarioAgenda(t, diaTodo) {
   return new Date(t.timeZone === "UTC" ? s + "Z" : s).getTime();
 }
 
-async function buscarAgenda() {
-  const h = new Date();                            // meses inteiros, para o calendário: do dia 1º do mês passado ao fim do mês que vem
-  const ini = new Date(h.getFullYear(), h.getMonth() - 1, 1), fim = new Date(h.getFullYear(), h.getMonth() + 2, 1);
+async function buscarAgenda(ini, fim) {
+  const h = new Date();                            // sem período: meses inteiros, do dia 1º do mês passado ao fim do mês que vem
+  if (!ini) { ini = new Date(h.getFullYear(), h.getMonth() - 1, 1); fim = new Date(h.getFullYear(), h.getMonth() + 2, 1); }
   const tk = await tokenAgenda(false);
   let url = `${GRAPH}/me/calendarView?startDateTime=${ini.toISOString()}&endDateTime=${fim.toISOString()}`
     + "&$select=id,type,isOrganizer,subject,start,end,isAllDay,location,bodyPreview,organizer,attendees,webLink,isCancelled,onlineMeeting,isOnlineMeeting,isReminderOn,reminderMinutesBeforeStart&$orderby=start/dateTime&$top=200";
@@ -9353,6 +9353,16 @@ const nomeDia = k => {
 // Agenda em calendário (pedido do Gustavo em 10/11/2026, a partir do calendário do celular dele): o mês em cima, com uma
 // marca nos dias que têm compromisso; embaixo, os compromissos do dia tocado. Dá para ir ao mês passado e ao mês que vem
 // (é o período que o app busca no Outlook). agSel: dia escolhido (AAAA-MM-DD); agMes: mês à vista (0 = este, -1, +1).
+const AG_MESES = 12;                               // até onde as setas vão: um ano para trás e um ano para a frente (pedido do Gustavo em 10/11/2026)
+const agExtra = new Map();                         // "AAAA-MM" → compromissos de um mês fora dos três de sempre (buscado ao chegar nele; só na memória)
+async function buscarMesAgenda(ano, mes) {
+  const k = `${ano}-${pad(mes + 1)}`;
+  if (agExtra.has(k) || buscarMesAgenda.em === k || !navigator.onLine) return;
+  buscarMesAgenda.em = k; buscarMesAgenda.erro = "";
+  try { agExtra.set(k, await buscarAgenda(new Date(ano, mes, 1), new Date(ano, mes + 1, 1))); }
+  catch (e) { console.error(e); buscarMesAgenda.erro = k; }
+  finally { buscarMesAgenda.em = ""; if (!$("tela-agenda").hidden && !agForm) desenharAgenda(); }
+}
 let agSel = null, agMes = 0, agEventos = [], agBase = null;   // agBase: dia 1º do mês em que a Agenda foi aberta (o "mês 0")
 function desenharAgenda(eventos) {
   if (eventos) agEventos = eventos;
@@ -9364,8 +9374,12 @@ function desenharAgenda(eventos) {
   const porDia = new Map();
   // um compromisso de vários dias entra em todos os dias que cobre, dentro dos três meses mostrados
   // (fim - 1: o fim do "dia todo" é o dia seguinte, e quem termina à meia-noite não entra no outro dia)
-  const lim0 = new Date(agBase.getFullYear(), agBase.getMonth() - 1, 1).getTime(), lim1 = new Date(agBase.getFullYear(), agBase.getMonth() + 2, 1).getTime();
-  for (const e of agEventos.slice().sort((a, b) => a.ini - b.ini)) {
+  // o mês à vista: dentro dos três meses de sempre vem de agEventos; mais longe, é buscado na hora (agExtra)
+  const mv = new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1), chaveMes = `${mv.getFullYear()}-${pad(mv.getMonth() + 1)}`;
+  const longe = agMes < -1 || agMes > 1, doMes = longe ? agExtra.get(chaveMes) : agEventos;
+  const lim0 = mv.getTime(), lim1 = new Date(mv.getFullYear(), mv.getMonth() + 1, 1).getTime();
+  for (const e of (doMes || []).slice().sort((a, b) => a.ini - b.ini)) {
+    if (Math.max(e.ini, e.fim - 1) < lim0 || e.ini >= lim1) continue;   // não toca o mês à vista
     const ult = chaveDia(Math.max(e.ini, e.fim - 1));
     const d = new Date(Math.max(e.ini, lim0)); d.setHours(0, 0, 0, 0);
     for (; d.getTime() < lim1; d.setDate(d.getDate() + 1)) {
@@ -9378,7 +9392,7 @@ function desenharAgenda(eventos) {
   const m1 = new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1), ano = m1.getFullYear(), mes = m1.getMonth();
   // cabeçalho: ‹ mês ›
   const cab = el("div", "ag-mes-cab");
-  const seta = (txt, rot, d) => { const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-label", rot); b.disabled = agMes + d < -1 || agMes + d > 1; b.onclick = () => { agMes += d; const p = chaveDia(new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1)); agSel = p.slice(0, 7) === hoje.slice(0, 7) ? hoje : p; desenharAgenda(); }; return b; };
+  const seta = (txt, rot, d) => { const b = el("button", "", txt); b.type = "button"; b.setAttribute("aria-label", rot); b.disabled = agMes + d < -AG_MESES || agMes + d > AG_MESES; b.onclick = () => { agMes += d; buscarMesAgenda.erro = ""; const p = chaveDia(new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1)); agSel = p.slice(0, 7) === hoje.slice(0, 7) ? hoje : p; desenharAgenda(); }; return b; };
   cab.append(seta("‹", "Mês anterior", -1), el("strong", "", `${MESES[mes][0].toUpperCase() + MESES[mes].slice(1)} de ${ano}`), seta("›", "Próximo mês", 1));
   lista.appendChild(cab);
   // grade do mês (a semana começa no domingo)
@@ -9399,6 +9413,10 @@ function desenharAgenda(eventos) {
     cal.appendChild(b);
   }
   lista.appendChild(cal);
+  if (longe && !doMes) {                            // mês ainda não buscado: avisa e busca (ao chegar, a tela é redesenhada)
+    lista.appendChild(el("p", "avcb-nota", !navigator.onLine ? "Sem internet: os compromissos deste mês aparecem quando a conexão voltar." : buscarMesAgenda.erro === chaveMes ? "Não foi possível carregar este mês agora. Toque na seta de novo para tentar." : "Carregando os compromissos deste mês…"));
+    if (buscarMesAgenda.erro !== chaveMes) buscarMesAgenda(mv.getFullYear(), mv.getMonth());
+  }
   // compromissos do dia escolhido
   const grupo = el("section", "ag-dia-sel");
   const h = el("h3", "ag-dia" + (agSel === hoje ? " hoje" : ""), nomeDia(agSel));
@@ -9411,7 +9429,7 @@ function desenharAgenda(eventos) {
 // mostra um dia no calendário (depois de criar ou mudar um compromisso); fora dos três meses buscados, fica onde está
 function irParaDiaAgenda(k) {
   const [a, m] = k.split("-").map(Number), base = agBase || new Date(), d = (a - base.getFullYear()) * 12 + (m - 1 - base.getMonth());
-  if (d < -1 || d > 1) return;
+  if (d < -AG_MESES || d > AG_MESES) return;
   agMes = d; agSel = k; desenharAgenda();
 }
 
@@ -9483,6 +9501,7 @@ async function abrirAgenda(comoSecao) {
   await carregarAgenda();
 }
 async function carregarAgenda() {
+  agExtra.clear();                                 // meses distantes: buscados de novo quando a pessoa voltar a eles
   const guardada = lerLS(chaveAgenda(), null);
   const estado = $("agenda-estado");
   if (guardada) desenharAgenda(guardada.eventos);
@@ -9495,7 +9514,7 @@ async function carregarAgenda() {
     const eventos = await buscarAgenda();
     gravarLS(chaveAgenda(), { quando: Date.now(), eventos });
     desenharAgenda(eventos);
-    estado.textContent = `Sua agenda do Outlook, do mês passado ao mês que vem. Atualizada às ${horaMin(Date.now())}.`;
+    estado.textContent = `Sua agenda do Outlook. Atualizada às ${horaMin(Date.now())}.`;
   } catch (e) {
     console.error(e);
     const semPermissao = e instanceof msal.InteractionRequiredAuthError || e.status === 401 || e.status === 403 || /consent|AADSTS65001/i.test(e.message);
