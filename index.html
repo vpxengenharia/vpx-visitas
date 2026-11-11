@@ -7875,7 +7875,7 @@ function pintarFaixaOS() {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["comprar", "Realizar compras"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
   ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Funil comercial"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
@@ -7888,7 +7888,7 @@ let perm = lerLS("vpx_perm", null);                // última cópia do arquivo 
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
 // (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
-const NOVAS_NO_PADRAO = ["serv", "equip", "os", "ficha", "tarefas"];   // "osCriar", "pagar", "orc" (orçamentos, com preços), "nf" (notas fiscais) e "funil" (valores das propostas) não: só quem o Gustavo liberar
+const NOVAS_NO_PADRAO = ["serv", "equip", "os", "ficha", "tarefas"];   // "osCriar", "pagar", "comprar", "orc" (orçamentos, com preços), "nf" (notas fiscais) e "funil" (valores das propostas) não: só quem o Gustavo liberar
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
 function funcoesDoUsuario() {
   // convidado: nada sem a liberação (sem acesso à pasta de configuração, ou recusado/retirado); nunca a Agenda (não tem Outlook da VPX)
@@ -8829,11 +8829,16 @@ const tipoDe = p => p.tipo || "compra";                         // pedidos antig
 // quem faz os pagamentos (ex.: Raquel): vê os pedidos de pagamento de todos e marca os aprovados como pagos.
 // Só com a função marcada na administração (sem o arquivo de permissões não vale, para não mostrar a todos)
 const ehPagador = () => !ehAdmin() && !!perm && pode("pagar");
-const podeTipo = t => ehAdmin() || pode(TIPOS_PED[t].perm) || (t === "pag" && ehPagador());
-// pedidos que esperam esta pessoa: o administrador aprova; quem paga, paga os aprovados
+// quem faz as compras (pedido do Gustavo em 11/11/2026, para a Raquel): vê os pedidos de compra de todos, marca os aprovados como comprados e os comprados como entregues; não aprova
+const ehComprador = () => !ehAdmin() && !!perm && pode("comprar");
+const resolveTipo = t => t === "pag" ? ehPagador() : ehComprador();   // esta pessoa resolve (paga ou compra) os pedidos deste tipo, de todos
+const podeTipo = t => ehAdmin() || pode(TIPOS_PED[t].perm) || resolveTipo(t);
+// pedidos que esperam esta pessoa: o administrador aprova; quem paga ou compra resolve os aprovados
 const esperandoMim = tp => Object.values(pedidos).filter(p => (!tp || tipoDe(p) === tp) &&
-  (ehAdmin() ? p.status === "aguardando" : ehPagador() && tipoDe(p) === "pag" && p.status === "aprovado")).length;
-const txtEsperando = n => ehAdmin() ? `${n} aguardando sua aprovação` : `${n} aprovado${n > 1 ? "s" : ""} para pagar`;
+  (ehAdmin() ? p.status === "aguardando" : p.status === "aprovado" && resolveTipo(tipoDe(p)))).length;
+// tp = tipo dos pedidos contados; sem ele (os dois juntos), o verbo sai do que está de fato esperando a pessoa
+const verboEsperando = tp => { const nPag = tp ? 0 : esperandoMim("pag"), pg = tp ? tp === "pag" : nPag > 0, cp = tp ? tp !== "pag" : esperandoMim() > nPag; return pg && cp ? "pagar ou comprar" : cp ? "comprar" : "pagar"; };
+const txtEsperando = (n, tp) => ehAdmin() ? `${n} aguardando sua aprovação` : `${n} aprovado${n > 1 ? "s" : ""} para ${verboEsperando(tp)}`;
 let pedidos = lerLS("vpx_pc", {});                 // id → { ...json, etag, itemId, pdfWeb, anexosWeb }
 let pcTipo = "compra", pcFiltro = "abertos", pcNovo = null, pcAberto = null;
 
@@ -8897,7 +8902,7 @@ async function sincronizarPedidos() {
   atualizarContadores();
   if (!$("tela-pc").hidden) desenharPedidos();
 }
-const meusPedidos = () => Object.values(pedidos).filter(p => ehAdmin() || p.solicitante?.email === emailDe() || (tipoDe(p) === "pag" && ehPagador()));
+const meusPedidos = () => Object.values(pedidos).filter(p => ehAdmin() || p.solicitante?.email === emailDe() || resolveTipo(tipoDe(p)));
 function atualizarContadores() {
   const n = esperandoMim();
   $("menu-qtd").hidden = !n; $("menu-qtd").textContent = n;
@@ -9004,8 +9009,8 @@ function desenharDetalhePC(p) {
   const adm = ehAdmin(), meu = p.solicitante?.email === emailDe();
   if (!p.pendente) {
     if (adm && p.status === "aguardando") { botao("✓ Aprovar", "prim", () => mudarStatusPC(p, "aprovado")); botao("Recusar", "sec", () => mudarStatusPC(p, "recusado", true)); }
-    if ((adm || (pag && ehPagador())) && p.status === "aprovado") pag ? botao("Marcar como pago (anexar comprovante)", "prim", () => marcarPago(p)) : botao("Marcar como comprado", "prim", () => marcarComprado(p));
-    if (!pag && (adm || meu) && p.status === "comprado") botao("Marcar como entregue", "prim", () => mudarStatusPC(p, "entregue"));
+    if ((adm || resolveTipo(pag ? "pag" : "compra")) && p.status === "aprovado") pag ? botao("Marcar como pago (anexar comprovante)", "prim", () => marcarPago(p)) : botao("Marcar como comprado", "prim", () => marcarComprado(p));
+    if (!pag && (adm || meu || ehComprador()) && p.status === "comprado") botao("Marcar como entregue", "prim", () => mudarStatusPC(p, "entregue"));
     if (meu && p.status === "aguardando") botao("Cancelar pedido", "sec", () => mudarStatusPC(p, "cancelado", true));
   }
   if (p.pdfWeb) { const a = el("a", "btn sec", "Abrir PDF do pedido"); a.href = p.pdfWeb; a.target = "_blank"; a.rel = "noopener"; ac.appendChild(a); }
@@ -13519,7 +13524,7 @@ function desenharInicio() {
       const m = tarefas().filter(x => minhaTar(x) && abertaTar(x)), atr = m.filter(atrasadaTar).length, hj = m.filter(hojeTar).length;
       kpi("tarefas", "Tarefas com você", m.length, atr ? `${atr} atrasada${s(atr)}` : hj ? `${hj} para hoje` : "", atr ? "crit" : hj ? "warn" : m.length ? "" : "zero", () => abrirTar({ filtro: "minhas" }));
     }
-    if (ehAdmin() || ehPagador()) { const n = esperandoMim(); kpi("dinheiro", "Aguardando você", n, n ? (ehAdmin() ? `pedido${s(n)} para aprovar` : `pagamento${s(n)} para fazer`) : "", n ? "warn" : "zero", () => irPara("fin", true)); }
+    if (ehAdmin() || ehPagador() || ehComprador()) { const n = esperandoMim(); kpi("dinheiro", "Aguardando você", n, n ? (ehAdmin() ? `pedido${s(n)} para aprovar` : `pedido${s(n)} para ${verboEsperando()}`) : "", n ? "warn" : "zero", () => irPara("fin", true)); }
     if (pode("avcb")) {
       const sts = listaAvcb().filter(v => v.categoria === "cliente").map(situacaoAvcb), venc = sts.filter(x => x.cls === "crit").length, logo = sts.filter(x => x.cls === "warn").length;
       kpi("escudo", "AVCB vencidos", venc, logo ? `${logo} vence${logo > 1 ? "m" : ""} em até 90 dias` : "", venc ? "crit" : logo ? "warn" : "zero", abrirAvcb);
@@ -13966,7 +13971,7 @@ function desenharFin() {
       const aguard = esperandoMim(tp);
       const meusAbertos = meusPedidos().filter(p => tipoDe(p) === tp && TIPOS_PED[tp].abertos.includes(p.status)).length;
       l.appendChild(linha(tp === "pag" ? "cartao" : "carrinho", tp === "pag" ? "Pedidos de pagamento" : "Pedidos de compra",
-        aguard ? txtEsperando(aguard) : meusAbertos ? `${meusAbertos} em aberto` : "Fazer e acompanhar pedidos",
+        aguard ? txtEsperando(aguard, tp) : meusAbertos ? `${meusAbertos} em aberto` : "Fazer e acompanhar pedidos",
         () => { pcTipo = tp; abrirPedidos(); }, aguard));
     });
     t.appendChild(l);
@@ -13980,7 +13985,7 @@ function desenharMais() {
   if (podeFin()) {                                 // Financeiro saiu da barra de baixo e fica aqui, com o contador de pedidos
     const aguard = esperandoMim();
     const f = el("div", "hub-lista");
-    f.appendChild(linha("dinheiro", "Financeiro", aguard ? (ehAdmin() ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : `${aguard} pagamento${aguard > 1 ? "s" : ""} aprovado${aguard > 1 ? "s" : ""} para pagar`) : "Comprovantes e pedidos", () => irPara("fin"), aguard));
+    f.appendChild(linha("dinheiro", "Financeiro", aguard ? (ehAdmin() ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : `${aguard} pedido${aguard > 1 ? "s" : ""} aprovado${aguard > 1 ? "s" : ""} para ${verboEsperando()}`) : "Comprovantes e pedidos", () => irPara("fin"), aguard));
     t.appendChild(f);
   }
   // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também em Registros e no Início)
