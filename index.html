@@ -1328,7 +1328,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
   @keyframes entra-tela{from{opacity:0;transform:translateY(6px)}}
   @keyframes entra-leve{from{opacity:0}}
   main > section.hub:not([hidden]),#tela-ok:not([hidden]),#tela-agenda.como-secao:not([hidden]){animation:entra-tela .14s ease-out}
-  #tela-app:not([hidden]){animation:entra-leve .14s ease-out}   /* só opacidade: o formulário tem partes fixas */
+  #tela-app:not([hidden]) > :not(.trab-topo){animation:entra-leve .14s ease-out}   /* só opacidade: o formulário tem partes fixas */
   .tela-avcb:not([hidden]):not(.como-secao):not(.sem-entrada):not(#tela-assinar),dialog[open]{animation:entra-tela .17s ease-out}
 }
 @media (min-width:900px) and (hover:hover) and (pointer:fine){
@@ -1433,6 +1433,58 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 @container (min-width:860px){
   .orc-filtros.cl-filtros{display:flex;flex-wrap:wrap}
   .cl-filtros #cl-pf{width:250px}
+}
+/* ===== Itens aprovados pelo Gustavo em 11/11/2026 (mudam decisões anteriores dele; ver CLAUDE.md) ===== */
+/* (2) opção marcada em azul; o laranja cheio fica para o botão principal. No escuro, marcado = claro invertido */
+.chips button[aria-pressed="true"],.tipos button[aria-pressed="true"]{background:var(--marinho);border-color:var(--marinho);color:#fff}
+.cliente,.ficha-contato{border-left-width:1px;border-left-color:var(--linha-cartao)}   /* sem a barra laranja de enfeite (a do "Continuar de onde parou" fica) */
+@media (prefers-color-scheme:dark){
+  .chips button[aria-pressed="true"],.tipos button[aria-pressed="true"],.tar-vistas button[aria-pressed="true"],.laudo-tipos button[aria-pressed="true"]{background:var(--tinta);border-color:var(--tinta);color:var(--fundo)}
+  .ag-cal button[aria-pressed="true"] .n{background:var(--tinta);color:var(--fundo);box-shadow:none}
+  .ag-cal button[aria-pressed="true"].hoje .n{background:var(--laranja);color:var(--marinho);box-shadow:none}
+}
+/* (4) assinatura em tela cheia: no formulário fica uma caixa "Toque para assinar" (a página volta a rolar normalmente) */
+.assin-caixa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:96px;padding:8px;border-radius:var(--r-m);border:1.5px dashed var(--borda-campo);background:var(--papel);color:var(--tinta);font:inherit;font-size:16px;font-weight:600;cursor:pointer}
+.assin-caixa.feita{border-style:solid;background:#fff}
+.assin-caixa img{display:block;max-width:100%;max-height:110px}
+.assin-caixa:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+.assin-acoes{display:flex;gap:4px 20px;flex-wrap:wrap}
+@media (hover:none){.assin-caixa:active{filter:brightness(.92)}}
+@media not all and (min-width:900px) and (hover:hover) and (pointer:fine){
+  /* (1) formulários no celular: o "voltar" e o título ficam dentro da faixa do topo, no lugar da logo (sobra mais tela para o formulário) */
+  body.form-on .topo .marca{display:none}
+  body.form-on .trab-topo{position:fixed;z-index:6;left:0;top:env(safe-area-inset-top,0px);height:56px;max-width:calc(100% - 136px);gap:6px;margin:0;padding:0 0 0 12px}
+  body.form-on .trab-voltar{max-width:108px;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}   /* com o aviso da fila à vista quem encurta é o "voltar", não o título */
+  body.form-on:has(#topo-fila[hidden]) .trab-topo{max-width:calc(100% - 12px);gap:10px}   /* sem o aviso da fila à direita, o título usa a largura toda */
+  body.form-on:has(#topo-fila[hidden]) .trab-voltar{max-width:none;padding:0 12px}
+  body.form-on .trab-topo strong{font-size:20px}
+  /* (3) listas que abrem por cima (Tarefas, Funil, OS, AVCB, Orçamentos, Notas, Extintores, ITs): a barra de baixo continua à vista */
+  body.hub-on .tela-avcb.com-nav{bottom:calc(65px + env(safe-area-inset-bottom,0px))}   /* 65 e não 65.5: a borda de 1,5 px da barra é arredondada para baixo no aparelho */
+}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  /* (5) computador: sem a faixa do topo; a logo fica numa caixa no alto do menu lateral e o menu fica mais baixo */
+  body.logado{--topo-pc:0px}
+  body.logado .topo{right:auto;width:var(--lateral);height:64px;padding:0 20px;border-right:1.5px solid var(--linha)}
+  body.logado .marca img{height:38px}
+  body.logado .topo-dir{right:12px}
+  body.logado .nav{top:64px;gap:2px;padding-top:12px}
+  body.logado .nav button{min-height:42px;font-size:15.5px}
+  body.logado .nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--laranja)}
+  body.logado .nav [data-s="fin"]{margin-top:9px}
+  body.logado .nav [data-s="fin"]::before{content:"";position:absolute;left:2px;right:2px;top:-5px;height:1px;background:var(--linha)}   /* fio antes de Financeiro, ITs e Administração */
+  body.logado .nav-conta button{min-height:40px}
+  /* (6) computador: Início como painel do escritório, com os números do dia */
+  .ini-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:0 0 18px}
+  .hub-card.kpi{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;margin:0;padding:14px 16px;min-height:104px}
+  .hub-card.kpi,.hub-card.kpi.crit,.hub-card.kpi.warn{background:var(--papel);border-color:var(--linha-cartao);color:var(--tinta)}
+  .hub-card.kpi b{font-family:var(--titulo-fonte);font-size:34px;line-height:1.15;font-variant-numeric:tabular-nums}
+  .hub-card.kpi.crit b{color:var(--crit-tx)}.hub-card.kpi.warn b{color:var(--warn-tx)}.hub-card.kpi.zero b{color:var(--suave)}
+  .hub-card.kpi .kpi-det{min-height:1.35em}
+  .ini-vazio{margin:0 2px;font-size:15px;color:var(--suave)}
+  /* nome, número e detalhe na mesma altura em todos os quadros da fileira, mesmo quando um nome quebra em duas linhas (6 quadros) */
+  @supports (grid-template-rows:subgrid){
+    .hub-card.kpi{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;grid-row:span 3;row-gap:2px}
+  }
 }
 </style>
 </head>
@@ -1774,12 +1826,12 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   Gire o celular para a vertical
 </div>
 
-<div class="tela-avcb" id="tela-assinar" hidden role="dialog" aria-label="Assinatura do participante">
+<div class="tela-avcb" id="tela-assinar" hidden role="dialog" aria-label="Assinatura">
   <div class="avcb-topo"><button class="avcb-voltar" id="as-cancelar">‹ Cancelar</button><strong>Assinatura</strong></div>
   <div class="avcb-corpo">
     <p class="as-nome" id="as-nome"></p>
     <p class="laudo-dica" id="as-cpf"></p>
-    <p class="laudo-dica">Assine com o dedo no quadro abaixo.</p>
+    <p class="laudo-dica">Assine com o dedo (ou o mouse) no quadro abaixo.</p>
     <canvas class="assin as-pad" id="as-pad"></canvas>
     <button class="laudo-link" id="as-limpar">Limpar</button>
     <button class="btn prim" id="as-ok" disabled>Confirmar assinatura</button>
@@ -1815,7 +1867,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   </div>
 </div>
 
-<div class="tela-avcb" id="tela-its" hidden role="dialog" aria-label="ITs do CBM-BA">
+<div class="tela-avcb com-nav" id="tela-its" hidden role="dialog" aria-label="ITs do CBM-BA">
   <div class="avcb-topo"><button class="avcb-voltar" id="its-voltar">‹ Voltar</button><strong>ITs do CBM-BA</strong></div>
   <div class="avcb-corpo">
     <input class="avcb-busca" id="its-busca" type="search" placeholder="Número, nome ou palavra" aria-label="Buscar: número, nome ou palavra (ex.: corrimão)" autocomplete="off">
@@ -1850,7 +1902,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <div class="avcb-corpo" id="os-corpo"></div>
 </div>
 
-<div class="tela-avcb" id="tela-eqv" hidden role="dialog" aria-label="Vencimentos de extintores e mangueiras">
+<div class="tela-avcb com-nav" id="tela-eqv" hidden role="dialog" aria-label="Vencimentos de extintores e mangueiras">
   <div class="avcb-topo"><button class="avcb-voltar" id="eqv-voltar">‹ Voltar</button><strong>Extintores e mangueiras</strong></div>
   <div class="avcb-corpo">
     <div class="chips avcb-filtro" id="eqv-filtro" style="margin-top:4px">
@@ -1865,7 +1917,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 </div>
 
 <!-- orçamentos de todos os clientes numa tabela, como planilha: número, cliente, valor e data (pedidos do Gustavo em 05/11/2026) -->
-<div class="tela-avcb" id="tela-orc" hidden role="dialog" aria-label="Orçamentos">
+<div class="tela-avcb com-nav" id="tela-orc" hidden role="dialog" aria-label="Orçamentos">
   <div class="avcb-topo"><button class="avcb-voltar" id="orc-voltar">‹ Voltar</button><strong>Orçamentos</strong></div>
   <div class="avcb-corpo">
     <div class="orc-filtros">
@@ -2091,7 +2143,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   </div>
 </div>
 
-<div class="tela-avcb" id="tela-avcb" hidden role="dialog" aria-label="Validade AVCB/CLCB">
+<div class="tela-avcb com-nav" id="tela-avcb" hidden role="dialog" aria-label="Validade AVCB/CLCB">
   <div class="avcb-topo">
     <button class="avcb-voltar" id="avcb-voltar" aria-label="Voltar">‹ Voltar</button>
     <strong>Validade AVCB/CLCB</strong>
@@ -3750,7 +3802,7 @@ function pintarProgresso() {
   const lau = (modo === "laudo" || modo === "insp") && !$("tela-app").hidden && !raiz.hidden && laudo.tipo && primeira;
   const blocos = lau ? blocosLaudo() : [];
   const total = blocos.reduce((n, b) => n + b.s.itens.length, 0);
-  const topo = document.querySelector(".topo").getBoundingClientRect().bottom;
+  const topo = computador.matches ? 0 : document.querySelector(".topo").getBoundingClientRect().bottom;   // no computador não há mais faixa no topo (a logo fica no menu lateral)
   const dentro = !!(total && primeira.getBoundingClientRect().top < topo + 60);
   bar.hidden = !dentro;
   if (!dentro) return;
@@ -3768,7 +3820,7 @@ function pintarProgresso() {
 }
 // toque na barra: vai ao próximo item sem resposta (abaixo de onde a pessoa está; senão o primeiro); sem pendentes, ao que falta para gerar
 function irProximoLaudo() {
-  const topo = document.querySelector(".topo").getBoundingClientRect().bottom + 50;
+  const topo = (computador.matches ? 0 : document.querySelector(".topo").getBoundingClientRect().bottom) + 50;
   const pend = blocosLaudo().flatMap(b => b.s.itens.map(([id]) => chaveItem(b.uid, id))).filter(k => !laudo.r[k]?.st).map(k => $("li-" + k)).filter(Boolean);
   let alvo = pend.find(w => w.getBoundingClientRect().top > topo + 20) || pend[0];
   if (!alvo) {
@@ -3898,33 +3950,7 @@ function pintarItem(w, k) {
 
 // assinatura do colaborador (com o dedo), guardada como imagem no rascunho
 function padAssinatura() {
-  const w = el("div", "campo"); w.id = "ld-assin";
-  w.appendChild(el("span", "", `Assinatura de quem fez a vistoria (${nomeColaborador()}) *`));
-  const cv = document.createElement("canvas"); cv.className = "assin";
-  const limpar = el("button", "laudo-link", "Limpar assinatura"); limpar.type = "button";
-  w.append(cv, limpar);
-  const preparar = () => {
-    const r = cv.getBoundingClientRect(); if (!r.width) return;
-    const dpr = window.devicePixelRatio || 1;
-    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
-    const g = cv.getContext("2d"); g.scale(dpr, dpr); g.lineWidth = 2.4; g.lineCap = g.lineJoin = "round"; g.strokeStyle = "#13253B";
-    if (laudo.assin) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0, r.width, r.height); im.src = laudo.assin; }
-  };
-  requestAnimationFrame(preparar);
-  let ult = null, traco = 0, xMin = Infinity, xMax = -Infinity;   // só vale como assinatura um traço de verdade: 120 px riscados e 40 px de largura
-  const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-  let tSome = 0;
-  const zerar = () => { clearTimeout(tSome); cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); traco = 0; xMin = Infinity; xMax = -Infinity; };
-  if (laudo.assin) traco = 1e6;
-  cv.onpointerdown = e => { if (enviando) return; clearTimeout(tSome); if (!cv.width) preparar(); cv.setPointerCapture(e.pointerId); ult = pos(e); };
-  cv.onpointermove = e => {
-    if (!ult) return;
-    const g = cv.getContext("2d"), p = pos(e);
-    g.beginPath(); g.moveTo(...ult); g.lineTo(...p); g.stroke(); traco += Math.hypot(p[0] - ult[0], p[1] - ult[1]); xMin = Math.min(xMin, ult[0], p[0]); xMax = Math.max(xMax, ult[0], p[0]); ult = p;
-  };
-  cv.onpointerup = cv.onpointercancel = () => { if (!ult) return; ult = null; if (traco < 120 || (traco < 1e6 && xMax - xMin < 40)) { tSome = setTimeout(zerar, 2500); return; } laudo.assin = cv.toDataURL("image/png"); mudouLaudo(); };   // não vale: se a pessoa não continuar, some do quadro
-  limpar.onclick = () => { laudo.assin = ""; zerar(); mudouLaudo(); };
-  return w;
+  return caixaAssinatura({ rotulo: `Assinatura de quem fez a vistoria (${nomeColaborador()}) *`, id: "ld-assin", nome: nomeColaborador(), valor: laudo.assin, aoMudar: url => { laudo.assin = url; mudouLaudo(); } });
 }
 
 function mudouLaudo() { marcarDiaLaudo(); gravarLaudo(); atualizarBotao(); }
@@ -5989,14 +6015,7 @@ function montarTrein() {
 
   // instrutor
   raiz.appendChild(el("h2", "secao", "Instrutor"));
-  const w = el("div", "campo"); w.id = "tr-assin";
-  w.appendChild(el("span", "", `Assinatura do instrutor (${nomeColaborador()}) *`));
-  const cv = document.createElement("canvas"); cv.className = "assin";
-  const limpar = el("button", "laudo-link", "Limpar assinatura"); limpar.type = "button";
-  const zerar = ligarPad(cv, trein.assin, url => { trein.assin = url; mudouTrein(); });
-  limpar.onclick = zerar;
-  w.append(cv, limpar);
-  raiz.appendChild(w);
+  raiz.appendChild(caixaAssinatura({ rotulo: `Assinatura do instrutor (${nomeColaborador()}) *`, id: "tr-assin", nome: nomeColaborador(), valor: trein.assin, aoMudar: url => { trein.assin = url; mudouTrein(); } }));
   const dicaFotos = el("p", "laudo-dica"); dicaFotos.append("Fotos da parte prática (opcional): use Câmera ou ", el("span", "gal-nome", computador.matches ? "Escolher arquivos" : "Galeria"), " embaixo. Elas entram no PDF e também ficam na pasta."); raiz.appendChild(dicaFotos);
   const desc = el("button", "laudo-link perigo", "Descartar este treinamento"); desc.type = "button";
   desc.onclick = async () => { if (await confirmarApagar("Descartar este treinamento?", "Tudo o que foi preenchido será apagado.", "Apagar o treinamento", "Manter o treinamento")) { limparTrein(); atualizarBotao(); window.scrollTo(0, 0); } };
@@ -6006,17 +6025,39 @@ function mudouTrein() { gravarTrein(); atualizarBotao(); }
 
 // tela cheia para o participante assinar (o celular passa de mão em mão)
 let assinando = null;
-function abrirAssinar(i) {
-  const p = trein.part[i];
-  assinando = { i, url: p.assin };
-  $("as-nome").textContent = p.nome;
-  $("as-cpf").textContent = "CPF " + p.cpf;
+// assinando: { i } = participante da brigada (posição na lista) ou { aoConfirmar } = assinatura de um formulário
+function abrirAssinatura({ nome, sub = "", atual = "", i, aoConfirmar }) {
+  if (!$("tela-assinar").hidden) return;           // já aberta (no computador, Enter/Espaço com o foco no botão que ficou atrás): não zera o quadro nem guarda outro passo no histórico
+  assinando = { i, url: atual, aoConfirmar };
+  $("as-nome").textContent = nome;
+  $("as-cpf").textContent = sub; $("as-cpf").hidden = !sub;
   $("tela-assinar").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ assinar: true }, "");
   const cv = $("as-pad");
-  assinando.zerar = ligarPad(cv, p.assin, url => { assinando.url = url; $("as-ok").disabled = !url; });
-  $("as-ok").disabled = !p.assin;
+  assinando.zerar = ligarPad(cv, atual, url => { assinando.url = url; $("as-ok").disabled = !url; });
+  $("as-ok").disabled = !atual;
+}
+function abrirAssinar(i) { const p = trein.part[i]; abrirAssinatura({ nome: p.nome, sub: "CPF " + p.cpf, atual: p.assin, i }); }
+// caixa "Toque para assinar" dos formulários (laudo, inspeção, brigada, serviço): abre a tela cheia de assinatura (aprovado pelo Gustavo em
+// 11/11/2026; antes havia um quadro dentro do formulário, que prendia a rolagem da página). Assinado: mostra a assinatura; tocar refaz.
+function caixaAssinatura({ rotulo, id, nome, valor, aoMudar }) {
+  const w = el("div", "campo"); if (id) w.id = id;
+  w.appendChild(el("span", "", rotulo));
+  const trocarPor = url => { aoMudar(url); const alvo = w.isConnected ? w : id ? $(id) : null; if (alvo) alvo.replaceWith(caixaAssinatura({ rotulo, id, nome, valor: url, aoMudar })); };   // formulário refeito com a tela de assinar aberta ("Desfazer" do aviso): troca a caixa nova, achada pelo id
+  const abrir = () => { if (enviando) return; abrirAssinatura({ nome: typeof nome === "function" ? nome() : nome, atual: valor, aoConfirmar: trocarPor }); };   // nome pode ser função: lido na hora de abrir (o nome do cliente é digitado no próprio formulário)
+  const b = el("button", "assin-caixa" + (valor ? " feita" : "")); b.type = "button";
+  if (valor) { const im = document.createElement("img"); im.src = valor; im.alt = "Assinatura feita. Toque para refazer."; b.appendChild(im); }
+  else b.append(ic("lapis", "in"), "Toque para assinar");
+  b.onclick = abrir;
+  w.appendChild(b);
+  if (valor) {
+    const ac = el("div", "assin-acoes");
+    const r = el("button", "laudo-link", "Refazer a assinatura"); r.type = "button"; r.onclick = abrir;
+    const x = el("button", "laudo-link", "Apagar a assinatura"); x.type = "button"; x.onclick = () => { if (!enviando) trocarPor(""); };
+    ac.append(r, x); w.appendChild(ac);
+  }
+  return w;
 }
 function fecharAssinar(voltar = true) {
   if ($("tela-assinar").hidden) return;
@@ -6027,6 +6068,7 @@ function fecharAssinar(voltar = true) {
 }
 function confirmarAssinatura() {
   if (!assinando?.url) return;
+  if (assinando.aoConfirmar) { const { aoConfirmar, url } = assinando; fecharAssinar(); aoConfirmar(url); return; }   // assinatura de um formulário
   trein.part[assinando.i].assin = assinando.url;
   gravarTrein();
   fecharAssinar();
@@ -6373,18 +6415,10 @@ function montarServ() {
 
   // assinaturas: técnico (obrigatória) e cliente (opcional)
   raiz.appendChild(el("h2", "secao", "Assinaturas"));
-  const pad = (rot, id, valor, aoMudar) => {
-    const w = el("div", "campo"); if (id) w.id = id;
-    w.appendChild(el("span", "", rot));
-    const cv = document.createElement("canvas"); cv.className = "assin";
-    const limpar = el("button", "laudo-link", "Limpar assinatura"); limpar.type = "button";
-    limpar.onclick = ligarPad(cv, valor, url => { aoMudar(url); mudouServ(); });
-    w.append(cv, limpar);
-    return w;
-  };
-  raiz.appendChild(pad(`Assinatura de quem fez o serviço (${nomeColaborador()}) *`, "sv-assin", serv.assin, url => serv.assin = url));
+  const pad = (rot, id, valor, aoMudar, nome) => caixaAssinatura({ rotulo: rot, id, nome, valor, aoMudar: url => { aoMudar(url); mudouServ(); } });
+  raiz.appendChild(pad(`Assinatura de quem fez o serviço (${nomeColaborador()}) *`, "sv-assin", serv.assin, url => serv.assin = url, nomeColaborador()));
   raiz.appendChild(campo("Nome de quem acompanhou pelo cliente (opcional)", serv.respCli, v => serv.respCli = v, { dica: "Ex.: Carlos, zelador" }));
-  raiz.appendChild(pad("Assinatura do cliente (opcional)", "", serv.assinCli, url => serv.assinCli = url));
+  raiz.appendChild(pad("Assinatura do cliente (opcional)", "sv-assin-cli", serv.assinCli, url => serv.assinCli = url, () => (serv.respCli || "").trim() || "Cliente"));
   const desc = el("button", "laudo-link perigo", "Descartar este relatório"); desc.type = "button";
   desc.onclick = async () => { if (await confirmarApagar("Descartar este relatório de serviço?", "Tudo o que foi preenchido será apagado.", "Apagar o relatório", "Manter o relatório")) { limparServ(); atualizarBotao(); window.scrollTo(0, 0); } };
   raiz.appendChild(desc);
@@ -7183,6 +7217,7 @@ function abrirEq(cli) {
   if (!cli) return;
   eq = { cliente: cli, editando: null };
   $("eq-titulo").textContent = cli;
+  $("tela-eq").style.zIndex = $("tela-eqv").hidden ? "" : "35";   // aberta pela lista de vencimentos (mesmo z-index e depois dela no HTML): fica por cima dela
   $("tela-eq").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ eq: true }, "");
@@ -7691,6 +7726,7 @@ function desenharOS() {
   if (!osTela) return;
   const c = $("os-corpo"); c.innerHTML = "";
   $("os-voltar").textContent = osTela.nova || osTela.aberta ? "‹ Ordens" : "‹ Voltar";
+  $("tela-os").classList.toggle("com-nav", !(osTela.nova || osTela.aberta));
   $("os-titulo").textContent = osTela.nova ? (osTela.nova.editando ? "Editar " + osTela.nova.editando : "Nova ordem de serviço") : osTela.aberta || "Ordens de serviço";
   if (osTela.nova) { c.appendChild(formOS()); return; }
   if (osTela.aberta) { c.appendChild(detalheOS(osDados[osTela.aberta])); return; }
@@ -8869,6 +8905,7 @@ function atualizarContadores() {
   $("nav-fin-qtd").hidden = !n; $("nav-fin-qtd").textContent = n;   // barra de baixo: Mais (o Financeiro fica lá dentro)
   $("nav-fin-qtd-pc").hidden = !n; $("nav-fin-qtd-pc").textContent = n;   // menu lateral do computador: Financeiro
   if (secao === "fin") desenharFin();
+  if (secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // "Aguardando você" no painel do computador
   if (secao === "mais") desenharMais();
 }
 
@@ -10952,6 +10989,7 @@ function abrirOrcamentos(busca = "") {
   if (!pode("orc")) return;
   $("orc-busca").value = busca;
   $("orc-periodo").value = ""; $("orc-tipo").value = "";
+  $("tela-orc").classList.toggle("com-nav", ![...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-orc" && !t.classList.contains("como-secao")));   // por cima de outra tela (oportunidade do funil): tela cheia; aberta por Registros ou pela página do cliente: a barra de baixo fica à vista
   $("tela-orc").hidden = false;
   $("tela-orc").querySelector(".avcb-corpo").scrollTop = 0;
   document.body.style.overflow = "hidden";
@@ -12036,6 +12074,7 @@ function desenharNf(forcar) {
   const sub = !!(nfTela.det || nfTela.nova);
   $("nf-lista-tela").hidden = sub; $("nf-sub").hidden = !sub;
   $("nf-voltar").textContent = sub ? "‹ Notas" : "‹ Voltar";
+  $("tela-nf").classList.toggle("com-nav", !sub);
   if (nfTela.nova) { if (forcar) { $("nf-titulo").textContent = "Nova nota fiscal"; desenharNovaNf(); } return; }
   const prep = prepararNf();
   if (nfTela.det) {
@@ -12811,6 +12850,7 @@ function desenharTar() {
   if (!tarTela) return;
   const sub = !!(tarTela.aberta || tarTela.nova), tudo = pode("tarefas");
   $("tar-lista-tela").hidden = sub; $("tar-sub").hidden = !sub;
+  $("tela-tar").classList.toggle("com-nav", !sub);   // na lista a barra de baixo fica à vista (celular); no detalhe, tela cheia
   $("tar-nova").hidden = !tudo || sub;
   $("tar-titulo").textContent = tarTela.nova ? "Nova tarefa" : sub ? "Tarefa" : "Tarefas";
   $("tar-voltar").textContent = sub && !tarTela.direto ? "‹ Tarefas" : "‹ Voltar";
@@ -13059,6 +13099,7 @@ const rankSit = s => { const i = ORDEM_SIT.indexOf(s || "A definir"); return i <
 function aoMudarFu() {
   (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", manterQuadro("tela-funil", desenharFunil)))();
   if (conta && secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
+  if (conta && secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // número do funil no painel do computador
 }
 const colFu = colecao({ chave: "vpx_funil", pasta: CONFIG.pastaFunil, prefixo: "funil", n: 32, pode: () => pode("funil"), aoMudar: aoMudarFu });
 let fuTela = null, fuVoltando = false;   // { vista, grupo, pessoa, sit, aberta, nova, direto, mais, ordem, limTab }
@@ -13162,6 +13203,7 @@ function desenharFunil() {
   if (!fuTela) return;
   const sub = !!(fuTela.aberta || fuTela.nova);
   $("fu-lista-tela").hidden = sub; $("fu-sub").hidden = !sub;
+  $("tela-funil").classList.toggle("com-nav", !sub);
   $("fu-nova").hidden = sub;
   $("fu-titulo").textContent = fuTela.nova ? "Nova oportunidade" : sub ? "Oportunidade" : "Funil comercial";
   $("fu-voltar").textContent = sub && !fuTela.direto ? "‹ Funil" : "‹ Voltar";
@@ -13434,7 +13476,7 @@ setInterval(() => {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden || !conta) return;
   sincronizarCol(colTar);
-  if (!$("tela-funil").hidden) sincronizarCol(colFu);
+  if (!$("tela-funil").hidden || (computador.matches && secao === "inicio")) sincronizarCol(colFu);
 });
 window.addEventListener("online", () => { if (tarTela) desenharTar(); if (fuTela) desenharFunil(); });
 
@@ -13465,6 +13507,35 @@ function desenharInicio() {
   const h = new Date().getHours(), nome = (conta?.name || "").split(/\s+/)[0];
   t.appendChild(el("p", "hub-saud", `${h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite"}${nome ? ", " + nome : ""}`));
   // no computador, duas colunas: à esquerda o que fazer e os avisos, à direita a agenda (no celular, tudo numa coluna)
+  const pc = computador.matches;
+  if (pc) {                                          // painel do escritório: os números do dia numa linha (aprovado pelo Gustavo em 11/11/2026; só no computador)
+    const k = el("div", "ini-kpis"), s = n => n > 1 ? "s" : "";
+    const kpi = (ico, rot, n, det, cls, fn) => { const b = el("button", "hub-card kpi" + (cls ? " " + cls : "")); b.type = "button"; b.append(comIc(el("small", "os-tipo"), ico, rot), el("b", "", String(n)), el("small", "kpi-det", det || "")); b.onclick = fn; k.appendChild(b); };
+    if (pode("os")) {
+      const ab = Object.values(osDados).filter(o => naFilaOS(o) || comigoOS(o)), urg = ab.filter(o => o.prioridade === "urgente" || atrasadaOS(o)).length;
+      kpi("os", "OS abertas", ab.length, urg ? `${urg} urgente${s(urg)} ou atrasada${s(urg)}` : "", urg ? "crit" : ab.length ? "" : "zero", () => abrirOS());
+    }
+    if (podeVerTarefas()) {
+      const m = tarefas().filter(x => minhaTar(x) && abertaTar(x)), atr = m.filter(atrasadaTar).length, hj = m.filter(hojeTar).length;
+      kpi("tarefas", "Tarefas com você", m.length, atr ? `${atr} atrasada${s(atr)}` : hj ? `${hj} para hoje` : "", atr ? "crit" : hj ? "warn" : m.length ? "" : "zero", () => abrirTar({ filtro: "minhas" }));
+    }
+    if (ehAdmin() || ehPagador()) { const n = esperandoMim(); kpi("dinheiro", "Aguardando você", n, n ? (ehAdmin() ? `pedido${s(n)} para aprovar` : `pagamento${s(n)} para fazer`) : "", n ? "warn" : "zero", () => irPara("fin", true)); }
+    if (pode("avcb")) {
+      const sts = listaAvcb().filter(v => v.categoria === "cliente").map(situacaoAvcb), venc = sts.filter(x => x.cls === "crit").length, logo = sts.filter(x => x.cls === "warn").length;
+      kpi("escudo", "AVCB vencidos", venc, logo ? `${logo} vence${logo > 1 ? "m" : ""} em até 90 dias` : "", venc ? "crit" : logo ? "warn" : "zero", abrirAvcb);
+    }
+    if (pode("equip") && Object.keys(eqDados).length) {
+      const sits = Object.keys(eqDados).map(sitCliente).filter(Boolean), venc = sits.filter(x => x === "crit").length, logo = sits.filter(x => x === "warn").length;
+      kpi("extintor", "Extintores e mang.", venc, logo ? `${logo} a vencer em 60 dias` : venc ? `cliente${s(venc)} com item vencido` : "", venc ? "crit" : logo ? "warn" : "zero", () => { eqvFiltro = venc ? "crit" : logo ? "warn" : "todos"; abrirEqv(); });
+    }
+    if (pode("funil")) {
+      const etsNeg = GRUPOS_FU.find(g => g[0] === "neg")[2];   // as mesmas etapas do grupo "Em negociação" da tela do Funil (o número é igual ao de lá)
+      const ops = oportunidades().filter(o => etsNeg.includes(o.etapa)), soma = ops.reduce((a, o) => a + valorFu(o), 0);
+      const lidoFu = !!colFu.dados.lido || Object.keys(colFu.dados.baldes).length > 0;   // nunca lido neste aparelho: traço, não "0"
+      kpi("funil", "Funil em negociação", lidoFu ? ops.length : "–", lidoFu && soma ? reais(soma) : "", ops.length ? "" : "zero", () => abrirFunil());
+    }
+    if (k.children.length) t.appendChild(k);
+  }
   let esq = t, dir = t;
   if (computador.matches) {
     const g = el("div", "ini-grade" + (pode("agenda") ? "" : " so-uma"));
@@ -13496,8 +13567,9 @@ function desenharInicio() {
     }
   }
   const temEq = pode("equip") && Object.keys(eqDados).length;
-  const partes = [pode("os") && "ordens de serviço", podeVerTarefas() && "tarefas", (pode("avcb") || temEq) && "avisos"].filter(Boolean);
-  if (computador.matches && partes.length) { const s = partes.length > 1 ? partes.slice(0, -1).join(", ") + " e " + partes.at(-1) : partes[0]; esq.appendChild(el("p", "hub-rot", s[0].toUpperCase() + s.slice(1))); }
+  const partes = [pode("os") && "ordens de serviço", podeVerTarefas() && "tarefas", !pc && (pode("avcb") || temEq) && "avisos"].filter(Boolean);   // no computador os avisos estão nos números de cima
+  let rotOS = null;
+  if (computador.matches && partes.length) { const s = partes.length > 1 ? partes.slice(0, -1).join(", ") + " e " + partes.at(-1) : partes[0]; rotOS = el("p", "hub-rot", s[0].toUpperCase() + s.slice(1)); esq.appendChild(rotOS); }
   // pedidos de acesso da equipe de campo esperando o administrador
   if (ehAdmin() && pedidosAcesso.length) {
     const n = pedidosAcesso.length, b = el("button", "hub-card warn"); b.type = "button";
@@ -13515,7 +13587,7 @@ function desenharInicio() {
     b.appendChild(el("b", "", fila.length || minhas.length ? [fila.length && `${fila.length} na fila`, minhas.length && `${minhas.length} com você`].filter(Boolean).join(" · ") : "Nenhuma OS aberta"));
     if (urg) b.appendChild(el("small", "", "Há OS urgente ou atrasada"));
     b.onclick = () => abrirOS();
-    esq.appendChild(b);
+    if (!pc) esq.appendChild(b);                     // no computador o resumo está nos números de cima; ficam só as próximas OS
     [...minhas.sort(ordemOS), ...fila.filter(o => !minhas.includes(o)).sort(ordemOS)].slice(0, 3).forEach(o => esq.appendChild(cartaoOS(o, () => abrirOS({ aberta: o.numero }))));   // quais são, sem abrir a lista
   }
   // tarefas com a pessoa: quantas, atrasadas e as próximas (pedido do Gustavo em 07/11/2026)
@@ -13527,7 +13599,12 @@ function desenharInicio() {
     b.appendChild(el("b", "", minhas.length ? `${minhas.length} tarefa${minhas.length > 1 ? "s" : ""} com você` + (atr ? ` · ${atr} atrasada${atr > 1 ? "s" : ""}` : hj ? ` · ${hj} para hoje` : "") : "Nenhuma tarefa com você"));
     minhas.slice(0, 3).forEach(t => b.appendChild(el("small", "", t.titulo + (t.prazo ? " · " + (atrasadaTar(t) ? "atrasada" : hojeTar(t) ? "hoje" : dataCurta(t.prazo)) : ""))));
     b.onclick = () => abrirTar({ filtro: "minhas" });
-    esq.appendChild(b);
+    if (pc) minhas.slice(0, 3).forEach(x => esq.appendChild(cartaoTar(x, { abrir: () => abrirTar({ aberta: x.id }) })));   // no computador: as próximas tarefas em cartões
+    else esq.appendChild(b);
+  }
+  if (pc && rotOS && esq.lastElementChild === rotOS) {   // computador: nada debaixo do título (sem OS e sem tarefa): diz isso em vez de deixar a coluna vazia
+    const v = [pode("os") && "nenhuma OS aberta", podeVerTarefas() && "nenhuma tarefa com você"].filter(Boolean).join(" e ");
+    if (v) esq.appendChild(el("p", "ini-vazio", v[0].toUpperCase() + v.slice(1) + "."));
   }
   // agenda de hoje e de amanhã, acima dos registros (pedido do Gustavo em 19/10/2026); vem da última agenda guardada e atualiza por trás
   if (pode("agenda")) {
@@ -13563,7 +13640,7 @@ function desenharInicio() {
     b.appendChild(el("b", "", venc || logo ? [venc && `${venc} AVCB${venc > 1 ? "s" : ""} vencido${venc > 1 ? "s" : ""}`, logo && `${logo} vence${logo > 1 ? "m" : ""} em até 90 dias`].filter(Boolean).join(" · ") : "AVCBs dos clientes em dia"));
     b.appendChild(el("small", "", "Validade AVCB / CLCB"));
     b.onclick = abrirAvcb;
-    esq.appendChild(b);
+    if (!pc) esq.appendChild(b);
   }
   // extintores e mangueiras: clientes com algo vencido ou a vencer (só aparece se houver cadastro)
   if (temEq) {
@@ -13573,7 +13650,7 @@ function desenharInicio() {
     b.appendChild(el("b", "", venc || logo ? [venc && `${venc} cliente${venc > 1 ? "s" : ""} com extintor ou mangueira vencido`, logo && `${logo} com vencimento em 60 dias`].filter(Boolean).join(" · ") : "Extintores e mangueiras dos clientes em dia"));
     b.appendChild(el("small", "", "Extintores e mangueiras"));
     b.onclick = () => { eqvFiltro = venc ? "crit" : logo ? "warn" : "todos"; abrirEqv(); };
-    esq.appendChild(b);
+    if (!pc) esq.appendChild(b);
   }
 }
 
@@ -13958,7 +14035,7 @@ async function iniciarApp() {
   aplicarModo();
   aplicarPermissoes();                            // com a última cópia das permissões (funciona sem internet)
   irPara("inicio");                               // o app abre no Início (barra de baixo)
-  carregarPermissoes();                           // e confere se mudaram
+  const permOk = Promise.resolve(carregarPermissoes());   // e confere se mudaram
   registrarUsuario();                             // aparece na lista da administração
   sincronizarPedidos();                           // contador de pedidos aguardando aprovação (administrador)
   carregarClientes().then(() => { if (secao === "clientes") desenharClientesHub(); });
@@ -13966,7 +14043,8 @@ async function iniciarApp() {
   sincronizarEq();                                // extintores e mangueiras dos clientes (alerta no Início)
   sincronizarFichas(true);                        // fichas dos clientes (contatos), para ver sem internet
   sincronizarOS();                                // ordens de serviço (fila no Início) e baixas que ficaram sem internet
-  sincronizarCol(colTar, true);                   // tarefas (cartão no Início e número no menu lateral); o funil só ao abrir
+  sincronizarCol(colTar, true);                   // tarefas (cartão no Início e número no menu lateral); o funil só ao abrir (no celular)
+  if (computador.matches) permOk.then(() => sincronizarCol(colFu, true), () => {});   // computador: número do funil no painel do Início, só depois de conferir as permissões (sincronizarCol confere pode("funil"))
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") redesenharInicio();     // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
@@ -14001,12 +14079,17 @@ $("btn-conta").onclick = () => irPara("mais");     // iniciais no topo: conta e 
 // menu (barra de baixo / menu lateral): seções; no computador também ITs, Administração e Sair (que abrem por cima)
 $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (b.dataset.acao === "sair") { sairConta(); return; }
+  // celular: lista aberta por cima com a barra à vista (com-nav) — o passo dela sai do histórico, senão o "voltar" do aparelho ficaria uma vez sem efeito
+  const passo = !computador.matches && !history.state?.sub && !!document.querySelector(".tela-avcb.com-nav:not([hidden])");
   if (!fecharTelasPorCima()) return;
-  if (b.dataset.acao === "its") abrirNormas();
-  else if (b.dataset.acao === "admin") abrirAdmin();
-  else if (b.dataset.acao === "tar") abrirTar();
-  else if (b.dataset.acao === "funil") abrirFunil();
-  else irPara(b.dataset.s, true);
+  const ir = () => {
+    if (b.dataset.acao === "its") abrirNormas();
+    else if (b.dataset.acao === "admin") abrirAdmin();
+    else if (b.dataset.acao === "tar") abrirTar();
+    else if (b.dataset.acao === "funil") abrirFunil();
+    else irPara(b.dataset.s, true);
+  };
+  if (passo) { tarVoltando = true; depoisVoltar = ir; history.back(); } else ir();   // o popstate (ramo tarVoltando) abre a seção depois que o passo saiu
 });
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
 for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil"]) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
