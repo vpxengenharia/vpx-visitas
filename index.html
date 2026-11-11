@@ -1414,6 +1414,26 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   #btn-seq{background:var(--papel);border-color:var(--linha);color:var(--tinta)}
   .captura label.btn,.captura label.btn:hover{background:var(--laranja);border-color:var(--laranja);color:var(--marinho)}
 }
+/* ===== "O que o cliente tem" (pedido do Gustavo em 11/11/2026): resumo dos sistemas do cliente na ficha ===== */
+.pf-tags{display:flex;flex-wrap:wrap;gap:6px;width:100%;margin:0 0 10px;padding:4px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.pf-tags span{padding:3px 10px;border-radius:999px;background:#E0E9F3;color:var(--marinho);font-size:14px;font-weight:600;line-height:1.5}
+.pf-tags .pf-vazio{padding:6px 2px;background:none;text-decoration:underline}
+.pf-tags:focus-visible{outline:3px solid var(--laranja);outline-offset:2px;border-radius:8px}
+.pf-item{padding:10px 0 12px;border-bottom:1px solid var(--linha)}
+.pf-item > b{display:block;margin:0 2px 6px;font-size:16px}
+.pf-item .chips.peq button{min-height:44px}
+.pf-sub{margin-top:8px}
+.pf-sub .chips{margin-bottom:8px}
+.pf-sub .campo{margin-bottom:8px}
+.pf-grade{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;align-items:end}
+.pf-grade .campo input{min-width:0}
+@media (prefers-color-scheme:dark){.pf-tags span{background:rgba(255,255,255,.1);color:var(--tinta)}.pf-tags .pf-vazio{background:none}}
+/* filtro "O que o cliente tem" (aba Clientes): as opções são compridas: linha inteira no celular; na tela larga, mais largo e desce se não couber */
+#cl-pf-rot{grid-column:1 / -1}
+@container (min-width:860px){
+  .orc-filtros.cl-filtros{display:flex;flex-wrap:wrap}
+  .cl-filtros #cl-pf{width:250px}
+}
 </style>
 </head>
 <body>
@@ -1642,6 +1662,9 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
           <option value="ok">Em dia</option>
           <option value="sem">Sem cadastro</option>
         </select>
+      </label>
+      <label class="orc-sel" id="cl-pf-rot" hidden><span>O que o cliente tem</span>
+        <select id="cl-pf"><option value="">Todos</option></select>
       </label>
     </div>
     <div class="cl-resumo" id="cl-resumo"></div>
@@ -5552,6 +5575,7 @@ async function salvar() {
       prefixo: `${prefixoDe({ arquivo }, d)}_Relatório de Visita` };   // ex.: João da Silva_2026-10-12_Diamond_Relatório de Visita_01.pdf
     fotos.unshift(item);
     await guardarItem(item, true);
+    perfilDoLevantamento(cliente, { ...ficha });     // o levantamento preenche o cadastro "O que o cliente tem" (só o que estiver vazio)
     limparFicha();                                // o PDF já está guardado no celular: a ficha pode ser zerada
     relatorio = { item, cliente, titulo: "Relatório de Visita" };   // fica disponível para ver/compartilhar na tela final
   }
@@ -11164,15 +11188,21 @@ async function sincronizarFichas(forcar) {
   finally { sincronizarFichas.rodando = false; }
   if (assinatura() === antes) return;              // nada mudou: não redesenha
   if (fichaTela && !fichaTela.editando) desenharFicha();
+  else if (fichaTela?.editando && !fichaTela.mudou && !$("ficha-corpo").contains(document.activeElement)
+      && (fichas[fichaTela.cli]?.etag || null) !== (fichaTela.base?.etag || null)) {
+    // a ficha mudou no OneDrive e a pessoa ainda não mexeu: refaz o formulário com a ficha nova, no mesmo ponto da tela
+    const corpo = $("tela-ficha").querySelector(".avcb-corpo"), rol = corpo.scrollTop;
+    basearEdicao(); desenharFicha(); corpo.scrollTop = rol;
+  }
   if (secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
   if (secao === "clientes" && !$("tela-clientes").hidden) redesenharClientesQuieto();   // a tabela mostra o contato principal (sem trocar as linhas embaixo do dedo)
 }
 // grava a ficha (precisa de internet). Outra pessoa mudou antes (412) ou criou a mesma ficha (409): atualiza e avisa
 function gravarFicha(...a) { return comGravacao(() => gravarFichaJa(...a)); }   // conta a gravação inteira
-async function gravarFichaJa(cli, dados) {
+async function gravarFichaJa(cli, dados, base) {   // base = a cópia de onde os dados saíram (o If-Match é o dela; null = ficha nova); sem base, a cópia do aparelho
   if (!navigator.onLine) throw new Error("Sem internet: para salvar a ficha, conecte o aparelho.");
-  const pasta = await pastaFichas(), atual = fichas[cli];
-  const corpo = { versao: 1, cliente: cli, ...dados, atualizado: new Date().toISOString(), por: nomeColaborador() };
+  const pasta = await pastaFichas(), atual = base !== undefined ? base : fichas[cli];
+  const corpo = { versao: 1, cliente: cli, ...(dados.perfil === undefined && atual?.perfil ? { perfil: atual.perfil } : {}), ...dados, atualizado: new Date().toISOString(), por: nomeColaborador() };
   const headers = { "Content-Type": "application/json" };
   if (atual?.etag) headers["If-Match"] = atual.etag;
   const url = `/drives/${CONFIG.driveId}/items/${pasta.id}:/${encodeURIComponent(limparNome(cli) + ".json")}:/content` + (atual?.etag ? "" : "?@microsoft.graph.conflictBehavior=fail");
@@ -11189,7 +11219,7 @@ async function gravarFichaJa(cli, dados) {
   }
 }
 
-function abrirFicha(cli, editar) {
+function abrirFicha(cli, editar) {              // editar: true = cadastrar se não houver ficha; "perfil" = editar já em "O que o cliente tem"; "verperfil" = mostrar essa parte
   if (!cli || !pode("ficha")) return;
   fichaTela = { cli, editando: null, mudou: false };
   $("ficha-titulo").textContent = cli;
@@ -11197,7 +11227,8 @@ function abrirFicha(cli, editar) {
   $("tela-ficha").querySelector(".avcb-corpo").scrollTop = 0;
   document.body.style.overflow = "hidden";
   history.pushState({ ficha: true }, "");          // o "voltar" do celular fecha a ficha
-  if (editar && !fichas[cli]) editarFicha(); else desenharFicha();
+  if (editar === "perfil" || (editar === true && !fichas[cli])) editarFicha(); else desenharFicha();
+  if (editar === "perfil" || editar === "verperfil") (fichaTela.editando ? $("pf-ed") : $("pf-ver"))?.scrollIntoView({ block: "start" });
   sincronizarFichas();
 }
 function fecharFicha(voltar = true) {
@@ -11208,10 +11239,16 @@ function fecharFicha(voltar = true) {
   if (voltar && history.state?.ficha) { fichaVoltando = true; history.go(history.state.fichaEd ? -2 : -1); }
   if (secao === "cliente" && !$("tela-cliente").hidden) desenharPaginaCliente();   // a página mostra os contatos novos
 }
-function editarFicha() {
+// monta a edição a partir da cópia atual da ficha e guarda essa cópia (com o eTag) como base da gravação
+function basearEdicao() {
   const f = fichas[fichaTela.cli];
-  fichaTela.editando = f ? { razao: f.razao || "", doc: f.doc || "", tipo: f.tipo || "", endereco: f.endereco || "", obs: f.obs || "", contatos: (f.contatos || []).map(x => ({ ...novoContato(), ...x })) } : sugestaoFicha(fichaTela.cli);
+  fichaTela.base = f || null;
+  fichaTela.editando = f ? { razao: f.razao || "", doc: f.doc || "", tipo: f.tipo || "", endereco: f.endereco || "", obs: f.obs || "", contatos: (f.contatos || []).map(x => ({ ...novoContato(), ...x })), perfil: JSON.parse(JSON.stringify(f.perfil || {})) } : sugestaoFicha(fichaTela.cli);
+  fichaTela.perfilBase = JSON.stringify(limparPerfil(fichaTela.editando.perfil));   // num conflito, para saber o que esta pessoa mudou em "O que o cliente tem"
   fichaTela.mudou = false;
+}
+function editarFicha() {
+  basearEdicao();
   history.pushState({ ficha: true, fichaEd: true }, "");   // o "voltar" sai da edição
   desenharFicha();
   $("tela-ficha").querySelector(".avcb-corpo").scrollTop = 0;
@@ -11225,12 +11262,180 @@ function sairEdicaoFicha(perguntar) {
   desenharFicha();
 }
 // ficha nova: começa com o que o app já sabe do cliente (lista de AVCB e notas fiscais)
+/* ---------- "O que o cliente tem" (pedido do Gustavo em 11/11/2026) ----------
+   Resumo dos sistemas de cada cliente, para montar orçamentos pelo perfil dele. Fica dentro da ficha do cliente (campo
+   "perfil" do mesmo .json): perfil.ed = { torres, andares, garagens, unidades, area } e, para cada item de PERFIL_ITENS,
+   perfil[id] = { tem: "s" | "n", tipo, qtd, obs } (sem o item = não informado). Decisões dele: respostas simples (tem / não tem
+   + tipo), toda a equipe preenche, o app só mostra o resumo (não sugere serviços), o levantamento da aba Comercial preenche
+   sozinho o que estiver vazio, e aparece em três lugares: etiquetas na página do cliente, filtro na aba Clientes e planilha. */
+const PERFIL_ITENS = [
+  { id: "gas", nome: "Gás", tipos: ["GN (gás natural)", "GLP - central", "GLP - botijões"], tag: p => !p.tipo ? "Gás" : p.tipo.startsWith("GN") ? "GN" : p.tipo.endsWith("botijões") ? "GLP (botijões)" : "GLP" },
+  { id: "gerador", nome: "Gerador", qtd: true, tag: p => +p.qtd > 1 ? `${+p.qtd} geradores` : "Gerador" },
+  { id: "escada", nome: "Escada de emergência", qtd: true, tipos: ["Comum", "Enclausurada", "Pressurizada"],
+    tag: p => { const n = +p.qtd > 1, tp = p.tipo && p.tipo !== "Comum" ? " " + p.tipo.toLowerCase() + (n ? "s" : "") : ""; return (n ? `${+p.qtd} escadas` : "Escada de emergência") + tp; } },
+  { id: "hidrantes", nome: "Hidrantes", tipos: ["Com bomba", "Sem bomba"], tag: p => "Hidrantes" + (p.tipo ? " " + p.tipo.toLowerCase() : "") },
+  { id: "sprinklers", nome: "Sprinklers (chuveiros automáticos)", tipos: ["Só nas garagens", "Garagens e andares"], tag: p => "Sprinklers" + (p.tipo ? ` (${p.tipo.replace("Só nas ", "").toLowerCase()})` : "") },
+  { id: "alarme", nome: "Alarme de incêndio", tipos: ["Convencional", "Endereçável"], tag: () => "Alarme" },
+  { id: "spda", nome: "SPDA (para-raios)", tag: () => "SPDA" },
+  { id: "ilum", nome: "Iluminação de emergência", tipos: ["Blocos autônomos", "Central"], tag: () => "Iluminação de emergência" },
+  { id: "pcf", nome: "Portas corta-fogo", tag: () => "Portas corta-fogo" },
+  { id: "press", nome: "Pressurização de escada", tag: () => "Pressurização" },
+  { id: "elev", nome: "Elevador de emergência", tag: () => "Elevador de emergência" }
+];
+const PERFIL_ED = [["torres", "Torres/blocos"], ["andares", "Pavimentos (sem térreo)"], ["garagens", "Garagens/subsolos"], ["unidades", "Unidades"], ["area", "Área construída (m²)"]];
+const temPerfil = p => !!p && (PERFIL_ITENS.some(i => p[i.id]?.tem) || PERFIL_ED.some(([k]) => p.ed?.[k]));
+const etiquetasPerfil = p => p ? PERFIL_ITENS.filter(i => p[i.id]?.tem === "s").map(i => i.tag(p[i.id])) : [];
+// texto de um item para a ficha e a planilha: "" (não informado), "Não tem", "Tem", "2 · Enclausurada", "GLP - central"…
+function textoItemPerfil(i, p) {
+  const x = p?.[i.id];
+  if (!x?.tem) return "";
+  if (x.tem === "n") return "Não tem" + (x.obs ? " (" + x.obs + ")" : "");
+  const partes = [i.qtd && x.qtd ? `${x.qtd} ${+x.qtd === 1 ? "unidade" : "unidades"}` : "", x.tipo || ""].filter(Boolean);
+  return (partes.length ? partes.join(" · ") : "Tem") + (x.obs ? " (" + x.obs + ")" : "");
+}
+const PERFIL_ED_CURTO = { torres: ["torre", "torres"], andares: ["pavimento", "pavimentos"], garagens: ["garagem", "garagens"], unidades: ["unidade", "unidades"], area: ["m²", "m²"] };
+const textoEdPerfil = p => PERFIL_ED.map(([k]) => p?.ed?.[k] ? `${p.ed[k]} ${PERFIL_ED_CURTO[k][+p.ed[k] === 1 ? 0 : 1]}` : "").filter(Boolean);
+// só o que foi informado vai para o arquivo
+function limparPerfil(p) {
+  const r = {}, ed = {};
+  for (const [k] of PERFIL_ED) { const v = String(p?.ed?.[k] ?? "").trim(); if (v) ed[k] = v; }
+  if (Object.keys(ed).length) r.ed = ed;
+  for (const i of PERFIL_ITENS) {
+    const x = p?.[i.id];
+    if (x?.tem !== "s" && x?.tem !== "n") continue;
+    r[i.id] = { tem: x.tem };
+    if (x.tem === "s") {
+      if (i.tipos && x.tipo) r[i.id].tipo = x.tipo;
+      if (i.qtd && String(x.qtd ?? "").trim()) r[i.id].qtd = String(x.qtd).trim();
+    }
+    if (String(x.obs ?? "").trim()) r[i.id].obs = String(x.obs).trim();
+  }
+  return r;
+}
+// na ficha (leitura): o que o cliente tem, o que não tem e o que ainda não foi informado
+function secaoPerfil(f) {
+  const w = el("div"), p = f.perfil; w.id = "pf-ver";
+  w.appendChild(el("h2", "secao", "O que o cliente tem"));
+  if (!temPerfil(p)) {
+    w.appendChild(el("p", "avcb-nota", "Ainda não cadastrado. Marque o que o cliente tem (gás, gerador, escadas, hidrantes, sprinklers, alarme, SPDA…) para montar os orçamentos pelo perfil dele."));
+    const b = comIc(el("button", "btn sec"), "lapis", "Cadastrar o que o cliente tem"); b.type = "button"; b.style.cssText = "width:100%;margin-top:8px";
+    b.onclick = () => { editarFicha(); $("pf-ed")?.scrollIntoView({ block: "start" }); };
+    w.appendChild(b);
+    return w;
+  }
+  const det = el("div", "os-det"), dl = el("dl"), falta = [];
+  const ed = textoEdPerfil(p);
+  if (ed.length) dl.append(el("dt", "", "Edificação"), el("dd", "", ed.join(" · ")));
+  for (const i of PERFIL_ITENS) { const tx = textoItemPerfil(i, p); if (tx) dl.append(el("dt", "", i.nome), el("dd", "", tx)); else falta.push(i.nome); }
+  det.appendChild(dl); w.appendChild(det);
+  if (falta.length) w.appendChild(el("p", "avcb-nota", "Sem informação: " + falta.join(", ") + "."));
+  return w;
+}
+// na edição da ficha: Tem / Não tem em cada item (sem marcar = não sei) e, quando tem, o tipo e a quantidade
+function formPerfil(E, mudou) {
+  const P = E.perfil ||= {}, w = el("div"); w.id = "pf-ed";
+  P.ed ||= {};
+  w.appendChild(el("h2", "secao", "O que o cliente tem"));
+  w.appendChild(el("p", "laudo-dica", "Marque Tem ou Não tem. O que você não souber, deixe sem marcar."));
+  const g = el("div", "pf-grade");
+  for (const [k, rot] of PERFIL_ED) {
+    const l = el("label", "campo"), i = el("input"); i.type = "text"; i.inputMode = "numeric"; i.maxLength = 12; i.autocomplete = "off"; i.value = P.ed[k] ?? "";
+    i.oninput = () => { P.ed[k] = i.value; mudou(); };
+    l.append(el("span", "", rot), i); g.appendChild(l);
+  }
+  w.appendChild(g);
+  for (const it of PERFIL_ITENS) {
+    const bloco = el("div", "pf-item");
+    const pintar = () => {
+      const x = P[it.id] ||= {};
+      bloco.innerHTML = "";
+      bloco.appendChild(el("b", "", it.nome));
+      const ch = el("div", "chips peq");
+      for (const [v, rot] of [["s", "Tem"], ["n", "Não tem"]]) {
+        const b = el("button", "", rot); b.type = "button"; b.setAttribute("aria-pressed", String(x.tem === v));
+        b.setAttribute("aria-label", `${it.nome}: ${rot}`);
+        b.onclick = () => { x.tem = x.tem === v ? "" : v; mudou(); pintar(); bloco.querySelector(`[data-v="${v}"]`)?.focus(); };
+        b.dataset.v = v; ch.appendChild(b);
+      }
+      bloco.appendChild(ch);
+      if (x.tem !== "s" && x.tem !== "n") return;
+      const sub = el("div", "pf-sub");
+      if (x.tem === "s" && it.tipos) {
+        const ct = el("div", "chips peq");
+        for (const tp of it.tipos) {
+          const b = el("button", "", tp); b.type = "button"; b.setAttribute("aria-pressed", String(x.tipo === tp));
+          b.onclick = () => { x.tipo = x.tipo === tp ? "" : tp; mudou(); pintar(); [...bloco.querySelectorAll(".pf-sub .chips button")].find(y => y.textContent === tp)?.focus(); };
+          ct.appendChild(b);
+        }
+        sub.appendChild(ct);
+      }
+      if (x.tem === "s" && it.qtd) {
+        const l = el("label", "campo"), i = el("input"); i.type = "text"; i.inputMode = "numeric"; i.maxLength = 4; i.autocomplete = "off"; i.value = x.qtd ?? "";
+        i.oninput = () => { x.qtd = i.value.replace(/\D/g, ""); mudou(); };
+        l.append(el("span", "", "Quantos"), i); sub.appendChild(l);
+      }
+      const lo = el("label", "campo"), o = el("input"); o.type = "text"; o.maxLength = 120; o.autocomplete = "off"; o.value = x.obs ?? "";
+      o.oninput = () => { x.obs = o.value; mudou(); };
+      lo.append(el("span", "", "Observação (opcional)"), o); sub.appendChild(lo);
+      bloco.appendChild(sub);
+    };
+    pintar();
+    w.appendChild(bloco);
+  }
+  return w;
+}
+// levantamento da aba Comercial → cadastro do cliente: preenche só o que ainda está vazio (nunca troca o que alguém informou).
+// Fica guardado no aparelho (vpx_perfil_pend) até conseguir gravar a ficha (precisa de internet).
+const PERFIL_DO_LEV = { "Hidrantes": ["hidrantes"], "Bomba de incêndio": ["hidrantes", "Com bomba"], "Chuveiros automáticos (sprinklers)": ["sprinklers"], "Alarme": ["alarme"],
+  "Detecção de fumaça": ["alarme"], "Iluminação de emergência": ["ilum"], "SPDA (para-raios)": ["spda"], "Central de gás/GLP": ["gas", "GLP - central"],
+  "Escada protegida/pressurizada": ["escada"], "Portas corta-fogo": ["pcf"], "Gerador": ["gerador"] };
+function perfilDoLevantamento(cli, lev) {
+  if (!cli || !pode("ficha")) return;
+  const pend = lerLS("vpx_perfil_pend", {}), p = pend[cli] || { ed: {}, itens: {} };
+  for (const [de, para] of [["torres", "torres"], ["andares", "andares"], ["garagem", "garagens"], ["unidades", "unidades"], ["area", "area"]]) { const v = String(lev[de] ?? "").trim(); if (v) p.ed[para] = v; }
+  for (const s of Array.isArray(lev.sistemas) ? lev.sistemas : []) { const m = PERFIL_DO_LEV[s]; if (m) p.itens[m[0]] = { ...(p.itens[m[0]] || {}), tem: "s", ...(m[1] ? { tipo: m[1] } : {}) }; }
+  if (!Object.keys(p.ed).length && !Object.keys(p.itens).length) return;
+  pend[cli] = p; gravarLS("vpx_perfil_pend", pend);
+  enviarPerfilPend();
+}
+async function enviarPerfilPend() {
+  if (enviarPerfilPend.rodando || !conta || !navigator.onLine || !pode("ficha") || !Object.keys(lerLS("vpx_perfil_pend", {})).length) return;
+  enviarPerfilPend.rodando = true;
+  try {
+    while (sincronizarFichas.rodando) await espera(300);   // a sincronização da abertura do app ainda está no meio: espera terminar
+    await sincronizarFichas(true);                 // parte da ficha mais nova (outra pessoa pode ter preenchido)
+    for (const [cli, p] of Object.entries(lerLS("vpx_perfil_pend", {}))) {
+      if (!navigator.onLine) break;                // caiu a internet: o resto fica guardado
+      const tirar = () => { const ag = lerLS("vpx_perfil_pend", {}); delete ag[cli]; gravarLS("vpx_perfil_pend", ag); };
+      try {
+        const fa = fichas[cli] || null;
+        if (!fa && clientes.length && !clientes.includes(cli)) { tirar(); continue; }   // cliente renomeado ou arquivado: não cria ficha solta
+        const perfil = JSON.parse(JSON.stringify(fa?.perfil || {}));
+        let mudou = false;
+        perfil.ed ||= {};
+        for (const [k, v] of Object.entries(p.ed || {})) if (!perfil.ed[k]) { perfil.ed[k] = v; mudou = true; }
+        for (const [id, x] of Object.entries(p.itens || {})) {
+          if (!perfil[id]?.tem) { perfil[id] = x; mudou = true; }
+          else if (perfil[id].tem === "s" && x.tipo && !perfil[id].tipo) { perfil[id].tipo = x.tipo; mudou = true; }
+        }
+        if (mudou) {
+          const s = fa ? null : sugestaoFicha(cli);
+          await gravarFicha(cli, { razao: fa ? fa.razao || "" : s.razao, doc: fa ? fa.doc || "" : s.doc, tipo: fa?.tipo || "", endereco: fa ? fa.endereco || "" : s.endereco, obs: fa?.obs || "",
+            contatos: fa?.contatos || [], perfil: limparPerfil(perfil) }, fa);
+        }
+        tirar();
+      } catch (e) { console.error("cadastro do cliente pelo levantamento (" + cli + "):", e); }   // este fica guardado e tenta de novo depois; os outros seguem
+    }
+    if (secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
+  } catch (e) { console.error("cadastro do cliente pelo levantamento:", e); }
+  finally { enviarPerfilPend.rodando = false; }
+}
 function sugestaoFicha(cli) {
   const v = avcbDoCliente(cli);
   let n = null;
   try { if (nf) n = [...prepararNf().info.values()].filter(x => x.cli === cli && (x.tomador || x.cnpj)).sort((a, b) => (b.data || "").localeCompare(a.data || ""))[0] || null; } catch {}
   const c = novoContato("Síndico(a)"); c.principal = true;
-  return { razao: tit(v?.reg?.razao || n?.tomador || ""), doc: digitos(v?.cnpj || n?.cnpj || ""), tipo: "", endereco: v?.endereco || "", obs: "", contatos: [c] };
+  return { razao: tit(v?.reg?.razao || n?.tomador || ""), doc: digitos(v?.cnpj || n?.cnpj || ""), tipo: "", endereco: v?.endereco || "", obs: "", contatos: [c], perfil: {} };
 }
 
 // um contato com Ligar, WhatsApp (celular) e E-mail; o número e o e-mail também abrem com um toque
@@ -11288,6 +11493,7 @@ function desenharFicha() {
   const cs = ordenarContatos(f.contatos);
   if (!cs.length) c.appendChild(el("p", "avcb-nota", "Nenhum contato cadastrado."));
   cs.forEach(x => c.appendChild(cartaoContato(x)));
+  c.appendChild(secaoPerfil(f));
   c.appendChild(el("h2", "secao", "Dados do cliente"));
   const det = el("div", "os-det"), dl = el("dl");
   const par = (k, v) => { if (v) dl.append(el("dt", "", k), v instanceof Node ? v : el("dd", "", v)); };
@@ -11365,6 +11571,7 @@ function formFicha() {
     };
     w.appendChild(pk);
   }
+  w.appendChild(formPerfil(E, mudou));
   w.appendChild(el("h2", "secao", "Dados do cliente"));
   campo(w, E, "Razão social", "razao", "text", { maxlength: "120" });
   campo(w, E, "CNPJ ou CPF", "doc", "text", { inputmode: "numeric", maxlength: "20" });
@@ -11394,13 +11601,26 @@ async function salvarFicha() {
   const b = $("ficha-salvar"); b.disabled = true; b.textContent = "Salvando…";
   try {
     await gravarFicha(cli, { razao: E.razao.trim(), doc: doc || E.doc.trim(), tipo: E.tipo, endereco: E.endereco.trim(), obs: E.obs.trim(),
-      contatos: contatos.map(x => ({ id: x.id, nome: x.nome, funcao: x.funcao, tel: x.tel && telBR(x.tel), tel2: x.tel2 && telBR(x.tel2), email: x.email, obs: x.obs, principal: !!x.principal })) });
+      contatos: contatos.map(x => ({ id: x.id, nome: x.nome, funcao: x.funcao, tel: x.tel && telBR(x.tel), tel2: x.tel2 && telBR(x.tel2), email: x.email, obs: x.obs, principal: !!x.principal })), perfil: limparPerfil(E.perfil) }, fichaTela.base);
     fichaTela.mudou = false;
     sairEdicaoFicha(false);
     aviso("Ficha salva.");
   } catch (e) {
     console.error(e);
-    if (e.conflito && fichaTela) { fichaTela.mudou = false; sairEdicaoFicha(false); }
+    if (e.conflito && fichaTela?.editando === E) {
+      const nova = fichas[cli], meu = limparPerfil(E.perfil), base = JSON.parse(fichaTela.perfilBase || "{}"), junto = JSON.parse(JSON.stringify(nova?.perfil || {})), igual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+      let mudei = false;
+      for (const i of PERFIL_ITENS) if (!igual(meu[i.id], base[i.id])) { mudei = true; if (meu[i.id]) junto[i.id] = meu[i.id]; else delete junto[i.id]; }
+      for (const [k] of PERFIL_ED) if ((meu.ed?.[k] || "") !== (base.ed?.[k] || "")) { mudei = true; junto.ed ||= {}; if (meu.ed?.[k]) junto.ed[k] = meu.ed[k]; else delete junto.ed[k]; }
+      if (mudei && nova) {                         // refaz a edição sobre a ficha nova, com o que foi marcado aqui; a pessoa confere e salva de novo
+        basearEdicao(); fichaTela.editando.perfil = junto; fichaTela.mudou = true;
+        desenharFicha();
+        aviso("Outra pessoa alterou esta ficha agora há pouco. O que você marcou em \"O que o cliente tem\" foi mantido: confira e toque em Salvar de novo.", true);
+        return;
+      }
+      fichaTela.mudou = false; sairEdicaoFicha(false);
+    }
+    else if (e.conflito && fichaTela) { fichaTela.mudou = false; sairEdicaoFicha(false); }
     else if ($("ficha-salvar")) { $("ficha-salvar").disabled = false; $("ficha-salvar").textContent = "Salvar ficha"; }
     aviso(e.message, true);
   }
@@ -13396,6 +13616,17 @@ function ajustarCabCl() {
 function desenharClientesHub() {
   const q = semAcento($("cl-busca").value.trim()), fa = $("cl-avcb").value, temEq = pode("equip"), temFicha = pode("ficha");
   const fe = temEq ? $("cl-ext").value : "";
+  // filtro "O que o cliente tem" (com gás, com gerador…): montado uma vez
+  $("cl-pf-rot").hidden = !temFicha;
+  if ($("cl-pf").options.length === 1) {
+    for (const i of PERFIL_ITENS) {
+      $("cl-pf").appendChild(new Option("Com " + i.nome.toLowerCase().replace("spda", "SPDA").replace(/ \(.*/, ""), i.id));
+      if (i.id === "gas") { $("cl-pf").appendChild(new Option("Com gás GN", "gas:GN")); $("cl-pf").appendChild(new Option("Com gás GLP", "gas:GLP")); }
+    }
+    $("cl-pf").appendChild(new Option("Sem cadastro", "sem"));
+  }
+  const fp = temFicha ? $("cl-pf").value : "";
+  const passaP = x => { const p = x.f?.perfil; return !fp || (fp === "sem" ? !temPerfil(p) : fp.includes(":") ? p?.gas?.tem === "s" && (p.gas.tipo || "").startsWith(fp.split(":")[1]) : p?.[fp]?.tem === "s"); };
   $("cl-busca").placeholder = temFicha ? "Buscar nome, contato ou CNPJ" : "Buscar nome ou CNPJ";
   $("cl-ext-rot").hidden = !temEq;
   $("cl-tab").classList.toggle("sem-ext", !temEq);
@@ -13411,7 +13642,7 @@ function desenharClientesHub() {
   const avcbs = listaAvcb();                       // uma vez por desenho (e não uma vez por cliente)
   const daBusca = clientes.map(c => infoCliente(c, avcbs)).filter(x => !q || buscaCliente(x, q));
   const passaA = x => !fa || (fa === "sem" ? !x.s : x.s?.cls === fa), passaE = x => !fe || (fe === "sem" ? !x.ext : x.ext === fe);
-  clVisiveis = daBusca.filter(x => passaA(x) && passaE(x)).sort(compCl);
+  clVisiveis = daBusca.filter(x => passaA(x) && passaE(x) && passaP(x)).sort(compCl);
   // resumo: quantos e o que está vencido ou a vencer (contando com o outro filtro); tocar num número filtra por ele
   const res = $("cl-resumo");
   res.innerHTML = "";
@@ -13425,7 +13656,7 @@ function desenharClientesHub() {
       b.onclick = () => { $(sel).value = ativo ? "" : cls; desenharClientesHub(); $("cl-resumo").querySelector(`[data-f="${sel}-${cls}"]`)?.focus(); };
       res.appendChild(b);
     };
-    const comE = daBusca.filter(passaE), comA = daBusca.filter(passaA), pl = (n, um, varios) => n === 1 ? um : varios;
+    const comE = daBusca.filter(x => passaE(x) && passaP(x)), comA = daBusca.filter(x => passaA(x) && passaP(x)), pl = (n, um, varios) => n === 1 ? um : varios;
     let n = comE.filter(x => x.s?.cls === "crit").length;
     chip("cl-avcb", "crit", n, pl(n, "AVCB vencido", "AVCB vencidos"), "Clientes com AVCB ou CLCB vencido");
     n = comE.filter(x => x.s?.cls === "warn").length;
@@ -13528,11 +13759,14 @@ async function exportarClientes() {
   try {
     if (!window.XLSX) await carregarScript(SHEETJS);
     const SIT = { crit: "Vencido", warn: "A vencer", ok: "Em dia" };
-    const linhas = [["Cliente", "CNPJ/CPF", "Tipo", "Validade", "Situação do AVCB/CLCB", "Extintores e mangueiras", "Contato principal", "Função", "Telefone", "E-mail", "Endereço"]];
+    const comPerfil = pode("ficha");                // as colunas de "O que o cliente tem" (edificação e cada sistema)
+    const linhas = [["Cliente", "CNPJ/CPF", "Tipo", "Validade", "Situação do AVCB/CLCB", "Extintores e mangueiras", "Contato principal", "Função", "Telefone", "E-mail", "Endereço",
+      ...(comPerfil ? [...PERFIL_ED.map(([, rot]) => rot), ...PERFIL_ITENS.map(i => i.nome)] : [])]];
     clVisiveis.forEach(x => linhas.push([x.c, x.doc, x.av?.tipo || "", x.av ? dataBRde(x.av.vencimento) : "", x.s ? SIT[x.s.cls] : "Sem AVCB na lista", x.ext ? SIT[x.ext] : "",
-      x.contato?.nome || "", x.contato?.funcao || "", x.contato?.tel || x.contato?.tel2 || "", x.contato?.email || "", x.endereco]));
+      x.contato?.nome || "", x.contato?.funcao || "", x.contato?.tel || x.contato?.tel2 || "", x.contato?.email || "", x.endereco,
+      ...(comPerfil ? [...PERFIL_ED.map(([k]) => x.f?.perfil?.ed?.[k] || ""), ...PERFIL_ITENS.map(i => textoItemPerfil(i, x.f?.perfil))] : [])]));
     const ws = XLSX.utils.aoa_to_sheet(linhas);
-    ws["!cols"] = [30, 20, 7, 11, 20, 20, 24, 16, 16, 30, 44].map(w => ({ wch: w }));
+    ws["!cols"] = [30, 20, 7, 11, 20, 20, 24, 16, 16, 30, 44, ...(comPerfil ? [...PERFIL_ED.map(() => 12), ...PERFIL_ITENS.map(() => 22)] : [])].map(w => ({ wch: w }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Clientes");
     const nome = `Clientes - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
@@ -13552,6 +13786,13 @@ function desenharPaginaCliente() {
   t.append(v, el("h1", "hub-tit", c));
   const av = avcbDoCliente(c);
   if (av) { const s = situacaoAvcb(av); t.appendChild(el("p", "avcb-aviso " + s.cls, (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto)); }
+  if (pode("ficha")) {                              // o que o cliente tem, em etiquetas (tocar abre o cadastro)
+    const p = fichas[c]?.perfil, tags = etiquetasPerfil(p), b = el("button", "pf-tags"); b.type = "button";
+    if (tags.length) { tags.forEach(x => b.appendChild(el("span", "", x))); b.setAttribute("aria-label", "O que o cliente tem: " + tags.join(", ") + ". Abrir o cadastro."); }
+    else b.appendChild(el("span", "pf-vazio", temPerfil(p) ? "Ver o que o cliente tem" : "Cadastrar o que o cliente tem (gás, gerador, hidrantes…)"));
+    b.onclick = () => abrirFicha(c, temPerfil(p) ? "verperfil" : "perfil");
+    t.appendChild(b);
+  }
   // ordem da página (aprovada pelo Gustavo em 10/11/2026): o que o campo usa primeiro — novo registro, contatos, pendências —,
   // depois as consultas, o aviso ao cliente e o funil (antes "Novo para este cliente" ficava no fim de uma página de várias telas)
   const modos = MODOS_APP.filter(([m]) => m !== "comp" && pode(m));
@@ -13729,6 +13970,7 @@ async function iniciarApp() {
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") redesenharInicio();     // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
+  enviarPerfilPend();                              // cadastro do cliente preenchido por um levantamento feito sem internet
   if (lerLS("vpx_abrir_agenda", false)) { gravarLS("vpx_abrir_agenda", false); irPara("agenda"); }   // voltou da autorização da agenda
   // administrador: pedidos de acesso da equipe de campo (cartão no Início e número no Mais)
   if (ehAdmin()) carregarPedidosAcesso().then(() => { if (secao === "inicio") redesenharInicio(); else if (secao === "mais") desenharMais(); }).catch(e => console.error("pedidos de acesso:", e));
@@ -13859,7 +14101,7 @@ $("trab-voltar").onclick = voltarInicio;
 $("ok-inicio").onclick = () => { novaVisita(); voltarInicio(); };
 $("cl-busca").oninput = () => { clearTimeout(desenharClientesHub.t); desenharClientesHub.t = setTimeout(desenharClientesHub, 200); };
 // Clientes em tabela: filtros, ordem pelo título da coluna (de novo, inverte), planilhas e o cabeçalho fixo
-$("cl-avcb").onchange = $("cl-ext").onchange = () => desenharClientesHub();
+$("cl-avcb").onchange = $("cl-ext").onchange = $("cl-pf").onchange = () => desenharClientesHub();
 $("cl-tab").querySelectorAll("thead button").forEach(b => b.onclick = () => {
   const c = b.dataset.col;
   clOrdem = clOrdem.col === c ? { col: c, desc: !clOrdem.desc } : { col: c, desc: false };
@@ -14018,6 +14260,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && co
 // ordens de serviço: novas OS da fila aparecem ao voltar para o app (no máximo 1 vez por minuto)
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (sincronizarOS.quando || 0) > 60000) sincronizarOS(); });
 window.addEventListener("online", () => processarBaixasOS(false));
+window.addEventListener("online", () => enviarPerfilPend());
 $("hist-resumo").onclick = abrirHistorico;
 $("btn-pt").onclick = abrirPastaTec;
 $("btn-ldsalvos").onclick = abrirSalvos;
