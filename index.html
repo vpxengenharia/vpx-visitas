@@ -9372,9 +9372,19 @@ function fecharMenu() { $("menu").hidden = true; }
 const diasAte = iso => { const hoje = new Date(); hoje.setHours(0, 0, 0, 0); return Math.round((new Date(iso + "T00:00:00") - hoje) / 86400000); };
 const dataBRde = iso => { const [a, m, d] = iso.split("-"); return `${d}/${m}/${a}`; };
 // mesmas faixas do painel: vencido / vence em até 3 meses (90 dias) / em dia
+// prazo por extenso (pedido do Gustavo em 11/11/2026: "há 1.090 dias" obrigava a fazer conta): até 90 dias em dias; depois em meses
+// (arredondados); de 2 anos em diante em anos inteiros, com "quase N anos" quando faltam menos de 2 meses para completar
+function tempoHumano(dias) {
+  const d = Math.abs(dias);
+  if (d <= 90) return `${d} dia${d === 1 ? "" : "s"}`;
+  const m = d / 30.4375;
+  if (m < 23.5) return `${Math.round(m)} meses`;
+  const anos = Math.floor(m / 12), resto = m - anos * 12;
+  return resto >= 10 ? `quase ${anos + 1} anos` : `${anos} anos`;
+}
 function situacaoAvcb(v) {
   const dias = diasAte(v.vencimento), data = dataBRde(v.vencimento);
-  if (dias < 0) return { cls: "crit", dias, texto: `${v.tipo} vencido há ${(-dias).toLocaleString("pt-BR")} dia${dias === -1 ? "" : "s"} (venceu em ${data})` };
+  if (dias < 0) return { cls: "crit", dias, texto: `${v.tipo} vencido há ${tempoHumano(dias)} (venceu em ${data})` };
   if (dias === 0) return { cls: "warn", dias, texto: `${v.tipo} vence hoje (${data})` };
   if (dias <= 90) return { cls: "warn", dias, texto: `${v.tipo} vence em ${dias} dia${dias === 1 ? "" : "s"} (${data})` };
   return { cls: "ok", dias, texto: `${v.tipo} em dia, válido até ${data}` };
@@ -9427,10 +9437,10 @@ function compAvcb(a, b) {
 }
 // situação em poucas palavras para a coluna: "Vencido" / "há 1.085 dias"; "A vencer" / "em 45 dias"; "Em dia" / "faltam 210 dias"
 function sitCurtaAvcb(s) {
-  const n = Math.abs(s.dias).toLocaleString("pt-BR"), dias = Math.abs(s.dias) === 1 ? "dia" : "dias";
-  if (s.cls === "crit") return ["Vencido", `há ${n} ${dias}`];
-  if (s.cls === "warn") return ["A vencer", s.dias === 0 ? "hoje" : `em ${n} ${dias}`];
-  return ["Em dia", `${s.dias === 1 ? "falta" : "faltam"} ${n} ${dias}`];
+  const q = tempoHumano(s.dias);                   // "19 dias", "16 meses", "quase 3 anos"
+  if (s.cls === "crit") return ["Vencido", `há ${q}`];
+  if (s.cls === "warn") return ["A vencer", s.dias === 0 ? "hoje" : `em ${q}`];
+  return ["Em dia", `${s.dias === 1 ? "falta" : "faltam"} ${q}`];
 }
 // pasta do cliente com o mesmo nome (ou o nome mais parecido) do estabelecimento, para abrir a página do cliente
 // pasta do cliente do estabelecimento, pelo mesmo casamento de nomes da página do cliente (avcbDoCliente):
