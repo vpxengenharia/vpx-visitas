@@ -1358,6 +1358,62 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   @keyframes selo-entra{from{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}}
   #tela-ok:not([hidden]) .selo{animation:selo-entra .34s ease-out}
 }
+/* ===== Computador (pacote C da 2ª análise da interface, aprovado pelo Gustavo em 10/11/2026) ===== */
+/* contorno de foco igual em tudo que recebe o cursor pelo teclado (peso zero: as regras próprias de cada componente continuam valendo) */
+:where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+/* resumos das tabelas: a regra geral p{max-width:60ch} quebrava a linha com metade da tela livre ("4 em dia" caía sozinho) */
+.orc-resumo{max-width:none}
+/* Clientes em tela larga: a data do AVCB não invade a coluna ao lado; título e busca numa linha; filtros compactos numa linha, resumo na linha de baixo */
+@container (min-width:860px){
+  .cl-tab .cl-c-avcb{width:224px}
+  .cl-c-avcb small{overflow:hidden;text-overflow:ellipsis}
+  .cl-cab{display:flex;align-items:center;gap:16px}
+  .cl-cab .hub-tit{margin:0}
+  .cl-cab .hub-busca{flex:1;max-width:420px;min-height:44px;margin:0}
+  .orc-filtros.cl-filtros{grid-auto-flow:column;grid-template-columns:none;justify-content:start;gap:12px;margin:10px 0 0}
+  .cl-filtros .orc-sel{flex-direction:row;align-items:center;gap:8px}
+  .cl-filtros select{width:170px;min-height:40px}
+  .cl-resumo{margin:10px 2px 12px}
+}
+.nav-atalho{display:none}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  /* com mouse os números do resumo não precisam de 42 px */
+  .cl-resumo .avcb-qt,#avcb-resumo .avcb-qt{min-height:34px;font-size:14.5px}
+  /* quadros de Tarefas e do Funil: as 6 etapas cabem num notebook; títulos das colunas da mesma altura */
+  .kb-col{flex:1 0 166px}
+  #tela-funil .kb-cab{min-height:40px;align-items:flex-start}
+  /* Agenda: calendário à esquerda e os compromissos do dia à direita, tudo à vista */
+  @media (min-width:1180px){                      /* em janela mais estreita a coluna do dia ficava espremida: lá continua uma coluna só */
+    #tela-agenda{--larg:1080px}
+    #agenda-lista:not([hidden]){display:grid;grid-template-columns:400px minmax(0,1fr);grid-template-rows:auto auto auto 1fr;column-gap:36px;align-items:start}   /* :not([hidden]): o formulário de compromisso esconde a lista */
+    #agenda-lista > .ag-mes-cab,#agenda-lista > .ag-cal,#agenda-lista > .avcb-nota{grid-column:1}
+    #agenda-lista > .ag-dia-sel{grid-column:2;grid-row:1 / span 4;border-top:0;padding-top:0}
+    #agenda-lista > .ag-dia-sel .ag-dia{margin-top:10px}
+  }
+  #agenda-form{max-width:760px}
+  /* formulários: título do mesmo tamanho das outras telas */
+  .trab-topo strong{font-size:26px}
+  .trab-topo{margin:-2px 0 12px}
+  /* formulários com fotos: no computador as fotos vêm de arquivos — "Escolher arquivos" em destaque, Câmera discreta, barra numa linha só */
+  #btn-seq{background:var(--papel);border:1.5px solid var(--linha);color:var(--tinta);flex:1}
+  #btn-seq:hover{filter:none;border-color:var(--borda-hover)}
+  .captura label.btn{background:var(--marinho);border-color:var(--marinho);color:#fff;flex:1.4}
+  .captura label.btn:hover{background:var(--marinho);border-color:var(--marinho);filter:brightness(1.12)}
+  .barra-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .captura{flex:none}
+  .captura .btn,.captura label.btn,#btn-seq{flex:none;flex-direction:row;gap:8px;min-height:48px;padding:0 18px;white-space:nowrap;font-size:15px}
+  #progresso{flex-basis:100%;order:-1}
+  #btn-salvar{flex:1;min-height:48px}
+  body.form-on main{padding-bottom:130px}
+  body.form-on .aviso,body.form-on .versao-nova{bottom:124px}   /* a barra de baixo agora tem uma linha só (73 px; 115 px com a faixa de progresso): os avisos ficam logo acima dela */
+  .semfotos:not([hidden]){min-height:200px;display:grid;place-items:center}
+  /* atalho do teclado ao lado de Clientes, no menu lateral */
+  .nav-atalho{display:inline-block;margin-left:auto;padding:1px 6px;border:1px solid var(--linha);border-radius:6px;font-family:var(--texto-fonte);font-size:12px;font-weight:600;color:var(--suave)}
+}
+@media (min-width:900px) and (hover:hover) and (pointer:fine) and (prefers-color-scheme:dark){
+  #btn-seq{background:var(--papel);border-color:var(--linha);color:var(--tinta)}
+  .captura label.btn,.captura label.btn:hover{background:var(--laranja);border-color:var(--laranja);color:var(--marinho)}
+}
 </style>
 </head>
 <body>
@@ -1613,7 +1669,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 <!-- barra de baixo: o caminho para tudo do app -->
 <nav class="nav" id="nav" hidden aria-label="Menu principal">
   <button data-s="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Início</button>
-  <button data-s="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16"/><path d="M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg>Clientes</button>
+  <button data-s="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16"/><path d="M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg>Clientes<kbd class="nav-atalho" title="Ir para um cliente (Ctrl+K)" aria-hidden="true">Ctrl K</kbd></button>
   <button data-s="reg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><path d="M16.75 14v5.5M14 16.75h5.5"/></svg>Registros</button>
   <button data-s="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
   <!-- no computador (menu lateral) o que fica no Mais aparece direto; no celular, só o Mais (pedido do Gustavo em 06/11/2026) -->
@@ -1639,7 +1695,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
       </button>
       <label class="btn sec">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg>
-        Galeria
+        <span id="gal-rot">Galeria</span>
         <input class="oculto" type="file" accept="image/*,video/*" multiple id="in-gal">
       </label>
     </div>
@@ -2502,7 +2558,7 @@ function desenharLista() {
 
   const achados = clientes.filter(c => semAcento(c).includes(nq));
   const nome = limparNome(q);
-  if (nome && !clientes.some(c => semAcento(c) === semAcento(nome))) {
+  if (nome && !escolhaSoLista && !clientes.some(c => semAcento(c) === semAcento(nome))) {
     add(`+ Criar cliente "${nome}"`, "novo", () => criarCliente(nome));
   }
   if (!q) {
@@ -2510,17 +2566,18 @@ function desenharLista() {
     if (rec.length) { grupo("Recentes"); rec.forEach(c => add(c, "", () => escolher(c))); grupo("Todos"); }
   }
   achados.forEach(c => add(c, "", () => escolher(c)));
-  if (!achados.length && !nome) {
+  if (!achados.length && (!nome || escolhaSoLista)) {
     const li = document.createElement("li"); li.className = "grupo";
     li.textContent = "Nenhum cliente encontrado."; ul.appendChild(li);
   }
 }
 
 // aoEscolher (opcional): usa a mesma lista de clientes para outra tela (ex.: nova OS) sem mudar o cliente do formulário
-let escolhaCliente = null;
-function abrirDialogo(aoEscolher) {
+let escolhaCliente = null, escolhaSoLista = false;   // soLista: só escolher um cliente que existe (Ctrl+K), sem "+ Criar cliente"
+function abrirDialogo(aoEscolher, soLista) {
   if (enviando) return;
   escolhaCliente = typeof aoEscolher === "function" ? aoEscolher : null;   // vindo de um onclick, o parâmetro é o evento
+  escolhaSoLista = soLista === true;
   $("busca").value = "";
   desenharLista();
   $("dlg").showModal();
@@ -2601,7 +2658,7 @@ function aplicarModo() {
     : com ? "Fotos (opcional): fachada, casa de bombas, hidrantes, quadro de alarme… Elas entram no PDF da ficha."
     : trn ? "Fotos da prática (opcional). Elas entram no PDF da lista de presença."
     : "Nenhuma foto ou vídeo ainda. Fotografe, filme ou escolha vários da galeria de uma vez.";
-  if (computador.matches) $("semfotos").textContent += " No computador, também dá para arrastar os arquivos para cá.";
+  if (computador.matches) $("semfotos").textContent = $("semfotos").textContent.replace("escolha vários da galeria de uma vez", "escolha vários arquivos de uma vez").replace("escolha da galeria", "escolha os arquivos") + " No computador, também dá para arrastar os arquivos para cá.";
   atualizar();
 }
 
@@ -4695,7 +4752,7 @@ function travarVertical(travar) {
 
 function abrirCamera() {
   if (enviando || cam) return;
-  if (!navigator.mediaDevices?.getUserMedia) { aviso("Este navegador não abre a câmera do app. Fotografe pela câmera do celular e use o botão Galeria.", true); return; }
+  if (!navigator.mediaDevices?.getUserMedia) { aviso(`Este navegador não abre a câmera do app. Fotografe pela câmera do celular e use o botão ${computador.matches ? "Escolher arquivos" : "Galeria"}.`, true); return; }
   cam = { fotos: [], ocupado: false, luz: false, zoom: 1, modo: "foto" };
   $("cam-miniatura").hidden = true;
   $("cam-zoom").hidden = true;
@@ -5916,7 +5973,7 @@ function montarTrein() {
   limpar.onclick = zerar;
   w.append(cv, limpar);
   raiz.appendChild(w);
-  raiz.appendChild(el("p", "laudo-dica", "Fotos da parte prática (opcional): use Câmera ou Galeria embaixo. Elas entram no PDF e também ficam na pasta."));
+  const dicaFotos = el("p", "laudo-dica"); dicaFotos.append("Fotos da parte prática (opcional): use Câmera ou ", el("span", "gal-nome", computador.matches ? "Escolher arquivos" : "Galeria"), " embaixo. Elas entram no PDF e também ficam na pasta."); raiz.appendChild(dicaFotos);
   const desc = el("button", "laudo-link perigo", "Descartar este treinamento"); desc.type = "button";
   desc.onclick = async () => { if (await confirmarApagar("Descartar este treinamento?", "Tudo o que foi preenchido será apagado.", "Apagar o treinamento", "Manter o treinamento")) { limparTrein(); atualizarBotao(); window.scrollTo(0, 0); } };
   raiz.appendChild(desc);
@@ -12930,7 +12987,7 @@ function quadroFu(lista, ets) {
   for (const e of ets) {
     const itens = lista.filter(o => o.etapa === e).sort(ordemFu), soma = itens.reduce((s, o) => s + valorFu(o), 0);
     kb.appendChild(colunaKb(fuTela, e, etapaTxt(e), itens, o => cartaoFu(o, { arrastar: computador.matches }), id => moverEtapa(id, e),
-      { soma: soma ? reais(soma) : "", vazio: "Nenhuma oportunidade.", redesenhar: desenharFunil }));
+      { soma: soma ? reais(soma) : computador.matches ? "—" : "", vazio: "Nenhuma oportunidade.", redesenhar: desenharFunil }));
   }
   return kb;
 }
@@ -13707,8 +13764,34 @@ computador.addEventListener("change", () => {      // janela passou da largura d
   if (secao === "fin") desenharFin();
   atualizarNav();
 });
-// no computador: Esc fecha a tela aberta por cima (o mesmo que "‹ Voltar"); num campo de texto, só sai do campo
+// no computador o botão da Galeria se chama "Escolher arquivos" (as fotos vêm de arquivos)
+const rotuloGaleria = () => { const t = computador.matches ? "Escolher arquivos" : "Galeria"; $("gal-rot").textContent = t; for (const s of document.querySelectorAll(".gal-nome")) s.textContent = t; };
+rotuloGaleria(); computador.addEventListener("change", rotuloGaleria);
+// no computador: Ctrl+K abre "Escolher cliente" e vai para a página dele; "/" põe o cursor na busca da tela;
+// Esc fecha a tela aberta por cima (o mesmo que "‹ Voltar"); num campo de texto, só sai do campo
 document.addEventListener("keydown", e => {
+  const ctrlK = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key?.toLowerCase() === "k";
+  // o Ctrl+K é do app mesmo quando a lista não pode abrir agora (já aberta, câmera, visualizador, envio): senão o Chrome leva o cursor para a barra de endereço
+  if (ctrlK && computador.matches && document.body.classList.contains("logado")) e.preventDefault();
+  if (computador.matches && document.body.classList.contains("logado") && !document.querySelector("dialog[open]") && !cam && $("visor-pdf").hidden && $("tela-assinar").hidden && !enviando) {
+    if (ctrlK) {
+      abrirDialogo(c => {
+        if (!clientes.includes(c)) { aviso("Escolha um cliente da lista.", true); return; }
+        if (!fecharTelasPorCima()) return;       // fecha o que estiver aberto por cima (pergunta antes se houver algo não salvo)
+        // formulário de compromisso aberto: a Agenda tira o passo dele do histórico (history.go é assíncrono); só depois abre o cliente
+        if (secao === "agenda" && agForm && history.state?.agform) { fecharAgenda(false); addEventListener("popstate", () => abrirCliente(c), { once: true }); }
+        else abrirCliente(c);
+      }, true);
+      return;
+    }
+    if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.target.matches?.("input, textarea, select, [contenteditable]")) {
+      const zi = t => +getComputedStyle(t).zIndex || 0;
+      const cima = [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden && !t.classList.contains("como-secao")).reduce((a, t) => !a || zi(t) >= zi(a) ? t : a, null);
+      const busca = cima ? [...cima.querySelectorAll("input[type=search]")].find(i => i.offsetParent) : secao === "clientes" ? $("cl-busca") : null;
+      if (busca) { e.preventDefault(); busca.focus(); busca.select(); }
+      return;
+    }
+  }
   if (e.key !== "Escape" || $("dlg").open || $("dlg-enviar").open || $("dlg-perg").open || cam) return;   // a lista de clientes (e o "Enviar agora") fecha sozinha com o Esc; a câmera tem o próprio botão
   if (e.target.matches?.("input, textarea, select")) { e.target.blur(); return; }
   if (!$("visor-pdf").hidden) { fecharVisor(); return; }
