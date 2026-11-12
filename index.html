@@ -1521,6 +1521,9 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     .hub-card.kpi{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;grid-row:span 3;row-gap:2px}
   }
 }
+/* Funil: filtro por etapa (12/11/2026). Com uma etapa só, o quadro tem uma coluna: no computador ela não ocupa a tela toda */
+#fu-grupos{margin-bottom:8px}
+#fu-lista .kb-col:only-child{max-width:520px}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2076,7 +2079,8 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
         <select id="fu-pessoa" aria-label="Responsável"></select>
         <select id="fu-sit" aria-label="Situação do contato"></select>
       </div>
-      <div class="chips avcb-filtro" id="fu-grupos"></div>
+      <div class="chips avcb-filtro" id="fu-grupos" role="group" aria-label="Parte do funil"></div>
+      <div class="chips avcb-filtro" id="fu-etapas" role="group" aria-label="Etapa do funil"></div>
       <p class="orc-resumo" id="fu-resumo"></p>
       <div id="fu-lista"></div>
       <p class="avcb-nota" id="fu-nota"></p>
@@ -13510,7 +13514,7 @@ function cartaoFu(o, op = {}) {
 // op: { busca, aberta (abre direto numa oportunidade), nova }
 function abrirFunil(op = {}) {
   if (!conta || !pode("funil")) return;
-  fuTela = { vista: lerLS("vpx_fu_vista", "quadro"), grupo: lerLS("vpx_fu_grupo", "neg"), pessoa: "", sit: "", aberta: null, nova: null,
+  fuTela = { vista: lerLS("vpx_fu_vista", "quadro"), grupo: lerLS("vpx_fu_grupo", "neg"), etapa: "", pessoa: "", sit: "", aberta: null, nova: null,
     direto: !!(op.aberta || op.nova), mais: {}, ordem: { col: "etapa", desc: false }, limTab: 150 };
   $("fu-busca").value = op.busca || "";
   $("tela-funil").hidden = false;
@@ -13544,7 +13548,7 @@ function novaOport(base = {}) {
   if (!fuTela) return;
   if (!fuTela.aberta && !fuTela.nova && !fuTela.direto) guardarRol("tela-funil");
   const g = fuTela.grupo;
-  fuTela.nova = { nome: "", etapa: g === "prosp" ? "01" : g === "fim" ? "09" : "03", prioridade: "", resp: [eu()], cliente: "", ...base };
+  fuTela.nova = { nome: "", etapa: fuTela.etapa || (g === "prosp" ? "01" : g === "fim" ? "09" : "03"), prioridade: "", resp: [eu()], cliente: "", ...base };
   fuTela.aberta = null;
   if (!fuTela.direto && !history.state?.fuSub) history.pushState({ fu: true, fuSub: true }, "");
   desenharFunil();
@@ -13580,10 +13584,11 @@ function desenharFunil() {
   for (const [k, rot, ets] of GRUPOS_FU) {
     const b = el("button", "", `${rot} (${todas.filter(o => ets.includes(o.etapa)).length})`); b.type = "button";
     b.setAttribute("aria-pressed", String(fuTela.grupo === k));
-    b.onclick = () => { fuTela.grupo = k; fuTela.mais = {}; fuTela.limTab = 150; fuTela.sit = ""; gravarLS("vpx_fu_grupo", k); desenharFunil(); };
+    b.onclick = () => { fuTela.grupo = k; fuTela.etapa = ""; fuTela.mais = {}; fuTela.limTab = 150; fuTela.sit = ""; gravarLS("vpx_fu_grupo", k); desenharFunil(); };
     gr.appendChild(b);
   }
   const ets = (GRUPOS_FU.find(g => g[0] === fuTela.grupo) || GRUPOS_FU[0])[2];
+  if (!ets.includes(fuTela.etapa)) fuTela.etapa = "";
   let lista = todas.filter(o => ets.includes(o.etapa));
   // responsável e situação: só as opções que existem nesta parte do funil
   const opcoes = (sel, primeira, pares, atual) => {
@@ -13600,19 +13605,30 @@ function desenharFunil() {
   if (fuTela.sit) lista = lista.filter(o => (o.situacao || "A definir") === fuTela.sit);
   const q = semAcento($("fu-busca").value.trim());
   if (q) lista = lista.filter(o => buscaFu(o, q));
+  // filtro por etapa (pedido do Gustavo em 12/11/2026): um botão para cada etapa do grupo, com a quantidade depois da busca, do responsável e da situação
+  const fEt = $("fu-etapas"), focoEt = fEt.contains(document.activeElement) ? document.activeElement.dataset.e : null;
+  fEt.innerHTML = "";
+  for (const [e, rot] of [["", "Todas as etapas"], ...ets.map(e => [e, etapaTxt(e)])]) {
+    const b = el("button", "", `${rot} (${e ? lista.filter(o => o.etapa === e).length : lista.length})`); b.type = "button"; b.dataset.e = e;
+    b.setAttribute("aria-pressed", String(fuTela.etapa === e));
+    b.onclick = () => { fuTela.etapa = e; fuTela.mais = {}; fuTela.limTab = 150; desenharFunil(); };
+    fEt.appendChild(b);
+  }
+  if (focoEt != null) fEt.querySelector(`[data-e="${focoEt}"]`)?.focus({ preventScroll: true });
+  if (fuTela.etapa) lista = lista.filter(o => o.etapa === fuTela.etapa);
   // resumo: quantidade e valor do que está na tela; em negociação, os fechados do mês
   const res = $("fu-resumo"); res.innerHTML = "";
   const soma = lista.reduce((s, o) => s + valorFu(o), 0);
   res.append(el("b", "", String(lista.length)), ` oportunidade${lista.length === 1 ? "" : "s"}`);
   if (soma) res.append(" · ", el("b", "", reais(soma)), " estimados");
-  if (fuTela.grupo === "neg") {
+  if (fuTela.grupo === "neg" && (!fuTela.etapa || fuTela.etapa === "08")) {
     const mes = dataISO().slice(0, 7), fe = todas.filter(o => o.etapa === "08" && (o.fechadoEm || "").startsWith(mes)), sf = fe.reduce((s, o) => s + valorFu(o), 0);
     if (fe.length) res.append(` · fechadas em ${MESES[+mes.slice(5) - 1]}: `, el("b", "", `${fe.length}${sf ? " (" + reais(sf) + ")" : ""}`));
   }
   const alvo = $("fu-lista"); alvo.innerHTML = "";
   if (!colFu.dados.lido && !Object.keys(colFu.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando o funil…" : "Sem internet e sem o funil guardado neste aparelho."));
   else if (!lista.length && (q || fuTela.pessoa || fuTela.sit)) alvo.appendChild(el("p", "avcb-nota", "Nada encontrado."));
-  else if (fuTela.vista === "quadro") alvo.appendChild(quadroFu(lista, ets));
+  else if (fuTela.vista === "quadro") alvo.appendChild(quadroFu(lista, fuTela.etapa ? [fuTela.etapa] : ets));
   else alvo.appendChild(tabelaFu(lista));
   $("fu-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando a última cópia guardada. Para mudar, conecte o aparelho.";
 }
@@ -14969,7 +14985,7 @@ function mostrarChipMarcado(ch) {
 }
 {
   const olhar = new MutationObserver(() => document.querySelectorAll(".chips.avcb-filtro").forEach(mostrarChipMarcado));
-  ["os-corpo", "fu-grupos", "tar-filtro"].forEach(id => olhar.observe($(id), { childList: true }));
+  ["os-corpo", "fu-grupos", "fu-etapas", "tar-filtro"].forEach(id => olhar.observe($(id), { childList: true }));
 }
 document.addEventListener("touchstart", () => {}, { passive: true });   // iPhone: sem um ouvinte de toque, o :active (botão que escurece ao tocar) não aparece
 try { navigator.storage?.persist?.(); } catch {}   // pede ao navegador para não apagar as fotos guardadas
