@@ -617,6 +617,34 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-grupo i.g-critica{background:var(--erro)}.tar-grupo i.g-alta{background:var(--laranja)}.tar-grupo i.g-media{background:#6F8FB8}.tar-grupo i.g-baixa{background:#B9C6D6}
 .tar-grupo small{font-family:var(--texto-fonte);font-size:14px;font-weight:600;color:var(--suave)}
 .tar-feitas{width:100%;margin:14px 0 10px}
+/* tarefas em tabela como planilha (pedido do Gustavo em 12/11/2026): no celular Tarefa, Situação e Prazo; na tela larga também Prioridade, Responsáveis e Cliente */
+#tela-tar .avcb-corpo{container-type:inline-size}
+.tar-resumo{margin:2px 2px 10px}
+.tar-tab .tar-c-st{width:122px}
+.tar-tab .tar-c-prazo{width:66px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tar-tab td.tar-c-prazo small{display:block;font-size:12px;font-weight:700}
+.tar-tab td.crit{color:var(--crit-tx);font-weight:700}.tar-tab td.warn{color:var(--warn-tx);font-weight:700}
+.tar-so-pc,.tar-so-pc-b{display:none!important}
+.tar-tab .tar-st{min-height:28px;padding:3px 9px}
+.tar-tab tr.tar-feita .tar-tab-tit{text-decoration:line-through;color:var(--suave)}
+.tar-pri-tx{font-weight:700}
+.tar-pri-tx.pri-critica{color:var(--crit-tx)}.tar-pri-tx.pri-alta{color:var(--warn-tx)}
+.tar-pri-dot{display:inline-block;width:10px;height:10px;margin-right:7px;border-radius:3px;background:var(--linha);vertical-align:0}
+.tar-pri-dot.g-critica{background:var(--erro)}.tar-pri-dot.g-alta{background:var(--laranja)}.tar-pri-dot.g-media{background:#6F8FB8}.tar-pri-dot.g-baixa{background:#B9C6D6}
+@container (max-width:859px){
+  .tar-tab{font-size:15px}
+  .tar-tab tbody td{padding-top:10px;padding-bottom:10px}
+}
+@container (min-width:860px){
+  td.tar-so-pc,th.tar-so-pc{display:table-cell!important}
+  .tar-so-pc-b{display:block!important}
+  .tar-tab .tar-c-st{width:138px}
+  .tar-tab .tar-c-pri{width:104px}
+  .tar-tab .tar-c-prazo{width:128px}
+  .tar-tab .tar-c-resp{width:160px}
+  .tar-tab .tar-c-cli{width:180px;overflow-wrap:anywhere}
+  .tar-tab td.tar-c-prazo small{display:inline;margin-left:6px}
+}
 /* quadro: uma coluna por situação (tarefas) ou por etapa (funil); no celular as colunas correm para o lado */
 .kb{display:flex;align-items:flex-start;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:2px 16px 14px}
 .kb-col{flex:0 0 min(84vw,300px);scroll-snap-align:start;min-height:140px;padding:8px;border-radius:14px;border-top:4px solid var(--linha);background:rgba(28,60,97,.05)}
@@ -13326,25 +13354,90 @@ function desenharTar() {
   else listaTar(lista, alvo);
   $("tar-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando as últimas tarefas guardadas. Para mudar, conecte o aparelho.";
 }
-// lista: abertas por prioridade (como os grupos do monday); concluídas no fim, escondidas
+/* lista de tarefas como planilha (pedido do Gustavo em 12/11/2026, igual às tabelas de pedidos, notas fiscais e AVCB; no lugar dos cartões agrupados).
+   Celular: Tarefa (prioridade, responsáveis e cliente embaixo) · Situação · Prazo; tela larga: também Prioridade, Responsáveis e Cliente.
+   Título da coluna ordena (de novo inverte; vazios no fim); padrão = prioridade (como os grupos do monday) e, dentro dela, atrasadas e prazo.
+   As abertas vêm sempre antes das concluídas; as concluídas só aparecem com "Ver as concluídas". O selo da situação muda a situação. */
+let tarOrdem = { col: "pri", desc: false };
+const ORDEM_ST_TAR = { nao: 0, andamento: 1, parado: 2, feito: 3 };
+const COLS_TAR = {
+  tit: t => t.titulo || null,
+  st: t => ORDEM_ST_TAR[t.status] ?? 0,
+  pri: t => RANK_PRI[t.prioridade] ?? null,
+  prazo: t => t.prazo || null,
+  resp: t => (t.resp || []).map(p => nomePessoa(p)).join(", ") || null,
+  cli: t => t.cliente || null
+};
+function compTar(a, b) {
+  const fa = abertaTar(a), fb = abertaTar(b);
+  if (fa !== fb) return fa ? -1 : 1;                 // abertas antes das concluídas
+  if (!fa) return (b.feitoEm || b.atualizado || "").localeCompare(a.feitoEm || a.atualizado || "");   // concluídas: as mais recentes primeiro
+  const f = COLS_TAR[tarOrdem.col] || COLS_TAR.pri, x = f(a), y = f(b);
+  if ((x == null) !== (y == null)) return x == null ? 1 : -1;
+  let r = x == null ? 0 : typeof x === "number" ? x - y : String(x).localeCompare(String(y), "pt-BR");
+  if (tarOrdem.desc) r = -r;
+  return r || ordemTar(a, b);
+}
 function listaTar(lista, alvo) {
   const abertas = lista.filter(abertaTar), feitas = lista.filter(t => !abertaTar(t));
-  for (const [p, rot] of [...Object.entries(PRI), ["", "Sem prioridade"]]) {
-    const g = abertas.filter(t => (PRI[t.prioridade] ? t.prioridade : "") === p).sort(ordemTar);
-    if (!g.length) continue;
-    const h = el("h3", "tar-grupo"); h.append(el("i", "g-" + (p || "nenhuma")), rot, el("small", "", String(g.length)));
-    const itens = el("div", "tar-gr-itens"); g.forEach(t => itens.appendChild(cartaoTar(t)));
-    alvo.append(h, itens);
-  }
-  if (!abertas.length) alvo.appendChild(el("p", "avcb-nota", "Nenhuma tarefa aberta aqui."));
+  const vis = [...abertas, ...(tarTela.verFeitas ? feitas.sort((a, b) => (b.feitoEm || b.atualizado || "").localeCompare(a.feitoEm || a.atualizado || "")).slice(0, 150) : [])].sort(compTar);
+  const atr = abertas.filter(atrasadaTar).length;
+  alvo.appendChild(el("p", "orc-resumo tar-resumo", `${abertas.length} tarefa${abertas.length === 1 ? "" : "s"} aberta${abertas.length === 1 ? "" : "s"}` + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : "")));
+  if (vis.length) alvo.appendChild(tabelaTar(vis));
+  else alvo.appendChild(el("p", "avcb-nota", "Nenhuma tarefa aberta aqui."));
   if (!feitas.length) return;
   const b = el("button", "btn sec tar-feitas", `${tarTela.verFeitas ? "Esconder" : "Ver"} as concluídas (${feitas.length})`); b.type = "button";
   b.onclick = () => { tarTela.verFeitas = !tarTela.verFeitas; desenharTar(); };
   alvo.appendChild(b);
-  if (!tarTela.verFeitas) return;
-  const itens = el("div", "tar-gr-itens");
-  feitas.sort((a, b) => (b.feitoEm || b.atualizado || "").localeCompare(a.feitoEm || a.atualizado || "")).slice(0, 150).forEach(t => itens.appendChild(cartaoTar(t)));
-  alvo.appendChild(itens);
+}
+function tabelaTar(vis) {
+  const cols = [["tit", "Tarefa", "orc-c-cli"], ["st", "Situação", "tar-c-st"], ["pri", "Prioridade", "tar-so-pc tar-c-pri"],
+    ["prazo", "Prazo", "tar-c-prazo"], ["resp", "Responsáveis", "tar-so-pc tar-c-resp"], ["cli", "Cliente", "tar-so-pc tar-c-cli"]];
+  const tb = el("table", "orc-tab tar-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  for (const [k, rot, cls] of cols) {
+    const th = el("th", cls), b = el("button", "", rot), ativa = tarOrdem.col === k;
+    th.scope = "col"; b.type = "button"; b.dataset.col = k;
+    b.dataset.seta = ativa ? (tarOrdem.desc ? " ↓" : " ↑") : "";
+    th.setAttribute("aria-sort", ativa ? (tarOrdem.desc ? "descending" : "ascending") : "none");
+    b.onclick = () => { tarOrdem = { col: k, desc: ativa ? !tarOrdem.desc : false }; desenharTar(); $("tar-lista").querySelector(`thead button[data-col="${k}"]`)?.focus(); };
+    th.appendChild(b); tr.appendChild(th);
+  }
+  cab.appendChild(tr);
+  vis.forEach(t => corpo.appendChild(linhaTar(t)));
+  tb.append(cab, corpo);
+  return tb;
+}
+function linhaTar(t) {
+  const aberta = abertaTar(t), st = ST_TAR[t.status] ? t.status : "nao", pri = PRI[t.prioridade] ? t.prioridade : "";
+  const tr = el("tr", aberta ? "" : "tar-feita"); tr.tabIndex = 0;
+  const nomes = (t.resp || []).map(p => primeiroNome(nomePessoa(p)));
+  const ns = (t.sub || []).length, nc = (t.coment || []).length;
+  const extra = [ns && `${t.sub.filter(s => s.f).length}/${ns} subtarefas`, nc && `${nc} comentário${nc > 1 ? "s" : ""}`].filter(Boolean);
+  // tarefa: título; embaixo, no celular, prioridade, responsáveis e cliente (na tela larga têm coluna própria)
+  const tit = el("td", "orc-c-cli");
+  tit.appendChild(el("span", "orc-cli tar-tab-tit", t.titulo || "(sem título)"));
+  const sub = el("small", "orc-sub orc-so-cel");
+  if (pri) sub.appendChild(el("span", "tar-pri-tx pri-" + pri, PRI[pri]));
+  const resto = [nomes.join(", "), t.cliente, ...extra].filter(Boolean).join(" · ");
+  if (resto) sub.append((pri ? " · " : "") + resto);
+  if (sub.childNodes.length) tit.appendChild(sub);
+  if (extra.length) tit.appendChild(el("small", "orc-sub tar-so-pc-b", extra.join(" · ")));
+  // situação: o selo abre o menu para mudar (quem pode mexer)
+  const cs = el("td", "tar-c-st");
+  if (pode("tarefas") || minhaTar(t)) {
+    const pill = el("button", "tar-st st-" + st, ST_TAR[st]); pill.type = "button"; pill.title = "Mudar a situação";
+    pill.onclick = e => { e.stopPropagation(); menuOpcoes(pill, Object.entries(ST_TAR).map(([k, r]) => [k, r, "st-" + k]), st, v => mudarStatusTar(t.id, v)); };
+    cs.appendChild(pill);
+  } else cs.appendChild(el("span", "tar-st st-" + st, ST_TAR[st]));
+  const cp = el("td", "tar-so-pc tar-c-pri");
+  if (pri) { cp.appendChild(el("i", "tar-pri-dot g-" + pri)); cp.append(PRI[pri]); } else cp.textContent = "—";
+  const cz = el("td", "tar-c-prazo" + (atrasadaTar(t) ? " crit" : hojeTar(t) ? " warn" : ""));
+  if (t.prazo) { cz.appendChild(el("span", "", dataCurta(t.prazo))); if (atrasadaTar(t)) cz.appendChild(el("small", "", "atrasada")); else if (hojeTar(t)) cz.appendChild(el("small", "", "hoje")); }
+  else cz.textContent = "—";
+  tr.append(tit, cs, cp, cz, el("td", "tar-so-pc tar-c-resp", nomes.join(", ") || "—"), el("td", "tar-so-pc tar-c-cli", t.cliente || "—"));
+  tr.onclick = () => abrirTarefa(t.id);
+  tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrirTarefa(t.id); };
+  return tr;
 }
 // quadro: uma coluna por situação; "Feito" só com as dos últimos 30 dias
 function quadroTar(lista) {
