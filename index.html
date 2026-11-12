@@ -2160,7 +2160,6 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <div class="avcb-corpo">
     <div id="tar-lista-tela">
       <div class="tar-ctrl">
-        <div class="tar-vistas" id="tar-vistas"><button type="button" data-v="lista" aria-pressed="true">Lista</button><button type="button" data-v="quadro" aria-pressed="false">Quadro</button></div>
         <input class="avcb-busca" id="tar-busca" type="search" placeholder="Buscar tarefa" aria-label="Buscar tarefa, cliente ou pessoa" autocomplete="off">
         <select id="tar-pessoa" aria-label="Pessoa"></select>
       </div>
@@ -13271,7 +13270,7 @@ function aoMudarTar() {
   if (secao === "mais" && !$("tela-mais").hidden) desenharMais();
 }
 const colTar = colecao({ chave: "vpx_tar", pasta: CONFIG.pastaTarefas, prefixo: "tarefas", n: 8, pode: () => liberado(), aoMudar: aoMudarTar });
-let tarTela = null, tarVoltando = false;   // { vista, filtro, pessoa, aberta, nova, verFeitas, direto, mais }
+let tarTela = null, tarVoltando = false;   // { filtro, pessoa, aberta, nova, verFeitas, direto, mais }
 const tarefas = () => Object.values(regsDe(colTar));
 const minhaTar = t => (t.resp || []).some(p => p.email === emailDe());
 const veTar = t => pode("tarefas") || minhaTar(t);
@@ -13288,7 +13287,7 @@ const mudarStatusTar = (id, st) => mudarReg(colTar, id, r => { r.status = st; r.
 function abrirTar(op = {}) {
   if (!conta) return;
   const tudo = pode("tarefas");
-  tarTela = { vista: lerLS("vpx_tar_vista", "lista"), filtro: tudo ? op.filtro || "minhas" : "minhas", pessoa: "", aberta: null, nova: null, verFeitas: false, direto: !!(op.aberta || op.nova), mais: {} };
+  tarTela = { filtro: tudo ? op.filtro || "minhas" : "minhas", pessoa: "", aberta: null, nova: null, verFeitas: false, direto: !!(op.aberta || op.nova), mais: {} };
   if (tudo && !op.filtro && !tarefas().some(t => minhaTar(t) && abertaTar(t))) tarTela.filtro = "todas";
   $("tar-busca").value = op.busca || "";
   $("tela-tar").hidden = false;
@@ -13346,7 +13345,6 @@ function desenharTar() {
     s.appendChild(tarTela.nova ? formNovaTar() : detalheTar(regsDe(colTar)[tarTela.aberta]));
     return;
   }
-  $("tar-vistas").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === tarTela.vista)));
   const todas = tarefas().filter(veTar), abertas = todas.filter(abertaTar);
   const fil = $("tar-filtro"); fil.innerHTML = ""; fil.hidden = !tudo;
   if (tudo) [["minhas", "Minhas"], ["todas", "Todas"], ["atrasadas", "Atrasadas"]].forEach(([f, rot]) => {
@@ -13374,7 +13372,6 @@ function desenharTar() {
   const alvo = $("tar-lista"); alvo.innerHTML = "";
   if (!colTar.dados.lido && !Object.keys(colTar.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as tarefas…" : "Sem internet e sem tarefas guardadas neste aparelho."));
   else if (!lista.length) alvo.appendChild(el("p", "avcb-nota", q ? "Nenhuma tarefa encontrada." : tarTela.filtro === "atrasadas" ? "Nenhuma tarefa atrasada." : tarTela.filtro === "minhas" ? "Nenhuma tarefa com você." + (tudo ? " Toque em + Nova para criar uma." : "") : "Nenhuma tarefa ainda. Toque em + Nova para criar uma."));
-  else if (tarTela.vista === "quadro") alvo.appendChild(quadroTar(lista));
   else listaTar(lista, alvo);
   $("tar-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando as últimas tarefas guardadas. Para mudar, conecte o aparelho.";
 }
@@ -13531,22 +13528,7 @@ function linhaTar(t) {
   tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrirTarefa(t.id); };
   return tr;
 }
-// quadro: uma coluna por situação; "Feito" só com as dos últimos 30 dias
-function quadroTar(lista) {
-  const kb = el("div", "kb"), limite = Date.now() - 30 * 864e5;
-  for (const [st, rot] of Object.entries(ST_TAR)) {
-    let itens = lista.filter(t => (ST_TAR[t.status] ? t.status : "nao") === st), extra = "";
-    if (st === "feito") {
-      const n = itens.length;
-      itens = itens.filter(t => Date.parse(t.feitoEm || t.atualizado || 0) >= limite).sort((a, b) => (b.feitoEm || "").localeCompare(a.feitoEm || ""));
-      if (n > itens.length) extra = `+ ${n - itens.length} concluída${n - itens.length > 1 ? "s" : ""} há mais de 30 dias (veja na Lista)`;
-    } else itens.sort(ordemTar);
-    kb.appendChild(colunaKb(tarTela, st, rot, itens, t => cartaoTar(t, { arrastar: computador.matches }),
-      id => { const t = regsDe(colTar)[id]; if (t && (ST_TAR[t.status] ? t.status : "nao") !== st && veTar(t)) mudarStatusTar(id, st); },
-      { extra, vazio: "Nenhuma tarefa.", redesenhar: desenharTar }));
-  }
-  return kb;
-}
+// (o Quadro das tarefas saiu a pedido do Gustavo em 12/11/2026: só a Lista em tabela)
 function cartaoTar(t, op = {}) {
   const b = el("div", "tar-card pri-" + (PRI[t.prioridade] ? t.prioridade : "nenhuma") + (abertaTar(t) ? "" : " feita"));
   b.tabIndex = 0; b.setAttribute("role", "button");
@@ -14090,7 +14072,6 @@ $("tar-voltar").onclick = () => { if (tarTela?.aberta || tarTela?.nova) voltarLi
 $("tar-nova").onclick = () => novaTarefa();
 $("tar-busca").oninput = () => { clearTimeout(desenharTar.t); desenharTar.t = setTimeout(desenharTar, 200); };
 $("tar-pessoa").onchange = () => { if (tarTela) { tarTela.pessoa = $("tar-pessoa").value; desenharTar(); } };
-$("tar-vistas").querySelectorAll("button").forEach(b => b.onclick = () => { if (!tarTela) return; tarTela.vista = b.dataset.v; gravarLS("vpx_tar_vista", tarTela.vista); desenharTar(); });
 $("fu-voltar").onclick = () => { if (fuTela?.aberta || fuTela?.nova) voltarListaFu(); else fecharFunil(); };
 $("fu-nova").onclick = () => novaOport();
 $("fu-busca").oninput = () => { clearTimeout(desenharFunil.t); desenharFunil.t = setTimeout(() => { if (fuTela) { fuTela.mais = {}; fuTela.limTab = 150; } desenharFunil(); }, 200); };
