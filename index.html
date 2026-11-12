@@ -8957,6 +8957,8 @@ const verboEsperando = tp => { const nPag = tp ? 0 : esperandoMim("pag"), pg = t
 const txtEsperando = (n, tp) => ehAdmin() ? `${n} aguardando sua aprovação` : `${n} aprovado${n > 1 ? "s" : ""} para ${verboEsperando(tp)}`;
 let pedidos = lerLS("vpx_pc", {});                 // id → { ...json, etag, itemId, pdfWeb, anexosWeb }
 let pcTipo = "compra", pcFiltro = "abertos", pcNovo = null, pcAberto = null;
+const pcExcluindo = new Set();                    // ids dos pedidos sendo excluídos agora: o detalhe fica sem os botões de ação
+const pcExcluidos = new Set();                    // pedidos excluídos neste aparelho: uma sincronização que já tinha listado a pasta não os recoloca
 
 // pasta de cada tipo: pelo caminho (dono do OneDrive) ou por "Compartilhados comigo"; o administrador cria se faltar
 async function basePedidos(tipo = "compra") {
@@ -9018,6 +9020,7 @@ async function sincronizarPedidos() {
     }
   }
   for (const [k, p] of Object.entries(pedidos)) if (p.pendente && !novo[k]) novo[k] = p;   // ainda na fila deste celular
+  for (const k of pcExcluidos) delete novo[k];    // excluído enquanto esta sincronização rodava (a listagem era de antes)
   pedidos = novo;
   gravarLS("vpx_pc", pedidos);
   sincronizarPedidos.rodando = false;
@@ -9155,7 +9158,8 @@ function desenharDetalhePC(p) {
   const ac = el("div", "pc-acoes");
   const botao = (txt, cls, fn) => { const b = el("button", "btn " + cls, txt); b.type = "button"; b.onclick = fn; ac.appendChild(b); };
   const adm = ehAdmin(), meu = p.solicitante?.email === emailDe();
-  if (!p.pendente) {
+  const excluindo = pcExcluindo.has(p.id);         // excluindo: nada de aprovar, pagar, anexar ou excluir de novo no meio
+  if (!p.pendente && !excluindo) {
     if (adm && p.status === "aguardando") { botao("✓ Aprovar", "prim", () => mudarStatusPC(p, "aprovado")); botao("Recusar", "sec", () => mudarStatusPC(p, "recusado", true)); }
     if ((adm || resolveTipo(pag ? "pag" : "compra")) && p.status === "aprovado") pag ? botao("Marcar como pago", "prim", () => marcarPago(p)) : botao("Marcar como comprado", "prim", () => marcarComprado(p));
     if (pag && (adm || ehPagador()) && p.status === "pago" && !p.pagamento?.comprovante) botao("Anexar comprovante", "sec", () => anexarComprovantePago(p));   // pago sem comprovante: dá para anexar depois
@@ -9163,7 +9167,73 @@ function desenharDetalhePC(p) {
     if (meu && p.status === "aguardando") botao("Cancelar pedido", "sec", () => mudarStatusPC(p, "cancelado", true));
   }
   if (p.pdfWeb) { const a = el("a", "btn sec", "Abrir PDF do pedido"); a.href = p.pdfWeb; a.target = "_blank"; a.rel = "noopener"; ac.appendChild(a); }
+  if (adm && !p.pendente && !excluindo) botao("Excluir pedido", "sec perigo", () => excluirPedido(p));   // só o administrador, em qualquer etapa (até pago ou entregue)
   det.appendChild(ac);
+}
+
+// excluir um pedido (pedido do Gustavo em 11/11/2026): só o administrador, em qualquer etapa — aguardando, aprovado, comprado, entregue,
+// pago, recusado ou cancelado. Apaga do OneDrive o .json, o PDF, os anexos e o comprovante (vão para a lixeira do OneDrive, de onde
+// dá para recuperar por um tempo). Primeiro os anexos e o PDF, por último o .json: se algo falhar no meio, o pedido continua na lista
+// e dá para tentar de novo. Some dos outros aparelhos na próxima sincronização.
+async function excluirPedido(p) {
+  if (!ehAdmin() || p.pendente || pcExcluindo.has(p.id)) return;
+  if (!navigator.onLine) { aviso("Sem internet para excluir o pedido.", true); return; }
+  const pag = tipoDe(p) === "pag", sit = (ST_PC[p.status]?.[0] || p.status).toLowerCase();
+  const resumo = pag ? `${valorBR(p.valor)} para ${p.favorecido || "-"}` : `${p.itens?.length || 0} ite${(p.itens?.length || 0) === 1 ? "m" : "ns"}`;
+  const forte = ["pago", "comprado", "entregue"].includes(p.status) ? (pag ? " O pagamento já foi registrado: o comprovante também é apagado." : " A compra já foi registrada.") : "";
+  if (!await confirmarApagar(`Excluir o pedido ${p.numero}?`,
+    `Pedido de ${pag ? "pagamento" : "compra"} de ${p.solicitante?.nome || "-"} (${resumo}), situação: ${sit}.${forte} O pedido, o PDF e os anexos saem do app para todos e vão para a lixeira do OneDrive.`,
+    "Sim, excluir o pedido", "Não, manter o pedido")) return;
+  if (pcExcluindo.has(p.id)) return;
+  pcExcluindo.add(p.id);
+  if (pcAberto === p.id && $("pc-novo").hidden) desenharPedidos();   // tira os botões do detalhe enquanto exclui
+  try { await comGravacao(async () => {
+    aviso("Excluindo o pedido…");
+    try {
+      const pasta = await basePedidos(tipoDe(p)), itens = [];
+      let url = `/drives/${CONFIG.driveId}/items/${pasta}/children?$top=999&$select=id,name,eTag`;
+      while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
+      // só os arquivos deste pedido: "<id>.json", "<id>.pdf" e "<id> - …" (anexos e comprovante); o .json fica por último
+      const meus = itens.filter(i => i.name === p.id + ".pdf" || i.name.startsWith(p.id + " - "));
+      const json = itens.find(i => i.name.toLowerCase() === (p.id + ".json").toLowerCase());
+      // o pedido mudou em outro aparelho depois do que a pergunta mostrou (ex.: foi pago): não apaga, mostra a situação nova
+      if (json && p.etag && json.eTag !== p.etag) {
+        aviso("Este pedido foi alterado em outro aparelho. Confira a situação e exclua de novo.", true);
+        sincronizarPedidos();
+        return;
+      }
+      pcExcluidos.add(p.id);
+      for (const i of [...meus, ...(json ? [json] : [])]) {
+        try { await graph(`/drives/${CONFIG.driveId}/items/${i.id}`, { method: "DELETE" }); }
+        catch (e) { if (e.status !== 404) throw e; }   // já tinha sido apagado
+      }
+      delete pedidos[p.id];
+      gravarLS("vpx_pc", pedidos);
+      if (pcAberto === p.id) pcAberto = null;
+      atualizarContadores(); desenharPedidos(); reporRol("tela-pc");
+      aviso(`Pedido ${p.numero} excluído. Os arquivos ficam por um tempo na lixeira do OneDrive.`);
+      sincronizarPedidos();   // se havia uma sincronização em andamento (lista de antes da exclusão), ela repete ao terminar
+    } catch (e) {
+      console.error(e);
+      pcExcluidos.delete(p.id);                     // não excluiu: continua na lista (a sincronização abaixo traz de volta)
+      aviso(e.semAcesso || e.status === 403 ? "Sem permissão para excluir nesta pasta do OneDrive." : "Não foi possível excluir o pedido: " + e.message, true);
+      sincronizarPedidos();
+    }
+  }); } finally {
+    pcExcluindo.delete(p.id);
+    if (pedidos[p.id] && pcAberto === p.id && $("pc-novo").hidden && !$("tela-pc").hidden) desenharPedidos();   // não excluiu: os botões voltam
+  }
+}
+
+// o .json do pedido ainda existe? (o administrador pode ter excluído o pedido com ele aberto em outro aparelho)
+async function pedidoExistePC(p) {
+  try { await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}?$select=id`); return true; }
+  catch (e) {
+    if (e.status !== 404) throw e;
+    aviso(`O pedido ${p.numero} foi excluído pelo administrador.`, true);
+    sincronizarPedidos();
+    return false;
+  }
 }
 
 // muda a situação no .json do OneDrive (lê a versão mais nova e grava com If-Match)
@@ -9192,7 +9262,7 @@ async function mudarStatusPCJa(p, status, pedirMotivo, extra, obsPronta = "") { 
     if (extra?.pagamento) sincronizarPedidos();           // mostra o comprovante recém-enviado
   } catch (e) {
     console.error(e);
-    aviso(e.status === 412 ? "Outra pessoa alterou este pedido agora. Atualizando…" : "Não foi possível alterar: " + e.message, true);
+    aviso(e.status === 412 ? "Outra pessoa alterou este pedido agora. Atualizando…" : e.status === 404 ? `O pedido ${p.numero} foi excluído pelo administrador.` : "Não foi possível alterar: " + e.message, true);
     sincronizarPedidos();
   }
 }
@@ -9220,6 +9290,7 @@ async function marcarPago(p) {
     const pagamento = { data, por: nomeColaborador() };
     try {
       if (arq) {
+        if (!await pedidoExistePC(p)) return;        // pedido excluído: não deixa um comprovante solto na pasta
         const nome = nomeComprovantePP(p, arq);
         aviso("Enviando o comprovante…");
         const it = await enviarArquivo(await basePedidos("pag"), nome, arq, undefined, true);   // grava por cima: nova tentativa não cria "comprovante 1"
@@ -9238,7 +9309,10 @@ function anexarComprovantePago(p) {
     await comGravacao(async () => {
       const nome = nomeComprovantePP(p, arq);
       let it;
-      try { aviso("Enviando o comprovante…"); it = await enviarArquivo(await basePedidos("pag"), nome, arq, undefined, true); }   // grava por cima: nova tentativa não cria "comprovante 1"
+      try {
+        if (!await pedidoExistePC(p)) return;        // pedido excluído: não deixa um comprovante solto na pasta
+        aviso("Enviando o comprovante…"); it = await enviarArquivo(await basePedidos("pag"), nome, arq, undefined, true);   // grava por cima: nova tentativa não cria "comprovante 1"
+      }
       catch (e) { aviso("Não foi possível enviar o comprovante: " + erroEmPortugues(e.message), true); return; }
       await mudarStatusPC(p, "pago", false, { pagamento: { ...(p.pagamento || {}), comprovante: (it?.name || nome).slice(p.id.length + 3) } }, "comprovante anexado");
     });
