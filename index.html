@@ -987,7 +987,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .aviso.com-acao{display:flex;align-items:center;gap:12px}
 .aviso button{flex:none;margin-left:auto;min-height:44px;padding:0 16px;border:1.5px solid currentColor;border-radius:10px;background:none;color:inherit;font-weight:700;cursor:pointer}
 /* pergunta do próprio app (no lugar da caixinha OK/Cancelar do navegador): os botões dizem o que fazem */
-.dlg-enviar p.perg-texto{font-size:15.5px;font-weight:400;color:var(--suave);margin-top:-8px}
+.dlg-enviar p.perg-texto{font-size:15.5px;font-weight:400;color:var(--suave);margin-top:-8px;white-space:pre-line;overflow-wrap:anywhere}
+#dlg-perg{max-height:calc(100% - 24px);overflow-y:auto;overscroll-behavior:contain}
 .dlg-enviar .campo textarea{min-height:64px}
 .perg-acoes{grid-template-columns:1fr}
 .perg-acoes .btn{width:100%}
@@ -1757,6 +1758,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <button class="so-cel" data-s="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mais<span class="avcb-qtd" id="nav-fin-qtd" hidden></span></button>
   <div class="nav-conta so-pc">
     <span class="nc-quem"><b id="nav-conta-nome"></b><small id="nav-conta-email"></small></span>
+    <button data-acao="acesso"><svg class="ic" aria-hidden="true"><use href="#i-escudo"/></svg>Conferir meu acesso</button>
     <button data-acao="sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5M9.5 8 5.5 12l4 4M5.5 12h9"/></svg>Sair da conta</button>
   </div>
 </nav>
@@ -2254,8 +2256,10 @@ const CONFIG = {
   pastaInspecoes: "Relatórios de Inspeção",                            // relatórios de inspeção dentro da pasta do cliente
   pedidosCaminho: "VPX Engenharia - AVCB/02 - Financeiro/02 - Pedidos de Compra",   // pedidos de compra (.json + PDF)
   pedidosNome: "02 - Pedidos de Compra",
+  pedidosId: "01VYL4Q52VNBNRGSDNXZCY346CELADCOZR",                    // id dessa pasta (achada pelo id mesmo quando o compartilhamento veio de uma pasta acima)
   pagamentosCaminho: "VPX Engenharia - AVCB/02 - Financeiro/03 - Pedidos de Pagamento",   // pedidos de pagamento (.json + PDF + anexos)
   pagamentosNome: "03 - Pedidos de Pagamento",
+  pagamentosId: "01VYL4Q54MQSQ6OLOT5FCZJEJGIW7SU6EF",                 // id dessa pasta
   pastaTecnica: "Pasta Técnica CBM-BA",                                  // documentação para a vistoria do Corpo de Bombeiros (dentro do cliente)
   pastaOrcamento: "02 - Orçamento",                                    // lista de serviços (planilha e PDF) das não conformidades
   pastaLaudos: "Laudos Técnicos",                                      // laudos (PDF) dentro da pasta do cliente
@@ -7943,8 +7947,18 @@ async function pastaConfig(criar) {
 }
 
 async function carregarPermissoes() {
+  const tiposPed = () => Object.keys(TIPOS_PED).filter(t => podeTipo(t)).join() + "|" + ehAdmin() + ehPagador() + ehComprador();
+  const antes = tiposPed();
   await lerPermissoes();
   aplicarPermissoes();
+  if (tiposPed() !== antes) sincronizarPedidos();   // passou a ver (ou deixou de ver) pedidos: busca de novo com as permissões novas
+  // conta da VPX que não consegue ler as permissões: avisa uma vez (antes ficava com "tudo liberado", mas sem valer administrador,
+  // compras e pagamentos, e sem dizer nada — foi o que aconteceu com a Raquel em 11/11/2026)
+  const st = lerPermissoes.estado;
+  if (st && !st.ok && st.semAcesso && !ehConvidado() && !ehAdminFixo() && !carregarPermissoes.avisou) {
+    carregarPermissoes.avisou = true;
+    aviso("Este aparelho não conseguiu ler as suas permissões: a pasta de configuração do app não está compartilhada com você. Peça ao administrador para abrir a Administração do app. (Mais › Conferir meu acesso)", true);
+  }
 }
 async function lerPermissoes() {
   if (!conta || !navigator.onLine) return;
@@ -7953,14 +7967,24 @@ async function lerPermissoes() {
     const pasta = await pastaConfig(ehAdminFixo());
     let item = null;
     try { item = await graph(`/drives/${CONFIG.driveId}/items/${pasta}:/permissoes.json`); }
-    catch (e) { if (e.status !== 404) throw e; }
+    catch (e) {
+      if (e.status !== 404) throw e;
+      // 404 também é a resposta da Graph para pasta não compartilhada com a pessoa: confere a pasta antes de dizer "o arquivo não existe"
+      try { await graph(`/drives/${CONFIG.driveId}/items/${pasta}?$select=id`); }
+      catch (e2) {
+        if (e2.status !== 403 && e2.status !== 404) throw e2;
+        const x = new Error("sem acesso à pasta de configuração"); x.semAcesso = true; x.status = e2.status; throw x;
+      }
+    }
     if (item && item.eTag !== perm?.etag) {
       const dados = await (await fetch(item["@microsoft.graph.downloadUrl"])).json();
       perm = { ...dados, etag: item.eTag };
       gravarLS("vpx_perm", perm);
     }
+    lerPermissoes.estado = { ok: true, em: Date.now(), existe: !!item };
   } catch (e) {
     console.error("permissões:", e);
+    lerPermissoes.estado = { ok: false, em: Date.now(), erro: e.message || "", status: e.status || 0, semAcesso: !!e.semAcesso || e.status === 403 || e.status === 404 };
     // convidado sem acesso à pasta de configuração: ainda não liberado (ou teve o acesso retirado)
     if (ehConvidado() && (e.semAcesso || e.status === 403 || e.status === 404)) { perm = null; gravarLS("vpx_perm", null); }
   }
@@ -8004,6 +8028,7 @@ async function abrirAdmin() {
     adm.lista = r.value.filter(i => /\.json$/i.test(i.name)).map(i => ({
       email: i.name.replace(/\.json$/i, "").toLowerCase(), nome: i.lastModifiedBy?.user?.displayName || "", ultimo: i.lastModifiedDateTime }));
     $("adm-estado").textContent = "";
+    compartilharConfig([...adm.lista.map(u => u.email), ...Object.keys(perm?.usuarios || {})], perm);   // sem esperar
   } catch (e) { console.error(e); $("adm-estado").textContent = "Não foi possível ler a lista de usuários: " + e.message; }
   desenharAdmin();
   // pedidos de acesso da equipe de campo (cadastros feitos pelo "Pedir acesso")
@@ -8139,6 +8164,7 @@ async function salvarPermissoes() {
     adm.perm = copiaPerm(perm); adm.mudou = false;
     aviso("Permissões salvas. Valem quando cada pessoa abrir o app (ou em até 1 minuto, com o app aberto).");
     aplicarPermissoes();
+    compartilharConfig([...(adm.lista || []).map(u => u.email), ...Object.keys(dados.usuarios || {})], dados);   // sem esperar: não segura o botão Salvar
   } catch (e) {
     console.error(e);
     aviso(e.status === 403 || e.semAcesso ? "Sem permissão para alterar o arquivo de permissões." : "Não foi possível salvar: " + e.message, true);
@@ -8235,6 +8261,24 @@ const compartilharPasta = (itemId, email, papel) => graph(`/drives/${CONFIG.driv
   method: "POST", headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ recipients: [{ email }], roles: [papel], requireSignIn: true, sendInvitation: false })
 });
+// contas da VPX que usam o app precisam LER a pasta de configuração (sem isso o aparelho delas não aplica as permissões).
+// Os convidados recebem isso em "Liberar"; quem teve o acesso removido (recusados) fica de fora. Só o dono do OneDrive compartilha.
+// Roda ao abrir a Administração e ao salvar as permissões; cada e-mail uma vez por aparelho (vpx_cfg_comp).
+function compartilharConfig(emails, dados) {
+  if (!ehAdminFixo() || !navigator.onLine) return Promise.resolve(0);
+  return comGravacao(async () => {
+    const feitos = lerLS("vpx_cfg_comp", []);
+    let n = 0;
+    const pasta = await pastaConfig(true);
+    for (const email of [...new Set(emails.map(e => (e || "").toLowerCase()))]) {
+      if (!email.endsWith("@" + CONFIG.dominio) || CONFIG.admins.includes(email) || dados?.usuarios?.[email]?.convidado || (dados?.recusados || []).includes(email) || feitos.includes(email)) continue;
+      try { await compartilharPasta(pasta, email, "read"); feitos.push(email); gravarLS("vpx_cfg_comp", feitos); n++; }
+      catch (e) { console.error("compartilhar a configuração com " + email + ":", e); }
+    }
+    if (n) aviso(`Pasta de configuração compartilhada (só para ver) com ${n} pessoa${n > 1 ? "s" : ""} da equipe: as permissões passam a valer no aparelho delas.`);
+    return n;
+  }).catch(e => { console.error(e); return 0; });
+}
 function liberarAcesso(...a) { return comGravacao(() => liberarAcessoJa(...a)); }   // conta a gravação inteira
 async function liberarAcessoJa(x, funcoes, botao) {
   if (!navigator.onLine) { aviso("Sem internet: conecte para liberar.", true); return; }
@@ -8846,9 +8890,11 @@ let pcTipo = "compra", pcFiltro = "abertos", pcNovo = null, pcAberto = null;
 async function basePedidos(tipo = "compra") {
   basePedidos.ids ||= {};
   if (basePedidos.ids[tipo]) return basePedidos.ids[tipo];
-  const caminho = caminhoPed(tipo), nome = nomePastaPed(tipo);
+  const caminho = caminhoPed(tipo), nome = nomePastaPed(tipo), fixo = tipo === "pag" ? CONFIG.pagamentosId : CONFIG.pedidosId;
   let id = null;
-  try { id = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(caminho)}?$select=id`)).id; }
+  // 1º pelo id: funciona com a pasta compartilhada direto, por uma pasta acima ou por link (pelo caminho e por "Compartilhados comigo" nem sempre)
+  if (fixo) { try { id = (await graph(`/drives/${CONFIG.driveId}/items/${fixo}?$select=id`)).id; } catch (e) { if (e.status !== 403 && e.status !== 404) throw e; } }
+  if (!id) try { id = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(caminho)}?$select=id`)).id; }
   catch (e) { if (e.status !== 403 && e.status !== 404) throw e; }
   if (!id) {
     try {
@@ -8865,42 +8911,49 @@ async function basePedidos(tipo = "compra") {
 }
 
 async function sincronizarPedidos() {
-  if (!conta || !navigator.onLine || sincronizarPedidos.rodando) return;
+  if (!conta || !navigator.onLine) return;
+  if (sincronizarPedidos.rodando) { sincronizarPedidos.denovo = true; return; }   // pedido no meio de uma sincronização: repete quando ela terminar
   const tipos = Object.keys(TIPOS_PED).filter(podeTipo);
-  if (!tipos.length) return;
+  if (!tipos.length) { sincronizarPedidos.denovo = false; return; }
   sincronizarPedidos.rodando = true;
-  const erros = [];
+  const erros = [], porTipo = {};
   const novo = {};
   for (const tipo of tipos) {
     try {
       const pasta = await basePedidos(tipo);
       const itens = [];
+      let falhas = 0;
       let url = `/drives/${CONFIG.driveId}/items/${pasta}/children?$top=999`;
       while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
       for (const i of itens.filter(i => /\.json$/i.test(i.name))) {
         const chave = i.name.replace(/\.json$/i, ""), velho = pedidos[chave];
         let d = velho && !velho.pendente && velho.etag === i.eTag ? velho : null;
-        if (!d) { try { d = await (await fetch(i["@microsoft.graph.downloadUrl"])).json(); } catch { d = velho; } }
-        if (!d) continue;
+        if (!d) {
+          try { const r = await fetch(i["@microsoft.graph.downloadUrl"]); if (!r.ok) throw new Error("Erro " + r.status); d = await r.json(); }
+          catch (e) { console.error("pedido " + i.name + ":", e); d = velho; }
+        }
+        if (!d) { falhas++; continue; }
         const doPedido = itens.filter(x => x.name !== i.name && x.name.startsWith(chave));
         novo[chave] = { ...d, tipo: d.tipo || tipo, etag: i.eTag, itemId: i.id, pendente: false,
           pdfWeb: doPedido.find(x => x.name === chave + ".pdf")?.webUrl || null,
           anexosWeb: doPedido.filter(x => x.name.startsWith(chave + " - ")).map(x => ({ nome: x.name.slice(chave.length + 3), web: x.webUrl })) };
       }
+      if (falhas) erros.push(porTipo[tipo] = falhas > 1 ? `${falhas} pedidos não puderam ser lidos agora. Abra de novo em instantes.` : "1 pedido não pôde ser lido agora. Abra de novo em instantes.");
     } catch (e) {
       console.error("pedidos " + tipo + ":", e);
       Object.entries(pedidos).filter(([, p]) => tipoDe(p) === tipo).forEach(([k, p]) => { novo[k] ||= p; });   // mantém o que tinha
-      erros.push(e.semAcesso ? `Sem acesso à pasta "${nomePastaPed(tipo)}". Peça ao administrador para compartilhá-la com você.` : "Não foi possível atualizar os pedidos agora.");
+      erros.push(porTipo[tipo] = e.semAcesso ? `Sem acesso à pasta "${nomePastaPed(tipo)}". Peça ao administrador para compartilhá-la com você.` : "Não foi possível atualizar os pedidos agora.");
     }
   }
   for (const [k, p] of Object.entries(pedidos)) if (p.pendente && !novo[k]) novo[k] = p;   // ainda na fila deste celular
   pedidos = novo;
   gravarLS("vpx_pc", pedidos);
   sincronizarPedidos.rodando = false;
-  sincronizarPedidos.erros = erros;
+  sincronizarPedidos.erros = erros; sincronizarPedidos.porTipo = porTipo;
   carregarFavoritosPP();                          // favoritos do pedido de pagamento (mesmos em outro celular)
   atualizarContadores();
   if (!$("tela-pc").hidden) desenharPedidos();
+  if (sincronizarPedidos.denovo) { sincronizarPedidos.denovo = false; sincronizarPedidos(); }   // as permissões mudaram (ou a lista foi aberta) enquanto rodava
 }
 const meusPedidos = () => Object.values(pedidos).filter(p => ehAdmin() || p.solicitante?.email === emailDe() || resolveTipo(tipoDe(p)));
 function atualizarContadores() {
@@ -8950,7 +9003,9 @@ function desenharPedidos() {
   const todos = meusPedidos().filter(p => tipoDe(p) === pcTipo).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
   const vis = todos.filter(p => pcFiltro === "todos" || (pcFiltro === "aguardando" ? p.status === "aguardando" : abertos.includes(p.status)));
   lista.innerHTML = "";
-  if (!vis.length) lista.appendChild(vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhum pedido ainda" : "Nenhum pedido em aberto", pcFiltro === "todos" ? "" : "Em Todos aparecem os já resolvidos."));
+  const erroPc = navigator.onLine ? sincronizarPedidos.porTipo?.[pcTipo] : "";   // pasta sem acesso ou falha na leitura: diz isso no lugar de "Nenhum pedido"
+  if (!vis.length) lista.appendChild(erroPc ? vazio(TIPOS_PED[pcTipo].ico, "Não foi possível ler os pedidos", erroPc)
+    : vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhum pedido ainda" : "Nenhum pedido em aberto", pcFiltro === "todos" ? "" : "Em Todos aparecem os já resolvidos."));
   for (const p of vis) {
     const [rot, cls] = ST_PC[p.status] || [p.status, ""];
     const b = el("button", "pc-card " + cls); b.type = "button";
@@ -14003,8 +14058,65 @@ function desenharMais() {
   const c = el("div", "hub-lista");
   c.appendChild(linha("pessoa", conta?.name || "Conta", conta?.username || "", () => {}));
   c.lastChild.style.cursor = "default";
+  c.appendChild(linha("escudo", "Conferir meu acesso", "Permissões e pastas que este aparelho enxerga", conferirAcesso));
   c.appendChild(linha("sair", "Sair da conta", "", sairConta));
   t.appendChild(c);
+}
+// "Conferir meu acesso" (pedido do Gustavo em 11/11/2026: a Raquel não via os pedidos de compra e não dava para saber por quê):
+// lê as permissões de novo, testa as pastas pelo id e mostra o resultado, com um botão para copiar e mandar ao administrador
+async function conferirAcesso() {
+  if (conferirAcesso.rodando) return;
+  if (!navigator.onLine) { aviso("Sem internet: conecte o aparelho para conferir o acesso.", true); return; }
+  conferirAcesso.rodando = true;
+  aviso("Conferindo o acesso…");
+  try {
+    await lerPermissoes(); aplicarPermissoes();
+    const testar = async id => { try { await graph(`/drives/${CONFIG.driveId}/items/${id}?$select=id`); return "ok"; } catch (e) { return e.status === 403 || e.status === 404 ? "SEM ACESSO" : "não deu para conferir (" + (e.status || erroEmPortugues(e.message)) + ")"; } };
+    const pastas = [["Configuração (permissões)", CONFIG.pastaConfigId], ["Clientes", CONFIG.pastaClientesId]];
+    if (podeTipo("compra")) pastas.push(["Pedidos de compra", CONFIG.pedidosId]);
+    if (podeTipo("pag")) pastas.push(["Pedidos de pagamento", CONFIG.pagamentosId]);
+    const res = await Promise.all(pastas.map(async ([n, id]) => [n, await testar(id)]));
+    for (let i = 0; sincronizarPedidos.rodando && i < 150; i++) await espera(200);   // espera a sincronização que já estava rodando (até 30 s): ela começou com as permissões antigas
+    basePedidos.ids = {};                          // acha as pastas de novo (o acesso pode ter sido dado agora)
+    sincronizarPedidos.denovo = false;
+    try { await sincronizarPedidos(); } catch (e) { console.error(e); }
+    const st = lerPermissoes.estado, sn = v => v ? "sim" : "não";
+    const quando = perm?.atualizado ? new Date(perm.atualizado).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "";
+    const linhas = [
+      "Conta: " + emailDe(),
+      "Versão do app: " + (versaoApp.aberta ? new Date(versaoApp.aberta).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : document.lastModified),
+      "Permissões: " + (st?.ok ? (st.existe ? `lidas agora (salvas por ${perm?.por || "?"}${quando ? " em " + quando : ""})` : "o arquivo de permissões ainda não existe")
+        : "NÃO foram lidas neste aparelho" + (st?.semAcesso ? " (sem acesso à pasta de configuração)" : st?.erro ? " (" + erroEmPortugues(st.erro) + ")" : "") + (perm ? "; valendo a última cópia guardada" : "; sem cópia guardada")),
+      "Administrador: " + sn(ehAdmin()),
+      "Realiza compras: " + sn(ehAdmin() || ehComprador()) + " · Realiza pagamentos: " + sn(ehAdmin() || ehPagador()),
+      "Funções liberadas: " + (!perm && !ehAdminFixo() ? "todas as telas (sem o arquivo de permissões; administrador, compras e pagamentos não valem)" : funcoesDoUsuario().length + " de " + TODAS_FUNCOES.length),
+      "",
+      "Pastas do OneDrive:",
+      ...res.map(([n, r]) => "• " + n + ": " + r)
+    ];
+    if (podeTipo("compra")) linhas.push("", "Pedidos de compra que aparecem aqui: " + meusPedidos().filter(p => tipoDe(p) === "compra").length);
+    if (podeTipo("pag")) linhas.push("Pedidos de pagamento que aparecem aqui: " + meusPedidos().filter(p => tipoDe(p) === "pag").length);
+    if (sincronizarPedidos.rodando) linhas.push("Os pedidos ainda estão sendo atualizados; confira de novo em instantes.");
+    else if ((sincronizarPedidos.erros || []).length) linhas.push("Aviso ao atualizar os pedidos: " + sincronizarPedidos.erros.join(" "));
+    const falta = res.filter(([, r]) => r === "SEM ACESSO").map(([n]) => n);
+    if (falta.length) linhas.push("", "Falta o administrador compartilhar no OneDrive: " + falta.join(", ") + ".");
+    else if (st && !st.ok && st.semAcesso) linhas.push("", "Falta o administrador compartilhar a pasta de configuração (basta ele abrir a Administração do app).");
+    const texto = linhas.join("\n");
+    atualizarContadores(); if (secao === "mais") desenharMais();
+    for (let i = 0; pergAtual && i < 300; i++) await espera(200);   // outra pergunta do app aberta: espera fechar (até 1 min), senão o resultado se perderia sem aviso
+    if (pergAtual) { aviso("Feche a janela aberta e toque de novo em Conferir meu acesso.", true); return; }
+    // copia dentro do próprio toque no botão (a pergunta só responde depois do "voltar" do histórico, e o iPhone pode recusar a cópia fora do toque)
+    let copia = null;
+    const copiar = () => { try { copia = navigator.clipboard.writeText("App VPX Engenharia - meu acesso\n" + texto).then(() => true, () => false); } catch { copia = Promise.resolve(false); } };
+    $("perg-sim").addEventListener("click", copiar, { once: true });
+    const r = await perguntar({ titulo: "Meu acesso", texto, sim: "Copiar para enviar", nao: "Fechar" });
+    $("perg-sim").removeEventListener("click", copiar);
+    if (r) {
+      if (copia && await copia) aviso("Copiado. Cole no WhatsApp ou no e-mail.");
+      else await perguntar({ titulo: "Não deu para copiar: tire uma foto desta tela", texto, sim: "Fechar", nao: "Voltar" });   // mostra de novo para a foto
+    }
+  } catch (e) { console.error(e); aviso("Não foi possível conferir o acesso: " + e.message, true); }
+  finally { conferirAcesso.rodando = false; }
 }
 function sairConta() {
   if (enviando) return;
@@ -14084,6 +14196,7 @@ $("btn-conta").onclick = () => irPara("mais");     // iniciais no topo: conta e 
 // menu (barra de baixo / menu lateral): seções; no computador também ITs, Administração e Sair (que abrem por cima)
 $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (b.dataset.acao === "sair") { sairConta(); return; }
+  if (b.dataset.acao === "acesso") { conferirAcesso(); return; }
   // celular: lista aberta por cima com a barra à vista (com-nav) — o passo dela sai do histórico, senão o "voltar" do aparelho ficaria uma vez sem efeito
   const passo = !computador.matches && !history.state?.sub && !!document.querySelector(".tela-avcb.com-nav:not([hidden])");
   if (!fecharTelasPorCima()) return;
