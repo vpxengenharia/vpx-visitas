@@ -1786,7 +1786,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     <p class="sem-acesso-msg" id="sem-acesso" hidden>Você ainda não tem acesso às funções do app.<br>Peça ao administrador para liberar.</p>
     <div class="abas" role="tablist">
       <button role="tab" id="aba-visita" aria-selected="true">Visita técnica</button>
-      <button role="tab" id="aba-com" aria-selected="false">Comercial</button>
+      <button role="tab" id="aba-com" aria-selected="false">Visita comercial</button>
       <button role="tab" id="aba-laudo" aria-selected="false">Laudos</button>
       <button role="tab" id="aba-insp" aria-selected="false">Inspeções</button>
       <button role="tab" id="aba-trein" aria-selected="false">Brigada</button>
@@ -1919,7 +1919,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <!-- no computador (menu lateral) o que fica no Mais aparece direto; no celular, só o Mais (pedido do Gustavo em 06/11/2026) -->
   <!-- tarefas e funil comercial (pedido do Gustavo em 07/11/2026): no computador, direto no menu; no celular, no Mais, em Registros e no Início -->
   <button class="so-pc" data-acao="tar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1M14.4 9.6h2.6M14.4 15.8h2.6"/></svg>Tarefas<span class="avcb-qtd" id="nav-tar-qtd" hidden></span></button>
-  <button class="so-pc" data-acao="funil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/></svg>Funil comercial</button>
+  <button class="so-pc" data-acao="funil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/></svg>Comercial</button>
   <button class="so-pc" data-s="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></svg>Financeiro<span class="avcb-qtd" id="nav-fin-qtd-pc" hidden></span></button>
   <button class="so-pc" data-acao="its"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 6.8C10 5.2 7 4.6 3.5 5v13.6c3.5-.4 6.5.2 8.5 1.8 2-1.6 5-2.2 8.5-1.8V5C17 4.6 14 5.2 12 6.8zM12 6.8v13.6"/></svg>ITs do CBM-BA</button>
   <button class="so-pc" data-acao="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h8.5M18 7h2M4 17h2.5M12 17h8"/><circle cx="15.2" cy="7" r="2.4"/><circle cx="9.2" cy="17" r="2.4"/></svg>Administração<span class="avcb-qtd" id="nav-adm-qtd" hidden></span></button>
@@ -2163,20 +2163,20 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 
 <!-- funil comercial e tarefas (pedido do Gustavo em 07/11/2026: "semelhante ao monday.com, um pouco mais simples").
      As tarefas ficam depois do funil no HTML para abrir por cima dele ("+ Tarefa" de uma oportunidade). -->
-<div class="tela-avcb" id="tela-funil" hidden role="dialog" aria-label="Funil comercial">
-  <div class="avcb-topo"><button class="avcb-voltar" id="fu-voltar">‹ Voltar</button><strong id="fu-titulo">Funil comercial</strong><button class="ag-novo" id="fu-nova" type="button">+ Nova</button></div>
+<div class="tela-avcb" id="tela-funil" hidden role="dialog" aria-label="Comercial">
+  <div class="avcb-topo"><button class="avcb-voltar" id="fu-voltar">‹ Voltar</button><strong id="fu-titulo">Comercial</strong><button class="ag-novo" id="fu-nova" type="button">+ Nova</button></div>
   <div class="avcb-corpo">
     <div id="fu-lista-tela">
       <div class="tar-ctrl">
         <div class="tar-vistas" id="fu-vistas"><button type="button" data-v="quadro" aria-pressed="true">Quadro</button><button type="button" data-v="lista" aria-pressed="false">Lista</button></div>
-        <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar no funil" aria-label="Buscar nome, contato, telefone ou endereço" autocomplete="off">
+        <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar oportunidade" aria-label="Buscar nome, contato, telefone ou endereço" autocomplete="off">
         <div class="fu-filtros">
-          <select id="fu-etapa" aria-label="Etapa do funil"></select>
+          <select id="fu-etapa" aria-label="Etapa da oportunidade"></select>
           <select id="fu-pessoa" aria-label="Responsável"></select>
           <select id="fu-sit" aria-label="Situação do contato"></select>
         </div>
       </div>
-      <div class="chips avcb-filtro" id="fu-grupos" role="group" aria-label="Parte do funil"></div>
+      <div class="chips avcb-filtro" id="fu-grupos" role="group" aria-label="Grupo de etapas"></div>
       <p class="orc-resumo" id="fu-resumo"></p>
       <div id="fu-lista"></div>
       <p class="avcb-nota" id="fu-nota"></p>
@@ -8070,10 +8070,10 @@ function pintarFaixaOS() {
    para aparecer na lista da administração. Isto controla o que aparece no app; o acesso real às pastas
    continua sendo o compartilhamento do OneDrive. */
 const FUNCOES = [
-  ["visita", "Visita técnica", "aba"], ["com", "Comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
+  ["visita", "Visita técnica", "aba"], ["com", "Visita comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
   ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["comprar", "Realizar compras"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
-  ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Funil comercial"]
+  ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Comercial (oportunidades e propostas)"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -11066,10 +11066,10 @@ function novaVisita() {
    Os formulários (visita, comercial, laudo, inspeção, brigada, comprovante) abrem em tela cheia ("trabalho"),
    com "‹ Início" para voltar; a barra de baixo só aparece nas telas de navegação. */
 const MODOS_APP = [
-  ["visita", "camera", "Visita técnica"], ["com", "maleta", "Comercial"], ["laudo", "laudo", "Laudo"],
+  ["visita", "camera", "Visita técnica"], ["com", "maleta", "Visita comercial"], ["laudo", "laudo", "Laudo"],
   ["insp", "inspecao", "Inspeção"], ["trein", "chama", "Brigada"], ["serv", "chave", "Serviço"], ["comp", "recibo", "Comprovante"]
 ];
-const NOME_MODO = { visita: "Visita técnica", com: "Comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", serv: "Relatório de serviço", comp: "Comprovante" };
+const NOME_MODO = { visita: "Visita técnica", com: "Visita comercial", laudo: "Laudo", insp: "Inspeção", trein: "Brigada", serv: "Relatório de serviço", comp: "Comprovante" };
 const TELA_SECAO = { inicio: "tela-inicio", clientes: "tela-clientes", cliente: "tela-cliente", reg: "tela-reg", mod: "tela-mod", fin: "tela-fin", mais: "tela-mais" };
 let finDe = "mais";                                // o Financeiro foi aberto pelo Mais ou pelo quadrado Comprovante (Registros)
 let trabDe = "inicio";                             // de onde o formulário foi aberto: o "voltar" leva para lá
@@ -11197,7 +11197,7 @@ function voltarInicio() {
 const pastaFotosNome = () => CONFIG.subpasta.replace("{data}", "").replace(/\/$/, "");
 const MOD_INFO = {
   visita: { ico: "camera", tit: "Visitas técnicas", novo: "Nova visita técnica", busca: { q: "Fotos e Visitas Técnicas", pasta: () => pastaFotosNome(), pastas: true } },
-  com: { ico: "maleta", tit: "Comercial", novo: "Nova ficha comercial", busca: { q: "Relatório de Visita", pasta: () => pastaFotosNome(), filtro: /Relatório de Visita/i } },
+  com: { ico: "maleta", tit: "Visita comercial", novo: "Nova ficha comercial", busca: { q: "Relatório de Visita", pasta: () => pastaFotosNome(), filtro: /Relatório de Visita/i } },
   laudo: { ico: "laudo", tit: "Laudos", novo: "Novo laudo", busca: { q: "Laudo", pasta: () => CONFIG.pastaLaudos, filtro: /Laudo d/i } },
   insp: { ico: "inspecao", tit: "Inspeções", novo: "Nova inspeção", busca: { q: "Relatório de Inspeção", pasta: () => CONFIG.pastaInspecoes } },
   trein: { ico: "chama", tit: "Brigada", novo: "Novo treinamento", busca: { q: "Treinamento", pasta: () => CONFIG.pastaTreinamentos } },
@@ -13667,7 +13667,7 @@ function detalheTar(t) {
   if (t.cliente && clientes.includes(t.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(t.cliente); });
   if (t.cliente && tudo) link("Tirar o cliente", () => salvar(r => { r.cliente = ""; }, "Tirou o cliente"));
   const op = t.funil && pode("funil") ? regsDe(colFu)[t.funil] : null;
-  if (op) link("Oportunidade no funil: " + op.nome, () => { const id = t.funil, ir = () => fuTela ? abrirOport(id) : abrirFunil({ aberta: id }); if (fecharTar()) depoisVoltar = ir; else ir(); });
+  if (op) link("Oportunidade no Comercial: " + op.nome, () => { const id = t.funil, ir = () => fuTela ? abrirOport(id) : abrirFunil({ aberta: id }); if (fecharTar()) depoisVoltar = ir; else ir(); });
   if (lk.children.length) w.appendChild(lk);
   if (tudo) w.appendChild(campoTxt("Descrição", t.desc || "", v => salvar(r => { r.desc = v; }, "Editou a descrição"), { area: true, ph: "Detalhes da tarefa (opcional)" }));
   else if (t.desc) w.appendChild(el("p", "tar-desc", t.desc));
@@ -13747,7 +13747,7 @@ function formNovaTar() {
   bc.onclick = () => abrirDialogo(nome => { n.cliente = nome; desenharTar(); });
   wc.appendChild(bc); g.appendChild(wc); f.appendChild(g);
   const op = n.funil ? regsDe(colFu)[n.funil] : null;
-  if (op) f.appendChild(el("p", "laudo-dica", "Ligada à oportunidade do funil: " + op.nome));
+  if (op) f.appendChild(el("p", "laudo-dica", "Ligada à oportunidade do Comercial: " + op.nome));
   f.appendChild(campoTxt("Descrição (opcional)", n.desc, null, { area: true, ph: "Detalhes da tarefa", local: v => { n.desc = v; } }));
   const criar = el("button", "btn prim", n.criando ? "Criando…" : "Criar tarefa"); criar.type = "button"; criar.disabled = !!n.criando;
   criar.onclick = async () => {
@@ -13885,8 +13885,8 @@ function desenharFunil() {
   $("fu-lista-tela").hidden = sub; $("fu-sub").hidden = !sub;
   $("tela-funil").classList.toggle("com-nav", !sub);
   $("fu-nova").hidden = sub;
-  $("fu-titulo").textContent = fuTela.nova ? "Nova oportunidade" : sub ? "Oportunidade" : "Funil comercial";
-  $("fu-voltar").textContent = sub && !fuTela.direto ? "‹ Funil" : "‹ Voltar";
+  $("fu-titulo").textContent = fuTela.nova ? "Nova oportunidade" : sub ? "Oportunidade" : "Comercial";
+  $("fu-voltar").textContent = sub && !fuTela.direto ? "‹ Comercial" : "‹ Voltar";
   if (sub) {
     const s = $("fu-sub"); s.innerHTML = "";
     s.appendChild(fuTela.nova ? formNovaFu() : detalheFu(regsDe(colFu)[fuTela.aberta]));
@@ -13932,7 +13932,7 @@ function desenharFunil() {
     if (fe.length) res.append(` · fechadas em ${MESES[+mes.slice(5) - 1]}: `, el("b", "", `${fe.length}${sf ? " (" + reais(sf) + ")" : ""}`));
   }
   const alvo = $("fu-lista"); alvo.innerHTML = "";
-  if (!colFu.dados.lido && !Object.keys(colFu.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando o funil…" : "Sem internet e sem o funil guardado neste aparelho."));
+  if (!colFu.dados.lido && !Object.keys(colFu.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as oportunidades…" : "Sem internet e sem as oportunidades guardadas neste aparelho."));
   else if (!lista.length && (q || fuTela.pessoa || fuTela.sit)) alvo.appendChild(el("p", "avcb-nota", "Nada encontrado."));
   else if (fuTela.vista === "quadro") alvo.appendChild(quadroFu(lista, fuTela.etapa ? [fuTela.etapa] : ets));
   else alvo.appendChild(tabelaFu(lista));
@@ -14146,7 +14146,7 @@ function detalheFu(o) {
   w.appendChild(el("p", "tar-rodape", origemReg(o, "Criada")));
   const x = el("button", "btn sec perigo tar-excluir", "Excluir oportunidade"); x.type = "button";
   x.onclick = async () => {
-    if (!(await confirmarApagar(`Excluir "${o.nome}" do funil?`, "Para tirar do funil sem apagar, mude a etapa para Perdido ou Não qualificado.", "Excluir do funil", "Manter"))) return;
+    if (!(await confirmarApagar(`Excluir a oportunidade "${o.nome}"?`, "Para tirar da lista sem apagar, mude a etapa para Perdido ou Não qualificado.", "Excluir a oportunidade", "Manter"))) return;
     voltarListaFu(); if (await apagarReg(colFu, o.id)) aviso("Oportunidade excluída.");
   };
   w.appendChild(x);
@@ -14277,7 +14277,7 @@ function desenharInicio() {
       const etsNeg = GRUPOS_FU.find(g => g[0] === "neg")[2];   // as mesmas etapas do grupo "Em negociação" da tela do Funil (o número é igual ao de lá)
       const ops = oportunidades().filter(o => etsNeg.includes(o.etapa)), soma = ops.reduce((a, o) => a + valorFu(o), 0);
       const lidoFu = !!colFu.dados.lido || Object.keys(colFu.dados.baldes).length > 0;   // nunca lido neste aparelho: traço, não "0"
-      kpi("funil", "Funil em negociação", lidoFu ? ops.length : "–", lidoFu && soma ? reais(soma) : "", ops.length ? "" : "zero", () => abrirFunil());
+      kpi("funil", "Comercial em negociação", lidoFu ? ops.length : "–", lidoFu && soma ? reais(soma) : "", ops.length ? "" : "zero", () => abrirFunil());
     }
     if (k.children.length) t.appendChild(k);
   }
@@ -14652,7 +14652,7 @@ function desenharPaginaCliente() {
   if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
   if (pode("funil")) {
     const ops = oportunidades().filter(o => o.cliente === c).sort((a, b) => (b.atualizado || "").localeCompare(a.atualizado || ""));
-    if (ops.length) { t.appendChild(el("p", "hub-rot", "Funil comercial")); ops.slice(0, 5).forEach(o => t.appendChild(cartaoFu(o, { etapa: true, abrir: () => abrirFunil({ aberta: o.id }) }))); }
+    if (ops.length) { t.appendChild(el("p", "hub-rot", "Comercial")); ops.slice(0, 5).forEach(o => t.appendChild(cartaoFu(o, { etapa: true, abrir: () => abrirFunil({ aberta: o.id }) }))); }
   }
 }
 
@@ -14667,7 +14667,7 @@ function desenharReg() {
   const grupo = titulo => { if (g.children.length) { g.classList.add("compacta"); t.appendChild(el("p", "hub-rot", titulo)); t.appendChild(g); } g = el("div", "hub-grade"); };   // quadrados mais baixos: os três grupos cabem numa tela
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   if (podeVerTarefas()) g.appendChild(tile("tarefas", "Tarefas", () => abrirTar()));             // como no monday (pedido do Gustavo em 07/11/2026)
-  if (pode("funil")) g.appendChild(tile("funil", "Funil comercial", () => abrirFunil()));
+  if (pode("funil")) g.appendChild(tile("funil", "Comercial", () => abrirFunil()));
   grupo("Filas de trabalho");
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
   grupo("Novo registro");
@@ -14734,7 +14734,7 @@ function desenharMais() {
     const minhas = tarefas().filter(x => minhaTar(x) && abertaTar(x)), atr = minhas.filter(atrasadaTar).length, hj = minhas.filter(hojeTar).length;
     tf.appendChild(linha("tarefas", "Tarefas", minhas.length ? `${minhas.length} com você` + (atr ? ` · ${atr} atrasada${atr > 1 ? "s" : ""}` : hj ? ` · ${hj} para hoje` : "") : "Nenhuma tarefa com você", () => abrirTar(), atr + hj));
   }
-  if (pode("funil")) tf.appendChild(linha("funil", "Funil comercial", "Oportunidades, propostas e ligações", () => abrirFunil()));
+  if (pode("funil")) tf.appendChild(linha("funil", "Comercial", "Oportunidades, propostas e ligações", () => abrirFunil()));
   if (tf.children.length) t.appendChild(tf);
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
