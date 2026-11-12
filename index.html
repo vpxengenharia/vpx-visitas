@@ -644,6 +644,7 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-ed-resp::after,.tar-ed-pri::after{content:"";position:absolute;inset:-6px -2px}
 .tar-c-st .tar-ed-pri{display:flex;width:fit-content;margin:4px -8px -6px;font-size:12.5px;font-weight:700}
 .tar-c-st .tar-ed-pri .tar-pri-dot{width:9px;height:9px;margin-right:6px}
+.tar-ed-st{min-height:0;padding:3px 7px;margin:-4px -8px}   /* situação: mesmo quadradinho, sem mudar a altura da linha */
 @media (hover:hover){.tar-ed:hover{border-color:var(--linha);background-color:var(--papel)}}
 @container (max-width:859px){
   .tar-tab{font-size:15px}
@@ -13513,8 +13514,9 @@ function linhaTar(t) {
   // situação: o selo abre o menu para mudar (quem pode mexer); no celular a prioridade fica embaixo dele
   const cs = el("td", "tar-c-st");
   if (ed || minhaTar(t)) {
-    const pill = el("button", "tar-st st-" + st, ST_TAR[st]); pill.type = "button"; pill.title = "Mudar a situação";
-    pill.onclick = e => { e.stopPropagation(); menuOpcoes(pill, Object.entries(ST_TAR).map(([k, r]) => [k, r, "st-" + k]), st, v => mudarStatusTar(t.id, v)); };
+    // o selo fica dentro de um botão igual aos da prioridade e do prazo (quadradinho ao passar o mouse)
+    const pill = botaoEdTar("tar-ed-st", "Mudar a situação", [el("span", "tar-st st-" + st, ST_TAR[st])],
+      () => menuOpcoes(pill, Object.entries(ST_TAR).map(([k, r]) => [k, r, "st-" + k]), st, v => mudarStatusTar(t.id, v)));
     cs.appendChild(pill);
   } else cs.appendChild(el("span", "tar-st st-" + st, ST_TAR[st]));
   if (ed) cs.appendChild(botaoEdTar("tar-ed-pri orc-so-cel", "Mudar a prioridade", conteudoPri(pri, "Sem prioridade"), abrirPri));
