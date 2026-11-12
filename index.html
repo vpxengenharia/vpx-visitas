@@ -1524,6 +1524,21 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 /* Funil: filtro por etapa (12/11/2026). Com uma etapa só, o quadro tem uma coluna: no computador ela não ocupa a tela toda */
 #fu-grupos{margin-bottom:8px}
 #fu-lista .kb-col:only-child{max-width:520px}
+/* Agenda: feriados (12/11/2026). Feriado = número vermelho num círculo rosado; ponto facultativo = número vermelho com anel tracejado.
+   A bolinha laranja (compromisso) e o anel laranja (hoje) continuam como antes */
+.ag-cal button.fer:not([aria-pressed="true"]) .n{background:var(--crit-bg);color:var(--crit-tx);font-weight:700}
+.ag-cal button.pf:not([aria-pressed="true"]) .n{color:var(--crit-tx);outline:1.5px dashed var(--crit-tx);outline-offset:-3px}
+.ag-leg{display:flex;flex-wrap:wrap;gap:6px 16px;margin:2px 2px 8px;font-size:13.5px;color:var(--suave)}
+.ag-leg span{display:inline-flex;align-items:center;gap:6px}
+.ag-leg span::before{content:"";width:14px;height:14px;border-radius:50%;flex:none}
+.ag-leg .fer::before{background:var(--crit-bg);box-shadow:inset 0 0 0 1.5px var(--crit-tx)}
+.ag-leg .pf::before{outline:1.5px dashed var(--crit-tx);outline-offset:-2px}
+.ag-feriado{margin:0 2px 10px;padding:9px 12px;border-radius:var(--r-m,12px);background:var(--crit-bg);color:var(--crit-tx);font-size:15.5px;line-height:1.35}
+.ag-feriado b{font-weight:700}
+.ag-feriado.pf{background:transparent;border:1.5px dashed var(--crit-tx)}
+@media (min-width:900px) and (hover:hover) and (pointer:fine) and (min-width:1180px){
+  #agenda-lista > .ag-leg{grid-column:1}
+}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -10407,6 +10422,46 @@ async function buscarMesAgenda(ano, mes) {
   catch (e) { console.error(e); buscarMesAgenda.erro = k; }
   finally { buscarMesAgenda.em = ""; if (!$("tela-agenda").hidden && !agForm) desenharAgenda(); }
 }
+// Feriados no calendário (pedido do Gustavo em 12/11/2026): nacionais, da Bahia e de Salvador, calculados no próprio aparelho
+// (valem sem internet e em qualquer ano). Datas móveis a partir da Páscoa. Fontes: nacionais — Lei 662/1949 (com a Lei 10.607/2002),
+// Lei 6.802/1980 (12/10), Lei 14.759/2023 (20/11, desde 2024) e Portaria MGI 11.460/2025 (Paixão de Cristo como feriado nacional;
+// Carnaval e Quarta-feira de Cinzas são ponto facultativo, Corpus Christi também, mas em Salvador é feriado municipal);
+// Bahia — Constituição do Estado, art. 6º (2 de Julho); Salvador — Lei municipal 1.997/1967 (São João, N. S. da Conceição,
+// Corpus Christi e Sexta-feira da Paixão; a Sexta-feira da Paixão já aparece como nacional).
+const TIPO_FER = { nac: "Feriado nacional", ba: "Feriado estadual (BA)", ssa: "Feriado municipal (Salvador)", pf: "Ponto facultativo" };
+function pascoa(ano) {                             // domingo de Páscoa (algoritmo de Meeus/Jones/Butcher, calendário gregoriano)
+  const a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(ano, mes - 1, dia);
+}
+const feriadosAno = new Map();                     // ano → Map("AAAA-MM-DD" → [{ nome, tipo }])
+function feriadosDe(ano) {
+  if (feriadosAno.has(ano)) return feriadosAno.get(ano);
+  const m = new Map(), p = pascoa(ano);
+  const pos = (d, nome, tipo) => { const k = typeof d === "string" ? `${ano}-${d}` : chaveDia(d); if (!m.has(k)) m.set(k, []); m.get(k).push({ nome, tipo }); };
+  const rel = n => new Date(ano, p.getMonth(), p.getDate() + n);
+  pos("01-01", "Confraternização Universal", "nac");
+  pos(rel(-48), "Carnaval", "pf"); pos(rel(-47), "Carnaval", "pf"); pos(rel(-46), "Quarta-feira de Cinzas (até as 14h)", "pf");
+  pos(rel(-2), "Paixão de Cristo (Sexta-feira Santa)", "nac");
+  pos("04-21", "Tiradentes", "nac");
+  pos("05-01", "Dia do Trabalhador", "nac");
+  pos(rel(60), "Corpus Christi", "ssa");
+  pos("06-24", "São João", "ssa");
+  pos("07-02", "Independência da Bahia", "ba");
+  pos("09-07", "Independência do Brasil", "nac");
+  pos("10-12", "Nossa Senhora Aparecida", "nac");
+  pos("11-02", "Finados", "nac");
+  pos("11-15", "Proclamação da República", "nac");
+  if (ano >= 2024) pos("11-20", "Dia Nacional de Zumbi e da Consciência Negra", "nac");
+  pos("12-08", "Nossa Senhora da Conceição da Praia", "ssa");
+  pos("12-25", "Natal", "nac");
+  feriadosAno.set(ano, m);
+  return m;
+}
+const feriadosDia = k => feriadosDe(+k.slice(0, 4)).get(k) || [];
+const textoFeriado = f => `${TIPO_FER[f.tipo]}: ${f.nome}`;
 let agSel = null, agMes = 0, agEventos = [], agBase = null;   // agBase: dia 1º do mês em que a Agenda foi aberta (o "mês 0")
 function desenharAgenda(eventos) {
   if (eventos) agEventos = eventos;
@@ -10444,11 +10499,14 @@ function desenharAgenda(eventos) {
   ["D", "S", "T", "Q", "Q", "S", "S"].forEach(s => { const x = el("span", "ag-sem", s); x.setAttribute("aria-hidden", "true"); cal.appendChild(x); });
   for (let i = 0; i < m1.getDay(); i++) cal.appendChild(el("span"));
   const dias = new Date(ano, mes + 1, 0).getDate();
+  let temFer = false, temPf = false;                // para a legenda embaixo do mês
   for (let d = 1; d <= dias; d++) {
     const k = `${ano}-${pad(mes + 1)}-${pad(d)}`, evs = (porDia.get(k) || []).filter(e => !e.cancelado), sem = new Date(ano, mes, d).getDay();
-    const b = el("button", [k === hoje && "hoje", (sem === 0 || sem === 6) && "fds"].filter(Boolean).join(" ")); b.type = "button";
+    const fer = feriadosDia(k), ehFer = fer.some(f => f.tipo !== "pf"), ehPf = !ehFer && fer.length > 0;
+    if (ehFer) temFer = true; if (ehPf) temPf = true;
+    const b = el("button", [k === hoje && "hoje", (sem === 0 || sem === 6) && "fds", ehFer && "fer", ehPf && "pf"].filter(Boolean).join(" ")); b.type = "button";
     b.setAttribute("aria-pressed", String(k === agSel));
-    b.setAttribute("aria-label", `${nomeDia(k)}${k === hoje ? ", hoje" : ""}: ${evs.length ? evs.length + (evs.length > 1 ? " compromissos" : " compromisso") : "nada marcado"}`);
+    b.setAttribute("aria-label", `${nomeDia(k)}${k === hoje ? ", hoje" : ""}${fer.length ? ", " + fer.map(textoFeriado).join(", ") : ""}: ${evs.length ? evs.length + (evs.length > 1 ? " compromissos" : " compromisso") : "nada marcado"}`);
     b.appendChild(el("span", "n", String(d)));
     const pts = el("span", "pts");
     if (evs.length >= 3) pts.appendChild(el("i", "mais")); else evs.forEach(() => pts.appendChild(el("i")));
@@ -10457,6 +10515,12 @@ function desenharAgenda(eventos) {
     cal.appendChild(b);
   }
   lista.appendChild(cal);
+  if (temFer || temPf) {                            // legenda: só com feriado ou ponto facultativo no mês
+    const leg = el("p", "ag-leg"); leg.setAttribute("aria-hidden", "true");
+    if (temFer) leg.append(el("span", "fer", "Feriado"));
+    if (temPf) leg.append(el("span", "pf", "Ponto facultativo"));
+    lista.appendChild(leg);
+  }
   if (longe && !doMes) {                            // mês ainda não buscado: avisa e busca (ao chegar, a tela é redesenhada)
     lista.appendChild(el("p", "avcb-nota", !navigator.onLine ? "Sem internet: os compromissos deste mês aparecem quando a conexão voltar." : buscarMesAgenda.erro === chaveMes ? "Não foi possível carregar este mês agora. Toque na seta de novo para tentar." : "Carregando os compromissos deste mês…"));
     if (buscarMesAgenda.erro !== chaveMes) buscarMesAgenda(mv.getFullYear(), mv.getMonth());
@@ -10465,6 +10529,11 @@ function desenharAgenda(eventos) {
   const grupo = el("section", "ag-dia-sel");
   const h = el("h3", "ag-dia" + (agSel === hoje ? " hoje" : ""), nomeDia(agSel));
   grupo.appendChild(h);
+  for (const f of feriadosDia(agSel)) {             // feriado do dia, em cima dos compromissos
+    const p = el("p", "ag-feriado" + (f.tipo === "pf" ? " pf" : ""));
+    p.append(el("b", "", TIPO_FER[f.tipo] + ":"), " " + f.nome);
+    grupo.appendChild(p);
+  }
   const evs = porDia.get(agSel) || [];
   if (!evs.length) grupo.appendChild(el("p", "ag-vazio", "Nada marcado."));
   for (const e of evs) grupo.appendChild(cartaoEvento(e));
