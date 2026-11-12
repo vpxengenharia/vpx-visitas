@@ -1898,11 +1898,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     <div id="pc-topo-lista">
       <div class="abas pc-tipos" id="pc-tipos" role="tablist"><button role="tab" data-t="compra" aria-selected="true">Compra</button><button role="tab" data-t="pag" aria-selected="false">Pagamento</button></div>
       <button class="btn prim" id="pc-novo-btn">+ Novo pedido</button>
-      <div class="chips avcb-filtro" id="pc-filtro" style="margin-top:12px">
-        <button type="button" data-f="abertos" aria-pressed="true">Em aberto</button>
-        <button type="button" data-f="aguardando" aria-pressed="false">Aguardando aprovação</button>
-        <button type="button" data-f="todos" aria-pressed="false">Todos</button>
-      </div>
+      <div class="chips avcb-filtro" id="pc-filtro" style="margin-top:12px" role="group" aria-label="Situação dos pedidos"></div>
       <p class="avcb-nota" id="pc-estado" style="margin-top:0"></p>
     </div>
     <div id="pc-lista"></div>
@@ -8934,6 +8930,14 @@ const TIPOS_PED = {
   compra: { sigla: "PC", nome: "Pedido de compra", aba: "Compra", ico: "carrinho", perm: "pedidos", rasc: "vpx_pc_rascunho", abertos: ["aguardando", "aprovado", "comprado"] },
   pag: { sigla: "PP", nome: "Pedido de pagamento", aba: "Pagamento", ico: "cartao", perm: "pagamentos", rasc: "vpx_pp_rascunho", abertos: ["aguardando", "aprovado"] }
 };
+// filtros da lista, na ordem do fluxo (pedido do Gustavo em 11/11/2026: um filtro para cada etapa): [id, rótulo, situações] — sem situações = todos;
+// "Em aberto" = o que ainda falta resolver; recusados e cancelados aparecem em Todos
+const FILTROS_PED = {
+  compra: [["abertos", "Em aberto", TIPOS_PED.compra.abertos], ["aguardando", "Aguardando aprovação", ["aguardando"]], ["aprovado", "Aprovados", ["aprovado"]],
+    ["comprado", "Comprados", ["comprado"]], ["entregue", "Entregues", ["entregue"]], ["todos", "Todos", null]],
+  pag: [["abertos", "Em aberto", TIPOS_PED.pag.abertos], ["aguardando", "Aguardando aprovação", ["aguardando"]], ["aprovado", "Aprovados", ["aprovado"]],
+    ["pago", "Pagos", ["pago"]], ["todos", "Todos", null]]
+};
 const FORMAS_PAG = ["Boleto", "PIX", "Transferência", "Dinheiro"];
 const caminhoPed = t => t === "pag" ? CONFIG.pagamentosCaminho : CONFIG.pedidosCaminho;
 const nomePastaPed = t => t === "pag" ? CONFIG.pagamentosNome : CONFIG.pedidosNome;
@@ -9041,6 +9045,7 @@ function abrirPedidos() {
   document.body.style.overflow = "hidden";
   history.pushState({ pc: true }, "");
   pcAberto = null; delete rolLista["tela-pc"];
+  pcFiltro = "abertos"; $("pc-filtro").scrollLeft = 0;   // cada abertura começa em "Em aberto": o filtro da última vez (ex.: Entregues) podia esconder o que o cartão "N aguardando…" anunciou
   if (!podeTipo(pcTipo)) pcTipo = Object.keys(TIPOS_PED).find(podeTipo) || "compra";
   $("pc-exportar").hidden = !ehAdmin();
   desenharPedidos();
@@ -9066,14 +9071,34 @@ function desenharPedidos() {
     const n = esperandoMim(b.dataset.t);
     comIc(b, TIPOS_PED[b.dataset.t].ico, TIPOS_PED[b.dataset.t].aba + (n ? ` (${n})` : "")); });
   $("pc-novo-btn").textContent = pcTipo === "pag" ? "+ Novo pedido de pagamento" : "+ Novo pedido de compra";
-  $("pc-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === pcFiltro)));
-  const abertos = TIPOS_PED[pcTipo].abertos;
   const todos = meusPedidos().filter(p => tipoDe(p) === pcTipo).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
-  const vis = todos.filter(p => pcFiltro === "todos" || (pcFiltro === "aguardando" ? p.status === "aguardando" : abertos.includes(p.status)));
+  // filtros: um para cada etapa do fluxo da aba, com a quantidade; trocar de aba com um filtro que a outra não tem volta para "Em aberto"
+  const filtros = FILTROS_PED[pcTipo];
+  if (!filtros.some(x => x[0] === pcFiltro)) pcFiltro = "abertos";
+  const passa = (p, sts) => !sts || sts.includes(p.status);
+  {
+    const cx = $("pc-filtro"), focado = cx.contains(document.activeElement) ? document.activeElement.dataset.f : "";
+    const botoes = [...cx.children];
+    if (botoes.map(b => b.dataset.f).join() !== filtros.map(x => x[0]).join()) {   // só refaz os botões quando a aba muda (não pisca nem perde o foco a cada sincronização)
+      cx.innerHTML = "";
+      for (const [id] of filtros) { const b = el("button", ""); b.type = "button"; b.dataset.f = id; cx.appendChild(b); }
+      cx.scrollLeft = 0;                              // aba nova: a linha de filtros volta ao começo (o mostrarChipMarcado abaixo leva até o marcado, se ele estiver à direita)
+    }
+    [...cx.children].forEach((b, i) => {
+      const [id, rot, sts] = filtros[i], n = todos.filter(p => passa(p, sts)).length;
+      const tx = `${rot} (${n})`; if (b.textContent !== tx) b.textContent = tx;
+      b.setAttribute("aria-pressed", String(id === pcFiltro));
+    });
+    if (focado) cx.querySelector(`[data-f="${focado}"]`)?.focus({ preventScroll: true });
+    mostrarChipMarcado(cx);                         // celular: a linha de filtros rola de lado; o marcado fica à vista
+  }
+  const [, rotFiltro, stsFiltro] = filtros.find(x => x[0] === pcFiltro);
+  const vis = todos.filter(p => passa(p, stsFiltro));
   lista.innerHTML = "";
   const erroPc = navigator.onLine ? sincronizarPedidos.porTipo?.[pcTipo] : "";   // pasta sem acesso ou falha na leitura: diz isso no lugar de "Nenhum pedido"
   if (!vis.length) lista.appendChild(erroPc ? vazio(TIPOS_PED[pcTipo].ico, "Não foi possível ler os pedidos", erroPc)
-    : vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhum pedido ainda" : "Nenhum pedido em aberto", pcFiltro === "todos" ? "" : "Em Todos aparecem os já resolvidos."));
+    : vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhum pedido ainda" : pcFiltro === "abertos" ? "Nenhum pedido em aberto" : `Nenhum pedido em "${rotFiltro}"`,
+        pcFiltro === "todos" ? "" : pcFiltro === "abertos" ? "Em Todos aparecem os já resolvidos." : todos.length ? "Veja os outros filtros ou Todos." : ""));
   for (const p of vis) {
     const [rot, cls] = ST_PC[p.status] || [p.status, ""];
     const b = el("button", "pc-card " + cls); b.type = "button";
@@ -9490,7 +9515,9 @@ async function enviarNovoPC() {
   pedidos[id] = { ...ped, pendente: true };
   gravarLS("vpx_pc", pedidos);
   try { localStorage.removeItem(t.rasc); } catch {}
-  $("pc-novo").hidden = true; pcNovo = null; delete rolLista["tela-pc"]; pcAberto = id; desenharPedidos();
+  $("pc-novo").hidden = true; pcNovo = null; delete rolLista["tela-pc"]; pcAberto = id;
+  if (!["abertos", "aguardando", "todos"].includes(pcFiltro)) { pcFiltro = "abertos"; $("pc-filtro").scrollLeft = 0; }   // o pedido novo (aguardando) tem de aparecer ao voltar para a lista
+  desenharPedidos();
   aviso(navigator.onLine ? "Pedido enviado. O administrador vai aprovar no app." : "Pedido guardado no celular. Será enviado quando a internet voltar.");
   await tentarPendentes();
 }
@@ -14594,7 +14621,7 @@ $("pc-voltar").onclick = () => fecharPedidos();
 $("pc-novo-btn").onclick = abrirNovoPC;
 $("pc-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { pcTipo = b.dataset.t; pcAberto = null; desenharPedidos(); });
 $("pc-exportar").onclick = exportarPedidos;
-$("pc-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { pcFiltro = b.dataset.f; desenharPedidos(); });
+$("pc-filtro").onclick = e => { const b = e.target.closest("button[data-f]"); if (!b) return; pcFiltro = b.dataset.f; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };   // os botões são montados em desenharPedidos
 $("pc-materiais").append(...MATERIAIS.map(([d]) => { const o = document.createElement("option"); o.value = d; return o; }));
 $("its-voltar").onclick = () => fecharNormas();
 $("its-guardar").onclick = guardarTodasNormas;
