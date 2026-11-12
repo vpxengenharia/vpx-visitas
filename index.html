@@ -631,6 +631,18 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-pri-tx.pri-critica{color:var(--crit-tx)}.tar-pri-tx.pri-alta{color:var(--warn-tx)}
 .tar-pri-dot{display:inline-block;width:10px;height:10px;margin-right:7px;border-radius:3px;background:var(--linha);vertical-align:0}
 .tar-pri-dot.g-critica{background:var(--erro)}.tar-pri-dot.g-alta{background:var(--laranja)}.tar-pri-dot.g-media{background:#6F8FB8}.tar-pri-dot.g-baixa{background:#B9C6D6}
+/* prioridade, prazo e responsáveis mudam na própria linha (quem tem a função "tarefas") */
+.tar-ed{position:relative;display:inline-flex;align-items:center;min-height:34px;max-width:calc(100% + 16px);margin:-4px -8px;padding:4px 8px;border:1px solid transparent;border-radius:8px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.tar-ed:focus-within{border-color:var(--laranja)}
+.tar-ed-vazio{color:var(--suave);font-weight:400}
+.tar-ed-data .tar-ed-tx{display:block}
+.tar-ed-data input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer;font-size:16px}
+.tar-ed-data input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;cursor:pointer}
+.tar-ed-resp{min-height:30px;margin:-4px -6px;padding:4px 6px;font-size:inherit;color:var(--tinta);text-decoration:underline dotted;text-underline-offset:3px}
+.tar-ed-resp::after,.tar-ed-pri::after{content:"";position:absolute;inset:-6px -2px}
+.tar-c-st .tar-ed-pri{display:flex;width:fit-content;margin:4px -8px -6px;font-size:12.5px;font-weight:700}
+.tar-c-st .tar-ed-pri .tar-pri-dot{width:9px;height:9px;margin-right:6px}
+@media (hover:hover){.tar-ed:hover{border-color:var(--linha);background-color:var(--papel)}}
 @container (max-width:859px){
   .tar-tab{font-size:15px}
   .tar-tab tbody td{padding-top:10px;padding-bottom:10px}
@@ -644,6 +656,7 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
   .tar-tab .tar-c-resp{width:160px}
   .tar-tab .tar-c-cli{width:180px;overflow-wrap:anywhere}
   .tar-tab td.tar-c-prazo small{display:inline;margin-left:6px}
+  .tar-c-st .tar-ed-pri{display:none}
 }
 /* quadro: uma coluna por situação (tarefas) ou por etapa (funil); no celular as colunas correm para o lado */
 .kb{display:flex;align-items:flex-start;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:2px 16px 14px}
@@ -735,6 +748,17 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .menu-op button:not([class*="st-"]){background:none;color:var(--tinta)}
 .menu-op button.atual{box-shadow:inset 0 0 0 2px var(--marinho)}
 .menu-op button:focus-visible{outline:3px solid var(--laranja);outline-offset:1px}
+/* responsáveis (várias escolhas) e prioridade, abertos pela linha da tabela de tarefas */
+.menu-op.multi{max-height:min(70vh,480px);overflow-y:auto;overscroll-behavior:contain}
+.menu-tit{margin:4px 10px 2px;font-size:13px;font-weight:700;color:var(--suave)}
+.menu-op .menu-chk{display:flex;align-items:center;gap:10px}
+.menu-chk::before{content:"";flex:none;width:20px;height:20px;border:2px solid var(--borda-campo,var(--linha));border-radius:6px;background:var(--papel) center/14px no-repeat}
+.menu-chk[aria-checked="true"]::before{border-color:var(--marinho);background-color:var(--marinho);background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M5 12.5l4.5 4.5L19 7.5%27/%3E%3C/svg%3E")}
+.menu-op button.menu-ok{margin-top:4px;background:var(--marinho);color:#fff;text-align:center}
+.menu-op .pri-op{display:flex;align-items:center;gap:10px}
+.pri-op::before{content:"";flex:none;width:12px;height:12px;border-radius:4px;background:var(--linha)}
+.pri-op.pri-critica::before{background:var(--erro)}.pri-op.pri-alta::before{background:var(--laranja)}.pri-op.pri-media::before{background:#6F8FB8}.pri-op.pri-baixa::before{background:#B9C6D6}
+@media (prefers-color-scheme:dark){.menu-chk[aria-checked="true"]::before{border-color:var(--laranja);background-color:var(--laranja)}.menu-op button.menu-ok{background:var(--laranja);color:#13253B}}
 /* agenda (Outlook) */
 .agenda-btn{width:42px;height:38px;border-radius:999px;border:1.5px solid rgba(28,60,97,.45);background:transparent;color:var(--marinho);display:grid;place-items:center;cursor:pointer;padding:0}
 .agenda-btn[hidden]{display:none}
@@ -13115,7 +13139,7 @@ function menuOpcoes(alvo, opcoes, atual, aoEscolher) {
     document.addEventListener("scroll", e => { if (!m.hidden && !m.contains(e.target)) m.hidden = true; }, true);
     window.addEventListener("resize", () => { m.hidden = true; });
   }
-  m.innerHTML = "";
+  m.innerHTML = ""; m.classList.remove("multi");
   for (const [v, rot, cls] of opcoes) {
     const b = el("button", (cls || "") + (v === atual ? " atual" : ""), rot); b.type = "button"; b.setAttribute("role", "menuitem");
     b.onclick = () => { m.hidden = true; if (v !== atual) aoEscolher(v); };
@@ -13407,34 +13431,102 @@ function tabelaTar(vis) {
   tb.append(cab, corpo);
   return tb;
 }
+// mudar na própria linha da tabela (pedido do Gustavo em 12/11/2026, como a situação): prioridade, prazo e responsáveis.
+// Só quem tem a função "tarefas" (no detalhe também só ela muda esses campos); a gravação é a mesma do detalhe.
+const mudarPriTar = (id, v) => mudarReg(colTar, id, r => { r.prioridade = v; }, "Prioridade: " + (PRI[v] || "sem"));
+const mudarPrazoTar = (id, v) => mudarReg(colTar, id, r => { r.prazo = v; }, v ? "Prazo: " + dataBRde(v) : "Tirou o prazo");
+const mudarRespTar = (id, nv) => mudarReg(colTar, id, r => { r.resp = nv; }, "Responsáveis: " + (nv.map(p => primeiroNome(p.nome)).join(", ") || "ninguém"));
+const OPC_PRI_MENU = () => OPC_PRI.map(([k, r]) => [k, r, "pri-op pri-" + (k || "nenhuma")]);
+function botaoEdTar(cls, titulo, conteudo, fn) {
+  const b = el("button", "tar-ed " + cls); b.type = "button"; b.title = titulo;
+  b.append(...conteudo);
+  b.onclick = e => { e.stopPropagation(); fn(b); };
+  return b;
+}
+function conteudoPri(pri, vazio = "—") { return pri ? [el("i", "tar-pri-dot g-" + pri), PRI[pri]] : [el("span", "tar-ed-vazio", vazio)]; }
+// prazo: o próprio calendário do aparelho (campo de data invisível por cima do texto). A data aparece na hora
+// e é gravada ao sair do campo ou 1,2 s depois da última mudança (no iPhone a roda muda a data várias vezes)
+function prazoEdTar(t, cz) {
+  const w = el("span", "tar-ed tar-ed-data"); w.title = "Mudar o prazo";
+  const tx = el("span", "tar-ed-tx"); w.appendChild(tx);
+  const pintar = v => {
+    tx.innerHTML = "";
+    const hoje = dataISO(), atr = v && v < hoje, hj = v === hoje;
+    cz.classList.toggle("crit", !!atr && abertaTar(t)); cz.classList.toggle("warn", hj && abertaTar(t));
+    if (!v) { tx.appendChild(el("span", "tar-ed-vazio", "—")); return; }
+    tx.appendChild(el("span", "", dataCurta(v)));
+    if (abertaTar(t) && (atr || hj)) tx.appendChild(el("small", "", atr ? "atrasada" : "hoje"));
+  };
+  const i = document.createElement("input"); i.type = "date"; i.value = t.prazo || ""; i.setAttribute("aria-label", "Prazo da tarefa");
+  let gravado = t.prazo || "", tm = 0;
+  const gravar = () => { clearTimeout(tm); const v = i.value; if (v === gravado) return; gravado = v; mudarPrazoTar(t.id, v); };
+  i.onclick = e => { e.stopPropagation(); if (computador.matches) try { i.showPicker(); } catch {} };
+  i.onkeydown = e => { e.stopPropagation(); if (e.key === "Enter") i.blur(); };
+  i.addEventListener("change", () => { pintar(i.value); clearTimeout(tm); tm = setTimeout(gravar, 1200); });
+  i.addEventListener("blur", gravar);
+  pintar(t.prazo || "");
+  w.appendChild(i);
+  return w;
+}
+// responsáveis: menu com a equipe; cada toque marca ou desmarca e já grava (como no detalhe)
+function menuPessoas(alvo, sel, aoMudar) {
+  menuOpcoes(alvo, [], null, null);                 // cria o menu (e os ouvintes que o fecham ao tocar fora)
+  const m = $("menu-op"); m.innerHTML = ""; m.classList.add("multi");
+  const lista = pessoasEquipe();
+  for (const p of sel) if (!lista.some(x => x.email === p.email)) lista.push({ email: p.email, nome: p.nome || p.email });
+  m.appendChild(el("p", "menu-tit", "Responsáveis"));
+  for (const p of lista) {
+    const b = el("button", "menu-chk", p.nome); b.type = "button"; b.setAttribute("role", "menuitemcheckbox");
+    const marcar = () => b.setAttribute("aria-checked", String(sel.some(x => x.email === p.email)));
+    marcar();
+    b.onclick = () => { sel = sel.some(x => x.email === p.email) ? sel.filter(x => x.email !== p.email) : [...sel, { email: p.email, nome: p.nome }]; marcar(); aoMudar(sel); };
+    m.appendChild(b);
+  }
+  const ok = el("button", "menu-ok", "Pronto"); ok.type = "button"; ok.onclick = () => { m.hidden = true; };
+  m.appendChild(ok);
+  const r = alvo.getBoundingClientRect(), h = m.offsetHeight, w = m.offsetWidth;
+  m.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
+  m.style.top = (r.bottom + 4 + h > innerHeight - 8 ? Math.max(8, r.top - h - 4) : r.bottom + 4) + "px";
+  m.querySelector(".menu-chk")?.focus({ preventScroll: true });
+}
 function linhaTar(t) {
   const aberta = abertaTar(t), st = ST_TAR[t.status] ? t.status : "nao", pri = PRI[t.prioridade] ? t.prioridade : "";
   const tr = el("tr", aberta ? "" : "tar-feita"); tr.tabIndex = 0;
+  const ed = pode("tarefas");                       // muda prioridade, prazo e responsáveis
   const nomes = (t.resp || []).map(p => primeiroNome(nomePessoa(p)));
   const ns = (t.sub || []).length, nc = (t.coment || []).length;
   const extra = [ns && `${t.sub.filter(s => s.f).length}/${ns} subtarefas`, nc && `${nc} comentário${nc > 1 ? "s" : ""}`].filter(Boolean);
-  // tarefa: título; embaixo, no celular, prioridade, responsáveis e cliente (na tela larga têm coluna própria)
+  const abrirPri = b => menuOpcoes(b, OPC_PRI_MENU(), pri, v => mudarPriTar(t.id, v));
+  const abrirResp = b => menuPessoas(b, (t.resp || []).slice(), nv => mudarRespTar(t.id, nv));
+  // tarefa: título; embaixo, no celular, responsáveis e cliente (na tela larga têm coluna própria)
   const tit = el("td", "orc-c-cli");
   tit.appendChild(el("span", "orc-cli tar-tab-tit", t.titulo || "(sem título)"));
   const sub = el("small", "orc-sub orc-so-cel");
-  if (pri) sub.appendChild(el("span", "tar-pri-tx pri-" + pri, PRI[pri]));
-  const resto = [nomes.join(", "), t.cliente, ...extra].filter(Boolean).join(" · ");
-  if (resto) sub.append((pri ? " · " : "") + resto);
+  if (ed) sub.appendChild(botaoEdTar("tar-ed-resp", "Mudar os responsáveis", [nomes.length ? nomes.join(", ") : el("span", "tar-ed-vazio", "Sem responsável")], abrirResp));
+  else if (!ed && pri) sub.appendChild(el("span", "tar-pri-tx pri-" + pri, PRI[pri]));
+  const resto = [!ed && nomes.join(", "), t.cliente, ...extra].filter(Boolean).join(" · ");
+  if (resto) sub.append((sub.childNodes.length ? " · " : "") + resto);
   if (sub.childNodes.length) tit.appendChild(sub);
   if (extra.length) tit.appendChild(el("small", "orc-sub tar-so-pc-b", extra.join(" · ")));
-  // situação: o selo abre o menu para mudar (quem pode mexer)
+  // situação: o selo abre o menu para mudar (quem pode mexer); no celular a prioridade fica embaixo dele
   const cs = el("td", "tar-c-st");
-  if (pode("tarefas") || minhaTar(t)) {
+  if (ed || minhaTar(t)) {
     const pill = el("button", "tar-st st-" + st, ST_TAR[st]); pill.type = "button"; pill.title = "Mudar a situação";
     pill.onclick = e => { e.stopPropagation(); menuOpcoes(pill, Object.entries(ST_TAR).map(([k, r]) => [k, r, "st-" + k]), st, v => mudarStatusTar(t.id, v)); };
     cs.appendChild(pill);
   } else cs.appendChild(el("span", "tar-st st-" + st, ST_TAR[st]));
+  if (ed) cs.appendChild(botaoEdTar("tar-ed-pri orc-so-cel", "Mudar a prioridade", conteudoPri(pri, "Sem prioridade"), abrirPri));
   const cp = el("td", "tar-so-pc tar-c-pri");
-  if (pri) { cp.appendChild(el("i", "tar-pri-dot g-" + pri)); cp.append(PRI[pri]); } else cp.textContent = "—";
-  const cz = el("td", "tar-c-prazo" + (atrasadaTar(t) ? " crit" : hojeTar(t) ? " warn" : ""));
-  if (t.prazo) { cz.appendChild(el("span", "", dataCurta(t.prazo))); if (atrasadaTar(t)) cz.appendChild(el("small", "", "atrasada")); else if (hojeTar(t)) cz.appendChild(el("small", "", "hoje")); }
+  if (ed) cp.appendChild(botaoEdTar("", "Mudar a prioridade", conteudoPri(pri), abrirPri));
+  else if (pri) { cp.appendChild(el("i", "tar-pri-dot g-" + pri)); cp.append(PRI[pri]); } else cp.textContent = "—";
+  const cz = el("td", "tar-c-prazo" + (aberta && atrasadaTar(t) ? " crit" : aberta && hojeTar(t) ? " warn" : ""));
+  if (ed) cz.appendChild(prazoEdTar(t, cz));
+  else if (t.prazo) { cz.appendChild(el("span", "", dataCurta(t.prazo))); if (atrasadaTar(t)) cz.appendChild(el("small", "", "atrasada")); else if (hojeTar(t)) cz.appendChild(el("small", "", "hoje")); }
   else cz.textContent = "—";
-  tr.append(tit, cs, cp, cz, el("td", "tar-so-pc tar-c-resp", nomes.join(", ") || "—"), el("td", "tar-so-pc tar-c-cli", t.cliente || "—"));
+  const cr = el("td", "tar-so-pc tar-c-resp");
+  if (ed) cr.appendChild(botaoEdTar("", "Mudar os responsáveis", [nomes.length ? nomes.join(", ") : el("span", "tar-ed-vazio", "—")], abrirResp));
+  else cr.textContent = nomes.join(", ") || "—";
+  tr.append(tit, cs, cp, cz, cr, el("td", "tar-so-pc tar-c-cli", t.cliente || "—"));
   tr.onclick = () => abrirTarefa(t.id);
   tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrirTarefa(t.id); };
   return tr;
