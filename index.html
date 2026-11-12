@@ -146,7 +146,7 @@ button,input,label{font:inherit}
 @media (prefers-color-scheme:dark){.orc-c-num,.orc-resumo b{color:var(--laranja)}.orc-ac{color:var(--tinta)}}
 /* as colunas extras dependem da largura da área da tabela, não da janela (no computador o menu lateral ocupa espaço;
    tablet e celular deitado ficam com a tabela do celular) */
-#tela-orc .avcb-corpo,#tela-nf .avcb-corpo,#tela-avcb .avcb-corpo{container-type:inline-size}
+#tela-orc .avcb-corpo,#tela-nf .avcb-corpo,#tela-avcb .avcb-corpo,#tela-pc .avcb-corpo{container-type:inline-size}
 @container (min-width:600px){
   .orc-filtros{grid-template-columns:minmax(0,1fr) 210px 190px}
   .orc-filtros .avcb-busca{grid-column:auto}
@@ -284,6 +284,34 @@ button,input,label{font:inherit}
   .avcb-tab .orc-c-acao{width:124px}
   .avcb-det-ac{display:flex;flex-wrap:wrap}
   .btn.avcb-ir{width:fit-content;padding:0 22px}
+}
+/* pedidos de compra e de pagamento: a mesma tabela das notas fiscais (pedido do Gustavo em 11/11/2026, no lugar dos cartões).
+   Celular: nome (favorecido ou itens), valor ou data e situação; tela larga: também centro de custo, solicitante e prazo */
+#pc-resumo:empty{display:none}
+#pc-resumo{margin:0 2px 8px}
+.pc-tab .pc-c-sit{width:112px}
+.pc-tab .orc-c-valor{width:92px}
+.pc-so-pc{display:none}
+.pc-tab .avcb-sit{font-size:12.5px;padding:2px 8px}
+.avcb-sit.pc-and{background:var(--brand-tint,#E0E9F3);color:var(--marinho)}   /* aprovado / comprado: ainda falta pagar ou entregar */
+.avcb-sit.pc-neu{background:var(--linha);color:var(--tinta)}                  /* ⏳ ainda no celular */
+.pc-c-sit small{display:block;margin-top:2px;font-size:12.5px;color:var(--suave);white-space:nowrap}
+.pc-urg{display:inline-block;margin-right:6px;padding:0 7px;border-radius:999px;background:var(--crit-bg);color:var(--crit-tx);font-size:11.5px;font-weight:700;line-height:1.6;vertical-align:1px}
+.pc-tab .orc-cli{font-weight:600}
+@media (prefers-color-scheme:dark){.avcb-sit.pc-and{background:rgba(255,255,255,.12);color:var(--tinta)}}
+@container (max-width:859px){
+  .pc-tab{font-size:15px}
+  .pc-tab tbody td{padding-top:10px;padding-bottom:10px}
+}
+@container (min-width:860px){
+  .pc-so-pc{display:table-cell}
+  .pc-tab .pc-c-centro{width:190px;color:var(--suave);font-size:14px}
+  .pc-tab .pc-c-sol{width:150px}
+  .pc-tab .pc-c-prazo{width:112px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .pc-tab .orc-c-valor{width:128px}
+  .pc-tab .pc-c-sit{width:132px}
+  .pc-c-sol small{display:block;font-size:13px;color:var(--suave)}
+  .pc-c-sit small.pc-sit-cel{display:none}
 }
 /* ficha do cliente: contatos (Ligar, WhatsApp, E-mail) e dados; no celular os botões ficam embaixo do contato */
 .ficha-contato{padding:12px;margin-bottom:10px;border:1.5px solid var(--linha);border-left:6px solid var(--laranja);border-radius:12px;background:var(--papel);line-height:1.35}
@@ -1140,8 +1168,8 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   .avcb-corpo{max-width:none;padding:12px max(28px, calc((100% - var(--larg)) / 2)) 48px;scrollbar-gutter:stable}
   #tela-agenda.como-secao{top:var(--topo-pc)}
   #tela-agenda.como-secao .avcb-corpo{padding-bottom:48px}
-  #os-corpo,#pc-lista:not([hidden]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;align-content:start}
-  #os-corpo > :not(.os-card),#pc-lista > :not(.pc-card){grid-column:1 / -1}
+  #os-corpo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;align-content:start}
+  #os-corpo > :not(.os-card){grid-column:1 / -1}
   #arq-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:10px}
   #arq-lista > li{display:flex}                    /* cartões da mesma linha com a mesma altura */
   #os-corpo > .btn.prim,#pc-novo-btn,#pt-gerar,#eqv-exportar,#ch-exportar,#its-guardar,#arq-baixar,#orc-exportar,#nf-exportar,#nf-nova,#avcb-exportar,#cl-exportar{width:fit-content!important;min-width:280px;padding:0 28px}
@@ -1898,7 +1926,9 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     <div id="pc-topo-lista">
       <div class="abas pc-tipos" id="pc-tipos" role="tablist"><button role="tab" data-t="compra" aria-selected="true">Compra</button><button role="tab" data-t="pag" aria-selected="false">Pagamento</button></div>
       <button class="btn prim" id="pc-novo-btn">+ Novo pedido</button>
+      <input class="avcb-busca" id="pc-busca" type="search" placeholder="Buscar pedido" aria-label="Buscar por favorecido, item, centro de custo, solicitante, valor ou número" autocomplete="off" style="margin:12px 0 0">
       <div class="chips avcb-filtro" id="pc-filtro" style="margin-top:12px" role="group" aria-label="Situação dos pedidos"></div>
+      <p class="orc-resumo" id="pc-resumo"></p>
       <p class="avcb-nota" id="pc-estado" style="margin-top:0"></p>
     </div>
     <div id="pc-lista"></div>
@@ -9048,6 +9078,7 @@ function abrirPedidos() {
   document.body.style.overflow = "hidden";
   history.pushState({ pc: true }, "");
   pcAberto = null; delete rolLista["tela-pc"];
+  $("pc-busca").value = "";
   pcFiltro = "abertos"; $("pc-filtro").scrollLeft = 0;   // cada abertura começa em "Em aberto": o filtro da última vez (ex.: Entregues) podia esconder o que o cartão "N aguardando…" anunciou
   if (!podeTipo(pcTipo)) pcTipo = Object.keys(TIPOS_PED).find(podeTipo) || "compra";
   $("pc-exportar").hidden = !ehAdmin();
@@ -9062,6 +9093,90 @@ function fecharPedidos(voltar = true) {
 }
 const valorBR = v => v ? `R$ ${v}` : "";
 
+/* lista de pedidos como planilha (pedido do Gustavo em 11/11/2026, no lugar dos cartões; igual às notas fiscais e ao AVCB):
+   celular — pagamento: favorecido, valor e situação (com o vencimento embaixo); compra: itens, data e situação (com o "precisa até");
+   tela larga — também centro de custo, solicitante (com a data do pedido) e o prazo (vencimento / precisa até) em colunas.
+   Busca, filtros por etapa (FILTROS_PED), título da coluna ordena (de novo inverte; vazios no fim), linha abre o pedido. */
+let pcOrdem = { col: "data", desc: true };          // padrão: os mais novos primeiro (como antes)
+const ST_PC_CURTO = { aguardando: "Aguardando", aprovado: "Aprovado", recusado: "Recusado", comprado: "Comprado", entregue: "Entregue", pago: "Pago", cancelado: "Cancelado" };
+const CLS_PC_TAB = { aguardando: "warn", aprovado: "pc-and", comprado: "pc-and", entregue: "ok", pago: "ok", recusado: "crit", cancelado: "crit" };
+const ORDEM_ST_PC = ["aguardando", "aprovado", "comprado", "entregue", "pago", "recusado", "cancelado"];
+const nomePC = p => tipoDe(p) === "pag" ? (p.favorecido || "—") : (p.itens?.[0]?.desc || "—");
+const valorPC = p => tipoDe(p) === "pag" ? lerValor(p.valor) : null;   // aceita "1.250,00" e "1250.50"
+const dataCurtaPC = iso => dataBRde(iso).replace(/\d{2}(\d{2})$/, "$1");
+const COLS_PC = {
+  nome: p => nomePC(p), centro: p => centroPC(p), sol: p => p.solicitante?.nome || null, data: p => p.criadoEm || null,
+  prazo: p => (tipoDe(p) === "pag" ? p.vencimento : p.precisaAte) || null, valor: valorPC,
+  sit: p => p.pendente ? -1 : ORDEM_ST_PC.indexOf(p.status)
+};
+function compPC(a, b) {
+  const f = COLS_PC[pcOrdem.col] || COLS_PC.data, x = f(a), y = f(b);
+  if ((x == null) !== (y == null)) return x == null ? 1 : -1;
+  let r = x == null ? 0 : typeof x === "number" ? x - y : String(x).localeCompare(String(y), "pt-BR");
+  if (pcOrdem.desc) r = -r;
+  return r || (b.criadoEm || "").localeCompare(a.criadoEm || "");
+}
+const buscaPC = p => semAcento([p.numero, p.favorecido, p.docFav, digitos(p.docFav), centroPC(p), p.solicitante?.nome, p.descricao, p.obs, p.forma, p.urgencia,
+  ...(p.itens || []).map(it => it.desc), p.compra?.fornecedor, p.compra?.valor, p.valor, valorPC(p) != null && moedaBR(valorPC(p)),
+  p.vencimento && dataBRde(p.vencimento), p.precisaAte && dataBRde(p.precisaAte), p.criadoEm && new Date(p.criadoEm).toLocaleDateString("pt-BR"),
+  ST_PC[p.status]?.[0]].filter(Boolean).join(" "));
+function tabelaPC(vis) {
+  const pag = pcTipo === "pag";
+  const cols = pag
+    ? [["nome", "Favorecido", "orc-c-cli"], ["centro", "Centro de custo", "pc-so-pc pc-c-centro"], ["sol", "Solicitante", "pc-so-pc pc-c-sol"],
+       ["prazo", "Vencimento", "pc-so-pc pc-c-prazo"], ["valor", "Valor (R$)", "orc-c-valor"], ["sit", "Situação", "pc-c-sit"]]
+    : [["nome", "Itens", "orc-c-cli"], ["centro", "Centro de custo", "pc-so-pc pc-c-centro"], ["sol", "Solicitante", "pc-so-pc pc-c-sol"],
+       ["data", "Data", "orc-so-cel orc-c-data"], ["prazo", "Precisa até", "pc-so-pc pc-c-prazo"], ["sit", "Situação", "pc-c-sit"]];
+  const tb = el("table", "orc-tab pc-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  for (const [k, rot, cls] of cols) {
+    const th = el("th", cls), b = el("button", "", rot), ativa = pcOrdem.col === k;
+    th.scope = "col"; b.type = "button"; b.dataset.col = k;
+    b.dataset.seta = ativa ? (pcOrdem.desc ? " ↓" : " ↑") : "";
+    th.setAttribute("aria-sort", ativa ? (pcOrdem.desc ? "descending" : "ascending") : "none");
+    // 1º toque: data e valor do maior para o menor; o resto em ordem crescente (prazo: o que vence antes primeiro)
+    b.onclick = () => { pcOrdem = { col: k, desc: ativa ? !pcOrdem.desc : k === "data" || k === "valor" }; desenharPedidos(); $("pc-lista").querySelector(`thead button[data-col="${k}"]`)?.focus(); };
+    th.appendChild(b); tr.appendChild(th);
+  }
+  cab.appendChild(tr);
+  vis.forEach(p => corpo.appendChild(linhaPC(p, pag)));
+  tb.append(cab, corpo);
+  return tb;
+}
+function linhaPC(p, pag) {
+  const tr = el("tr"); tr.tabIndex = 0;
+  const n = p.itens?.length || 0;
+  const nome = el("td", "orc-c-cli"), tit = el("span", "orc-cli");
+  if (p.urgencia === "Urgente") tit.appendChild(el("span", "pc-urg", "URGENTE"));
+  tit.append(nomePC(p) + (!pag && n > 1 ? ` (+${n - 1})` : ""));
+  nome.appendChild(tit);
+  // celular: centro de custo e solicitante embaixo do nome (na tela larga têm coluna própria)
+  nome.appendChild(el("small", "orc-sub orc-so-cel", [!pag && `${n} ite${n === 1 ? "m" : "ns"}`, centroPC(p), p.solicitante?.nome].filter(Boolean).join(" · ")));
+  const sol = el("td", "pc-so-pc pc-c-sol", p.solicitante?.nome || "—");
+  if (p.criadoEm) sol.appendChild(el("small", "", "pedido em " + new Date(p.criadoEm).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })));
+  const prazo = COLS_PC.prazo(p);
+  const sit = el("td", "pc-c-sit");
+  const tag = el("span", "avcb-sit " + (p.pendente ? "pc-neu" : CLS_PC_TAB[p.status] || "pc-neu"), p.pendente ? "⏳ Na fila" : ST_PC_CURTO[p.status] || p.status);
+  tag.title = p.pendente ? "Guardado no celular, aguardando envio" : ST_PC[p.status]?.[0] || p.status;
+  sit.appendChild(tag);
+  // embaixo da situação: pago em (sempre); vencimento / precisa até só no celular (na tela larga têm coluna)
+  if (pag && p.status === "pago" && p.pagamento?.data) sit.appendChild(el("small", "", "em " + dataCurtaPC(p.pagamento.data)));
+  else if (prazo && (p.pendente || TIPOS_PED[tipoDe(p)].abertos.includes(p.status))) sit.appendChild(el("small", "pc-sit-cel", (pag ? "vence " : "até ") + dataCurtaPC(prazo)));
+  const cels = [nome, el("td", "pc-so-pc pc-c-centro", centroPC(p)), sol];
+  if (pag) {
+    const v = valorPC(p);
+    cels.push(el("td", "pc-so-pc pc-c-prazo", prazo ? dataBRde(prazo) : "—"), el("td", "orc-c-valor", v != null ? moedaBR(v) : p.valor || "—"));
+  } else {
+    cels.push(el("td", "orc-so-cel orc-c-data", p.criadoEm ? new Date(p.criadoEm).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" }) : "—"),
+      el("td", "pc-so-pc pc-c-prazo", prazo ? dataBRde(prazo) : "—"));
+  }
+  cels.push(sit);
+  tr.append(...cels);
+  const abrir = () => { guardarRol("tela-pc"); pcAberto = p.id; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };
+  tr.onclick = abrir;
+  tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrir(); };
+  return tr;
+}
+
 function desenharPedidos() {
   const lista = $("pc-lista"), det = $("pc-detalhe");
   $("pc-novo").hidden = true;
@@ -9074,7 +9189,9 @@ function desenharPedidos() {
     const n = esperandoMim(b.dataset.t);
     comIc(b, TIPOS_PED[b.dataset.t].ico, TIPOS_PED[b.dataset.t].aba + (n ? ` (${n})` : "")); });
   $("pc-novo-btn").textContent = pcTipo === "pag" ? "+ Novo pedido de pagamento" : "+ Novo pedido de compra";
-  const todos = meusPedidos().filter(p => tipoDe(p) === pcTipo).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
+  const daAba = meusPedidos().filter(p => tipoDe(p) === pcTipo);
+  const q = semAcento($("pc-busca").value.trim());
+  const todos = q ? daAba.filter(p => buscaPC(p).includes(q)) : daAba;   // os números dos filtros contam depois da busca
   // filtros: um para cada etapa do fluxo da aba, com a quantidade; trocar de aba com um filtro que a outra não tem volta para "Em aberto"
   const filtros = FILTROS_PED[pcTipo];
   if (!filtros.some(x => x[0] === pcFiltro)) pcFiltro = "abertos";
@@ -9096,27 +9213,23 @@ function desenharPedidos() {
     mostrarChipMarcado(cx);                         // celular: a linha de filtros rola de lado; o marcado fica à vista
   }
   const [, rotFiltro, stsFiltro] = filtros.find(x => x[0] === pcFiltro);
-  const vis = todos.filter(p => passa(p, stsFiltro));
+  const vis = todos.filter(p => passa(p, stsFiltro)).sort(compPC);
   lista.innerHTML = "";
+  // resumo: quantos aparecem e, nos pagamentos, o total em R$ do que está na tela
+  const res = $("pc-resumo"); res.innerHTML = "";
+  if (vis.length) {
+    res.append(`${vis.length} pedido${vis.length === 1 ? "" : "s"}${q ? ` de ${daAba.filter(p => passa(p, stsFiltro)).length}` : ""}`);
+    // recusados e cancelados não somam (como as notas canceladas)
+    const fora = vis.filter(p => ["recusado", "cancelado"].includes(p.status)).length;
+    const vals = pcTipo === "pag" ? vis.filter(p => !["recusado", "cancelado"].includes(p.status)).map(valorPC).filter(v => v != null) : [];
+    if (vals.length) { res.append(" · Total ", el("b", "", "R$ " + moedaBR(vals.reduce((s, v) => s + v, 0)))); if (fora) res.append(` (${fora} recusado${fora > 1 ? "s" : ""} ou cancelado${fora > 1 ? "s" : ""} fora do total)`); }
+  }
   const erroPc = navigator.onLine ? sincronizarPedidos.porTipo?.[pcTipo] : "";   // pasta sem acesso ou falha na leitura: diz isso no lugar de "Nenhum pedido"
-  if (!vis.length) lista.appendChild(erroPc ? vazio(TIPOS_PED[pcTipo].ico, "Não foi possível ler os pedidos", erroPc)
+  if (!vis.length) lista.appendChild(q && daAba.length ? vazio("lupa", "Nenhum pedido com essa busca", "Confira o texto ou veja os outros filtros.")
+    : erroPc ? vazio(TIPOS_PED[pcTipo].ico, "Não foi possível ler os pedidos", erroPc)
     : vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhum pedido ainda" : pcFiltro === "abertos" ? "Nenhum pedido em aberto" : `Nenhum pedido em "${rotFiltro}"`,
         pcFiltro === "todos" ? "" : pcFiltro === "abertos" ? "Em Todos aparecem os já resolvidos." : todos.length ? "Veja os outros filtros ou Todos." : ""));
-  for (const p of vis) {
-    const [rot, cls] = ST_PC[p.status] || [p.status, ""];
-    const b = el("button", "pc-card " + cls); b.type = "button";
-    const l1 = el("div", "pc-l1"); l1.append(el("strong", "", `Pedido ${p.numero}`), el("span", "pc-st", p.pendente ? "⏳ aguardando envio" : rot));
-    b.appendChild(l1);
-    if (tipoDe(p) === "pag") {
-      b.appendChild(el("div", "pc-l2", `${valorBR(p.valor)} · ${p.favorecido}${p.urgencia === "Urgente" ? " · URGENTE" : ""}`));
-      b.appendChild(el("div", "pc-l3", `${centroPC(p)} · ${p.solicitante?.nome || ""} · vence ${p.vencimento ? dataBRde(p.vencimento) : "-"}`));
-    } else {
-      b.appendChild(el("div", "pc-l2", `${p.itens.length} ite${p.itens.length > 1 ? "ns" : "m"} · ${centroPC(p)}${p.urgencia === "Urgente" ? " · URGENTE" : ""}`));
-      b.appendChild(el("div", "pc-l3", `${p.solicitante?.nome || ""} · ${new Date(p.criadoEm).toLocaleDateString("pt-BR")}${p.precisaAte ? " · precisa até " + dataBRde(p.precisaAte) : ""}`));
-    }
-    b.onclick = () => { guardarRol("tela-pc"); pcAberto = p.id; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };
-    lista.appendChild(b);
-  }
+  else lista.appendChild(tabelaPC(vis));
   $("pc-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última consulta." : (sincronizarPedidos.erros || []).join(" ");
 }
 
@@ -14695,6 +14808,7 @@ $("pc-voltar").onclick = () => fecharPedidos();
 $("pc-novo-btn").onclick = abrirNovoPC;
 $("pc-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { pcTipo = b.dataset.t; pcAberto = null; desenharPedidos(); });
 $("pc-exportar").onclick = exportarPedidos;
+$("pc-busca").oninput = () => desenharPedidos();
 $("pc-filtro").onclick = e => { const b = e.target.closest("button[data-f]"); if (!b) return; pcFiltro = b.dataset.f; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };   // os botões são montados em desenharPedidos
 $("pc-materiais").append(...MATERIAIS.map(([d]) => { const o = document.createElement("option"); o.value = d; return o; }));
 $("its-voltar").onclick = () => fecharNormas();
