@@ -989,6 +989,12 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 /* pergunta do próprio app (no lugar da caixinha OK/Cancelar do navegador): os botões dizem o que fazem */
 .dlg-enviar p.perg-texto{font-size:15.5px;font-weight:400;color:var(--suave);margin-top:-8px;white-space:pre-line;overflow-wrap:anywhere}
 #dlg-perg{max-height:calc(100% - 24px);overflow-y:auto;overscroll-behavior:contain}
+.perg-arq .btn{width:100%;min-height:48px}
+.perg-arq-nome{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:15px;color:var(--tinta)}
+.perg-arq-nome[hidden]{display:none}   /* o display:flex mostraria o "Tirar" sem arquivo escolhido */
+.perg-arq-nome span{flex:1;min-width:0;overflow-wrap:anywhere;margin:0;font-size:15px;font-weight:400;color:var(--tinta)}
+.perg-arq-nome .laudo-link{min-height:44px;padding:6px 8px}
+@media (prefers-color-scheme:dark){.perg-arq-nome .laudo-link{color:var(--tinta)}}
 .dlg-enviar .campo textarea{min-height:64px}
 .perg-acoes{grid-template-columns:1fr}
 .perg-acoes .btn{width:100%}
@@ -2455,7 +2461,8 @@ function fecharAviso() { clearTimeout(aviso.t); $("aviso").className = "aviso"; 
 
 // pergunta numa janela do próprio app, com botões que dizem o que fazem ("Sim, cancelar a OS" / "Não, manter a OS").
 // Devolve null (desistiu) ou { valor, campos } (valor = texto do campo opcional; campos = { id: valor } dos campos pedidos em
-// "campos": [{ id, rotulo, tipo: "data" | "valor" | "texto", valor, dica }] — a data usa o calendário do aparelho e volta AAAA-MM-DD). O "voltar" do celular e o Esc desistem: a pergunta
+// "campos": [{ id, rotulo, tipo: "data" | "valor" | "texto" | "arquivo", valor, dica }] — a data usa o calendário do aparelho e volta AAAA-MM-DD;
+// o "arquivo" ({ aceita, botao }) é um botão que abre a escolha de arquivo, é sempre opcional e volta em resp.arquivos[id] (File ou nada)). O "voltar" do celular e o Esc desistem: a pergunta
 // guarda um passo no histórico e só responde quando esse passo sai (popstate), para o que está embaixo não fechar junto.
 let pergAtual = null;
 function perguntar({ titulo, texto = "", campo = "", campos = [], sim, nao = "Voltar", perigo = false }) {
@@ -2466,6 +2473,23 @@ function perguntar({ titulo, texto = "", campo = "", campos = [], sim, nao = "Vo
     $("perg-campo-rot").hidden = !campo; $("perg-campo-nome").textContent = campo; $("perg-campo").value = "";
     const cx = $("perg-campos"); cx.innerHTML = "";
     for (const c of campos) {
+      if (c.tipo === "arquivo") {                  // opcional: botão + nome do arquivo escolhido + "Tirar"
+        const w = el("div", "campo perg-arq"); const rot = el("span", "", c.rotulo); rot.id = "perg-arq-rot-" + c.id; w.appendChild(rot);
+        w.setAttribute("role", "group"); w.setAttribute("aria-labelledby", rot.id);   // leitor de tela: liga o rótulo ao botão
+        const inp = document.createElement("input"); inp.type = "file"; inp.hidden = true; inp.dataset.id = c.id; if (c.aceita) inp.accept = c.aceita;
+        const b = el("button", "btn sec", c.botao || "Escolher arquivo"); b.type = "button";
+        const info = el("div", "perg-arq-nome"); info.hidden = true;
+        const nome = el("span", ""), tirar = el("button", "laudo-link", "Tirar"); tirar.type = "button"; tirar.setAttribute("aria-label", "Tirar o arquivo");
+        info.append(nome, tirar);
+        const pintar = () => { const arq = inp.files[0]; info.hidden = !arq; nome.textContent = arq ? arq.name : ""; b.textContent = arq ? "Trocar o arquivo" : (c.botao || "Escolher arquivo");
+          if (arq) b.setAttribute("aria-label", "Arquivo anexado: " + arq.name + ". Trocar o arquivo"); else b.removeAttribute("aria-label"); };   // o foco volta para este botão depois da escolha: o leitor de tela diz o nome
+        b.onclick = () => inp.click();
+        inp.onchange = pintar;
+        inp.addEventListener("cancel", e => e.stopPropagation());   // desistir no seletor de arquivo não é desistir da pergunta
+        tirar.onclick = () => { inp.value = ""; pintar(); b.focus(); };
+        w.append(inp, b, info); cx.appendChild(w);
+        continue;
+      }
       const l = el("label", "campo"); l.appendChild(el("span", "", c.rotulo));
       const i = document.createElement("input"); i.dataset.id = c.id;
       if (c.tipo === "data") { i.type = "date"; i.min = "2000-01-01"; i.max = "2100-12-31"; }   // digitada no computador: ano com 2 dígitos virava o ano 0027
@@ -2479,7 +2503,7 @@ function perguntar({ titulo, texto = "", campo = "", campos = [], sim, nao = "Vo
     history.pushState({ ...(history.state || {}), perg: true }, "");
     $("dlg-perg").showModal();
     // o foco começa no botão que não muda nada; no computador, a janela de preencher começa no 1º campo (como era na caixinha do navegador)
-    ((campos.length && !perigo && computador.matches && cx.querySelector("input")) || $("perg-nao")).focus();
+    ((campos.length && !perigo && computador.matches && cx.querySelector("input:not([type=file])")) || $("perg-nao")).focus();
   });
 }
 function fecharPergunta(resp) {
@@ -2494,16 +2518,20 @@ function concluirPergunta() {                      // chamada pelo popstate (o p
   setTimeout(() => p.ok(p.resp), 0);               // responde depois que o navegador repõe a rolagem do passo do histórico (senão ele desfaz o scrollTo(0, 0) de quem perguntou)
 }
 $("perg-sim").onclick = () => {
-  const ins = [...$("perg-campos").querySelectorAll("input")];
+  const todos = [...$("perg-campos").querySelectorAll("input")], ins = todos.filter(i => i.type !== "file");
   // data digitada pela metade (o navegador devolve vazio, que viraria "sem data") ou com ano fora de 2000-2100: não responde; o navegador mostra o balão no campo
   const ruim = ins.find(i => i.type === "date" && !i.checkValidity());
   if (ruim) { ruim.reportValidity(); return; }
-  fecharPergunta({ valor: $("perg-campo").value.trim(), campos: Object.fromEntries(ins.map(i => [i.dataset.id, i.value.trim()])) });
+  fecharPergunta({ valor: $("perg-campo").value.trim(), campos: Object.fromEntries(ins.map(i => [i.dataset.id, i.value.trim()])),
+    arquivos: Object.fromEntries(todos.filter(i => i.type === "file" && i.files[0]).map(i => [i.dataset.id, i.files[0]])) });
 };
 // pergunta antes de apagar algo: botão vermelho que diz o que faz; devolve true só se a pessoa confirmar
 const confirmarApagar = async (titulo, texto, sim, nao = "Voltar") => !!(await perguntar({ titulo, texto, sim, nao, perigo: true }));
 $("perg-nao").onclick = () => fecharPergunta(null);
-$("dlg-perg").addEventListener("cancel", e => { e.preventDefault(); fecharPergunta(null); });
+$("dlg-perg").addEventListener("cancel", e => {
+  if (e.target !== e.currentTarget) return;        // o "cancel" de um <input type=file> de dentro da janela (a pessoa desistiu de escolher o arquivo) sobe até aqui: não é o Esc
+  e.preventDefault(); fecharPergunta(null);
+});
 function mostrar(tela) {
   const hubs = ["tela-inicio", "tela-clientes", "tela-cliente", "tela-reg", "tela-mod", "tela-fin", "tela-mais"];
   ["tela-config", "tela-login", "tela-espera", "tela-app", "tela-ok", ...hubs].forEach(t => $(t).hidden = t !== tela);
@@ -9104,7 +9132,8 @@ function desenharDetalhePC(p) {
   const adm = ehAdmin(), meu = p.solicitante?.email === emailDe();
   if (!p.pendente) {
     if (adm && p.status === "aguardando") { botao("✓ Aprovar", "prim", () => mudarStatusPC(p, "aprovado")); botao("Recusar", "sec", () => mudarStatusPC(p, "recusado", true)); }
-    if ((adm || resolveTipo(pag ? "pag" : "compra")) && p.status === "aprovado") pag ? botao("Marcar como pago (anexar comprovante)", "prim", () => marcarPago(p)) : botao("Marcar como comprado", "prim", () => marcarComprado(p));
+    if ((adm || resolveTipo(pag ? "pag" : "compra")) && p.status === "aprovado") pag ? botao("Marcar como pago", "prim", () => marcarPago(p)) : botao("Marcar como comprado", "prim", () => marcarComprado(p));
+    if (pag && (adm || ehPagador()) && p.status === "pago" && !p.pagamento?.comprovante) botao("Anexar comprovante", "sec", () => anexarComprovantePago(p));   // pago sem comprovante: dá para anexar depois
     if (!pag && (adm || meu || ehComprador()) && p.status === "comprado") botao("Marcar como entregue", "prim", () => mudarStatusPC(p, "entregue"));
     if (meu && p.status === "aguardando") botao("Cancelar pedido", "sec", () => mudarStatusPC(p, "cancelado", true));
   }
@@ -9114,9 +9143,9 @@ function desenharDetalhePC(p) {
 
 // muda a situação no .json do OneDrive (lê a versão mais nova e grava com If-Match)
 function mudarStatusPC(...a) { return comGravacao(() => mudarStatusPCJa(...a)); }   // conta a gravação inteira
-async function mudarStatusPCJa(p, status, pedirMotivo, extra) {
+async function mudarStatusPCJa(p, status, pedirMotivo, extra, obsPronta = "") {   // obsPronta: observação já escrita para o histórico (ex.: "comprovante anexado")
   if (!navigator.onLine) { aviso("Sem internet para alterar o pedido.", true); return; }
-  let obs = "";
+  let obs = obsPronta;
   if (pedirMotivo) {
     const rec = status === "recusado";
     const r = await perguntar({ titulo: `${rec ? "Recusar" : "Cancelar"} o pedido ${p.numero}?`, campo: "Motivo (opcional)",
@@ -9150,24 +9179,43 @@ async function marcarComprado(p) {                 // uma janela só, com o cale
   if (!r) return;
   mudarStatusPC(p, "comprado", false, { compra: { fornecedor: r.campos.fornecedor, valor: r.campos.valor, previsao: r.campos.previsao || "" } });
 }
-// pago: escolhe o comprovante (foto ou PDF), informa a data e envia o arquivo junto do pedido
-function marcarPago(p) {
+// pago: uma janela só, com a data e o comprovante (foto ou PDF) — o comprovante é OPCIONAL (pedido do Gustavo em 11/11/2026;
+// antes, sem escolher um arquivo não dava para marcar como pago). Sem comprovante, ele pode ser anexado depois (anexarComprovantePago)
+const nomeComprovantePP = (p, arq) => `${p.id} - comprovante.${(arq.name.includes(".") ? arq.name.split(".").pop() : arq.type === "application/pdf" ? "pdf" : "jpg").toLowerCase()}`;
+async function marcarPago(p) {
   if (!navigator.onLine) { aviso("Sem internet para registrar o pagamento.", true); return; }
+  // a data vem do calendário do aparelho (antes era digitada e, escrita errado, virava a data de hoje sem avisar)
+  const r = await perguntar({ titulo: `Pedido ${p.numero}: pago`, campos: [
+    { id: "data", rotulo: "Data do pagamento", tipo: "data", valor: dataISO() },
+    { id: "comp", rotulo: "Comprovante (opcional)", tipo: "arquivo", aceita: "image/*,application/pdf", botao: "Anexar foto ou PDF" }], sim: "Marcar como pago", nao: "Cancelar" });
+  if (!r) return;
+  if (!r.campos.data) { aviso("Escolha a data do pagamento.", true); return; }
+  const data = r.campos.data, arq = r.arquivos?.comp || null;
+  await comGravacao(async () => {                // enviar o comprovante (se houver) e marcar como pago: uma gravação só
+    const pagamento = { data, por: nomeColaborador() };
+    try {
+      if (arq) {
+        const nome = nomeComprovantePP(p, arq);
+        aviso("Enviando o comprovante…");
+        const it = await enviarArquivo(await basePedidos("pag"), nome, arq, undefined, true);   // grava por cima: nova tentativa não cria "comprovante 1"
+        pagamento.comprovante = (it?.name || nome).slice(p.id.length + 3);
+      }
+    } catch (e) { aviso("Não foi possível enviar o comprovante: " + erroEmPortugues(e.message) + " — o pedido continua como aprovado.", true); return; }
+    await mudarStatusPC(p, "pago", false, { pagamento });
+  });
+}
+// pedido pago sem comprovante: anexa depois (quem paga ou o administrador)
+function anexarComprovantePago(p) {
+  if (!navigator.onLine) { aviso("Sem internet para enviar o comprovante.", true); return; }
   const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*,application/pdf";
   inp.onchange = async () => {
-    const f = inp.files[0]; if (!f) return;
-    // a data vem do calendário do aparelho (antes era digitada e, escrita errado, virava a data de hoje sem avisar)
-    const r = await perguntar({ titulo: `Pedido ${p.numero}: pago`, texto: `Comprovante: ${f.name}`, campos: [{ id: "data", rotulo: "Data do pagamento", tipo: "data", valor: dataISO() }], sim: "Marcar como pago", nao: "Cancelar" });
-    if (!r) return;
-    if (!r.campos.data) { aviso("Escolha a data do pagamento.", true); return; }
-    const data = r.campos.data;
-    await comGravacao(async () => {                // enviar o comprovante e marcar como pago: uma gravação só
-    const nome = `${p.id} - comprovante.${(f.name.split(".").pop() || "jpg").toLowerCase()}`;
-    try {
-      aviso("Enviando o comprovante…");
-      await enviarArquivo(await basePedidos("pag"), nome, f);
-      await mudarStatusPC(p, "pago", false, { pagamento: { data, comprovante: nome.slice(p.id.length + 3), por: nomeColaborador() } });
-    } catch (e) { aviso("Não foi possível enviar o comprovante: " + e.message, true); }
+    const arq = inp.files[0]; if (!arq) return;
+    await comGravacao(async () => {
+      const nome = nomeComprovantePP(p, arq);
+      let it;
+      try { aviso("Enviando o comprovante…"); it = await enviarArquivo(await basePedidos("pag"), nome, arq, undefined, true); }   // grava por cima: nova tentativa não cria "comprovante 1"
+      catch (e) { aviso("Não foi possível enviar o comprovante: " + erroEmPortugues(e.message), true); return; }
+      await mudarStatusPC(p, "pago", false, { pagamento: { ...(p.pagamento || {}), comprovante: (it?.name || nome).slice(p.id.length + 3) } }, "comprovante anexado");
     });
   };
   inp.click();
