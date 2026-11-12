@@ -1488,6 +1488,41 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   }
 }
 </style>
+<script id="tema-app">
+/* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
+   @media (prefers-color-scheme:dark); para forçar um modo, este trecho troca essa condição, nas regras do <style id="estilo-app">,
+   nos <source> das logos e nas <meta name="theme-color">, por uma que é sempre verdadeira ou sempre falsa. Sem escolha
+   (localStorage vpx_tema vazio), tudo fica como veio e o app segue o aparelho. Fica aqui em cima para valer antes da 1ª pintura. */
+(function () {
+  var ESC = /\(\s*prefers-color-scheme\s*:\s*dark\s*\)/g, CLA = /\(\s*prefers-color-scheme\s*:\s*light\s*\)/g, SIM = "(min-width:0px)", NAO = "(max-width:0px)";
+  var orig = {};                                   // caminho da regra no CSS -> condição original
+  function trocar(txt, tema) { return !tema ? txt : txt.replace(ESC, tema === "escuro" ? SIM : NAO).replace(CLA, tema === "escuro" ? NAO : SIM); }
+  function regras(lista, tema, caminho) {
+    for (var i = 0; i < lista.length; i++) {
+      var r = lista[i], c = caminho + "." + i;
+      if (r.media && r.cssRules) {
+        if (!(c in orig)) orig[c] = r.media.mediaText;
+        if (/prefers-color-scheme/.test(orig[c])) { var novo = trocar(orig[c], tema); if (r.media.mediaText !== novo) r.media.mediaText = novo; }
+      }
+      if (r.cssRules) regras(r.cssRules, tema, c);
+    }
+  }
+  window.temaApp = function () { try { var v = (localStorage.getItem("vpx_tema") || "").replace(/"/g, ""); return v === "escuro" || v === "claro" ? v : ""; } catch (e) { return ""; } };
+  window.aplicarTema = function () {
+    var tema = window.temaApp();
+    try { regras(document.getElementById("estilo-app").sheet.cssRules, tema, ""); } catch (e) {}
+    var els = document.querySelectorAll("source[media], meta[name='theme-color'][media]");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (!el.hasAttribute("data-media")) el.setAttribute("data-media", el.getAttribute("media"));
+      var o = el.getAttribute("data-media");
+      if (/prefers-color-scheme/.test(o)) { var m = trocar(o, tema); if (el.getAttribute("media") !== m) el.setAttribute("media", m); }
+    }
+    document.documentElement.setAttribute("data-tema", tema || "auto");
+  };
+  window.aplicarTema();
+})();
+</script>
 </head>
 <body>
 <!-- ícones do app (desenho próprio, traço fino; o detalhe em laranja usa --ic-ac). Uso: <svg class="ic"><use href="#i-nome"/></svg> ou ic("nome") no script -->
@@ -1504,6 +1539,8 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <symbol id="i-pastatec" viewBox="0 0 24 24"><path d="M3.5 7A1.5 1.5 0 0 1 5 5.5h4l2 2.2h8a1.5 1.5 0 0 1 1.5 1.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/><path style="stroke:var(--ic-ac)" d="m9.3 13.6 2 2 3.6-3.8"/></symbol>
   <symbol id="i-historico" viewBox="0 0 24 24"><path d="M4.2 13A8 8 0 1 0 6.3 6.4"/><path d="M4.5 3.8v3.7h3.7"/><path style="stroke:var(--ic-ac)" d="M12 8.2v4.3l2.9 1.8"/></symbol>
   <symbol id="i-salvo" viewBox="0 0 24 24"><path d="M7 3.5h10A1.5 1.5 0 0 1 18.5 5v15.5L12 16.6l-6.5 3.9V5A1.5 1.5 0 0 1 7 3.5z"/><path style="stroke:var(--ic-ac)" d="m9.3 9.6 1.9 1.9 3.5-3.6"/></symbol>
+  <symbol id="i-lua" viewBox="0 0 24 24"><path d="M19.6 14.4A7.9 7.9 0 0 1 9.6 4.4a7.9 7.9 0 1 0 10 10z"/><path style="stroke:var(--ic-ac)" d="M16.8 4.2v3.2M15.2 5.8h3.2"/></symbol>
+  <symbol id="i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.9"/><path style="stroke:var(--ic-ac)" d="M12 3.4v2.1M12 18.5v2.1M3.4 12h2.1M18.5 12h2.1M5.9 5.9l1.5 1.5M16.6 16.6l1.5 1.5M5.9 18.1l1.5-1.5M16.6 7.4l1.5-1.5"/></symbol>
   <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3.3 19 6v5.6c0 4.3-2.9 7.6-7 9.1-4.1-1.5-7-4.8-7-9.1V6z"/><path style="stroke:var(--ic-ac)" d="m9 12 2.1 2.1 3.9-4.2"/></symbol>
   <symbol id="i-livro" viewBox="0 0 24 24"><path d="M12 6.8C10 5.2 7 4.6 3.5 5v13.6c3.5-.4 6.5.2 8.5 1.8 2-1.6 5-2.2 8.5-1.8V5C17 4.6 14 5.2 12 6.8z"/><path style="stroke:var(--ic-ac)" d="M12 6.8v13.6"/></symbol>
   <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 7h8.5M18 7h2M4 17h2.5M12 17h8"/><circle style="stroke:var(--ic-ac)" cx="15.2" cy="7" r="2.4"/><circle style="stroke:var(--ic-ac)" cx="9.2" cy="17" r="2.4"/></symbol>
@@ -1758,6 +1795,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <button class="so-cel" data-s="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mais<span class="avcb-qtd" id="nav-fin-qtd" hidden></span></button>
   <div class="nav-conta so-pc">
     <span class="nc-quem"><b id="nav-conta-nome"></b><small id="nav-conta-email"></small></span>
+    <button data-acao="tema"><svg class="ic" aria-hidden="true"><use id="nav-tema-ic" href="#i-lua"/></svg><span id="nav-tema-rot">Modo noturno</span></button>
     <button data-acao="acesso"><svg class="ic" aria-hidden="true"><use href="#i-escudo"/></svg>Conferir meu acesso</button>
     <button data-acao="sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5M9.5 8 5.5 12l4 4M5.5 12h9"/></svg>Sair da conta</button>
   </div>
@@ -2242,6 +2280,8 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <button type="button" class="btn prim" id="versao-atualizar">Atualizar</button>
 </div>
 
+<!-- tema escolhido no app: acerta as logos (<picture>) assim que elas existem, sem esperar o script principal; sem id de propósito -->
+<script>try { aplicarTema(); } catch (e) {}</script>
 <script id="codigo-app">
 /* ================== CONFIGURAÇÃO ================== */
 const CONFIG = {
@@ -14059,9 +14099,34 @@ function desenharMais() {
   c.appendChild(linha("pessoa", conta?.name || "Conta", conta?.username || "", () => {}));
   c.lastChild.style.cursor = "default";
   c.appendChild(linha("escudo", "Conferir meu acesso", "Permissões e pastas que este aparelho enxerga", conferirAcesso));
+  { const esc = temaEscuroAgora(); c.appendChild(linha(esc ? "sol" : "lua", esc ? "Modo dia" : "Modo noturno", esc ? "Deixar o app claro" : "Deixar o app escuro", alternarTema)); }
   c.appendChild(linha("sair", "Sair da conta", "", sairConta));
   t.appendChild(c);
 }
+/* Modo noturno / modo dia (pedido do Gustavo em 11/11/2026). Sem escolha, o app segue o aparelho; o botão troca para o outro modo
+   e guarda a escolha neste aparelho (vpx_tema). Escolher o mesmo modo do aparelho apaga a escolha (volta a seguir o aparelho).
+   Quem aplica é o aplicarTema() do <script id="tema-app">, lá em cima. */
+const temaDoAparelho = matchMedia("(prefers-color-scheme: dark)");
+const temaEscuroAgora = () => { const e = temaApp(); return e ? e === "escuro" : temaDoAparelho.matches; };
+function pintarBotaoTema() {
+  const esc = temaEscuroAgora();
+  $("nav-tema-ic").setAttribute("href", esc ? "#i-sol" : "#i-lua");
+  $("nav-tema-rot").textContent = esc ? "Modo dia" : "Modo noturno";
+}
+function alternarTema() {
+  const novo = temaEscuroAgora() ? "claro" : "escuro";
+  try { if (novo === (temaDoAparelho.matches ? "escuro" : "claro")) localStorage.removeItem("vpx_tema"); else localStorage.setItem("vpx_tema", novo); } catch {}
+  aplicarTema(); pintarBotaoTema();
+  if (secao === "mais") {
+    const tinhaFoco = $("tela-mais").contains(document.activeElement);   // teclado/leitor de tela: o botão acionado é refeito e o foco cairia no <body>
+    desenharMais();
+    if (tinhaFoco) [...$("tela-mais").querySelectorAll("button")].find(b => /^Modo (dia|noturno)/.test(b.textContent.trim()))?.focus({ preventScroll: true });
+  }
+  aviso(novo === "escuro" ? "Modo noturno ligado." : "Modo dia ligado.");
+}
+temaDoAparelho.addEventListener?.("change", () => { pintarBotaoTema(); if (secao === "mais" && conta) desenharMais(); });
+aplicarTema(); pintarBotaoTema();                  // de novo com a página inteira montada (as logos ainda não existiam lá em cima)
+
 // "Conferir meu acesso" (pedido do Gustavo em 11/11/2026: a Raquel não via os pedidos de compra e não dava para saber por quê):
 // lê as permissões de novo, testa as pastas pelo id e mostra o resultado, com um botão para copiar e mandar ao administrador
 async function conferirAcesso() {
@@ -14197,6 +14262,7 @@ $("btn-conta").onclick = () => irPara("mais");     // iniciais no topo: conta e 
 $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (b.dataset.acao === "sair") { sairConta(); return; }
   if (b.dataset.acao === "acesso") { conferirAcesso(); return; }
+  if (b.dataset.acao === "tema") { alternarTema(); return; }
   // celular: lista aberta por cima com a barra à vista (com-nav) — o passo dela sai do histórico, senão o "voltar" do aparelho ficaria uma vez sem efeito
   const passo = !computador.matches && !history.state?.sub && !!document.querySelector(".tela-avcb.com-nav:not([hidden])");
   if (!fecharTelasPorCima()) return;
@@ -14564,7 +14630,8 @@ function dataDoc(s) {                              // "11/07/2026 03:25:36" (hor
 function assinaturaApp(doc) {                      // "impressão digital" do código da página: o estilo e o script do app
   // pelos ids (estilos e scripts que extensões do navegador põem na página não entram); sem os ids, todos os da página
   const proprios = ["estilo-app", "codigo-app"].map(id => doc.getElementById(id));
-  const s = (proprios.every(Boolean) ? proprios : [...doc.querySelectorAll("script:not([src]), style")]).map(x => x.textContent).join("\n\u0000\n");
+  const tema = doc.getElementById("tema-app");     // o trecho do modo noturno/dia também é código do app (página antiga não tem: fica de fora)
+  const s = (proprios.every(Boolean) ? proprios.concat(tema || []) : [...doc.querySelectorAll("script:not([src]), style")]).map(x => x.textContent).join("\n\u0000\n");
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
   return (h >>> 0).toString(36) + "." + s.length;
