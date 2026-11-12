@@ -587,6 +587,8 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-ctrl .avcb-busca{flex:1 1 180px;min-width:0;margin:0}
 .tar-ctrl select{flex:1 1 140px;min-width:0;min-height:46px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 8px;font-size:15px}
 .tar-ctrl select[hidden],#tar-filtro[hidden],#tar-lista-tela[hidden],#tar-sub[hidden],#fu-lista-tela[hidden],#fu-sub[hidden]{display:none}
+.fu-filtros{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px}   /* funil: Etapa, Responsável e Situação numa linha própria; no celular a Etapa (nome comprido) ocupa a linha toda */
+.fu-filtros #fu-etapa{flex-basis:100%}
 .tar-vistas{flex:none;display:flex;gap:3px;padding:3px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
 .tar-vistas button{min-height:40px;padding:0 14px;border:0;border-radius:9px;background:none;color:var(--suave);font-weight:700;font-size:15px;cursor:pointer}
 .tar-vistas button[aria-pressed="true"]{background:var(--marinho);color:#fff}
@@ -1237,6 +1239,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   .kb-col{flex:1 0 190px}
   .kb .tar-st{display:none}                        /* no quadro a coluna já diz a situação; no computador muda arrastando */
   .tar-ctrl select{flex:0 1 230px}
+  .fu-filtros select,.fu-filtros #fu-etapa{flex:1 1 0}
   .tar-gr-itens{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));column-gap:12px}
   #tar-sub,#fu-sub{max-width:760px;margin:0 auto}
   .tar-card,.fu-card,.fu-ligacao button{transition:border-color .12s,box-shadow .12s,background-color .12s}
@@ -2143,11 +2146,13 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
       <div class="tar-ctrl">
         <div class="tar-vistas" id="fu-vistas"><button type="button" data-v="quadro" aria-pressed="true">Quadro</button><button type="button" data-v="lista" aria-pressed="false">Lista</button></div>
         <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar no funil" aria-label="Buscar nome, contato, telefone ou endereço" autocomplete="off">
-        <select id="fu-pessoa" aria-label="Responsável"></select>
-        <select id="fu-sit" aria-label="Situação do contato"></select>
+        <div class="fu-filtros">
+          <select id="fu-etapa" aria-label="Etapa do funil"></select>
+          <select id="fu-pessoa" aria-label="Responsável"></select>
+          <select id="fu-sit" aria-label="Situação do contato"></select>
+        </div>
       </div>
       <div class="chips avcb-filtro" id="fu-grupos" role="group" aria-label="Parte do funil"></div>
-      <div class="chips avcb-filtro" id="fu-etapas" role="group" aria-label="Etapa do funil"></div>
       <p class="orc-resumo" id="fu-resumo"></p>
       <div id="fu-lista"></div>
       <p class="avcb-nota" id="fu-nota"></p>
@@ -13841,16 +13846,8 @@ function desenharFunil() {
   if (fuTela.sit) lista = lista.filter(o => (o.situacao || "A definir") === fuTela.sit);
   const q = semAcento($("fu-busca").value.trim());
   if (q) lista = lista.filter(o => buscaFu(o, q));
-  // filtro por etapa (pedido do Gustavo em 12/11/2026): um botão para cada etapa do grupo, com a quantidade depois da busca, do responsável e da situação
-  const fEt = $("fu-etapas"), focoEt = fEt.contains(document.activeElement) ? document.activeElement.dataset.e : null;
-  fEt.innerHTML = "";
-  for (const [e, rot] of [["", "Todas as etapas"], ...ets.map(e => [e, etapaTxt(e)])]) {
-    const b = el("button", "", `${rot} (${e ? lista.filter(o => o.etapa === e).length : lista.length})`); b.type = "button"; b.dataset.e = e;
-    b.setAttribute("aria-pressed", String(fuTela.etapa === e));
-    b.onclick = () => { fuTela.etapa = e; fuTela.mais = {}; fuTela.limTab = 150; desenharFunil(); };
-    fEt.appendChild(b);
-  }
-  if (focoEt != null) fEt.querySelector(`[data-e="${focoEt}"]`)?.focus({ preventScroll: true });
+  // filtro por etapa (pedido do Gustavo em 12/11/2026): um campo de escolha como Responsável e Situação, com as etapas do grupo e a quantidade depois da busca, do responsável e da situação
+  fuTela.etapa = opcoes($("fu-etapa"), "Etapa", ets.map(e => [e, `${etapaTxt(e)} (${lista.filter(o => o.etapa === e).length})`]), fuTela.etapa);
   if (fuTela.etapa) lista = lista.filter(o => o.etapa === fuTela.etapa);
   // resumo: quantidade e valor do que está na tela; em negociação, os fechados do mês
   const res = $("fu-resumo"); res.innerHTML = "";
@@ -14075,6 +14072,7 @@ $("tar-pessoa").onchange = () => { if (tarTela) { tarTela.pessoa = $("tar-pessoa
 $("fu-voltar").onclick = () => { if (fuTela?.aberta || fuTela?.nova) voltarListaFu(); else fecharFunil(); };
 $("fu-nova").onclick = () => novaOport();
 $("fu-busca").oninput = () => { clearTimeout(desenharFunil.t); desenharFunil.t = setTimeout(() => { if (fuTela) { fuTela.mais = {}; fuTela.limTab = 150; } desenharFunil(); }, 200); };
+$("fu-etapa").onchange = () => { if (fuTela) { fuTela.etapa = $("fu-etapa").value; fuTela.mais = {}; fuTela.limTab = 150; desenharFunil(); } };
 $("fu-pessoa").onchange = () => { if (fuTela) { fuTela.pessoa = $("fu-pessoa").value; fuTela.mais = {}; desenharFunil(); } };
 $("fu-sit").onchange = () => { if (fuTela) { fuTela.sit = $("fu-sit").value; fuTela.mais = {}; desenharFunil(); } };
 $("fu-vistas").querySelectorAll("button").forEach(b => b.onclick = () => { if (!fuTela) return; fuTela.vista = b.dataset.v; gravarLS("vpx_fu_vista", fuTela.vista); desenharFunil(); });
@@ -15220,7 +15218,7 @@ function mostrarChipMarcado(ch) {
 }
 {
   const olhar = new MutationObserver(() => document.querySelectorAll(".chips.avcb-filtro").forEach(mostrarChipMarcado));
-  ["os-corpo", "fu-grupos", "fu-etapas", "tar-filtro"].forEach(id => olhar.observe($(id), { childList: true }));
+  ["os-corpo", "fu-grupos", "tar-filtro"].forEach(id => olhar.observe($(id), { childList: true }));
 }
 document.addEventListener("touchstart", () => {}, { passive: true });   // iPhone: sem um ouvinte de toque, o :active (botão que escurece ao tocar) não aparece
 try { navigator.storage?.persist?.(); } catch {}   // pede ao navegador para não apagar as fotos guardadas
