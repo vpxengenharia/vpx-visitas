@@ -696,6 +696,19 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 @container (min-width:600px){.fu-tab .fu-c-etapa{display:table-cell;width:150px;font-size:13px}}
 @container (min-width:900px){.fu-tab .fu-c-resp{display:table-cell;width:130px}.fu-tab .fu-c-sit{display:table-cell;width:150px;font-size:13px}}
 .fu-mais-tab{width:100%;margin-top:10px}
+/* funil: etapa, situação, responsáveis, valor e último contato mudam na própria linha (como nas tarefas; .tar-ed dá o quadradinho ao passar o mouse) */
+.fu-tab .fu-n small.fu-sub{margin-top:4px;line-height:1.9}
+.fu-sub .fu-s-etapa{display:block}
+.fu-sub .fu-s-sit::after{content:"·";margin:0 6px 0 8px}
+.fu-sub .tar-ed-resp{color:inherit;max-width:100%;vertical-align:middle}
+.fu-tab td.fu-c-valor .tar-ed{justify-content:flex-end;margin-left:auto}
+.fu-tab td.fu-c-data .tar-ed-data{display:inline-flex}
+.fu-tab td.fu-c-data.crit .tar-ed-tx,.fu-tab td.fu-c-data.warn .tar-ed-tx{font-weight:700}
+.fu-ed-in{width:100%;min-width:0;min-height:34px;margin:-4px 0;padding:4px 8px;border:1.5px solid var(--laranja);border-radius:8px;background:var(--papel);color:var(--tinta);font:inherit;font-size:16px;text-align:right}
+.fu-ed-in:focus{outline:none;box-shadow:0 0 0 3px rgba(235,157,43,.25)}
+.menu-op{max-height:min(70vh,520px);overflow-y:auto;overscroll-behavior:contain}   /* listas compridas (etapas e situações do funil) rolam dentro do menu */
+@container (min-width:600px){.fu-sub .fu-s-etapa{display:none}}
+@container (min-width:900px){.fu-tab .fu-n small.fu-sub{display:none}}
 /* detalhe da tarefa / da oportunidade (cada mudança é salva na hora) */
 .tar-det{padding-bottom:12px}
 .tar-tit-in{display:block;width:100%;margin:0 0 8px;padding:6px 10px;border:1.5px solid transparent;border-radius:10px;background:transparent;color:var(--tinta);font-family:var(--titulo-fonte);font-size:23px;font-weight:700;line-height:1.2}
@@ -13876,6 +13889,75 @@ function quadroFu(lista, ets) {
   }
   return kb;
 }
+// mudar na própria linha da lista (pedido do Gustavo em 12/11/2026, como nas Tarefas): etapa, situação, responsáveis, valor e último contato.
+// Mesmo botão das tarefas (botaoEdTar: quadradinho ao passar o mouse) e a mesma gravação do detalhe da oportunidade.
+const mudarSitFu = (id, v) => mudarReg(colFu, id, r => { r.situacao = v; }, "Situação: " + v);
+const mudarRespFu = (id, nv) => mudarReg(colFu, id, r => { r.resp = nv; }, "Responsáveis: " + (nv.map(p => primeiroNome(p.nome)).join(", ") || "ninguém"));
+const mudarValorFu = (id, n) => mudarReg(colFu, id, r => { r.valor = n; }, "Valor: " + (n ? reais(n) : "sem valor"));
+const mudarContatoFu = (id, v) => mudarReg(colFu, id, r => { r.ultimoContato = v; }, "Último contato: " + (v ? dataBRde(v) : "(vazio)"));
+const valorTabFu = o => o.valor ? moedaBR(o.valor).replace(/,00$/, "") : "—";
+// valor: o clique troca o texto por um campo; Enter ou sair do campo grava, Esc desiste
+function valorEdFu(o) {
+  const b = botaoEdTar("fu-ed-valor", "Mudar o valor", [o.valor ? valorTabFu(o) : el("span", "tar-ed-vazio", "—")], () => {
+    const i = document.createElement("input"); i.type = "text"; i.inputMode = "decimal"; i.className = "fu-ed-in";
+    i.value = o.valor ? moedaBR(o.valor) : ""; i.placeholder = "0,00"; i.setAttribute("aria-label", "Valor estimado (R$)");
+    let feito = false;
+    const fim = gravar => {
+      if (feito) return; feito = true;
+      const v = i.value.trim(), n = v ? lerValor(v) : null;
+      if (gravar && v && !n) aviso("Confira o valor.", true);
+      else if (gravar && n !== (o.valor ?? null)) { b.replaceChildren(n ? moedaBR(n).replace(/,00$/, "") : el("span", "tar-ed-vazio", "—")); mudarValorFu(o.id, n); }
+      i.replaceWith(b);
+    };
+    i.onclick = e => e.stopPropagation();
+    i.onkeydown = e => { e.stopPropagation(); if (e.key === "Enter") fim(true); else if (e.key === "Escape") fim(false); };
+    i.addEventListener("blur", () => fim(true));
+    b.replaceWith(i); i.focus(); i.select();
+  });
+  return b;
+}
+// último contato: o calendário do aparelho (campo de data invisível por cima do texto, como o prazo das tarefas)
+function contatoEdFu(o) {
+  const w = el("span", "tar-ed tar-ed-data"); w.title = "Mudar a data do último contato";
+  const tx = el("span", "tar-ed-tx"); w.appendChild(tx);
+  const pintar = v => tx.replaceChildren(v ? dataCurta(v) : el("span", "tar-ed-vazio", "—"));
+  const i = document.createElement("input"); i.type = "date"; i.value = o.ultimoContato || ""; i.max = dataISO(); i.setAttribute("aria-label", "Data do último contato");
+  let gravado = o.ultimoContato || "", tm = 0;
+  const gravar = () => { clearTimeout(tm); const v = i.value; if (v === gravado) return; gravado = v; mudarContatoFu(o.id, v); };
+  i.onclick = e => { e.stopPropagation(); if (computador.matches) try { i.showPicker(); } catch {} };
+  i.onkeydown = e => { e.stopPropagation(); if (e.key === "Enter") i.blur(); };
+  i.addEventListener("change", () => { pintar(i.value); clearTimeout(tm); tm = setTimeout(gravar, 1200); });
+  i.addEventListener("blur", gravar);
+  pintar(o.ultimoContato || "");
+  w.appendChild(i);
+  return w;
+}
+function linhaFu(o) {
+  const r = el("tr"); r.tabIndex = 0;
+  r.onclick = () => abrirOport(o.id); r.onkeydown = e => { if (e.key === "Enter" && e.target === r) abrirOport(o.id); };
+  const sit = o.situacao || "A definir";
+  const abrirEtapa = b => menuOpcoes(b, ETAPAS.map(([k, n]) => [k, `${k} - ${n}`]), o.etapa, v => moverEtapa(o.id, v));
+  const abrirSit = b => menuOpcoes(b, [...new Set([...SITUACOES_FU, sit])].map(s => [s, s]), sit, v => mudarSitFu(o.id, v));
+  const abrirResp = b => menuPessoas(b, (o.resp || []).slice(), nv => mudarRespFu(o.id, nv));
+  const curtos = (o.resp || []).map(p => primeiroNome(nomePessoa(p))).join(", ");
+  const vazio = t => el("span", "tar-ed-vazio", t);
+  // nome; embaixo, na tela estreita, etapa, situação e responsáveis (cada um muda com um toque)
+  const n = el("td", "fu-n"); n.appendChild(el("b", "", o.nome || "(sem nome)"));
+  const sub = el("small", "fu-sub");
+  const pedaco = (cls, b) => { const s = el("span", cls); s.appendChild(b); sub.appendChild(s); };   // o " · " vem do CSS (some junto quando a coluna aparece)
+  pedaco("fu-s-etapa", botaoEdTar("tar-ed-resp", "Mudar a etapa", [etapaTxt(o.etapa)], abrirEtapa));
+  pedaco("fu-s-sit", botaoEdTar("tar-ed-resp", "Mudar a situação do contato", [sit === "A definir" ? vazio(sit) : sit], abrirSit));
+  pedaco("fu-s-resp", botaoEdTar("tar-ed-resp", "Mudar os responsáveis", [curtos || vazio("Sem responsável")], abrirResp));
+  n.appendChild(sub);
+  const ce = el("td", "fu-c-etapa"), cr = el("td", "fu-c-resp"), cs = el("td", "fu-c-sit"), cv = el("td", "fu-c-valor"), cd = el("td", "fu-c-data " + frioFu(o));
+  ce.appendChild(botaoEdTar("", "Mudar a etapa", [etapaTxt(o.etapa)], abrirEtapa));
+  cr.appendChild(botaoEdTar("", "Mudar os responsáveis", [(o.resp || []).map(nomePessoa).join(", ") || vazio("—")], abrirResp));
+  cs.appendChild(botaoEdTar("", "Mudar a situação do contato", [sit === "A definir" ? vazio(sit) : sit], abrirSit));
+  cv.appendChild(valorEdFu(o));
+  cd.appendChild(contatoEdFu(o));
+  r.append(n, ce, cr, cs, cv, cd);
+  return r;
+}
 // lista: tabela como planilha; tocar no título da coluna ordena (de novo, inverte)
 const COLS_FU = { nome: o => semAcento(o.nome || ""), etapa: o => o.etapa, resp: o => (o.resp || []).map(nomePessoa).join(", ") || null,
   sit: o => o.situacao || null, valor: o => valorFu(o) || null, data: o => o.ultimoContato || null };
@@ -13893,15 +13975,7 @@ function tabelaFu(lista) {
   th.appendChild(tr); tb.appendChild(th);
   const corpo = el("tbody"), f = COLS_FU[fuTela.ordem.col] || COLS_FU.etapa, s = fuTela.ordem.desc ? -1 : 1;
   const ord = lista.slice().sort((a, b) => { const x = f(a), y = f(b); if (x == null || y == null) return (x == null) - (y == null) || ordemFu(a, b); return (x < y ? -1 : x > y ? 1 : 0) * s || ordemFu(a, b); });
-  ord.slice(0, fuTela.limTab).forEach(o => {
-    const r = el("tr"); r.tabIndex = 0;
-    r.onclick = () => abrirOport(o.id); r.onkeydown = e => { if (e.key === "Enter") abrirOport(o.id); };
-    const n = el("td", "fu-n"); n.appendChild(el("b", "", o.nome || "(sem nome)"));
-    n.appendChild(el("small", "", [etapaTxt(o.etapa), o.situacao && o.situacao !== "A definir" ? o.situacao : "", (o.resp || []).map(p => primeiroNome(nomePessoa(p))).join(", ")].filter(Boolean).join(" · ")));
-    r.append(n, el("td", "fu-c-etapa", etapaTxt(o.etapa)), el("td", "fu-c-resp", (o.resp || []).map(nomePessoa).join(", ")), el("td", "fu-c-sit", o.situacao || ""),
-      el("td", "fu-c-valor", o.valor ? moedaBR(o.valor).replace(/,00$/, "") : "—"), el("td", "fu-c-data " + frioFu(o), o.ultimoContato ? dataCurta(o.ultimoContato) : "—"));
-    corpo.appendChild(r);
-  });
+  ord.slice(0, fuTela.limTab).forEach(o => corpo.appendChild(linhaFu(o)));
   tb.appendChild(corpo); w.appendChild(tb);
   if (!ord.length) w.appendChild(el("p", "avcb-nota", "Nenhuma oportunidade aqui."));
   if (ord.length > fuTela.limTab) { const m = el("button", "btn sec fu-mais-tab", `Mostrar mais (${ord.length - fuTela.limTab})`); m.type = "button"; m.onclick = () => { fuTela.limTab += 300; desenharFunil(); }; w.appendChild(m); }
