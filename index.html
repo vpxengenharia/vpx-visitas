@@ -1390,6 +1390,18 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 .ag-cal .pts i.mais{width:12px;border-radius:3px}
 .ag-cal button:focus-visible{outline:3px solid var(--laranja);outline-offset:-2px}
 .ag-dia-sel{border-top:1.5px solid var(--linha);padding-top:4px}
+/* Agenda: próximos 7 dias e resultado da busca (12/11/2026) */
+#agenda-busca[hidden]{display:none}
+.ag-prox{border-top:1.5px solid var(--linha);margin-top:18px;padding-top:2px}
+.ag-sec-tit{font-family:var(--titulo-fonte);font-weight:700;font-size:20px;color:var(--tinta);margin:12px 2px 2px}
+.ag-dia-ir{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:4px 0 2px;padding:0 2px;border:0;background:none;color:var(--tinta);font-family:var(--titulo-fonte);font-weight:700;font-size:16.5px;text-align:left;cursor:pointer}
+.ag-dia-ir::after{content:"›";margin-left:auto;padding:0 6px;font-size:22px;line-height:1;color:var(--suave)}
+.ag-dia-ir.hoje span::after{content:"HOJE";margin-left:8px;font-size:12px;background:var(--warn-bg);color:var(--warn-tx);border-radius:999px;padding:2px 9px;vertical-align:middle}
+.ag-dia-ir:focus-visible{outline:3px solid var(--laranja);outline-offset:2px;border-radius:8px}
+@media (hover:hover) and (pointer:fine){.ag-dia-ir:hover span{text-decoration:underline}}
+.ag-prox .ag-feriado,.ag-res .ag-feriado{font-size:14.5px;padding:6px 10px;margin-bottom:8px}
+.ag-busca-nota{margin:0 2px 4px}
+.ag-res + .ag-res{margin-top:10px}
 @media (prefers-color-scheme:dark){.ag-cal button[aria-pressed="true"] .n{background:var(--laranja);color:var(--marinho)}.ag-cal button[aria-pressed="true"].hoje .n{box-shadow:0 0 0 2px var(--tinta)}}
 @media (hover:none){.ag-cal button:not([aria-pressed="true"]):active .n{background:rgba(127,127,127,.2)}}
 @media (hover:hover) and (pointer:fine){.ag-cal button:not([aria-pressed="true"]):hover .n{background:rgba(127,127,127,.12)}}
@@ -1501,8 +1513,10 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     #tela-agenda{--larg:1080px}
     #agenda-lista:not([hidden]){display:grid;grid-template-columns:400px minmax(0,1fr);grid-template-rows:auto auto auto 1fr;column-gap:36px;align-items:start}   /* :not([hidden]): o formulário de compromisso esconde a lista */
     #agenda-lista > .ag-mes-cab,#agenda-lista > .ag-cal,#agenda-lista > .avcb-nota{grid-column:1}
-    #agenda-lista > .ag-dia-sel{grid-column:2;grid-row:1 / span 4;border-top:0;padding-top:0}
-    #agenda-lista > .ag-dia-sel .ag-dia{margin-top:10px}
+    #agenda-lista > .ag-dir{grid-column:2;grid-row:1 / span 4}
+    #agenda-lista > .ag-dir > .ag-dia-sel{border-top:0;padding-top:0}
+    #agenda-lista > .ag-dir > .ag-dia-sel .ag-dia{margin-top:10px}
+    #agenda-lista.ag-buscando:not([hidden]){display:block;max-width:760px}   /* resultado da busca: uma coluna só */
   }
   #agenda-form{max-width:760px}
   /* formulários: título do mesmo tamanho das outras telas */
@@ -1685,6 +1699,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <symbol id="i-clipe" viewBox="0 0 24 24"><path d="m18.5 11-7 7a4.6 4.6 0 0 1-6.5-6.5l7.4-7.4a3 3 0 0 1 4.3 4.3l-7.3 7.3a1.5 1.5 0 0 1-2.1-2.1l6.6-6.6"/></symbol>
   <symbol id="i-megafone" viewBox="0 0 24 24"><path d="M3.5 10v4a1 1 0 0 0 1 1h2.5l8 4.5v-15l-8 4.5H4.5a1 1 0 0 0-1 1z"/><path d="M7 15l1 4.5"/><path style="stroke:var(--ic-ac)" d="M18.2 8.6a5 5 0 0 1 0 6.8"/></symbol>
   <symbol id="i-compartilhar" viewBox="0 0 24 24"><path d="M12 14.5V3.5M8 7.3l4-3.8 4 3.8"/><path d="M8.5 10.5H7A1.5 1.5 0 0 0 5.5 12v7A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5h-1.5"/></symbol>
+  <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h3.5"/><path style="stroke:var(--ic-ac)" d="M14.5 12v5M12 14.5h5"/></symbol>
   <symbol id="i-lapis" viewBox="0 0 24 24"><path d="M15.6 4.4a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/><path style="stroke:var(--ic-ac)" d="m13.6 6.4 3 3"/></symbol>
   <symbol id="i-impressora" viewBox="0 0 24 24"><path d="M7 8.5v-5h10v5"/><path d="M7 17H5a1.5 1.5 0 0 1-1.5-1.5V10A1.5 1.5 0 0 1 5 8.5h14a1.5 1.5 0 0 1 1.5 1.5v5.5A1.5 1.5 0 0 1 19 17h-2"/><path style="stroke:var(--ic-ac)" d="M7 13.5h10v7H7z"/></symbol>
   <symbol id="i-pausa" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></symbol>
@@ -2309,6 +2324,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   </div>
   <div class="avcb-corpo" id="agenda-corpo">
     <p class="avcb-nota" id="agenda-estado"></p>
+    <input class="avcb-busca" id="agenda-busca" type="search" placeholder="Buscar na agenda" aria-label="Buscar compromisso: título, cliente, local, observação ou convidado" autocomplete="off">
     <div id="agenda-lista"></div>
     <div class="ag-form" id="agenda-form" hidden></div>
   </div>
@@ -10543,22 +10559,13 @@ function feriadosDe(ano) {
 const feriadosDia = k => feriadosDe(+k.slice(0, 4)).get(k) || [];
 const textoFeriado = f => `${TIPO_FER[f.tipo]}: ${f.nome}`;
 let agSel = null, agMes = 0, agEventos = [], agBase = null;   // agBase: dia 1º do mês em que a Agenda foi aberta (o "mês 0")
-function desenharAgenda(eventos) {
-  if (eventos) agEventos = eventos;
-  const lista = $("agenda-lista");
-  lista.innerHTML = "";
-  const agora = new Date(), hoje = chaveDia(agora);
-  if (!agSel) agSel = hoje;
-  if (!agBase) agBase = new Date(agora.getFullYear(), agora.getMonth(), 1);
+let agBusca = "", agTodos = null;                  // busca na agenda: o que foi escrito e os compromissos de ±1 ano (ver buscarTodosAgenda)
+// compromissos por dia ("AAAA-MM-DD" → [eventos]) entre lim0 e lim1: um compromisso de vários dias entra em todos os dias
+// que cobre (fim - 1: o fim do "dia todo" é o dia seguinte, e quem termina à meia-noite não entra no outro dia)
+function eventosPorDia(fonte, lim0, lim1) {
   const porDia = new Map();
-  // um compromisso de vários dias entra em todos os dias que cobre, dentro dos três meses mostrados
-  // (fim - 1: o fim do "dia todo" é o dia seguinte, e quem termina à meia-noite não entra no outro dia)
-  // o mês à vista: dentro dos três meses de sempre vem de agEventos; mais longe, é buscado na hora (agExtra)
-  const mv = new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1), chaveMes = `${mv.getFullYear()}-${pad(mv.getMonth() + 1)}`;
-  const longe = agMes < -1 || agMes > 1, doMes = longe ? agExtra.get(chaveMes) : agEventos;
-  const lim0 = mv.getTime(), lim1 = new Date(mv.getFullYear(), mv.getMonth() + 1, 1).getTime();
-  for (const e of (doMes || []).slice().sort((a, b) => a.ini - b.ini)) {
-    if (Math.max(e.ini, e.fim - 1) < lim0 || e.ini >= lim1) continue;   // não toca o mês à vista
+  for (const e of (fonte || []).slice().sort((a, b) => a.ini - b.ini)) {
+    if (Math.max(e.ini, e.fim - 1) < lim0 || e.ini >= lim1) continue;   // fora do período
     const ult = chaveDia(Math.max(e.ini, e.fim - 1));
     const d = new Date(Math.max(e.ini, lim0)); d.setHours(0, 0, 0, 0);
     for (; d.getTime() < lim1; d.setDate(d.getDate() + 1)) {
@@ -10568,6 +10575,40 @@ function desenharAgenda(eventos) {
       if (k >= ult) break;
     }
   }
+  return porDia;
+}
+// todos os compromissos que o aparelho conhece agora (os três meses de sempre + os meses distantes já buscados), sem repetir
+function eventosConhecidos(mais = []) {
+  const m = new Map();
+  for (const e of [...mais, ...agEventos, ...[...agExtra.values()].flat()]) m.set(e.id + "|" + e.ini, e);
+  return [...m.values()];
+}
+const diaDeChave = k => { const [a, m, d] = k.split("-").map(Number); return new Date(a, m - 1, d); };
+// título de um dia que pode ser de outro ano (busca): "Sexta-feira, 13 de novembro" ou "…, 13 de novembro de 2025"
+const nomeDiaAno = k => nomeDia(k) + (k.slice(0, 4) === String(new Date().getFullYear()) ? "" : " de " + k.slice(0, 4));
+// título de dia que é um botão: leva àquele dia no calendário (tira a busca)
+function botaoDiaAgenda(k, rotulo) {
+  const b = el("button", "ag-dia-ir" + (k === chaveDia(Date.now()) ? " hoje" : "")); b.type = "button";
+  b.append(el("span", "", rotulo || nomeDia(k)));
+  b.setAttribute("aria-label", `${rotulo || nomeDia(k)}: ver no calendário`);
+  b.onclick = () => { irParaDiaAgenda(k); $("agenda-lista").querySelector(".ag-dia-sel")?.scrollIntoView({ block: "start", behavior: "smooth" }); };
+  return b;
+}
+function desenharAgenda(eventos) {
+  if (eventos) agEventos = eventos;
+  const lista = $("agenda-lista");
+  lista.innerHTML = "";
+  const agora = new Date(), hoje = chaveDia(agora);
+  if (!agSel) agSel = hoje;
+  if (!agBase) agBase = new Date(agora.getFullYear(), agora.getMonth(), 1);
+  // com algo escrito na busca, a lista mostra os compromissos achados no lugar do calendário
+  lista.classList.toggle("ag-buscando", agBusca.trim().length >= 2);
+  if (lista.classList.contains("ag-buscando")) { desenharBuscaAgenda(lista); return; }
+  // o mês à vista: dentro dos três meses de sempre vem de agEventos; mais longe, é buscado na hora (agExtra)
+  const mv = new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1), chaveMes = `${mv.getFullYear()}-${pad(mv.getMonth() + 1)}`;
+  const longe = agMes < -1 || agMes > 1, doMes = longe ? agExtra.get(chaveMes) : agEventos;
+  const lim0 = mv.getTime(), lim1 = new Date(mv.getFullYear(), mv.getMonth() + 1, 1).getTime();
+  const porDia = eventosPorDia(doMes, lim0, lim1);
   const m1 = new Date(agBase.getFullYear(), agBase.getMonth() + agMes, 1), ano = m1.getFullYear(), mes = m1.getMonth();
   // cabeçalho: ‹ mês ›
   const cab = el("div", "ag-mes-cab");
@@ -10617,7 +10658,83 @@ function desenharAgenda(eventos) {
   const evs = porDia.get(agSel) || [];
   if (!evs.length) grupo.appendChild(el("p", "ag-vazio", "Nada marcado."));
   for (const e of evs) grupo.appendChild(cartaoEvento(e));
-  lista.appendChild(grupo);
+  const dir = el("div", "ag-dir");                  // no computador, a coluna da direita (dia escolhido + próximos dias)
+  dir.append(grupo, proximosDiasAgenda(hoje, longe && !doMes));
+  lista.appendChild(dir);
+}
+// "Próximos 7 dias" (pedido do Gustavo em 12/11/2026): os 7 dias depois do dia escolhido, só os que têm compromisso
+// ou feriado, para ver a semana sem tocar dia por dia. Tocar no dia leva a ele no calendário.
+function proximosDiasAgenda(hoje, esperandoMes) {
+  const sec = el("section", "ag-prox");
+  sec.appendChild(el("h3", "ag-sec-tit", agSel === hoje ? "Próximos 7 dias" : `Os 7 dias depois de ${agSel.slice(8)}/${agSel.slice(5, 7)}`));
+  const ini = diaDeChave(agSel); ini.setDate(ini.getDate() + 1);
+  const fim = new Date(ini); fim.setDate(fim.getDate() + 7);
+  // mês distante ainda não buscado dentro desses 7 dias (ex.: fim do mês): busca, e a tela é redesenhada ao chegar
+  const mf = new Date(fim.getTime() - 1), dm = (mf.getFullYear() - agBase.getFullYear()) * 12 + mf.getMonth() - agBase.getMonth();
+  if (!esperandoMes && Math.abs(dm) > 1 && Math.abs(dm) <= AG_MESES && !agExtra.has(`${mf.getFullYear()}-${pad(mf.getMonth() + 1)}`)) buscarMesAgenda(mf.getFullYear(), mf.getMonth());
+  const porDia = eventosPorDia(eventosConhecidos().filter(e => !e.cancelado), ini.getTime(), fim.getTime());
+  let algum = false;
+  for (const d = new Date(ini); d < fim; d.setDate(d.getDate() + 1)) {
+    const k = chaveDia(d), evs = porDia.get(k) || [], fer = feriadosDia(k);
+    if (!evs.length && !fer.length) continue;
+    algum = true;
+    sec.appendChild(botaoDiaAgenda(k));
+    for (const f of fer) { const p = el("p", "ag-feriado" + (f.tipo === "pf" ? " pf" : "")); p.append(el("b", "", TIPO_FER[f.tipo] + ":"), " " + f.nome); sec.appendChild(p); }
+    for (const e of evs) sec.appendChild(cartaoEvento(e));
+  }
+  if (!algum) sec.appendChild(el("p", "ag-vazio", "Nada marcado nesses dias."));
+  return sec;
+}
+
+// Busca na agenda (pedido do Gustavo em 12/11/2026): procura em título, local, observações, organizador e convidados,
+// sem acento, todas as palavras. Busca no Outlook de uma vez um ano para trás e um para a frente (o mesmo alcance das setas;
+// agTodos, só na memória) e, enquanto isso ou sem internet, procura no que o aparelho já tem.
+async function buscarTodosAgenda() {
+  if (agTodos || buscarTodosAgenda.em || !navigator.onLine) return;
+  const h = agBase || new Date(), de = new Date(h.getFullYear(), h.getMonth() - AG_MESES, 1), ate = new Date(h.getFullYear(), h.getMonth() + AG_MESES + 1, 1);
+  const gen = buscarTodosAgenda.gen = (buscarTodosAgenda.gen || 0) + 1;
+  buscarTodosAgenda.em = true; buscarTodosAgenda.erro = false;
+  try { const eventos = await buscarAgenda(de, ate); if (gen === buscarTodosAgenda.gen) agTodos = { de, ate, eventos }; }
+  catch (e) { console.error(e); if (gen === buscarTodosAgenda.gen) buscarTodosAgenda.erro = true; }
+  finally {
+    if (gen === buscarTodosAgenda.gen) buscarTodosAgenda.em = false;
+    if (!$("tela-agenda").hidden && !agForm && agBusca.trim().length >= 2) desenharAgenda();
+  }
+}
+function esquecerBuscaAgenda() { agTodos = null; buscarTodosAgenda.em = false; buscarTodosAgenda.erro = false; buscarTodosAgenda.gen = (buscarTodosAgenda.gen || 0) + 1; }
+function limparBuscaAgenda() { agBusca = ""; $("agenda-busca").value = ""; }
+const textoBuscaEv = e => semAcento([e.titulo, e.local, e.resumo, e.org, ...(e.conv || []).flatMap(c => [c.nome, c.email])].join(" "));
+const mesAno = d => d.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }).replace(/\./g, "").replace(" de ", "/");
+function desenharBuscaAgenda(lista) {
+  if (!agTodos && !buscarTodosAgenda.em && !buscarTodosAgenda.erro) buscarTodosAgenda();
+  const termos = semAcento(agBusca.trim()).split(/\s+/).filter(Boolean);
+  const achados = eventosConhecidos(agTodos?.eventos).filter(e => !e.cancelado && termos.every(p => textoBuscaEv(e).includes(p)));
+  const agora = Date.now(), MAX = 60;
+  const prox = achados.filter(e => e.fim > agora).sort((a, b) => a.ini - b.ini);
+  const ant = achados.filter(e => e.fim <= agora).sort((a, b) => b.ini - a.ini);
+  // de onde vem o resultado
+  const nota = el("p", "avcb-nota ag-busca-nota");
+  const qtd = achados.length ? `${achados.length} compromisso${achados.length > 1 ? "s" : ""}` : "Nenhum compromisso";
+  if (agTodos) nota.textContent = `${qtd} com "${agBusca.trim()}" de ${mesAno(agTodos.de)} a ${mesAno(new Date(agTodos.ate.getTime() - 1))}.`;
+  else if (buscarTodosAgenda.em) nota.textContent = `Buscando em toda a agenda (um ano para trás e um para a frente)… ${achados.length ? "Por enquanto: " + qtd.toLowerCase() + "." : ""}`;
+  else nota.textContent = (!navigator.onLine ? "Sem internet: a busca olha só os compromissos guardados no celular (do mês passado ao mês que vem). " : "Não foi possível buscar em toda a agenda agora; a busca olhou só os meses guardados no celular. ") + qtd + ".";
+  lista.appendChild(nota);
+  if (!achados.length && agTodos) lista.appendChild(el("p", "ag-vazio", "Confira o que foi escrito, ou procure por uma palavra só (ex.: o nome do cliente)."));
+  const parte = (titulo, evs) => {
+    if (!evs.length) return;
+    const sec = el("section", "ag-res");
+    sec.appendChild(el("h3", "ag-sec-tit", titulo));
+    let ult = "";
+    for (const e of evs.slice(0, MAX)) {
+      const k = chaveDia(e.ini);
+      if (k !== ult) { sec.appendChild(botaoDiaAgenda(k, nomeDiaAno(k))); ult = k; }
+      sec.appendChild(cartaoEvento(e));
+    }
+    if (evs.length > MAX) sec.appendChild(el("p", "ag-vazio", `Mostrando os ${MAX} mais perto de hoje. Escreva mais uma palavra para achar os outros.`));
+    lista.appendChild(sec);
+  };
+  parte("Próximos", prox);
+  parte("Anteriores", ant);
 }
 // troca o mês à vista (setas ou o dedo deslizando no calendário); os dias entram do lado certo
 function mudarMesAgenda(d, foco) {
@@ -10641,10 +10758,12 @@ function mudarMesAgenda(d, foco) {
   });
   al.addEventListener("pointercancel", () => { ini = null; });
 }
-// mostra um dia no calendário (depois de criar ou mudar um compromisso); fora dos três meses buscados, fica onde está
+// mostra um dia no calendário (depois de criar ou mudar um compromisso, ou tocando num dia dos próximos dias ou da busca);
+// fora do alcance das setas, fica onde está. Tira a busca, para o calendário aparecer.
 function irParaDiaAgenda(k) {
   const [a, m] = k.split("-").map(Number), base = agBase || new Date(), d = (a - base.getFullYear()) * 12 + (m - 1 - base.getMonth());
   if (d < -AG_MESES || d > AG_MESES) return;
+  limparBuscaAgenda();
   agMes = d; agSel = k; desenharAgenda();
 }
 
@@ -10684,10 +10803,12 @@ function cartaoEvento(e) {
     if (e.online) { const a = document.createElement("a"); a.textContent = "Entrar na reunião"; a.href = e.online; a.target = "_blank"; a.rel = "noopener"; links.append(a, "  ·  "); }
     if (e.link) { const a = document.createElement("a"); a.textContent = "Abrir no Outlook"; a.href = e.link; a.target = "_blank"; a.rel = "noopener"; links.appendChild(a); }
     if (links.childNodes.length) det.appendChild(links);
-    // ações: compartilhar (todos); editar e cancelar só os criados pela pessoa (os que se repetem ficam para o Outlook)
+    // ações: compartilhar (todos); duplicar (quem pode criar; qualquer compromisso, até os que se repetem e os de outra pessoa);
+    // editar e cancelar só os criados pela pessoa (os que se repetem ficam para o Outlook)
     const ac = el("div", "ag-acoes");
     const bt = (rot, fn, cls, i) => { const x = el("button", cls || ""); i ? comIc(x, i, rot) : x.textContent = rot; x.type = "button"; x.onclick = fn; ac.appendChild(x); };
     if (!e.cancelado) bt("Compartilhar", () => compartilharEvento(e), "", "compartilhar");
+    if (!e.cancelado && pode("agenda")) bt("Duplicar", () => abrirFormAgenda(null, null, formDuplicado(e)), "", "copiar");
     if (e.meu && e.id && !e.cancelado && pode("agenda")) {
       if (e.unico) { bt("Editar", () => abrirFormAgenda(e), "", "lapis"); bt("Cancelar compromisso", () => cancelarEvento(e), "perigo"); }
       else det.appendChild(el("p", "", "Compromisso que se repete: para alterar, use o Outlook."));
@@ -10699,7 +10820,7 @@ function cartaoEvento(e) {
   return b;
 }
 
-const irParaHoje = () => { agBase = null; agMes = 0; agSel = chaveDia(Date.now()); desenharAgenda(); $("agenda-corpo").scrollTop = 0; };
+const irParaHoje = () => { limparBuscaAgenda(); agBase = null; agMes = 0; agSel = chaveDia(Date.now()); desenharAgenda(); $("agenda-corpo").scrollTop = 0; };
 
 // comoSecao: aberta pela barra de baixo (fica com a barra visível, como Início/Clientes/Financeiro/Mais)
 async function abrirAgenda(comoSecao) {
@@ -10711,12 +10832,14 @@ async function abrirAgenda(comoSecao) {
   fecharFormAgenda(false);
   $("agenda-novo").hidden = !pode("agenda");
   agBase = null; agMes = 0; agSel = chaveDia(Date.now());   // abre no mês de hoje, com hoje escolhido
+  limparBuscaAgenda();
   const rasc = lerLS("vpx_ag_rasc", null);               // voltou da autorização: continua o compromisso que estava preenchendo
   if (rasc) { gravarLS("vpx_ag_rasc", null); abrirFormAgenda(null, rasc); }
   await carregarAgenda();
 }
 async function carregarAgenda() {
   agExtra.clear();                                 // meses distantes: buscados de novo quando a pessoa voltar a eles
+  esquecerBuscaAgenda();                           // a busca também (algo pode ter sido criado, mudado ou cancelado)
   const guardada = lerLS(chaveAgenda(), null);
   const estado = $("agenda-estado");
   if (guardada) desenharAgenda(guardada.eventos);
@@ -10777,23 +10900,40 @@ function formDeEvento(e) {
     hIni: e.diaTodo ? "08:00" : horaMin(e.ini), hFim: e.diaTodo ? "09:00" : horaMin(e.fim), local: e.local, teams: e.teams, eraTeams: e.teams,
     conv: (e.conv || []).map(c => ({ nome: c.nome, email: c.email })), lembrete: e.lembrete ?? 15, obs: e.resumo, obsOrig: e.resumo };
 }
+// Duplicar (pedido do Gustavo em 12/11/2026): um compromisso novo com o mesmo título, horário, local, Teams, convidados,
+// lembrete e observações; a data fica em branco para a pessoa escolher (não cria por engano no mesmo dia).
+// Convidados só vêm de compromisso criado pela própria pessoa (num convite recebido, os convidados são de quem convidou).
+function formDuplicado(e) {
+  const f = formDeEvento(e);
+  delete f.id; delete f.obsOrig;
+  f.dup = e.titulo; f.data = ""; f.eraTeams = false;   // reunião do Teams: o compromisso novo ganha um link novo
+  f.conv = e.meu ? f.conv.filter(c => c.email && c.email !== emailDe()) : [];
+  // observações: sem o texto do convite do Teams (o link antigo não vale para o novo); só vem o começo do texto do Outlook
+  let obs = e.resumo || "";
+  const corte = obs.search(/_{8,}|Reuni[aã]o do Microsoft Teams|Microsoft Teams (meeting|Need help)/i);
+  if (corte >= 0) obs = obs.slice(0, corte).trim();
+  f.obs = obs; f.obsCortada = corte < 0 && obs.length >= 240;
+  return f;
+}
 
 // confere a permissão de escrever na agenda antes de abrir o formulário (pedir depois apagaria o que foi preenchido)
-async function abrirFormAgenda(e, rascunho) {
+// base: formulário já montado (Duplicar)
+async function abrirFormAgenda(e, rascunho, base) {
   if (!rascunho) {
     if (!navigator.onLine) { aviso("Sem internet: para criar ou editar compromissos, conecte-se.", true); return; }
     try { await tokenAgenda(false, ESCOPOS_AGENDA_ESC); }
     catch (err) {
       if (!(err instanceof msal.InteractionRequiredAuthError)) { aviso("Não foi possível falar com a Microsoft agora: " + err.message, true); return; }
       if (!confirm("Para criar compromissos e mandar convites, o app precisa da sua autorização para escrever na agenda do Outlook.\n\nA Microsoft vai abrir uma tela pedindo para você aceitar. Depois você volta para a agenda.\n\nAutorizar agora?")) return;
-      gravarLS("vpx_ag_rasc", e ? formDeEvento(e) : novoFormAgenda());   // volta com o formulário aberto
+      gravarLS("vpx_ag_rasc", base || (e ? formDeEvento(e) : novoFormAgenda()));   // volta com o formulário aberto
       try { await tokenAgenda(true, ESCOPOS_AGENDA_ESC); } catch (x) { if (!(x instanceof msal.InteractionRequiredAuthError)) aviso("Não foi possível autorizar: " + x.message, true); }
       return;
     }
   }
-  agForm = rascunho || (e ? formDeEvento(e) : novoFormAgenda());
+  agForm = rascunho || base || (e ? formDeEvento(e) : novoFormAgenda());
   if (!history.state?.agform) history.pushState({ agform: true }, "");   // o "voltar" do celular fecha só o formulário
-  ["agenda-novo", "agenda-estado", "agenda-lista", "agenda-hoje"].forEach(id => $(id).hidden = true);
+  abrirFormAgenda.rol = $("agenda-corpo").scrollTop;   // ao desistir, a agenda (ou a busca) volta ao mesmo ponto
+  ["agenda-novo", "agenda-estado", "agenda-busca", "agenda-lista", "agenda-hoje"].forEach(id => $(id).hidden = true);
   $("agenda-form").hidden = false;
   desenharFormAgenda();
   $("agenda-corpo").scrollTop = 0;
@@ -10803,8 +10943,9 @@ function fecharFormAgenda(voltar = true) {
   if (!agForm) return;
   agForm = null;
   $("agenda-form").hidden = true; $("agenda-form").innerHTML = "";
-  ["agenda-estado", "agenda-lista", "agenda-hoje"].forEach(id => $(id).hidden = false);
+  ["agenda-estado", "agenda-busca", "agenda-lista", "agenda-hoje"].forEach(id => $(id).hidden = false);
   $("agenda-novo").hidden = !pode("agenda");
+  if (abrirFormAgenda.rol) { $("agenda-corpo").scrollTop = abrirFormAgenda.rol; abrirFormAgenda.rol = 0; }
   if (voltar && history.state?.agform) { agVoltando = true; history.back(); }
 }
 
@@ -10812,7 +10953,8 @@ function desenharFormAgenda() {
   const f = agForm, c = $("agenda-form");
   c.innerHTML = "";
   const v = el("button", "hub-voltar", "‹ Cancelar"); v.type = "button"; v.onclick = () => fecharFormAgenda(); c.appendChild(v);
-  c.appendChild(el("h2", "secao", f.id ? "Editar compromisso" : "Novo compromisso"));
+  c.appendChild(el("h2", "secao", f.id ? "Editar compromisso" : f.dup ? "Duplicar compromisso" : "Novo compromisso"));
+  if (f.dup) c.appendChild(el("p", "laudo-dica", `Cópia de "${f.dup}". Escolha a data do novo compromisso e confira o resto.`));
   const campo = (rot, tag, chave, op = {}) => {
     const w = el("label", "campo"); w.appendChild(el("span", "", rot));
     const i = document.createElement(tag); if (tag === "input") i.type = op.tipo || "text";
@@ -10888,6 +11030,7 @@ function desenharFormAgenda() {
   // observação longa ou com o bloco do Teams: o app só vê o começo do texto, então não deixa reescrever (apagaria o resto)
   if (f.id && (f.eraTeams || (f.obsOrig || "").length >= 240)) c.appendChild(el("p", "laudo-dica", "Para mudar as observações deste compromisso, use o Outlook."));
   else c.appendChild(campo("Observações", "textarea", "obs", { ph: "Ex.: levar o terrômetro; falar com o síndico" }));
+  if (f.obsCortada) c.appendChild(el("p", "laudo-dica", "O Outlook só manda o começo das observações: confira se falta algo no fim."));
   const ok = el("button", "btn prim", f.id ? "Salvar alterações" : f.conv.length ? "Criar e enviar convites" : "Criar compromisso"); ok.type = "button";
   ok.onclick = () => salvarEvento(ok);
   c.appendChild(ok);
@@ -15207,6 +15350,18 @@ $("btn-agenda").onclick = () => irPara("agenda");
 $("agenda-voltar").onclick = () => fecharAgenda();
 $("agenda-hoje").onclick = irParaHoje;
 $("agenda-novo").onclick = () => abrirFormAgenda(null);
+{
+  let t = 0;                                       // espera a pessoa parar de digitar (150 ms) antes de procurar
+  $("agenda-busca").addEventListener("input", () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const antes = agBusca.trim().length >= 2;
+      agBusca = $("agenda-busca").value;
+      const agora = agBusca.trim().length >= 2;
+      if (antes || agora) { desenharAgenda(); if (antes !== agora) $("agenda-corpo").scrollTop = 0; }
+    }, 150);
+  });
+}
 $("btn-avcb").onclick = abrirAvcb;
 $("avcb-voltar").onclick = () => fecharAvcb();
 $("avcb-busca").oninput = () => { clearTimeout(desenharAvcb.t); desenharAvcb.t = setTimeout(desenharAvcb, 150); };
