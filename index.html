@@ -482,7 +482,9 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .pp-fav .fav-chip{border-color:var(--laranja)}
 #pp-fav-btn{margin:-6px 0 8px}
 .pc-tipos{grid-template-columns:1fr 1fr;margin-bottom:12px}
-.pc-tipos[hidden]{display:none}
+/* Compra / Pagamento: a regra das abas antigas (.abas{display:none!important}) os escondia; com a entrada única "Solicitações" (12/11/2026) eles são o jeito de trocar */
+.abas.pc-tipos:not([hidden]){display:grid!important;grid-template-columns:1fr 1fr}
+.pc-tipos[hidden]{display:none!important}
 .pc-card{display:block;width:100%;text-align:left;background:var(--papel);border:1.5px solid var(--linha);border-left-width:6px;border-radius:12px;padding:10px 12px;margin-bottom:8px;color:var(--tinta);cursor:pointer}
 .pc-card.warn{border-left-color:#E0A100}.pc-card.ok{border-left-color:#1F7A45}.pc-card.crit{border-left-color:#B22222;opacity:.8}
 .pc-l1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
