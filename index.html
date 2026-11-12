@@ -313,6 +313,27 @@ button,input,label{font:inherit}
   .pc-c-sol small{display:block;font-size:13px;color:var(--suave)}
   .pc-c-sit small.pc-sit-cel{display:none}
 }
+/* pedidos: marcar várias linhas e aprovar, recusar, pagar, entregar ou excluir de uma vez (pedido do Gustavo em 12/11/2026) */
+.pc-tab .pc-c-sel{width:46px;padding:0!important}
+.pc-sel{display:flex!important;align-items:center;justify-content:center;width:100%;min-height:46px;padding:0!important;cursor:pointer}
+.pc-sel input{width:22px;height:22px;margin:0;accent-color:var(--marinho);cursor:pointer}
+.pc-sel input:disabled{cursor:default;opacity:.3}
+.orc-tab tbody tr.pc-marcada{background:rgba(28,60,97,.09)}
+#pc-lote{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:var(--papel);border:1px solid var(--linha-cartao);border-radius:var(--r-l);box-shadow:0 -4px 18px rgba(19,37,59,.16)}
+#pc-lote[hidden],#pc-lista[hidden] + #pc-lote{display:none}
+.pc-lote-info{flex:1 1 auto;font-weight:700;font-size:15.5px}
+.pc-lote-info small{display:block;font-weight:400;color:var(--suave);font-size:13px}
+.pc-lote-ac{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+.pc-lote-ac .btn{flex:1 1 auto;min-height:48px;padding:0 14px;font-size:15px}
+@media (prefers-color-scheme:dark){
+  .orc-tab tbody tr.pc-marcada{background:rgba(255,255,255,.09)}
+  .pc-sel input{accent-color:var(--laranja)}
+  #pc-lote{box-shadow:0 -4px 18px rgba(0,0,0,.5)}
+}
+@container (min-width:860px){
+  .pc-lote-ac{width:auto}
+  .pc-lote-ac .btn{flex:0 0 auto;min-height:44px;padding:0 18px}
+}
 /* ficha do cliente: contatos (Ligar, WhatsApp, E-mail) e dados; no celular os botões ficam embaixo do contato */
 .ficha-contato{padding:12px;margin-bottom:10px;border:1.5px solid var(--linha);border-left:6px solid var(--laranja);border-radius:12px;background:var(--papel);line-height:1.35}
 .fc-tx b{display:block;font-size:17px;overflow-wrap:anywhere}
@@ -2044,6 +2065,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
       <p class="avcb-nota" id="pc-estado" style="margin-top:0"></p>
     </div>
     <div id="pc-lista"></div>
+    <div id="pc-lote" hidden role="region" aria-label="Pedidos selecionados"></div>
     <div id="pc-detalhe" hidden></div>
     <div id="pc-novo" hidden></div>
     <button class="laudo-link" id="pc-exportar" hidden>Exportar planilha desta aba (Excel)</button>
@@ -9192,6 +9214,7 @@ function abrirPedidos() {
   document.body.style.overflow = "hidden";
   history.pushState({ pc: true }, "");
   pcAberto = null; delete rolLista["tela-pc"];
+  pcSel.clear(); pcSelUlt = null;                 // cada abertura começa sem nada marcado
   $("pc-busca").value = "";
   pcFiltro = "abertos"; $("pc-filtro").scrollLeft = 0;   // cada abertura começa em "Em aberto": o filtro da última vez (ex.: Entregues) podia esconder o que o cartão "N aguardando…" anunciou
   if (!podeTipo(pcTipo)) pcTipo = Object.keys(TIPOS_PED).find(podeTipo) || "compra";
@@ -9234,7 +9257,7 @@ const buscaPC = p => semAcento([p.numero, p.favorecido, p.docFav, digitos(p.docF
   ...(p.itens || []).map(it => it.desc), p.compra?.fornecedor, p.compra?.valor, p.valor, valorPC(p) != null && moedaBR(valorPC(p)),
   p.vencimento && dataBRde(p.vencimento), p.precisaAte && dataBRde(p.precisaAte), p.criadoEm && new Date(p.criadoEm).toLocaleDateString("pt-BR"),
   ST_PC[p.status]?.[0]].filter(Boolean).join(" "));
-function tabelaPC(vis) {
+function tabelaPC(vis, comSel) {
   const pag = pcTipo === "pag";
   const cols = pag
     ? [["nome", "Favorecido", "orc-c-cli"], ["centro", "Centro de custo", "pc-so-pc pc-c-centro"], ["sol", "Solicitante", "pc-so-pc pc-c-sol"],
@@ -9242,6 +9265,15 @@ function tabelaPC(vis) {
     : [["nome", "Itens", "orc-c-cli"], ["centro", "Centro de custo", "pc-so-pc pc-c-centro"], ["sol", "Solicitante", "pc-so-pc pc-c-sol"],
        ["data", "Data", "orc-so-cel orc-c-data"], ["prazo", "Precisa até", "pc-so-pc pc-c-prazo"], ["sit", "Situação", "pc-c-sit"]];
   const tb = el("table", "orc-tab pc-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  if (comSel) {                                     // 1ª coluna: marcar todos os que dá para resolver em grupo
+    const th = el("th", "pc-c-sel"), lb = el("label", "pc-sel"), cb = document.createElement("input");
+    th.scope = "col"; cb.type = "checkbox"; cb.id = "pc-sel-todos"; cb.setAttribute("aria-label", "Marcar todos os pedidos da lista");
+    cb.onchange = () => {
+      [...$("pc-lista").querySelectorAll("tbody input[data-id]:not(:disabled)")].forEach(c => cb.checked ? pcSel.add(c.dataset.id) : pcSel.delete(c.dataset.id));
+      pcSelUlt = null; pintarLotePC();
+    };
+    lb.appendChild(cb); th.appendChild(lb); tr.appendChild(th);
+  }
   for (const [k, rot, cls] of cols) {
     const th = el("th", cls), b = el("button", "", rot), ativa = pcOrdem.col === k;
     th.scope = "col"; b.type = "button"; b.dataset.col = k;
@@ -9252,12 +9284,13 @@ function tabelaPC(vis) {
     th.appendChild(b); tr.appendChild(th);
   }
   cab.appendChild(tr);
-  vis.forEach(p => corpo.appendChild(linhaPC(p, pag)));
+  vis.forEach(p => corpo.appendChild(linhaPC(p, pag, comSel)));
   tb.append(cab, corpo);
   return tb;
 }
-function linhaPC(p, pag) {
+function linhaPC(p, pag, comSel) {
   const tr = el("tr"); tr.tabIndex = 0;
+  if (comSel) tr.appendChild(celSelPC(p));
   const n = p.itens?.length || 0;
   const nome = el("td", "orc-c-cli"), tit = el("span", "orc-cli");
   if (p.urgencia === "Urgente") tit.appendChild(el("span", "pc-urg", "URGENTE"));
@@ -9289,6 +9322,155 @@ function linhaPC(p, pag) {
   tr.onclick = abrir;
   tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrir(); };
   return tr;
+}
+
+/* várias linhas de uma vez (pedido do Gustavo em 12/11/2026: "selecionar várias linhas e aprovar, excluir… de uma vez só").
+   Caixa de marcar na 1ª coluna (só aparece se a pessoa tem algo a fazer em grupo com algum pedido da lista); no computador, Shift+clique
+   marca o intervalo. Com algo marcado, uma barra fixa embaixo mostra quantos, o total (pagamentos) e as ações que valem para os marcados,
+   com a quantidade de cada uma; cada ação pergunta antes (com a lista) e é feita pedido a pedido, como no detalhe — um pedido que falha
+   (outra pessoa mudou, sem permissão…) não para os outros e continua marcado. "Marcar como comprado" fica só no detalhe
+   (fornecedor e valor são de cada pedido); pago em grupo vai sem comprovante (dá para anexar depois em cada pedido). */
+const pcSel = new Set();                           // ids marcados
+let pcSelUlt = null, pcLote = null;                // último marcado (Shift+clique) · ação em grupo em andamento { rot, i, n }
+const meuPC = p => p.solicitante?.email === emailDe();
+const ACOES_LOTE_PC = [   // mesmas regras dos botões do detalhe (desenharDetalhePC)
+  { id: "aprovar", rot: "Aprovar", cls: "prim", st: "aprovado", ger: "Aprovando", pode: p => ehAdmin() && p.status === "aguardando" },
+  { id: "pago", rot: "Marcar como pago", cls: "prim", st: "pago", ger: "Marcando como pago", pode: p => tipoDe(p) === "pag" && (ehAdmin() || ehPagador()) && p.status === "aprovado" },
+  { id: "entregue", rot: "Marcar como entregue", cls: "prim", st: "entregue", ger: "Marcando como entregue", pode: p => tipoDe(p) === "compra" && (ehAdmin() || meuPC(p) || ehComprador()) && p.status === "comprado" },
+  { id: "recusar", rot: "Recusar", cls: "sec", st: "recusado", ger: "Recusando", pode: p => ehAdmin() && p.status === "aguardando" },
+  { id: "cancelar", rot: "Cancelar", cls: "sec", st: "cancelado", ger: "Cancelando", pode: p => !ehAdmin() && meuPC(p) && p.status === "aguardando" },   // o administrador recusa ou exclui
+  { id: "excluir", rot: "Excluir", cls: "sec perigo", ger: "Excluindo", pode: () => ehAdmin() }
+];
+const acoesLotePC = p => p.pendente ? [] : ACOES_LOTE_PC.filter(a => a.pode(p));
+const qtdPC = n => `${n} pedido${n === 1 ? "" : "s"}`;
+function celSelPC(p) {
+  const td = el("td", "pc-c-sel"), lb = el("label", "pc-sel"), cb = document.createElement("input");
+  cb.type = "checkbox"; cb.dataset.id = p.id; cb.checked = pcSel.has(p.id);
+  cb.disabled = !acoesLotePC(p).length;
+  cb.setAttribute("aria-label", `Marcar o pedido ${p.numero}`);
+  if (cb.disabled) lb.title = p.pendente ? "Ainda no celular, aguardando envio" : "Nada a fazer com este pedido em grupo";
+  // o clique na caixa não abre o pedido; o Shift do clique fica guardado para o "change" (o clique no rótulo chega antes da troca)
+  td.onclick = e => { e.stopPropagation(); celSelPC.shift = e.shiftKey; };
+  cb.onkeydown = e => e.stopPropagation();         // Enter na caixa não abre o pedido
+  cb.onchange = () => {
+    const caixas = [...$("pc-lista").querySelectorAll("tbody input[data-id]:not(:disabled)")];
+    const a = caixas.findIndex(c => c.dataset.id === pcSelUlt), b = caixas.indexOf(cb);
+    const faixa = celSelPC.shift && a >= 0 && b >= 0 ? caixas.slice(Math.min(a, b), Math.max(a, b) + 1) : [cb];
+    faixa.forEach(c => cb.checked ? pcSel.add(c.dataset.id) : pcSel.delete(c.dataset.id));
+    celSelPC.shift = false; pcSelUlt = p.id;
+    pintarLotePC();
+  };
+  lb.appendChild(cb); td.appendChild(lb);
+  return td;
+}
+// marca as caixas e as linhas conforme pcSel e refaz a barra de baixo (sem redesenhar a tabela: não perde a rolagem nem o foco)
+function pintarLotePC() {
+  const lista = $("pc-lista"), bar = $("pc-lote");
+  const caixas = [...lista.querySelectorAll("tbody input[data-id]")];
+  caixas.forEach(c => { c.checked = pcSel.has(c.dataset.id); c.closest("tr").classList.toggle("pc-marcada", c.checked); });
+  const hab = caixas.filter(c => !c.disabled), todos = $("pc-sel-todos");
+  if (todos) { const n = hab.filter(c => c.checked).length; todos.checked = n > 0 && n === hab.length; todos.indeterminate = n > 0 && n < hab.length; }
+  const sel = [...pcSel].map(id => pedidos[id]).filter(Boolean);
+  bar.hidden = !sel.length && !pcLote;
+  if (bar.hidden) { bar.innerHTML = ""; return; }
+  const foco = bar.contains(document.activeElement) ? document.activeElement.dataset.a : "";
+  bar.innerHTML = "";
+  const info = el("div", "pc-lote-info");
+  if (pcLote) {
+    info.append(`${pcLote.rot} ${pcLote.i} de ${pcLote.n}…`, el("small", "", "Não feche o app até terminar."));
+    bar.appendChild(info);
+    return;
+  }
+  const vals = pcTipo === "pag" ? sel.map(valorPC).filter(v => v != null) : [];
+  info.append(`${sel.length} marcado${sel.length === 1 ? "" : "s"}`);
+  if (vals.length) info.append(" · R$ " + moedaBR(vals.reduce((s, v) => s + v, 0)));
+  const limpar = el("button", "laudo-link", "Desmarcar"); limpar.type = "button"; limpar.dataset.a = "limpar";
+  limpar.onclick = () => { pcSel.clear(); pcSelUlt = null; pintarLotePC(); };
+  const ac = el("div", "pc-lote-ac");
+  for (const a of ACOES_LOTE_PC) {
+    const n = sel.filter(p => acoesLotePC(p).some(x => x.id === a.id)).length;
+    if (!n) continue;
+    const b = el("button", "btn " + a.cls, `${a.rot} (${n})`); b.type = "button"; b.dataset.a = a.id;
+    b.onclick = () => executarLotePC(a);
+    ac.appendChild(b);
+  }
+  bar.append(info, limpar, ac);
+  if (foco) bar.querySelector(`[data-a="${foco}"]`)?.focus({ preventScroll: true });
+}
+async function executarLotePC(a) {
+  if (pcLote) return;
+  const sel = [...pcSel].map(id => pedidos[id]).filter(Boolean).sort(compPC);   // na ordem da tabela
+  const alvo = sel.filter(p => acoesLotePC(p).some(x => x.id === a.id));
+  if (!alvo.length) return;
+  if (!navigator.onLine) { aviso("Sem internet para alterar os pedidos.", true); return; }
+  const tipo = tipoDe(alvo[0]), pag = tipo === "pag", n = alvo.length, um = n === 1;
+  // a pergunta mostra a lista (até 8), o total e o que fica de fora
+  const linhas = alvo.slice(0, 8).map(p => `• ${p.numero} · ${nomePC(p)}${pag && p.valor ? " · " + valorBR(p.valor) : ""}`);
+  if (n > 8) linhas.push(`• e mais ${n - 8}`);
+  const vals = pag ? alvo.map(valorPC).filter(v => v != null) : [];
+  let texto = linhas.join("\n") + (vals.length > 1 ? `\nTotal: R$ ${moedaBR(vals.reduce((s, v) => s + v, 0))}` : "");
+  const fora = sel.length - n;
+  if (fora) texto += fora === 1 ? "\n\nO outro pedido marcado fica como está." : `\n\nOs outros ${fora} pedidos marcados ficam como estão.`;
+  const oPed = um ? "o pedido" : `os ${n} pedidos`;
+  let obs = "", extra;
+  if (a.id === "excluir") {
+    if (!await confirmarApagar(`Excluir ${qtdPC(n)}?`, texto + `\n\n${um ? "O pedido, o PDF e os anexos saem" : "Os pedidos, os PDFs e os anexos saem"} do app para todos e vão para a lixeira do OneDrive.`,
+      `Sim, excluir ${oPed}`, "Não, manter")) return;
+  } else if (a.id === "recusar" || a.id === "cancelar") {
+    const v = a.id === "recusar" ? "Recusar" : "Cancelar";
+    const r = await perguntar({ titulo: `${v} ${qtdPC(n)}?`, texto, campo: um ? "Motivo (opcional)" : "Motivo (opcional, vale para todos)",
+      sim: `Sim, ${v.toLowerCase()} ${oPed}`, nao: "Não, voltar", perigo: true });
+    if (!r) return;
+    obs = r.valor;
+  } else if (a.id === "pago") {
+    const r = await perguntar({ titulo: `Marcar ${qtdPC(n)} como pago${um ? "" : "s"}?`, texto: texto + "\n\nO comprovante pode ser anexado depois, em cada pedido.",
+      campos: [{ id: "data", rotulo: "Data do pagamento", tipo: "data", valor: dataISO() }], sim: "Marcar como pago" + (um ? "" : "s"), nao: "Cancelar" });
+    if (!r) return;
+    if (!r.campos.data) { aviso("Escolha a data do pagamento.", true); return; }
+    extra = { pagamento: { data: r.campos.data, por: nomeColaborador() } };
+  } else {
+    const r = await perguntar({ titulo: a.id === "aprovar" ? `Aprovar ${qtdPC(n)}?` : `Marcar ${qtdPC(n)} como entregue${um ? "" : "s"}?`, texto,
+      sim: a.id === "aprovar" ? `Sim, aprovar ${oPed}` : `Sim, marcar como entregue${um ? "" : "s"}`, nao: "Não, voltar" });
+    if (!r) return;
+  }
+  if (pcLote || !navigator.onLine) { if (!navigator.onLine) aviso("Sem internet para alterar os pedidos.", true); return; }
+  const ok = [], falhas = [];
+  pcLote = { rot: a.ger, i: 0, n };
+  if (a.id === "excluir") alvo.forEach(p => pcExcluindo.add(p.id));
+  pintarLotePC();
+  try {
+    await comGravacao(async () => {
+      let itens = null, erroLista = null;
+      if (a.id === "excluir") try { itens = await listarPastaPC(tipo); } catch (e) { erroLista = e; }
+      for (const p0 of alvo) {
+        pcLote.i++; pintarLotePC();
+        const p = pedidos[p0.id] || p0;             // a sincronização pode ter trazido uma cópia mais nova
+        try {
+          if (a.id === "excluir") { if (erroLista) throw erroLista; await apagarPedidoPC(p0, itens); }   // eTag do que a pessoa viu: mudou em outro aparelho = não apaga
+          else if (!acoesLotePC(p).some(x => x.id === a.id)) throw Object.assign(new Error("mudou"), { alterado: true });   // outra pessoa já resolveu
+          else await gravarStatusPC(p, a.st, extra, obs);
+          ok.push(p);
+        } catch (e) { console.error("pedido " + p.numero + ":", e); falhas.push([p, e]); }
+      }
+    });
+  } finally {
+    pcLote = null;
+    alvo.forEach(p => pcExcluindo.delete(p.id));
+  }
+  ok.forEach(p => pcSel.delete(p.id));
+  if (pcAberto && !pedidos[pcAberto]) pcAberto = null;
+  atualizarContadores();
+  if (!$("tela-pc").hidden && $("pc-novo").hidden) desenharPedidos(); else pintarLotePC();
+  const PART = { aprovar: "aprovado", recusar: "recusado", cancelar: "cancelado", pago: "pago", entregue: "entregue", excluir: "excluído" };
+  const feito = k => `${qtdPC(k)} ${PART[a.id]}${k === 1 ? "" : "s"}`;
+  if (!falhas.length) aviso(feito(ok.length) + "." + (a.id === "excluir" ? " Os arquivos ficam por um tempo na lixeira do OneDrive." : ""));
+  else {
+    const e = falhas[0][1], f = falhas.length;
+    const motivo = e.alterado || e.status === 412 ? "outra pessoa alterou ao mesmo tempo" : e.status === 404 ? "excluído por outra pessoa"
+      : e.semAcesso || e.status === 403 ? "sem permissão nesta pasta do OneDrive" : erroEmPortugues(e.message || "");
+    aviso(`${ok.length ? feito(ok.length) + ". " : ""}${f === 1 ? `O pedido ${falhas[0][0].numero} não pôde` : `${f} pedidos não puderam`} ser alterado${f === 1 ? "" : "s"} (${motivo}). ${f === 1 ? "Ele continua marcado" : "Eles continuam marcados"}: confira e tente de novo.`, true);
+  }
+  if (falhas.length || a.id === "excluir") sincronizarPedidos();
 }
 
 function desenharPedidos() {
@@ -9329,6 +9511,9 @@ function desenharPedidos() {
   const [, rotFiltro, stsFiltro] = filtros.find(x => x[0] === pcFiltro);
   const vis = todos.filter(p => passa(p, stsFiltro)).sort(compPC);
   lista.innerHTML = "";
+  // marcados: só os que estão na tela e ainda têm o que fazer em grupo (trocar de aba, filtro ou busca desmarca os que saíram — nada é feito sem estar à vista)
+  const marcaveis = new Set(vis.filter(p => acoesLotePC(p).length).map(p => p.id));
+  if (!pcLote) for (const id of [...pcSel]) if (!marcaveis.has(id)) pcSel.delete(id);   // no meio de uma ação em grupo, os que falharem continuam marcados
   // resumo: quantos aparecem e, nos pagamentos, o total em R$ do que está na tela
   const res = $("pc-resumo"); res.innerHTML = "";
   if (vis.length) {
@@ -9343,7 +9528,8 @@ function desenharPedidos() {
     : erroPc ? vazio(TIPOS_PED[pcTipo].ico, "Não foi possível ler os pedidos", erroPc)
     : vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhum pedido ainda" : pcFiltro === "abertos" ? "Nenhum pedido em aberto" : `Nenhum pedido em "${rotFiltro}"`,
         pcFiltro === "todos" ? "" : pcFiltro === "abertos" ? "Em Todos aparecem os já resolvidos." : todos.length ? "Veja os outros filtros ou Todos." : ""));
-  else lista.appendChild(tabelaPC(vis));
+  else lista.appendChild(tabelaPC(vis, marcaveis.size > 0));
+  pintarLotePC();
   $("pc-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última consulta." : (sincronizarPedidos.erros || []).join(" ");
 }
 
@@ -9417,39 +9603,45 @@ async function excluirPedido(p) {
   try { await comGravacao(async () => {
     aviso("Excluindo o pedido…");
     try {
-      const pasta = await basePedidos(tipoDe(p)), itens = [];
-      let url = `/drives/${CONFIG.driveId}/items/${pasta}/children?$top=999&$select=id,name,eTag`;
-      while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
-      // só os arquivos deste pedido: "<id>.json", "<id>.pdf" e "<id> - …" (anexos e comprovante); o .json fica por último
-      const meus = itens.filter(i => i.name === p.id + ".pdf" || i.name.startsWith(p.id + " - "));
-      const json = itens.find(i => i.name.toLowerCase() === (p.id + ".json").toLowerCase());
-      // o pedido mudou em outro aparelho depois do que a pergunta mostrou (ex.: foi pago): não apaga, mostra a situação nova
-      if (json && p.etag && json.eTag !== p.etag) {
-        aviso("Este pedido foi alterado em outro aparelho. Confira a situação e exclua de novo.", true);
-        sincronizarPedidos();
-        return;
-      }
-      pcExcluidos.add(p.id);
-      for (const i of [...meus, ...(json ? [json] : [])]) {
-        try { await graph(`/drives/${CONFIG.driveId}/items/${i.id}`, { method: "DELETE" }); }
-        catch (e) { if (e.status !== 404) throw e; }   // já tinha sido apagado
-      }
-      delete pedidos[p.id];
-      gravarLS("vpx_pc", pedidos);
+      await apagarPedidoPC(p, await listarPastaPC(tipoDe(p)));
       if (pcAberto === p.id) pcAberto = null;
       atualizarContadores(); desenharPedidos(); reporRol("tela-pc");
       aviso(`Pedido ${p.numero} excluído. Os arquivos ficam por um tempo na lixeira do OneDrive.`);
       sincronizarPedidos();   // se havia uma sincronização em andamento (lista de antes da exclusão), ela repete ao terminar
     } catch (e) {
       console.error(e);
-      pcExcluidos.delete(p.id);                     // não excluiu: continua na lista (a sincronização abaixo traz de volta)
-      aviso(e.semAcesso || e.status === 403 ? "Sem permissão para excluir nesta pasta do OneDrive." : "Não foi possível excluir o pedido: " + e.message, true);
+      // alterado: o pedido mudou em outro aparelho depois do que a pergunta mostrou (ex.: foi pago) — não apaga, mostra a situação nova
+      aviso(e.alterado ? "Este pedido foi alterado em outro aparelho. Confira a situação e exclua de novo."
+        : e.semAcesso || e.status === 403 ? "Sem permissão para excluir nesta pasta do OneDrive." : "Não foi possível excluir o pedido: " + e.message, true);
       sincronizarPedidos();
     }
   }); } finally {
     pcExcluindo.delete(p.id);
     if (pedidos[p.id] && pcAberto === p.id && $("pc-novo").hidden && !$("tela-pc").hidden) desenharPedidos();   // não excluiu: os botões voltam
   }
+}
+
+async function listarPastaPC(tipo) {             // arquivos da pasta dos pedidos do tipo (id, nome, eTag)
+  const pasta = await basePedidos(tipo), itens = [];
+  let url = `/drives/${CONFIG.driveId}/items/${pasta}/children?$top=999&$select=id,name,eTag`;
+  while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
+  return itens;
+}
+// apaga do OneDrive os arquivos de um pedido (itens = listagem da pasta) e tira o pedido do aparelho; erro = exceção (e.alterado: mudou em outro aparelho)
+async function apagarPedidoPC(p, itens) {
+  // só os arquivos deste pedido: "<id>.json", "<id>.pdf" e "<id> - …" (anexos e comprovante); o .json fica por último
+  const meus = itens.filter(i => i.name === p.id + ".pdf" || i.name.startsWith(p.id + " - "));
+  const json = itens.find(i => i.name.toLowerCase() === (p.id + ".json").toLowerCase());
+  if (json && p.etag && json.eTag !== p.etag) { const e = new Error("alterado em outro aparelho"); e.alterado = true; throw e; }
+  pcExcluidos.add(p.id);
+  try {
+    for (const i of [...meus, ...(json ? [json] : [])]) {
+      try { await graph(`/drives/${CONFIG.driveId}/items/${i.id}`, { method: "DELETE" }); }
+      catch (e) { if (e.status !== 404) throw e; }   // já tinha sido apagado
+    }
+  } catch (e) { pcExcluidos.delete(p.id); throw e; }   // não excluiu: continua na lista (a sincronização traz de volta)
+  delete pedidos[p.id];
+  gravarLS("vpx_pc", pedidos);
 }
 
 // o .json do pedido ainda existe? (o administrador pode ter excluído o pedido com ele aberto em outro aparelho)
@@ -9463,7 +9655,19 @@ async function pedidoExistePC(p) {
   }
 }
 
-// muda a situação no .json do OneDrive (lê a versão mais nova e grava com If-Match)
+// muda a situação no .json do OneDrive (lê a versão mais nova e grava com If-Match); erro = exceção (412 = outra pessoa mudou, 404 = excluído)
+async function gravarStatusPC(p, status, extra, obs = "") {
+  const item = await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}`);
+  const rj = await fetch(item["@microsoft.graph.downloadUrl"]);
+  if (!rj.ok) throw new Error("Erro " + rj.status);
+  const atual = await rj.json();
+  atual.status = status;
+  if (extra) Object.assign(atual, extra);
+  (atual.historico ||= []).push({ status, por: nomeColaborador(), em: new Date().toISOString(), obs: (obs || "").trim() });
+  const r = await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}/content`, { method: "PUT", headers: { "Content-Type": "application/json", "If-Match": item.eTag }, body: JSON.stringify(atual, null, 2) });
+  pedidos[p.id] = { ...p, ...atual, tipo: tipoDe(p), etag: r?.eTag, pendente: false };
+  gravarLS("vpx_pc", pedidos);
+}
 function mudarStatusPC(...a) { return comGravacao(() => mudarStatusPCJa(...a)); }   // conta a gravação inteira
 async function mudarStatusPCJa(p, status, pedirMotivo, extra, obsPronta = "") {   // obsPronta: observação já escrita para o histórico (ex.: "comprovante anexado")
   if (!navigator.onLine) { aviso("Sem internet para alterar o pedido.", true); return; }
@@ -9476,14 +9680,7 @@ async function mudarStatusPCJa(p, status, pedirMotivo, extra, obsPronta = "") { 
     obs = r.valor;
   }
   try {
-    const item = await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}`);
-    const atual = await (await fetch(item["@microsoft.graph.downloadUrl"])).json();
-    atual.status = status;
-    if (extra) Object.assign(atual, extra);
-    (atual.historico ||= []).push({ status, por: nomeColaborador(), em: new Date().toISOString(), obs: obs.trim() });
-    const r = await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}/content`, { method: "PUT", headers: { "Content-Type": "application/json", "If-Match": item.eTag }, body: JSON.stringify(atual, null, 2) });
-    pedidos[p.id] = { ...p, ...atual, tipo: tipoDe(p), etag: r?.eTag, pendente: false };
-    gravarLS("vpx_pc", pedidos);
+    await gravarStatusPC(p, status, extra, obs);
     aviso(`Pedido ${p.numero}: ${ST_PC[status][0].toLowerCase()}.`);
     atualizarContadores(); desenharPedidos();
     if (extra?.pagamento) sincronizarPedidos();           // mostra o comprovante recém-enviado
