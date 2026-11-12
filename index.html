@@ -2183,7 +2183,6 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <div class="avcb-corpo">
     <div id="fu-lista-tela">
       <div class="tar-ctrl">
-        <div class="tar-vistas" id="fu-vistas"><button type="button" data-v="quadro" aria-pressed="true">Quadro</button><button type="button" data-v="lista" aria-pressed="false">Lista</button></div>
         <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar oportunidade" aria-label="Buscar nome, contato, telefone ou endereço" autocomplete="off">
         <div class="fu-filtros">
           <select id="fu-etapa" aria-label="Etapa da oportunidade"></select>
@@ -13925,7 +13924,7 @@ function aoMudarFu() {
   if (conta && secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // número do funil no painel do computador
 }
 const colFu = colecao({ chave: "vpx_funil", pasta: CONFIG.pastaFunil, prefixo: "funil", n: 32, pode: () => pode("funil"), aoMudar: aoMudarFu });
-let fuTela = null, fuVoltando = false;   // { vista, grupo, pessoa, sit, aberta, nova, direto, mais, ordem, limTab }
+let fuTela = null, fuVoltando = false;   // { grupo, pessoa, sit, aberta, nova, direto, mais, ordem, limTab }
 const oportunidades = () => Object.values(regsDe(colFu));
 const etapaTxt = e => `${e} - ${NOME_ETAPA[e] || "?"}`;
 const ativaFu = o => o.etapa >= "02" && o.etapa <= "07";
@@ -13971,7 +13970,7 @@ function cartaoFu(o, op = {}) {
 // op: { busca, aberta (abre direto numa oportunidade), nova }
 function abrirFunil(op = {}) {
   if (!conta || !pode("funil")) return;
-  fuTela = { vista: lerLS("vpx_fu_vista", "quadro"), grupo: lerLS("vpx_fu_grupo", "neg"), etapa: "", pessoa: "", sit: "", aberta: null, nova: null,
+  fuTela = { grupo: lerLS("vpx_fu_grupo", "neg"), etapa: "", pessoa: "", sit: "", aberta: null, nova: null,
     direto: !!(op.aberta || op.nova), mais: {}, ordem: { col: "etapa", desc: false }, limTab: 150 };
   $("fu-busca").value = op.busca || "";
   $("tela-funil").hidden = false;
@@ -14035,7 +14034,6 @@ function desenharFunil() {
     s.appendChild(fuTela.nova ? formNovaFu() : detalheFu(regsDe(colFu)[fuTela.aberta]));
     return;
   }
-  $("fu-vistas").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === fuTela.vista)));
   const todas = oportunidades();
   const gr = $("fu-grupos"); gr.innerHTML = "";
   for (const [k, rot, ets] of GRUPOS_FU) {
@@ -14077,19 +14075,10 @@ function desenharFunil() {
   const alvo = $("fu-lista"); alvo.innerHTML = "";
   if (!colFu.dados.lido && !Object.keys(colFu.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as oportunidades…" : "Sem internet e sem as oportunidades guardadas neste aparelho."));
   else if (!lista.length && (q || fuTela.pessoa || fuTela.sit)) alvo.appendChild(el("p", "avcb-nota", "Nada encontrado."));
-  else if (fuTela.vista === "quadro") alvo.appendChild(quadroFu(lista, fuTela.etapa ? [fuTela.etapa] : ets));
   else alvo.appendChild(tabelaFu(lista));
   $("fu-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando a última cópia guardada. Para mudar, conecte o aparelho.";
 }
-function quadroFu(lista, ets) {
-  const kb = el("div", "kb");
-  for (const e of ets) {
-    const itens = lista.filter(o => o.etapa === e).sort(ordemFu), soma = itens.reduce((s, o) => s + valorFu(o), 0);
-    kb.appendChild(colunaKb(fuTela, e, etapaTxt(e), itens, o => cartaoFu(o, { arrastar: computador.matches }), id => moverEtapa(id, e),
-      { soma: soma ? reais(soma) : computador.matches ? "—" : "", vazio: "Nenhuma oportunidade.", redesenhar: desenharFunil }));
-  }
-  return kb;
-}
+// (o Quadro do Comercial saiu a pedido do Gustavo em 12/11/2026: só a Lista em tabela)
 // mudar na própria linha da lista (pedido do Gustavo em 12/11/2026, como nas Tarefas): etapa, situação, responsáveis, valor e último contato.
 // Mesmo botão das tarefas (botaoEdTar: quadradinho ao passar o mouse) e a mesma gravação do detalhe da oportunidade.
 const mudarSitFu = (id, v) => mudarReg(colFu, id, r => { r.situacao = v; }, "Situação: " + v);
@@ -14352,7 +14341,7 @@ $("fu-busca").oninput = () => { clearTimeout(desenharFunil.t); desenharFunil.t =
 $("fu-etapa").onchange = () => { if (fuTela) { fuTela.etapa = $("fu-etapa").value; fuTela.mais = {}; fuTela.limTab = 150; desenharFunil(); } };
 $("fu-pessoa").onchange = () => { if (fuTela) { fuTela.pessoa = $("fu-pessoa").value; fuTela.mais = {}; desenharFunil(); } };
 $("fu-sit").onchange = () => { if (fuTela) { fuTela.sit = $("fu-sit").value; fuTela.mais = {}; desenharFunil(); } };
-$("fu-vistas").querySelectorAll("button").forEach(b => b.onclick = () => { if (!fuTela) return; fuTela.vista = b.dataset.v; gravarLS("vpx_fu_vista", fuTela.vista); desenharFunil(); });
+try { localStorage.removeItem("vpx_fu_vista"); } catch {}   // escolha antiga entre Quadro e Lista (o Quadro saiu)
 // o orçamento aberto por cima do funil volta à altura de sempre quando fecha
 new MutationObserver(() => { if ($("tela-orc").hidden) $("tela-orc").style.zIndex = ""; }).observe($("tela-orc"), { attributes: true, attributeFilter: ["hidden"] });
 // trabalho em equipe: com a tela aberta, confere as mudanças dos outros a cada minuto; e ao voltar para o app
