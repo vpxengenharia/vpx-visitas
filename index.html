@@ -1743,6 +1743,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <symbol id="i-nf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 7.5h7M8.5 10.7h7"/><path style="stroke:var(--ic-ac)" d="M8.5 14.5v3M10.7 14.5v3M12.6 14.5v3M15.5 14.5v3"/></symbol>
   <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
   <symbol id="i-tarefas" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path style="stroke:var(--ic-ac)" d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1"/><path d="M14.4 9.6h2.6M14.4 15.8h2.6"/></symbol>
+  <symbol id="i-solicitacao" viewBox="0 0 24 24"><path d="M12 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5h6.5l5 5V13"/><path d="M13.5 3.5v5h5M8.5 12h6M8.5 15.5h3.5"/><path style="stroke:var(--ic-ac)" d="M14.5 18.5h6M18 16l2.5 2.5L18 21"/></symbol>
   <symbol id="i-funil" viewBox="0 0 24 24"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/><path style="stroke:var(--ic-ac)" d="M7.6 9.2h8.8"/></symbol>
 </svg>
 <header class="topo">
@@ -1956,7 +1957,9 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <!-- tarefas e funil comercial (pedido do Gustavo em 07/11/2026): no computador, direto no menu; no celular, no Mais, em Registros e no Início -->
   <button class="so-pc" data-acao="tar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1M14.4 9.6h2.6M14.4 15.8h2.6"/></svg>Tarefas<span class="avcb-qtd" id="nav-tar-qtd" hidden></span></button>
   <button class="so-pc" data-acao="funil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/></svg>Comercial</button>
-  <button class="so-pc" data-s="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></svg>Financeiro<span class="avcb-qtd" id="nav-fin-qtd-pc" hidden></span></button>
+  <!-- solicitações de compra e de pagamento (pedido do Gustavo em 12/11/2026: saíram do Financeiro) -->
+  <button class="so-pc" data-acao="sol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5h6.5l5 5V13"/><path d="M13.5 3.5v5h5M8.5 12h6M8.5 15.5h3.5"/><path d="M14.5 18.5h6M18 16l2.5 2.5L18 21"/></svg>Solicitações<span class="avcb-qtd" id="nav-sol-qtd" hidden></span></button>
+  <button class="so-pc" data-s="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></svg>Financeiro</button>
   <button class="so-pc" data-acao="its"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 6.8C10 5.2 7 4.6 3.5 5v13.6c3.5-.4 6.5.2 8.5 1.8 2-1.6 5-2.2 8.5-1.8V5C17 4.6 14 5.2 12 6.8zM12 6.8v13.6"/></svg>ITs do CBM-BA</button>
   <button class="so-pc" data-acao="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h8.5M18 7h2M4 17h2.5M12 17h8"/><circle cx="15.2" cy="7" r="2.4"/><circle cx="9.2" cy="17" r="2.4"/></svg>Administração<span class="avcb-qtd" id="nav-adm-qtd" hidden></span></button>
   <button class="so-cel" data-s="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Mais<span class="avcb-qtd" id="nav-fin-qtd" hidden></span></button>
@@ -2047,25 +2050,25 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 
 <div class="menu" id="menu" hidden role="menu">
   <button id="mn-its" role="menuitem"><svg class="ic in" aria-hidden="true"><use href="#i-livro"/></svg>ITs do CBM-BA</button>
-  <button id="mn-pc" role="menuitem"><svg class="ic in" aria-hidden="true"><use href="#i-recibo"/></svg>Pedidos (compra e pagamento) <span class="mn-qtd" id="mn-pc-qtd" hidden></span></button>
+  <button id="mn-pc" role="menuitem"><svg class="ic in" aria-hidden="true"><use href="#i-recibo"/></svg>Solicitações (compra e pagamento) <span class="mn-qtd" id="mn-pc-qtd" hidden></span></button>
   <button id="mn-admin" role="menuitem"><svg class="ic in" aria-hidden="true"><use href="#i-ajustes"/></svg>Administração</button>
   <p class="mn-conta" id="mn-conta"></p>
   <button id="mn-sair" role="menuitem">Sair da conta</button>
 </div>
 
-<div class="tela-avcb" id="tela-pc" hidden role="dialog" aria-label="Pedidos">
-  <div class="avcb-topo"><button class="avcb-voltar" id="pc-voltar">‹ Voltar</button><strong>Pedidos</strong></div>
+<div class="tela-avcb" id="tela-pc" hidden role="dialog" aria-label="Solicitações">
+  <div class="avcb-topo"><button class="avcb-voltar" id="pc-voltar">‹ Voltar</button><strong>Solicitações</strong></div>
   <div class="avcb-corpo">
     <div id="pc-topo-lista">
       <div class="abas pc-tipos" id="pc-tipos" role="tablist"><button role="tab" data-t="compra" aria-selected="true">Compra</button><button role="tab" data-t="pag" aria-selected="false">Pagamento</button></div>
-      <button class="btn prim" id="pc-novo-btn">+ Novo pedido</button>
-      <input class="avcb-busca" id="pc-busca" type="search" placeholder="Buscar pedido" aria-label="Buscar por favorecido, item, centro de custo, solicitante, valor ou número" autocomplete="off" style="margin:12px 0 0">
-      <div class="chips avcb-filtro" id="pc-filtro" style="margin-top:12px" role="group" aria-label="Situação dos pedidos"></div>
+      <button class="btn prim" id="pc-novo-btn">+ Nova solicitação</button>
+      <input class="avcb-busca" id="pc-busca" type="search" placeholder="Buscar solicitação" aria-label="Buscar por favorecido, item, centro de custo, solicitante, valor ou número" autocomplete="off" style="margin:12px 0 0">
+      <div class="chips avcb-filtro" id="pc-filtro" style="margin-top:12px" role="group" aria-label="Situação das solicitações"></div>
       <p class="orc-resumo" id="pc-resumo"></p>
       <p class="avcb-nota" id="pc-estado" style="margin-top:0"></p>
     </div>
     <div id="pc-lista"></div>
-    <div id="pc-lote" hidden role="region" aria-label="Pedidos selecionados"></div>
+    <div id="pc-lote" hidden role="region" aria-label="Solicitações marcadas"></div>
     <div id="pc-detalhe" hidden></div>
     <div id="pc-novo" hidden></div>
     <button class="laudo-link" id="pc-exportar" hidden>Exportar planilha desta aba (Excel)</button>
@@ -8109,7 +8112,7 @@ function pintarFaixaOS() {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Visita comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
-  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Pedidos de compra"], ["pagamentos", "Pedidos de pagamento"], ["pagar", "Realizar pagamentos"], ["comprar", "Realizar compras"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
+  ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Solicitações de compra"], ["pagamentos", "Solicitações de pagamento"], ["pagar", "Realizar pagamentos"], ["comprar", "Realizar compras"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
   ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Comercial (oportunidades e propostas)"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
@@ -9089,20 +9092,20 @@ const MATERIAIS = [
   ["Cabo elétrico", "m"], ["Eletroduto", "m"], ["Parafusos e buchas", "cx"]
 ];
 const ST_PC = {
-  aguardando: ["Aguardando aprovação", "warn"], aprovado: ["Aprovado", "ok"], recusado: ["Recusado", "crit"],
-  comprado: ["Comprado", "ok"], entregue: ["Entregue", "ok"], pago: ["Pago", "ok"], cancelado: ["Cancelado", "crit"]
+  aguardando: ["Aguardando aprovação", "warn"], aprovado: ["Aprovada", "ok"], recusado: ["Recusada", "crit"],
+  comprado: ["Comprada", "ok"], entregue: ["Entregue", "ok"], pago: ["Paga", "ok"], cancelado: ["Cancelada", "crit"]
 };
 const TIPOS_PED = {
-  compra: { sigla: "PC", nome: "Pedido de compra", aba: "Compra", ico: "carrinho", perm: "pedidos", rasc: "vpx_pc_rascunho", abertos: ["aguardando", "aprovado", "comprado"] },
-  pag: { sigla: "PP", nome: "Pedido de pagamento", aba: "Pagamento", ico: "cartao", perm: "pagamentos", rasc: "vpx_pp_rascunho", abertos: ["aguardando", "aprovado"] }
+  compra: { sigla: "PC", nome: "Solicitação de compra", aba: "Compra", ico: "carrinho", perm: "pedidos", rasc: "vpx_pc_rascunho", abertos: ["aguardando", "aprovado", "comprado"] },
+  pag: { sigla: "PP", nome: "Solicitação de pagamento", aba: "Pagamento", ico: "cartao", perm: "pagamentos", rasc: "vpx_pp_rascunho", abertos: ["aguardando", "aprovado"] }
 };
 // filtros da lista, na ordem do fluxo (pedido do Gustavo em 11/11/2026: um filtro para cada etapa): [id, rótulo, situações] — sem situações = todos;
 // "Em aberto" = o que ainda falta resolver; recusados e cancelados aparecem em Todos
 const FILTROS_PED = {
-  compra: [["abertos", "Em aberto", TIPOS_PED.compra.abertos], ["aguardando", "Aguardando aprovação", ["aguardando"]], ["aprovado", "Aprovados", ["aprovado"]],
-    ["comprado", "Comprados", ["comprado"]], ["entregue", "Entregues", ["entregue"]], ["todos", "Todos", null]],
-  pag: [["abertos", "Em aberto", TIPOS_PED.pag.abertos], ["aguardando", "Aguardando aprovação", ["aguardando"]], ["aprovado", "Aprovados", ["aprovado"]],
-    ["pago", "Pagos", ["pago"]], ["todos", "Todos", null]]
+  compra: [["abertos", "Em aberto", TIPOS_PED.compra.abertos], ["aguardando", "Aguardando aprovação", ["aguardando"]], ["aprovado", "Aprovadas", ["aprovado"]],
+    ["comprado", "Compradas", ["comprado"]], ["entregue", "Entregues", ["entregue"]], ["todos", "Todas", null]],
+  pag: [["abertos", "Em aberto", TIPOS_PED.pag.abertos], ["aguardando", "Aguardando aprovação", ["aguardando"]], ["aprovado", "Aprovadas", ["aprovado"]],
+    ["pago", "Pagas", ["pago"]], ["todos", "Todas", null]]
 };
 const FORMAS_PAG = ["Boleto", "PIX", "Transferência", "Dinheiro"];
 const caminhoPed = t => t === "pag" ? CONFIG.pagamentosCaminho : CONFIG.pedidosCaminho;
@@ -9120,7 +9123,7 @@ const esperandoMim = tp => Object.values(pedidos).filter(p => (!tp || tipoDe(p) 
   (ehAdmin() ? p.status === "aguardando" : p.status === "aprovado" && resolveTipo(tipoDe(p)))).length;
 // tp = tipo dos pedidos contados; sem ele (os dois juntos), o verbo sai do que está de fato esperando a pessoa
 const verboEsperando = tp => { const nPag = tp ? 0 : esperandoMim("pag"), pg = tp ? tp === "pag" : nPag > 0, cp = tp ? tp !== "pag" : esperandoMim() > nPag; return pg && cp ? "pagar ou comprar" : cp ? "comprar" : "pagar"; };
-const txtEsperando = (n, tp) => ehAdmin() ? `${n} aguardando sua aprovação` : `${n} aprovado${n > 1 ? "s" : ""} para ${verboEsperando(tp)}`;
+const txtEsperando = (n, tp) => ehAdmin() ? `${n} aguardando sua aprovação` : `${n} aprovada${n > 1 ? "s" : ""} para ${verboEsperando(tp)}`;
 let pedidos = lerLS("vpx_pc", {});                 // id → { ...json, etag, itemId, pdfWeb, anexosWeb }
 let pcTipo = "compra", pcFiltro = "abertos", pcNovo = null, pcAberto = null;
 const pcExcluindo = new Set();                    // ids dos pedidos sendo excluídos agora: o detalhe fica sem os botões de ação
@@ -9178,11 +9181,11 @@ async function sincronizarPedidos() {
           pdfWeb: doPedido.find(x => x.name === chave + ".pdf")?.webUrl || null,
           anexosWeb: doPedido.filter(x => x.name.startsWith(chave + " - ")).map(x => ({ nome: x.name.slice(chave.length + 3), web: x.webUrl })) };
       }
-      if (falhas) erros.push(porTipo[tipo] = falhas > 1 ? `${falhas} pedidos não puderam ser lidos agora. Abra de novo em instantes.` : "1 pedido não pôde ser lido agora. Abra de novo em instantes.");
+      if (falhas) erros.push(porTipo[tipo] = falhas > 1 ? `${falhas} solicitações não puderam ser lidas agora. Abra de novo em instantes.` : "1 solicitação não pôde ser lida agora. Abra de novo em instantes.");
     } catch (e) {
       console.error("pedidos " + tipo + ":", e);
       Object.entries(pedidos).filter(([, p]) => tipoDe(p) === tipo).forEach(([k, p]) => { novo[k] ||= p; });   // mantém o que tinha
-      erros.push(porTipo[tipo] = e.semAcesso ? `Sem acesso à pasta "${nomePastaPed(tipo)}". Peça ao administrador para compartilhá-la com você.` : "Não foi possível atualizar os pedidos agora.");
+      erros.push(porTipo[tipo] = e.semAcesso ? `Sem acesso à pasta "${nomePastaPed(tipo)}". Peça ao administrador para compartilhá-la com você.` : "Não foi possível atualizar as solicitações agora.");
     }
   }
   for (const [k, p] of Object.entries(pedidos)) if (p.pendente && !novo[k]) novo[k] = p;   // ainda na fila deste celular
@@ -9202,7 +9205,7 @@ function atualizarContadores() {
   $("menu-qtd").hidden = !n; $("menu-qtd").textContent = n;
   $("mn-pc-qtd").hidden = !n; $("mn-pc-qtd").textContent = n;
   $("nav-fin-qtd").hidden = !n; $("nav-fin-qtd").textContent = n;   // barra de baixo: Mais (o Financeiro fica lá dentro)
-  $("nav-fin-qtd-pc").hidden = !n; $("nav-fin-qtd-pc").textContent = n;   // menu lateral do computador: Financeiro
+  $("nav-sol-qtd").hidden = !n; $("nav-sol-qtd").textContent = n;   // menu lateral do computador: Solicitações
   if (secao === "fin") desenharFin();
   if (secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // "Aguardando você" no painel do computador
   if (secao === "mais") desenharMais();
@@ -9235,7 +9238,7 @@ const valorBR = v => v ? `R$ ${v}` : "";
    tela larga — também centro de custo, solicitante (com a data do pedido) e o prazo (vencimento / precisa até) em colunas.
    Busca, filtros por etapa (FILTROS_PED), título da coluna ordena (de novo inverte; vazios no fim), linha abre o pedido. */
 let pcOrdem = { col: "data", desc: true };          // padrão: os mais novos primeiro (como antes)
-const ST_PC_CURTO = { aguardando: "Aguardando", aprovado: "Aprovado", recusado: "Recusado", comprado: "Comprado", entregue: "Entregue", pago: "Pago", cancelado: "Cancelado" };
+const ST_PC_CURTO = { aguardando: "Aguardando", aprovado: "Aprovada", recusado: "Recusada", comprado: "Comprada", entregue: "Entregue", pago: "Paga", cancelado: "Cancelada" };
 const CLS_PC_TAB = { aguardando: "warn", aprovado: "pc-and", comprado: "pc-and", entregue: "ok", pago: "ok", recusado: "crit", cancelado: "crit" };
 const ORDEM_ST_PC = ["aguardando", "aprovado", "comprado", "entregue", "pago", "recusado", "cancelado"];
 const nomePC = p => tipoDe(p) === "pag" ? (p.favorecido || "—") : (p.itens?.[0]?.desc || "—");
@@ -9267,7 +9270,7 @@ function tabelaPC(vis, comSel) {
   const tb = el("table", "orc-tab pc-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
   if (comSel) {                                     // 1ª coluna: marcar todos os que dá para resolver em grupo
     const th = el("th", "pc-c-sel"), lb = el("label", "pc-sel"), cb = document.createElement("input");
-    th.scope = "col"; cb.type = "checkbox"; cb.id = "pc-sel-todos"; cb.setAttribute("aria-label", "Marcar todos os pedidos da lista");
+    th.scope = "col"; cb.type = "checkbox"; cb.id = "pc-sel-todos"; cb.setAttribute("aria-label", "Marcar todas as solicitações da lista");
     cb.onchange = () => {
       [...$("pc-lista").querySelectorAll("tbody input[data-id]:not(:disabled)")].forEach(c => cb.checked ? pcSel.add(c.dataset.id) : pcSel.delete(c.dataset.id));
       pcSelUlt = null; pintarLotePC();
@@ -9299,7 +9302,7 @@ function linhaPC(p, pag, comSel) {
   // celular: centro de custo e solicitante embaixo do nome (na tela larga têm coluna própria)
   nome.appendChild(el("small", "orc-sub orc-so-cel", [!pag && `${n} ite${n === 1 ? "m" : "ns"}`, centroPC(p), p.solicitante?.nome].filter(Boolean).join(" · ")));
   const sol = el("td", "pc-so-pc pc-c-sol", p.solicitante?.nome || "—");
-  if (p.criadoEm) sol.appendChild(el("small", "", "pedido em " + new Date(p.criadoEm).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })));
+  if (p.criadoEm) sol.appendChild(el("small", "", "feita em " + new Date(p.criadoEm).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })));
   const prazo = COLS_PC.prazo(p);
   const sit = el("td", "pc-c-sit");
   const tag = el("span", "avcb-sit " + (p.pendente ? "pc-neu" : CLS_PC_TAB[p.status] || "pc-neu"), p.pendente ? "⏳ Na fila" : ST_PC_CURTO[p.status] || p.status);
@@ -9335,20 +9338,20 @@ let pcSelUlt = null, pcLote = null;                // último marcado (Shift+cli
 const meuPC = p => p.solicitante?.email === emailDe();
 const ACOES_LOTE_PC = [   // mesmas regras dos botões do detalhe (desenharDetalhePC)
   { id: "aprovar", rot: "Aprovar", cls: "prim", st: "aprovado", ger: "Aprovando", pode: p => ehAdmin() && p.status === "aguardando" },
-  { id: "pago", rot: "Marcar como pago", cls: "prim", st: "pago", ger: "Marcando como pago", pode: p => tipoDe(p) === "pag" && (ehAdmin() || ehPagador()) && p.status === "aprovado" },
+  { id: "pago", rot: "Marcar como paga", cls: "prim", st: "pago", ger: "Marcando como paga", pode: p => tipoDe(p) === "pag" && (ehAdmin() || ehPagador()) && p.status === "aprovado" },
   { id: "entregue", rot: "Marcar como entregue", cls: "prim", st: "entregue", ger: "Marcando como entregue", pode: p => tipoDe(p) === "compra" && (ehAdmin() || meuPC(p) || ehComprador()) && p.status === "comprado" },
   { id: "recusar", rot: "Recusar", cls: "sec", st: "recusado", ger: "Recusando", pode: p => ehAdmin() && p.status === "aguardando" },
   { id: "cancelar", rot: "Cancelar", cls: "sec", st: "cancelado", ger: "Cancelando", pode: p => !ehAdmin() && meuPC(p) && p.status === "aguardando" },   // o administrador recusa ou exclui
   { id: "excluir", rot: "Excluir", cls: "sec perigo", ger: "Excluindo", pode: () => ehAdmin() }
 ];
 const acoesLotePC = p => p.pendente ? [] : ACOES_LOTE_PC.filter(a => a.pode(p));
-const qtdPC = n => `${n} pedido${n === 1 ? "" : "s"}`;
+const qtdPC = n => `${n} solicitaç${n === 1 ? "ão" : "ões"}`;
 function celSelPC(p) {
   const td = el("td", "pc-c-sel"), lb = el("label", "pc-sel"), cb = document.createElement("input");
   cb.type = "checkbox"; cb.dataset.id = p.id; cb.checked = pcSel.has(p.id);
   cb.disabled = !acoesLotePC(p).length;
-  cb.setAttribute("aria-label", `Marcar o pedido ${p.numero}`);
-  if (cb.disabled) lb.title = p.pendente ? "Ainda no celular, aguardando envio" : "Nada a fazer com este pedido em grupo";
+  cb.setAttribute("aria-label", `Marcar a solicitação ${p.numero}`);
+  if (cb.disabled) lb.title = p.pendente ? "Ainda no celular, aguardando envio" : "Nada a fazer com esta solicitação em grupo";
   // o clique na caixa não abre o pedido; o Shift do clique fica guardado para o "change" (o clique no rótulo chega antes da troca)
   td.onclick = e => { e.stopPropagation(); celSelPC.shift = e.shiftKey; };
   cb.onkeydown = e => e.stopPropagation();         // Enter na caixa não abre o pedido
@@ -9382,7 +9385,7 @@ function pintarLotePC() {
     return;
   }
   const vals = pcTipo === "pag" ? sel.map(valorPC).filter(v => v != null) : [];
-  info.append(`${sel.length} marcado${sel.length === 1 ? "" : "s"}`);
+  info.append(`${sel.length} marcada${sel.length === 1 ? "" : "s"}`);
   if (vals.length) info.append(" · R$ " + moedaBR(vals.reduce((s, v) => s + v, 0)));
   const limpar = el("button", "laudo-link", "Desmarcar"); limpar.type = "button"; limpar.dataset.a = "limpar";
   limpar.onclick = () => { pcSel.clear(); pcSelUlt = null; pintarLotePC(); };
@@ -9402,7 +9405,7 @@ async function executarLotePC(a) {
   const sel = [...pcSel].map(id => pedidos[id]).filter(Boolean).sort(compPC);   // na ordem da tabela
   const alvo = sel.filter(p => acoesLotePC(p).some(x => x.id === a.id));
   if (!alvo.length) return;
-  if (!navigator.onLine) { aviso("Sem internet para alterar os pedidos.", true); return; }
+  if (!navigator.onLine) { aviso("Sem internet para alterar as solicitações.", true); return; }
   const tipo = tipoDe(alvo[0]), pag = tipo === "pag", n = alvo.length, um = n === 1;
   // a pergunta mostra a lista (até 8), o total e o que fica de fora
   const linhas = alvo.slice(0, 8).map(p => `• ${p.numero} · ${nomePC(p)}${pag && p.valor ? " · " + valorBR(p.valor) : ""}`);
@@ -9410,11 +9413,11 @@ async function executarLotePC(a) {
   const vals = pag ? alvo.map(valorPC).filter(v => v != null) : [];
   let texto = linhas.join("\n") + (vals.length > 1 ? `\nTotal: R$ ${moedaBR(vals.reduce((s, v) => s + v, 0))}` : "");
   const fora = sel.length - n;
-  if (fora) texto += fora === 1 ? "\n\nO outro pedido marcado fica como está." : `\n\nOs outros ${fora} pedidos marcados ficam como estão.`;
-  const oPed = um ? "o pedido" : `os ${n} pedidos`;
+  if (fora) texto += fora === 1 ? "\n\nA outra solicitação marcada fica como está." : `\n\nAs outras ${fora} solicitações marcadas ficam como estão.`;
+  const oPed = um ? "a solicitação" : `as ${n} solicitações`;
   let obs = "", extra;
   if (a.id === "excluir") {
-    if (!await confirmarApagar(`Excluir ${qtdPC(n)}?`, texto + `\n\n${um ? "O pedido, o PDF e os anexos saem" : "Os pedidos, os PDFs e os anexos saem"} do app para todos e vão para a lixeira do OneDrive.`,
+    if (!await confirmarApagar(`Excluir ${qtdPC(n)}?`, texto + `\n\n${um ? "A solicitação, o PDF e os anexos saem" : "As solicitações, os PDFs e os anexos saem"} do app para todos e vão para a lixeira do OneDrive.`,
       `Sim, excluir ${oPed}`, "Não, manter")) return;
   } else if (a.id === "recusar" || a.id === "cancelar") {
     const v = a.id === "recusar" ? "Recusar" : "Cancelar";
@@ -9423,8 +9426,8 @@ async function executarLotePC(a) {
     if (!r) return;
     obs = r.valor;
   } else if (a.id === "pago") {
-    const r = await perguntar({ titulo: `Marcar ${qtdPC(n)} como pago${um ? "" : "s"}?`, texto: texto + "\n\nO comprovante pode ser anexado depois, em cada pedido.",
-      campos: [{ id: "data", rotulo: "Data do pagamento", tipo: "data", valor: dataISO() }], sim: "Marcar como pago" + (um ? "" : "s"), nao: "Cancelar" });
+    const r = await perguntar({ titulo: `Marcar ${qtdPC(n)} como paga${um ? "" : "s"}?`, texto: texto + "\n\nO comprovante pode ser anexado depois, em cada solicitação.",
+      campos: [{ id: "data", rotulo: "Data do pagamento", tipo: "data", valor: dataISO() }], sim: "Marcar como paga" + (um ? "" : "s"), nao: "Cancelar" });
     if (!r) return;
     if (!r.campos.data) { aviso("Escolha a data do pagamento.", true); return; }
     extra = { pagamento: { data: r.campos.data, por: nomeColaborador() } };
@@ -9433,7 +9436,7 @@ async function executarLotePC(a) {
       sim: a.id === "aprovar" ? `Sim, aprovar ${oPed}` : `Sim, marcar como entregue${um ? "" : "s"}`, nao: "Não, voltar" });
     if (!r) return;
   }
-  if (pcLote || !navigator.onLine) { if (!navigator.onLine) aviso("Sem internet para alterar os pedidos.", true); return; }
+  if (pcLote || !navigator.onLine) { if (!navigator.onLine) aviso("Sem internet para alterar as solicitações.", true); return; }
   const ok = [], falhas = [];
   pcLote = { rot: a.ger, i: 0, n };
   if (a.id === "excluir") alvo.forEach(p => pcExcluindo.add(p.id));
@@ -9461,14 +9464,14 @@ async function executarLotePC(a) {
   if (pcAberto && !pedidos[pcAberto]) pcAberto = null;
   atualizarContadores();
   if (!$("tela-pc").hidden && $("pc-novo").hidden) desenharPedidos(); else pintarLotePC();
-  const PART = { aprovar: "aprovado", recusar: "recusado", cancelar: "cancelado", pago: "pago", entregue: "entregue", excluir: "excluído" };
+  const PART = { aprovar: "aprovada", recusar: "recusada", cancelar: "cancelada", pago: "paga", entregue: "entregue", excluir: "excluída" };
   const feito = k => `${qtdPC(k)} ${PART[a.id]}${k === 1 ? "" : "s"}`;
   if (!falhas.length) aviso(feito(ok.length) + "." + (a.id === "excluir" ? " Os arquivos ficam por um tempo na lixeira do OneDrive." : ""));
   else {
     const e = falhas[0][1], f = falhas.length;
     const motivo = e.alterado || e.status === 412 ? "outra pessoa alterou ao mesmo tempo" : e.status === 404 ? "excluído por outra pessoa"
       : e.semAcesso || e.status === 403 ? "sem permissão nesta pasta do OneDrive" : erroEmPortugues(e.message || "");
-    aviso(`${ok.length ? feito(ok.length) + ". " : ""}${f === 1 ? `O pedido ${falhas[0][0].numero} não pôde` : `${f} pedidos não puderam`} ser alterado${f === 1 ? "" : "s"} (${motivo}). ${f === 1 ? "Ele continua marcado" : "Eles continuam marcados"}: confira e tente de novo.`, true);
+    aviso(`${ok.length ? feito(ok.length) + ". " : ""}${f === 1 ? `A solicitação ${falhas[0][0].numero} não pôde` : `${f} solicitações não puderam`} ser alterada${f === 1 ? "" : "s"} (${motivo}). ${f === 1 ? "Ela continua marcada" : "Elas continuam marcadas"}: confira e tente de novo.`, true);
   }
   if (falhas.length || a.id === "excluir") sincronizarPedidos();
 }
@@ -9484,7 +9487,7 @@ function desenharPedidos() {
   abas.querySelectorAll("button").forEach(b => { b.hidden = !tipos.includes(b.dataset.t); b.setAttribute("aria-selected", String(b.dataset.t === pcTipo));
     const n = esperandoMim(b.dataset.t);
     comIc(b, TIPOS_PED[b.dataset.t].ico, TIPOS_PED[b.dataset.t].aba + (n ? ` (${n})` : "")); });
-  $("pc-novo-btn").textContent = pcTipo === "pag" ? "+ Novo pedido de pagamento" : "+ Novo pedido de compra";
+  $("pc-novo-btn").textContent = pcTipo === "pag" ? "+ Nova solicitação de pagamento" : "+ Nova solicitação de compra";
   const daAba = meusPedidos().filter(p => tipoDe(p) === pcTipo);
   const q = semAcento($("pc-busca").value.trim());
   const todos = q ? daAba.filter(p => buscaPC(p).includes(q)) : daAba;   // os números dos filtros contam depois da busca
@@ -9517,17 +9520,17 @@ function desenharPedidos() {
   // resumo: quantos aparecem e, nos pagamentos, o total em R$ do que está na tela
   const res = $("pc-resumo"); res.innerHTML = "";
   if (vis.length) {
-    res.append(`${vis.length} pedido${vis.length === 1 ? "" : "s"}${q ? ` de ${daAba.filter(p => passa(p, stsFiltro)).length}` : ""}`);
+    res.append(`${vis.length} solicitaç${vis.length === 1 ? "ão" : "ões"}${q ? ` de ${daAba.filter(p => passa(p, stsFiltro)).length}` : ""}`);
     // recusados e cancelados não somam (como as notas canceladas)
     const fora = vis.filter(p => ["recusado", "cancelado"].includes(p.status)).length;
     const vals = pcTipo === "pag" ? vis.filter(p => !["recusado", "cancelado"].includes(p.status)).map(valorPC).filter(v => v != null) : [];
     if (vals.length) { res.append(" · Total ", el("b", "", "R$ " + moedaBR(vals.reduce((s, v) => s + v, 0)))); if (fora) res.append(` (${fora} recusado${fora > 1 ? "s" : ""} ou cancelado${fora > 1 ? "s" : ""} fora do total)`); }
   }
   const erroPc = navigator.onLine ? sincronizarPedidos.porTipo?.[pcTipo] : "";   // pasta sem acesso ou falha na leitura: diz isso no lugar de "Nenhum pedido"
-  if (!vis.length) lista.appendChild(q && daAba.length ? vazio("lupa", "Nenhum pedido com essa busca", "Confira o texto ou veja os outros filtros.")
-    : erroPc ? vazio(TIPOS_PED[pcTipo].ico, "Não foi possível ler os pedidos", erroPc)
-    : vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhum pedido ainda" : pcFiltro === "abertos" ? "Nenhum pedido em aberto" : `Nenhum pedido em "${rotFiltro}"`,
-        pcFiltro === "todos" ? "" : pcFiltro === "abertos" ? "Em Todos aparecem os já resolvidos." : todos.length ? "Veja os outros filtros ou Todos." : ""));
+  if (!vis.length) lista.appendChild(q && daAba.length ? vazio("lupa", "Nenhuma solicitação com essa busca", "Confira o texto ou veja os outros filtros.")
+    : erroPc ? vazio(TIPOS_PED[pcTipo].ico, "Não foi possível ler as solicitações", erroPc)
+    : vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhuma solicitação ainda" : pcFiltro === "abertos" ? "Nenhuma solicitação em aberto" : `Nenhuma solicitação em "${rotFiltro}"`,
+        pcFiltro === "todos" ? "" : pcFiltro === "abertos" ? "Em Todas aparecem as já resolvidas." : todos.length ? "Veja os outros filtros ou Todas." : ""));
   else lista.appendChild(tabelaPC(vis, marcaveis.size > 0));
   pintarLotePC();
   $("pc-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última consulta." : (sincronizarPedidos.erros || []).join(" ");
@@ -9540,7 +9543,7 @@ const dadosPag = p => p.forma === "PIX" ? `Chave PIX: ${p.pix || "-"}` : p.forma
 function desenharDetalhePC(p) {
   const det = $("pc-detalhe"), pag = tipoDe(p) === "pag";
   det.innerHTML = "";
-  const voltar = el("button", "laudo-link", "‹ Todos os pedidos"); voltar.type = "button";
+  const voltar = el("button", "laudo-link", "‹ Todas as solicitações"); voltar.type = "button";
   voltar.onclick = () => { pcAberto = null; desenharPedidos(); reporRol("tela-pc"); };
   det.appendChild(voltar);
   const [rot, cls] = ST_PC[p.status] || [p.status, ""];
@@ -9574,13 +9577,13 @@ function desenharDetalhePC(p) {
   const excluindo = pcExcluindo.has(p.id);         // excluindo: nada de aprovar, pagar, anexar ou excluir de novo no meio
   if (!p.pendente && !excluindo) {
     if (adm && p.status === "aguardando") { botao("✓ Aprovar", "prim", () => mudarStatusPC(p, "aprovado")); botao("Recusar", "sec", () => mudarStatusPC(p, "recusado", true)); }
-    if ((adm || resolveTipo(pag ? "pag" : "compra")) && p.status === "aprovado") pag ? botao("Marcar como pago", "prim", () => marcarPago(p)) : botao("Marcar como comprado", "prim", () => marcarComprado(p));
+    if ((adm || resolveTipo(pag ? "pag" : "compra")) && p.status === "aprovado") pag ? botao("Marcar como paga", "prim", () => marcarPago(p)) : botao("Marcar como comprada", "prim", () => marcarComprado(p));
     if (pag && (adm || ehPagador()) && p.status === "pago" && !p.pagamento?.comprovante) botao("Anexar comprovante", "sec", () => anexarComprovantePago(p));   // pago sem comprovante: dá para anexar depois
     if (!pag && (adm || meu || ehComprador()) && p.status === "comprado") botao("Marcar como entregue", "prim", () => mudarStatusPC(p, "entregue"));
-    if (meu && p.status === "aguardando") botao("Cancelar pedido", "sec", () => mudarStatusPC(p, "cancelado", true));
+    if (meu && p.status === "aguardando") botao("Cancelar solicitação", "sec", () => mudarStatusPC(p, "cancelado", true));
   }
-  if (p.pdfWeb) { const a = el("a", "btn sec", "Abrir PDF do pedido"); a.href = p.pdfWeb; a.target = "_blank"; a.rel = "noopener"; ac.appendChild(a); }
-  if (adm && !p.pendente && !excluindo) botao("Excluir pedido", "sec perigo", () => excluirPedido(p));   // só o administrador, em qualquer etapa (até pago ou entregue)
+  if (p.pdfWeb) { const a = el("a", "btn sec", "Abrir PDF da solicitação"); a.href = p.pdfWeb; a.target = "_blank"; a.rel = "noopener"; ac.appendChild(a); }
+  if (adm && !p.pendente && !excluindo) botao("Excluir solicitação", "sec perigo", () => excluirPedido(p));   // só o administrador, em qualquer etapa (até pago ou entregue)
   det.appendChild(ac);
 }
 
@@ -9590,29 +9593,29 @@ function desenharDetalhePC(p) {
 // e dá para tentar de novo. Some dos outros aparelhos na próxima sincronização.
 async function excluirPedido(p) {
   if (!ehAdmin() || p.pendente || pcExcluindo.has(p.id)) return;
-  if (!navigator.onLine) { aviso("Sem internet para excluir o pedido.", true); return; }
+  if (!navigator.onLine) { aviso("Sem internet para excluir a solicitação.", true); return; }
   const pag = tipoDe(p) === "pag", sit = (ST_PC[p.status]?.[0] || p.status).toLowerCase();
   const resumo = pag ? `${valorBR(p.valor)} para ${p.favorecido || "-"}` : `${p.itens?.length || 0} ite${(p.itens?.length || 0) === 1 ? "m" : "ns"}`;
   const forte = ["pago", "comprado", "entregue"].includes(p.status) ? (pag ? " O pagamento já foi registrado: o comprovante também é apagado." : " A compra já foi registrada.") : "";
-  if (!await confirmarApagar(`Excluir o pedido ${p.numero}?`,
-    `Pedido de ${pag ? "pagamento" : "compra"} de ${p.solicitante?.nome || "-"} (${resumo}), situação: ${sit}.${forte} O pedido, o PDF e os anexos saem do app para todos e vão para a lixeira do OneDrive.`,
-    "Sim, excluir o pedido", "Não, manter o pedido")) return;
+  if (!await confirmarApagar(`Excluir a solicitação ${p.numero}?`,
+    `Solicitação de ${pag ? "pagamento" : "compra"} de ${p.solicitante?.nome || "-"} (${resumo}), situação: ${sit}.${forte} A solicitação, o PDF e os anexos saem do app para todos e vão para a lixeira do OneDrive.`,
+    "Sim, excluir a solicitação", "Não, manter a solicitação")) return;
   if (pcExcluindo.has(p.id)) return;
   pcExcluindo.add(p.id);
   if (pcAberto === p.id && $("pc-novo").hidden) desenharPedidos();   // tira os botões do detalhe enquanto exclui
   try { await comGravacao(async () => {
-    aviso("Excluindo o pedido…");
+    aviso("Excluindo a solicitação…");
     try {
       await apagarPedidoPC(p, await listarPastaPC(tipoDe(p)));
       if (pcAberto === p.id) pcAberto = null;
       atualizarContadores(); desenharPedidos(); reporRol("tela-pc");
-      aviso(`Pedido ${p.numero} excluído. Os arquivos ficam por um tempo na lixeira do OneDrive.`);
+      aviso(`Solicitação ${p.numero} excluída. Os arquivos ficam por um tempo na lixeira do OneDrive.`);
       sincronizarPedidos();   // se havia uma sincronização em andamento (lista de antes da exclusão), ela repete ao terminar
     } catch (e) {
       console.error(e);
       // alterado: o pedido mudou em outro aparelho depois do que a pergunta mostrou (ex.: foi pago) — não apaga, mostra a situação nova
-      aviso(e.alterado ? "Este pedido foi alterado em outro aparelho. Confira a situação e exclua de novo."
-        : e.semAcesso || e.status === 403 ? "Sem permissão para excluir nesta pasta do OneDrive." : "Não foi possível excluir o pedido: " + e.message, true);
+      aviso(e.alterado ? "Esta solicitação foi alterada em outro aparelho. Confira a situação e exclua de novo."
+        : e.semAcesso || e.status === 403 ? "Sem permissão para excluir nesta pasta do OneDrive." : "Não foi possível excluir a solicitação: " + e.message, true);
       sincronizarPedidos();
     }
   }); } finally {
@@ -9649,7 +9652,7 @@ async function pedidoExistePC(p) {
   try { await graph(`/drives/${CONFIG.driveId}/items/${p.itemId}?$select=id`); return true; }
   catch (e) {
     if (e.status !== 404) throw e;
-    aviso(`O pedido ${p.numero} foi excluído pelo administrador.`, true);
+    aviso(`A solicitação ${p.numero} foi excluída pelo administrador.`, true);
     sincronizarPedidos();
     return false;
   }
@@ -9670,31 +9673,31 @@ async function gravarStatusPC(p, status, extra, obs = "") {
 }
 function mudarStatusPC(...a) { return comGravacao(() => mudarStatusPCJa(...a)); }   // conta a gravação inteira
 async function mudarStatusPCJa(p, status, pedirMotivo, extra, obsPronta = "") {   // obsPronta: observação já escrita para o histórico (ex.: "comprovante anexado")
-  if (!navigator.onLine) { aviso("Sem internet para alterar o pedido.", true); return; }
+  if (!navigator.onLine) { aviso("Sem internet para alterar a solicitação.", true); return; }
   let obs = obsPronta;
   if (pedirMotivo) {
     const rec = status === "recusado";
-    const r = await perguntar({ titulo: `${rec ? "Recusar" : "Cancelar"} o pedido ${p.numero}?`, campo: "Motivo (opcional)",
-      sim: rec ? "Sim, recusar o pedido" : "Sim, cancelar o pedido", nao: rec ? "Não, voltar" : "Não, manter o pedido", perigo: true });
+    const r = await perguntar({ titulo: `${rec ? "Recusar" : "Cancelar"} a solicitação ${p.numero}?`, campo: "Motivo (opcional)",
+      sim: rec ? "Sim, recusar a solicitação" : "Sim, cancelar a solicitação", nao: rec ? "Não, voltar" : "Não, manter a solicitação", perigo: true });
     if (!r) return;
     obs = r.valor;
   }
   try {
     await gravarStatusPC(p, status, extra, obs);
-    aviso(`Pedido ${p.numero}: ${ST_PC[status][0].toLowerCase()}.`);
+    aviso(`Solicitação ${p.numero}: ${ST_PC[status][0].toLowerCase()}.`);
     atualizarContadores(); desenharPedidos();
     if (extra?.pagamento) sincronizarPedidos();           // mostra o comprovante recém-enviado
   } catch (e) {
     console.error(e);
-    aviso(e.status === 412 ? "Outra pessoa alterou este pedido agora. Atualizando…" : e.status === 404 ? `O pedido ${p.numero} foi excluído pelo administrador.` : "Não foi possível alterar: " + e.message, true);
+    aviso(e.status === 412 ? "Outra pessoa alterou esta solicitação agora. Atualizando…" : e.status === 404 ? `A solicitação ${p.numero} foi excluída pelo administrador.` : "Não foi possível alterar: " + e.message, true);
     sincronizarPedidos();
   }
 }
 async function marcarComprado(p) {                 // uma janela só, com o calendário do aparelho na previsão (antes: três caixinhas do navegador)
-  const r = await perguntar({ titulo: `Pedido ${p.numero}: comprado`, campos: [
+  const r = await perguntar({ titulo: `Solicitação ${p.numero}: comprada`, campos: [
     { id: "fornecedor", rotulo: "Fornecedor", tipo: "texto", valor: p.compra?.fornecedor || "" },
     { id: "valor", rotulo: "Valor total (R$)", tipo: "valor", valor: p.compra?.valor || "", max: 20 },
-    { id: "previsao", rotulo: "Previsão de entrega (opcional)", tipo: "data", valor: p.compra?.previsao || "" }], sim: "Marcar como comprado", nao: "Cancelar" });
+    { id: "previsao", rotulo: "Previsão de entrega (opcional)", tipo: "data", valor: p.compra?.previsao || "" }], sim: "Marcar como comprada", nao: "Cancelar" });
   if (!r) return;
   mudarStatusPC(p, "comprado", false, { compra: { fornecedor: r.campos.fornecedor, valor: r.campos.valor, previsao: r.campos.previsao || "" } });
 }
@@ -9704,9 +9707,9 @@ const nomeComprovantePP = (p, arq) => `${p.id} - comprovante.${(arq.name.include
 async function marcarPago(p) {
   if (!navigator.onLine) { aviso("Sem internet para registrar o pagamento.", true); return; }
   // a data vem do calendário do aparelho (antes era digitada e, escrita errado, virava a data de hoje sem avisar)
-  const r = await perguntar({ titulo: `Pedido ${p.numero}: pago`, campos: [
+  const r = await perguntar({ titulo: `Solicitação ${p.numero}: paga`, campos: [
     { id: "data", rotulo: "Data do pagamento", tipo: "data", valor: dataISO() },
-    { id: "comp", rotulo: "Comprovante (opcional)", tipo: "arquivo", aceita: "image/*,application/pdf", botao: "Anexar foto ou PDF" }], sim: "Marcar como pago", nao: "Cancelar" });
+    { id: "comp", rotulo: "Comprovante (opcional)", tipo: "arquivo", aceita: "image/*,application/pdf", botao: "Anexar foto ou PDF" }], sim: "Marcar como paga", nao: "Cancelar" });
   if (!r) return;
   if (!r.campos.data) { aviso("Escolha a data do pagamento.", true); return; }
   const data = r.campos.data, arq = r.arquivos?.comp || null;
@@ -9720,7 +9723,7 @@ async function marcarPago(p) {
         const it = await enviarArquivo(await basePedidos("pag"), nome, arq, undefined, true);   // grava por cima: nova tentativa não cria "comprovante 1"
         pagamento.comprovante = (it?.name || nome).slice(p.id.length + 3);
       }
-    } catch (e) { aviso("Não foi possível enviar o comprovante: " + erroEmPortugues(e.message) + " — o pedido continua como aprovado.", true); return; }
+    } catch (e) { aviso("Não foi possível enviar o comprovante: " + erroEmPortugues(e.message) + " — a solicitação continua como aprovada.", true); return; }
     await mudarStatusPC(p, "pago", false, { pagamento });
   });
 }
@@ -9905,7 +9908,7 @@ function desenharNovoPC() {
   const f = $("pc-novo"); f.innerHTML = "";
   const pag = pcNovo.tipo === "pag";
   const voltar = el("button", "laudo-link", "‹ Cancelar"); voltar.type = "button"; voltar.onclick = fecharNovoPC;
-  f.append(voltar, el("h2", "secao", pag ? "Novo pedido de pagamento" : "Novo pedido de compra"));
+  f.append(voltar, el("h2", "secao", pag ? "Nova solicitação de pagamento" : "Nova solicitação de compra"));
   if (pag) blocoFavoritosPP(f);
   campoCentroPC(f);
   if (pag) {
@@ -9983,7 +9986,7 @@ function atualizarEnvioPC() {
   const b = $("pc-enviar"); if (!b || !pcNovo) return;
   const falta = faltaPC();
   b.disabled = !!falta;
-  b.textContent = falta || (pcNovo.tipo === "pag" ? `Enviar pedido de pagamento (${valorBR(pcNovo.valor)})` : `Enviar pedido (${pcNovo.itens.length} ite${pcNovo.itens.length > 1 ? "ns" : "m"})`);
+  b.textContent = falta || (pcNovo.tipo === "pag" ? `Enviar solicitação de pagamento (${valorBR(pcNovo.valor)})` : `Enviar solicitação (${pcNovo.itens.length} ite${pcNovo.itens.length > 1 ? "ns" : "m"})`);
 }
 const centroPC = p => p.centro ? `${p.centro}${p.centroDesc ? " · " + p.centroDesc : ""}` : p.cliente || "Escritório/estoque";   // pedidos antigos tinham cliente
 
@@ -10016,7 +10019,7 @@ async function enviarNovoPC() {
   $("pc-novo").hidden = true; pcNovo = null; delete rolLista["tela-pc"]; pcAberto = id;
   if (!["abertos", "aguardando", "todos"].includes(pcFiltro)) { pcFiltro = "abertos"; $("pc-filtro").scrollLeft = 0; }   // o pedido novo (aguardando) tem de aparecer ao voltar para a lista
   desenharPedidos();
-  aviso(navigator.onLine ? "Pedido enviado. O administrador vai aprovar no app." : "Pedido guardado no celular. Será enviado quando a internet voltar.");
+  aviso(navigator.onLine ? "Solicitação enviada. O administrador vai aprovar no app." : "Solicitação guardada no celular. Será enviada quando a internet voltar.");
   await tentarPendentes();
 }
 
@@ -10029,7 +10032,7 @@ async function gerarPedidoPDF(p) {
   let y = 15;
   const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; return true; } return false; };
   try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18, "logo", "FAST"); } catch {}
-  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL); doc.text(pag ? "Pedido de Pagamento" : "Pedido de Compra", 210 - M, y + 7, { align: "right" });
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL); doc.text(pag ? "Solicitação de Pagamento" : "Solicitação de Compra", 210 - M, y + 7, { align: "right" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
   doc.text(`Nº ${p.numero}`, 210 - M, y + 13, { align: "right" });
   doc.text(new Date(p.criadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }), 210 - M, y + 18, { align: "right" });
@@ -10061,7 +10064,7 @@ async function gerarPedidoPDF(p) {
   y += 10; cabe(30);
   doc.setFontSize(9); doc.setTextColor(...CINZA);
   doc.text("Aprovação: ______________________________   Data: ____/____/______", M, y + 10);
-  doc.setFontSize(8); doc.text(`VPX Engenharia - ${pag ? "Pedido de pagamento" : "Pedido de compra"} ${p.numero}`, 105, 290, { align: "center" });
+  doc.setFontSize(8); doc.text(`VPX Engenharia - ${pag ? "Solicitação de pagamento" : "Solicitação de compra"} ${p.numero}`, 105, 290, { align: "center" });
   return doc.output("blob");
 }
 
@@ -10072,21 +10075,21 @@ async function exportarPedidos() {
     const lista = Object.values(pedidos).filter(p => tipoDe(p) === pcTipo).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
     let linhas, cols, nome;
     if (pcTipo === "pag") {
-      nome = "Pedidos de pagamento";
-      linhas = [["Pedido", "Data", "Solicitante", "Centro de custo", "Favorecido", "CPF/CNPJ", "Valor (R$)", "Vencimento", "Forma", "Dados para pagar", "Descrição", "Urgência", "Situação", "Pago em"]];
+      nome = "Solicitações de pagamento";
+      linhas = [["Solicitação", "Data", "Solicitante", "Centro de custo", "Favorecido", "CPF/CNPJ", "Valor (R$)", "Vencimento", "Forma", "Dados para pagar", "Descrição", "Urgência", "Situação", "Pago em"]];
       for (const p of lista) linhas.push([p.numero, new Date(p.criadoEm).toLocaleDateString("pt-BR"), p.solicitante?.nome, centroPC(p), p.favorecido, p.docFav,
         numBR(p.valor) ?? p.valor, p.vencimento && dataBRde(p.vencimento), p.forma, dadosPag(p), p.descricao, p.urgencia, ST_PC[p.status]?.[0] || p.status, p.pagamento?.data && dataBRde(p.pagamento.data)]);
       cols = [18, 11, 22, 26, 26, 18, 12, 11, 12, 34, 40, 10, 20, 11];
     } else {
-      nome = "Pedidos de compra";
-      linhas = [["Pedido", "Data", "Solicitante", "Centro de custo", "Urgência", "Precisa até", "Entrega", "Situação", "Item", "Qtd", "Un", "Detalhe", "Fornecedor", "Valor", "Previsão"]];
+      nome = "Solicitações de compra";
+      linhas = [["Solicitação", "Data", "Solicitante", "Centro de custo", "Urgência", "Precisa até", "Entrega", "Situação", "Item", "Qtd", "Un", "Detalhe", "Fornecedor", "Valor", "Previsão"]];
       for (const p of lista) for (const it of p.itens) linhas.push([p.numero, new Date(p.criadoEm).toLocaleDateString("pt-BR"), p.solicitante?.nome, centroPC(p), p.urgencia,
         p.precisaAte && dataBRde(p.precisaAte), p.entrega, ST_PC[p.status]?.[0] || p.status, it.desc, numBR(it.qtd) ?? it.qtd, it.un, it.obs, p.compra?.fornecedor, p.compra?.valor, p.compra?.previsao && dataBRde(p.compra.previsao)]);
       cols = [18, 11, 22, 26, 10, 11, 14, 20, 40, 7, 6, 26, 20, 12, 11];
     }
     const ws = XLSX.utils.aoa_to_sheet(linhas);
     ws["!cols"] = cols.map(w => ({ wch: w }));
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Solicitações");
     const arquivo = new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], `${nome} - ${dataISO()}.xlsx`, { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     compartilharArquivo(arquivo, nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
@@ -11428,7 +11431,8 @@ function linha(ico, texto, sub, fn, qtd) {
   b.onclick = fn;
   return b;
 }
-const podeFin = () => pode("comp") || Object.keys(TIPOS_PED).some(podeTipo);
+const podeFin = () => pode("comp");                // Financeiro = comprovantes (as solicitações têm entrada própria desde 12/11/2026)
+const podeSol = () => Object.keys(TIPOS_PED).some(podeTipo);
 function atualizarNav() {
   const nav = $("nav");
   nav.querySelector('[data-s="agenda"]').hidden = !pode("agenda");
@@ -11438,6 +11442,7 @@ function atualizarNav() {
   nav.querySelector('[data-acao="admin"]').hidden = !ehAdmin();
   nav.querySelector('[data-acao="tar"]').hidden = !podeVerTarefas();
   nav.querySelector('[data-acao="funil"]').hidden = !pode("funil");
+  nav.querySelector('[data-acao="sol"]').hidden = !podeSol();
   const nAdm = ehAdmin() ? pedidosAcesso.length : 0;
   $("nav-adm-qtd").hidden = !nAdm; $("nav-adm-qtd").textContent = nAdm;
   const nTar = conta ? alertaTar() : 0;              // tarefas da pessoa atrasadas ou para hoje
@@ -11452,6 +11457,7 @@ function atualizarNav() {
     if (!$("tela-admin").hidden) atual = "admin";
     if (!$("tela-funil").hidden) atual = "funil";  // tarefas e funil também (as tarefas podem estar por cima do funil)
     if (!$("tela-tar").hidden) atual = "tar";
+    if (!$("tela-pc").hidden) atual = "sol";
   } else if (atual === "fin") atual = "mais";      // celular: o Financeiro fica dentro do Mais
   nav.querySelectorAll("button").forEach(b => { if ((b.dataset.s || b.dataset.acao) === atual) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
 }
@@ -14593,7 +14599,7 @@ function desenharInicio() {
       const m = tarefas().filter(x => minhaTar(x) && abertaTar(x)), atr = m.filter(atrasadaTar).length, hj = m.filter(hojeTar).length;
       kpi("tarefas", "Tarefas com você", m.length, atr ? `${atr} atrasada${s(atr)}` : hj ? `${hj} para hoje` : "", atr ? "crit" : hj ? "warn" : m.length ? "" : "zero", () => abrirTar({ filtro: "minhas" }));
     }
-    if (ehAdmin() || ehPagador() || ehComprador()) { const n = esperandoMim(); kpi("dinheiro", "Aguardando você", n, n ? (ehAdmin() ? `pedido${s(n)} para aprovar` : `pedido${s(n)} para ${verboEsperando()}`) : "", n ? "warn" : "zero", () => irPara("fin", true)); }
+    if (ehAdmin() || ehPagador() || ehComprador()) { const n = esperandoMim(); kpi("solicitacao", "Aguardando você", n, n ? (ehAdmin() ? `solicitaç${n > 1 ? "ões" : "ão"} para aprovar` : `solicitaç${n > 1 ? "ões" : "ão"} para ${verboEsperando()}`) : "", n ? "warn" : "zero", abrirSolicitacoes); }
     if (pode("avcb")) {
       const sts = listaAvcb().filter(v => v.categoria === "cliente").map(situacaoAvcb), venc = sts.filter(x => x.cls === "crit").length, logo = sts.filter(x => x.cls === "warn").length;
       kpi("escudo", "AVCB vencidos", venc, logo ? `${logo} vence${logo > 1 ? "m" : ""} em até 90 dias` : "", venc ? "crit" : logo ? "warn" : "zero", abrirAvcb);
@@ -14990,13 +14996,14 @@ function desenharReg() {
   const t = $("tela-reg"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Registros"));
   const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (!modos.length && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc") && !pode("nf") && !podeVerTarefas() && !pode("funil")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
+  if (!modos.length && !podeSol() && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc") && !pode("nf") && !podeVerTarefas() && !pode("funil")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
   // três grupos com título, na mesma ordem de antes (aprovado pelo Gustavo em 10/11/2026): filas de trabalho, novo registro, consultas e controles
   let g = el("div", "hub-grade");
   const grupo = titulo => { if (g.children.length) { g.classList.add("compacta"); t.appendChild(el("p", "hub-rot", titulo)); t.appendChild(g); } g = el("div", "hub-grade"); };   // quadrados mais baixos: os três grupos cabem numa tela
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   if (podeVerTarefas()) g.appendChild(tile("tarefas", "Tarefas", () => abrirTar()));             // como no monday (pedido do Gustavo em 07/11/2026)
   if (pode("funil")) g.appendChild(tile("funil", "Comercial", () => abrirFunil()));
+  if (podeSol()) g.appendChild(tile("solicitacao", "Solicitações", abrirSolicitacoes));   // compra e pagamento (saíram do Financeiro em 12/11/2026)
   grupo("Filas de trabalho");
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
   grupo("Novo registro");
@@ -15032,29 +15039,32 @@ function desenharFin() {
       carregarCompHist(true).then(() => { if (secao === "fin") desenharFin(); }).catch(() => {}).finally(() => { desenharFin.buscando = false; });
     }
   }
+  // as solicitações de compra e de pagamento saíram daqui (pedido do Gustavo em 12/11/2026): entrada própria no Mais, no menu lateral e em Registros
+}
+
+// Solicitações de compra e de pagamento: abre na aba que tem algo esperando a pessoa (senão, na última usada)
+function abrirSolicitacoes() {
   const tipos = Object.keys(TIPOS_PED).filter(podeTipo);
-  if (tipos.length) {
-    t.appendChild(el("p", "hub-rot", "Pedidos"));
-    const l = el("div", "hub-lista");
-    tipos.forEach(tp => {
-      const aguard = esperandoMim(tp);
-      const meusAbertos = meusPedidos().filter(p => tipoDe(p) === tp && TIPOS_PED[tp].abertos.includes(p.status)).length;
-      l.appendChild(linha(tp === "pag" ? "cartao" : "carrinho", tp === "pag" ? "Pedidos de pagamento" : "Pedidos de compra",
-        aguard ? txtEsperando(aguard, tp) : meusAbertos ? `${meusAbertos} em aberto` : "Fazer e acompanhar pedidos",
-        () => { pcTipo = tp; abrirPedidos(); }, aguard));
-    });
-    t.appendChild(l);
-  }
+  const esperando = tipos.filter(tp => esperandoMim(tp));
+  if (esperando.length === 1) pcTipo = esperando[0];
+  abrirPedidos();
+}
+// texto da linha "Solicitações" (Mais) e do quadrado do Início: o que espera a pessoa, senão quantas dela estão em aberto
+function resumoSolicitacoes() {
+  const aguard = esperandoMim();
+  if (aguard) return ehAdmin() ? `${aguard} aguardando sua aprovação` : `${aguard} aprovada${aguard > 1 ? "s" : ""} para ${verboEsperando()}`;
+  const abertas = meusPedidos().filter(p => p.solicitante?.email === emailDe() && TIPOS_PED[tipoDe(p)].abertos.includes(p.status)).length;
+  return abertas ? `${abertas} sua${abertas > 1 ? "s" : ""} em aberto` : "Compras e pagamentos";
 }
 
 // Mais: ITs, AVCB, administração e conta
 function desenharMais() {
   const t = $("tela-mais"); t.innerHTML = "";
   t.appendChild(el("h1", "hub-tit", "Mais"));
-  if (podeFin()) {                                 // Financeiro saiu da barra de baixo e fica aqui, com o contador de pedidos
-    const aguard = esperandoMim();
+  if (podeSol() || podeFin()) {                    // solicitações (com o número do que espera a pessoa) e o Financeiro (comprovantes)
     const f = el("div", "hub-lista");
-    f.appendChild(linha("dinheiro", "Financeiro", aguard ? (ehAdmin() ? `${aguard} pedido${aguard > 1 ? "s" : ""} aguardando sua aprovação` : `${aguard} pedido${aguard > 1 ? "s" : ""} aprovado${aguard > 1 ? "s" : ""} para ${verboEsperando()}`) : "Comprovantes e pedidos", () => irPara("fin"), aguard));
+    if (podeSol()) f.appendChild(linha("solicitacao", "Solicitações", resumoSolicitacoes(), abrirSolicitacoes, esperandoMim()));
+    if (podeFin()) f.appendChild(linha("dinheiro", "Financeiro", "Comprovantes de compras e reembolsos", () => irPara("fin")));
     t.appendChild(f);
   }
   // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também em Registros e no Início)
@@ -15112,8 +15122,8 @@ async function conferirAcesso() {
     await lerPermissoes(); aplicarPermissoes();
     const testar = async id => { try { await graph(`/drives/${CONFIG.driveId}/items/${id}?$select=id`); return "ok"; } catch (e) { return e.status === 403 || e.status === 404 ? "SEM ACESSO" : "não deu para conferir (" + (e.status || erroEmPortugues(e.message)) + ")"; } };
     const pastas = [["Configuração (permissões)", CONFIG.pastaConfigId], ["Clientes", CONFIG.pastaClientesId]];
-    if (podeTipo("compra")) pastas.push(["Pedidos de compra", CONFIG.pedidosId]);
-    if (podeTipo("pag")) pastas.push(["Pedidos de pagamento", CONFIG.pagamentosId]);
+    if (podeTipo("compra")) pastas.push(["Solicitações de compra", CONFIG.pedidosId]);
+    if (podeTipo("pag")) pastas.push(["Solicitações de pagamento", CONFIG.pagamentosId]);
     const res = await Promise.all(pastas.map(async ([n, id]) => [n, await testar(id)]));
     for (let i = 0; sincronizarPedidos.rodando && i < 150; i++) await espera(200);   // espera a sincronização que já estava rodando (até 30 s): ela começou com as permissões antigas
     basePedidos.ids = {};                          // acha as pastas de novo (o acesso pode ter sido dado agora)
@@ -15133,10 +15143,10 @@ async function conferirAcesso() {
       "Pastas do OneDrive:",
       ...res.map(([n, r]) => "• " + n + ": " + r)
     ];
-    if (podeTipo("compra")) linhas.push("", "Pedidos de compra que aparecem aqui: " + meusPedidos().filter(p => tipoDe(p) === "compra").length);
-    if (podeTipo("pag")) linhas.push("Pedidos de pagamento que aparecem aqui: " + meusPedidos().filter(p => tipoDe(p) === "pag").length);
-    if (sincronizarPedidos.rodando) linhas.push("Os pedidos ainda estão sendo atualizados; confira de novo em instantes.");
-    else if ((sincronizarPedidos.erros || []).length) linhas.push("Aviso ao atualizar os pedidos: " + sincronizarPedidos.erros.join(" "));
+    if (podeTipo("compra")) linhas.push("", "Solicitações de compra que aparecem aqui: " + meusPedidos().filter(p => tipoDe(p) === "compra").length);
+    if (podeTipo("pag")) linhas.push("Solicitações de pagamento que aparecem aqui: " + meusPedidos().filter(p => tipoDe(p) === "pag").length);
+    if (sincronizarPedidos.rodando) linhas.push("As solicitações ainda estão sendo atualizadas; confira de novo em instantes.");
+    else if ((sincronizarPedidos.erros || []).length) linhas.push("Aviso ao atualizar as solicitações: " + sincronizarPedidos.erros.join(" "));
     const falta = res.filter(([, r]) => r === "SEM ACESSO").map(([n]) => n);
     if (falta.length) linhas.push("", "Falta o administrador compartilhar no OneDrive: " + falta.join(", ") + ".");
     else if (st && !st.ok && st.semAcesso) linhas.push("", "Falta o administrador compartilhar a pasta de configuração (basta ele abrir a Administração do app).");
@@ -15245,12 +15255,13 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
     else if (b.dataset.acao === "admin") abrirAdmin();
     else if (b.dataset.acao === "tar") abrirTar();
     else if (b.dataset.acao === "funil") abrirFunil();
+    else if (b.dataset.acao === "sol") abrirSolicitacoes();
     else irPara(b.dataset.s, true);
   };
   if (passo) { tarVoltando = true; depoisVoltar = ir; history.back(); } else ir();   // o popstate (ramo tarVoltando) abre a seção depois que o passo saiu
 });
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
-for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil"]) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
+for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil", "tela-pc"]) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
 computador.addEventListener("change", () => {      // janela passou da largura do celular para a do computador (ou o contrário)
   if (!conta) return;
   if (secao === "inicio") desenharInicio();
@@ -15513,7 +15524,7 @@ $("btn-its").onclick = abrirNormas;
 $("btn-menu").onclick = e => { e.stopPropagation(); $("menu").hidden ? abrirMenu() : fecharMenu(); };
 document.addEventListener("click", e => { if (!$("menu").hidden && !e.target.closest("#menu")) fecharMenu(); });
 $("mn-its").onclick = () => { fecharMenu(); abrirNormas(); };
-$("mn-pc").onclick = abrirPedidos;
+$("mn-pc").onclick = abrirSolicitacoes;
 $("mn-admin").onclick = () => { fecharMenu(); abrirAdmin(); };
 $("mn-sair").onclick = () => { fecharMenu(); sairConta(); };
 $("pc-voltar").onclick = () => fecharPedidos();
