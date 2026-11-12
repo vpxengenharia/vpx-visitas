@@ -645,6 +645,16 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-c-st .tar-ed-pri{display:flex;width:fit-content;margin:4px -8px -6px;font-size:12.5px;font-weight:700}
 .tar-c-st .tar-ed-pri .tar-pri-dot{width:9px;height:9px;margin-right:6px}
 .tar-ed-st{min-height:0;padding:3px 7px;margin:-4px -8px}   /* situação: mesmo quadradinho, sem mudar a altura da linha */
+/* nome da tarefa (computador): clique muda o nome; "Abrir" aparece ao passar o mouse na linha */
+.tar-tit-linha{position:relative;display:flex;align-items:center}
+.tar-ed-tit{flex:1 1 auto;min-width:0;max-width:none}
+.tar-ed-tit .orc-cli{width:100%}
+textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px -8px;padding:4px 8px;border:1px solid var(--laranja);border-radius:8px;background:var(--papel);font-family:inherit;font-size:inherit;font-weight:600;line-height:inherit}
+/* "Abrir" fica por cima do fim do nome, só com o mouse na linha (não ocupa espaço nas outras) */
+.tar-abrir{position:absolute;right:-4px;top:50%;transform:translateY(-50%);min-height:30px;padding:3px 10px;border:1px solid var(--linha);border-radius:8px;background:var(--papel);box-shadow:-10px 0 10px var(--papel);color:var(--tinta);font:inherit;font-size:13px;font-weight:600;cursor:pointer;opacity:0;pointer-events:none}
+.tar-tab tr:hover .tar-abrir,.tar-abrir:focus-visible{opacity:1;pointer-events:auto}
+.tar-abrir:hover{border-color:var(--laranja)}
+.tar-tit-linha:has(textarea) .tar-abrir{display:none}
 @media (hover:hover){.tar-ed:hover{border-color:var(--linha);background-color:var(--papel)}}
 @container (max-width:859px){
   .tar-tab{font-size:15px}
@@ -13452,7 +13462,42 @@ function tabelaTar(vis) {
 const mudarPriTar = (id, v) => mudarReg(colTar, id, r => { r.prioridade = v; }, "Prioridade: " + (PRI[v] || "sem"));
 const mudarPrazoTar = (id, v) => mudarReg(colTar, id, r => { r.prazo = v; }, v ? "Prazo: " + dataBRde(v) : "Tirou o prazo");
 const mudarRespTar = (id, nv) => mudarReg(colTar, id, r => { r.resp = nv; }, "Responsáveis: " + (nv.map(p => primeiroNome(p.nome)).join(", ") || "ninguém"));
+const mudarTitTar = (id, v) => mudarReg(colTar, id, r => { r.titulo = v; }, "Título: " + v);
+const mudarCliTar = (id, v) => mudarReg(colTar, id, r => { r.cliente = v; }, v ? "Cliente: " + v : "Tirou o cliente");
 const OPC_PRI_MENU = () => OPC_PRI.map(([k, r]) => [k, r, "pri-op pri-" + (k || "nenhuma")]);
+// nome da tarefa (só no computador; no celular tocar no nome abre a tarefa): vira um campo no lugar;
+// Enter ou clicar fora grava, Esc desiste; nome apagado não grava
+function tituloEdTar(t) {
+  const b = botaoEdTar("tar-ed-tit", "Mudar o nome da tarefa", [el("span", "orc-cli tar-tab-tit", t.titulo || "(sem título)")], () => {
+    const ti = campoTitulo(); ti.classList.add("tar-tit-lin"); ti.value = t.titulo || ""; ti.setAttribute("aria-label", "Nome da tarefa");
+    let feito = false;
+    const fim = gravar => {
+      if (feito) return; feito = true;
+      const v = ti.value.trim();
+      if (gravar && v && v !== t.titulo) { b.firstChild.textContent = v; mudarTitTar(t.id, v); }
+      ti.replaceWith(b);
+      if (!gravar) b.focus({ preventScroll: true });
+    };
+    ti.onclick = e => e.stopPropagation();
+    ti.addEventListener("keydown", e => { e.stopPropagation(); if (e.key === "Escape") { e.preventDefault(); fim(false); } });
+    ti.addEventListener("blur", () => fim(true));
+    b.replaceWith(ti); ti.ajustar(); ti.focus(); ti.select();
+  });
+  return b;
+}
+// cliente: sem cliente abre a lista de clientes; com cliente, um menu (outro cliente, página do cliente, tirar)
+function abrirCliTar(t, b) {
+  const escolher = () => abrirDialogo(nome => { if (nome && nome !== t.cliente) mudarCliTar(t.id, nome); });
+  if (!t.cliente) return escolher();
+  const ops = [["trocar", "Escolher outro cliente"]];
+  if (clientes.includes(t.cliente)) ops.push(["pagina", "Abrir a página do cliente"]);
+  ops.push(["tirar", "Tirar o cliente"]);
+  menuOpcoes(b, ops, null, v => {
+    if (v === "trocar") escolher();
+    else if (v === "tirar") mudarCliTar(t.id, "");
+    else if (fecharTelasPorCima()) abrirCliente(t.cliente);
+  });
+}
 function botaoEdTar(cls, titulo, conteudo, fn) {
   const b = el("button", "tar-ed " + cls); b.type = "button"; b.title = titulo;
   b.append(...conteudo);
@@ -13515,12 +13560,22 @@ function linhaTar(t) {
   const abrirPri = b => menuOpcoes(b, OPC_PRI_MENU(), pri, v => mudarPriTar(t.id, v));
   const abrirResp = b => menuPessoas(b, (t.resp || []).slice(), nv => mudarRespTar(t.id, nv));
   // tarefa: título; embaixo, no celular, responsáveis e cliente (na tela larga têm coluna própria)
+  const abrirCli = b => abrirCliTar(t, b);
   const tit = el("td", "orc-c-cli");
-  tit.appendChild(el("span", "orc-cli tar-tab-tit", t.titulo || "(sem título)"));
+  // no computador o nome muda com um clique (e "Abrir" aparece ao passar o mouse); no celular tocar no nome abre a tarefa
+  if (ed && computador.matches) {
+    const lt = el("div", "tar-tit-linha");
+    const ab = el("button", "tar-abrir", "Abrir"); ab.type = "button"; ab.title = "Abrir a tarefa";
+    ab.onclick = e => { e.stopPropagation(); abrirTarefa(t.id); };
+    lt.append(tituloEdTar(t), ab);
+    tit.appendChild(lt);
+  } else tit.appendChild(el("span", "orc-cli tar-tab-tit", t.titulo || "(sem título)"));
   const sub = el("small", "orc-sub orc-so-cel");
-  if (ed) sub.appendChild(botaoEdTar("tar-ed-resp", "Mudar os responsáveis", [nomes.length ? nomes.join(", ") : el("span", "tar-ed-vazio", "Sem responsável")], abrirResp));
-  else if (!ed && pri) sub.appendChild(el("span", "tar-pri-tx pri-" + pri, PRI[pri]));
-  const resto = [!ed && nomes.join(", "), t.cliente, ...extra].filter(Boolean).join(" · ");
+  if (ed) {
+    sub.appendChild(botaoEdTar("tar-ed-resp", "Mudar os responsáveis", [nomes.length ? nomes.join(", ") : el("span", "tar-ed-vazio", "Sem responsável")], abrirResp));
+    if (t.cliente) sub.append(" · ", botaoEdTar("tar-ed-resp", "Mudar o cliente", [t.cliente], abrirCli));
+  } else if (pri) sub.appendChild(el("span", "tar-pri-tx pri-" + pri, PRI[pri]));
+  const resto = [!ed && nomes.join(", "), !ed && t.cliente, ...extra].filter(Boolean).join(" · ");
   if (resto) sub.append((sub.childNodes.length ? " · " : "") + resto);
   if (sub.childNodes.length) tit.appendChild(sub);
   if (extra.length) tit.appendChild(el("small", "orc-sub tar-so-pc-b", extra.join(" · ")));
@@ -13543,7 +13598,10 @@ function linhaTar(t) {
   const cr = el("td", "tar-so-pc tar-c-resp");
   if (ed) cr.appendChild(botaoEdTar("", "Mudar os responsáveis", [nomes.length ? nomes.join(", ") : el("span", "tar-ed-vazio", "—")], abrirResp));
   else cr.textContent = nomes.join(", ") || "—";
-  tr.append(tit, cs, cp, cz, cr, el("td", "tar-so-pc tar-c-cli", t.cliente || "—"));
+  const cc = el("td", "tar-so-pc tar-c-cli");
+  if (ed) cc.appendChild(botaoEdTar("", "Mudar o cliente", [t.cliente || el("span", "tar-ed-vazio", "—")], abrirCli));
+  else cc.textContent = t.cliente || "—";
+  tr.append(tit, cs, cp, cz, cr, cc);
   tr.onclick = () => abrirTarefa(t.id);
   tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrirTarefa(t.id); };
   return tr;
