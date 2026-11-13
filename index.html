@@ -1533,6 +1533,9 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   @keyframes selo-entra{from{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}}
   #tela-ok:not([hidden]) .selo{animation:selo-entra .34s ease-out}
 }
+/* computador: Tarefas, Comercial, Solicitações, ITs e Administração abertas pelo menu lateral não têm o "‹ Voltar" na lista (pedido do Gustavo em 13/11/2026);
+   abertas de outro lugar (página do cliente, Registros, Início) continuam com ele; no detalhe continua o "‹ Tarefas" / "‹ Comercial" */
+@media (min-width:900px) and (hover:hover) and (pointer:fine){.pela-lateral .avcb-topo > .avcb-voltar.voltar-lista{display:none}}
 /* ===== Computador (pacote C da 2ª análise da interface, aprovado pelo Gustavo em 10/11/2026) ===== */
 /* contorno de foco igual em tudo que recebe o cursor pelo teclado (peso zero: as regras próprias de cada componente continuam valendo) */
 :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
@@ -2086,7 +2089,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 </div>
 
 <div class="tela-avcb" id="tela-pc" hidden role="dialog" aria-label="Solicitações">
-  <div class="avcb-topo"><button class="avcb-voltar" id="pc-voltar">‹ Voltar</button><strong>Solicitações</strong></div>
+  <div class="avcb-topo"><button class="avcb-voltar voltar-lista" id="pc-voltar">‹ Voltar</button><strong>Solicitações</strong></div>
   <div class="avcb-corpo">
     <div id="pc-topo-lista">
       <div class="abas pc-tipos" id="pc-tipos" role="tablist"><button role="tab" data-t="compra" aria-selected="true">Compra</button><button role="tab" data-t="pag" aria-selected="false">Pagamento</button></div>
@@ -2106,7 +2109,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 </div>
 
 <div class="tela-avcb com-nav" id="tela-its" hidden role="dialog" aria-label="ITs do CBM-BA">
-  <div class="avcb-topo"><button class="avcb-voltar" id="its-voltar">‹ Voltar</button><strong>ITs do CBM-BA</strong></div>
+  <div class="avcb-topo"><button class="avcb-voltar voltar-lista" id="its-voltar">‹ Voltar</button><strong>ITs do CBM-BA</strong></div>
   <div class="avcb-corpo">
     <input class="avcb-busca" id="its-busca" type="search" placeholder="Número, nome ou palavra" aria-label="Buscar: número, nome ou palavra (ex.: corrimão)" autocomplete="off">
     <p class="avcb-nota" id="its-estado" style="margin-top:0"></p>
@@ -2292,7 +2295,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 </dialog>
 
 <div class="tela-avcb" id="tela-admin" hidden role="dialog" aria-label="Administração">
-  <div class="avcb-topo"><button class="avcb-voltar" id="adm-voltar">‹ Voltar</button><strong>Administração</strong></div>
+  <div class="avcb-topo"><button class="avcb-voltar voltar-lista" id="adm-voltar">‹ Voltar</button><strong>Administração</strong></div>
   <div class="avcb-corpo">
     <p class="laudo-dica">Defina o que cada pessoa vê no app. O acesso às pastas continua sendo o compartilhamento do OneDrive.</p>
     <h2 class="secao">Pedidos de acesso</h2>
@@ -13814,6 +13817,7 @@ function desenharTar() {
   $("tar-nova").hidden = !tudo || sub;
   $("tar-titulo").textContent = tarTela.nova ? "Nova tarefa" : sub ? "Tarefa" : "Tarefas";
   $("tar-voltar").textContent = sub && !tarTela.direto ? "‹ Tarefas" : "‹ Voltar";
+  $("tar-voltar").classList.toggle("voltar-lista", !sub);   // aberta pelo menu lateral do computador: a lista fica sem "Voltar"
   if (sub) {
     const s = $("tar-sub"); s.innerHTML = "";
     s.appendChild(tarTela.nova ? formNovaTar() : detalheTar(regsDe(colTar)[tarTela.aberta]));
@@ -14407,6 +14411,7 @@ function desenharFunil() {
   $("fu-nova").hidden = sub;
   $("fu-titulo").textContent = fuTela.nova ? "Nova oportunidade" : sub ? "Oportunidade" : "Comercial";
   $("fu-voltar").textContent = sub && !fuTela.direto ? "‹ Comercial" : "‹ Voltar";
+  $("fu-voltar").classList.toggle("voltar-lista", !sub);
   if (sub) {
     const s = $("fu-sub"); s.innerHTML = "";
     s.appendChild(fuTela.nova ? formNovaFu() : detalheFu(regsDe(colFu)[fuTela.aberta]));
@@ -15429,6 +15434,9 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
     else if (b.dataset.acao === "funil") abrirFunil();
     else if (b.dataset.acao === "sol") abrirSolicitacoes();
     else irPara(b.dataset.s, true);
+    // computador: tela aberta pelo menu lateral é uma seção como as outras — sem o "‹ Voltar" (pedido do Gustavo em 13/11/2026); sai ao fechar
+    const tela = { its: "tela-its", admin: "tela-admin", tar: "tela-tar", funil: "tela-funil", sol: "tela-pc" }[b.dataset.acao];
+    if (tela && computador.matches && !$(tela).hidden) $(tela).classList.add("pela-lateral");
   };
   // computador: a Agenda (aberta como seção) fica por cima das telas que abrem por cima — Tarefas, Comercial, Solicitações,
   // ITs e Administração abririam escondidas embaixo dela; fecha antes (as seções o irPara já fecha)
@@ -15439,7 +15447,7 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (passo) { tarVoltando = true; depoisVoltar = ir; history.back(); } else ir();   // o popstate (ramo tarVoltando) abre a seção depois que o passo saiu
 });
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
-for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil", "tela-pc"]) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
+for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil", "tela-pc"]) new MutationObserver(() => { if ($(id).hidden) $(id).classList.remove("pela-lateral"); if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
 computador.addEventListener("change", () => {      // janela passou da largura do celular para a do computador (ou o contrário)
   if (!conta) return;
   if (secao === "inicio") desenharInicio();
