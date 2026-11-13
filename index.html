@@ -685,7 +685,7 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-ed-st{min-height:0;padding:3px 7px;margin:-4px -8px}   /* situação: mesmo quadradinho, sem mudar a altura da linha */
 /* nome da tarefa (computador): clique muda o nome; a tarefa abre clicando no resto da linha */
 .tar-tit-linha{position:relative;display:flex;align-items:center}
-.tar-ed-tit{flex:1 1 auto;min-width:0;max-width:none}
+.tar-ed-tit{flex:0 1 auto;min-width:0;max-width:none}   /* do tamanho do nome: o ícone dos comentários fica logo depois */
 .tar-ed-tit .orc-cli{width:100%}
 textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px -8px;padding:4px 8px;border:1px solid var(--laranja);border-radius:8px;background:var(--papel);font-family:inherit;font-size:inherit;font-weight:600;line-height:inherit}
 @media (hover:hover){.tar-ed:hover{border-color:var(--linha);background-color:var(--papel)}}
@@ -787,6 +787,20 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .tar-com small{display:block;padding-right:40px;font-size:13px;color:var(--suave)}
 .tar-com p{margin:4px 0 0;max-width:none;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15.5px;line-height:1.4}
 .tar-com .tar-x{position:absolute;top:2px;right:2px;min-width:40px;min-height:40px;font-size:20px}
+/* comentários pela tabela (pedido do Gustavo em 13/11/2026): ícone ao lado do nome e janela com a lista e o campo para escrever */
+.tar-com-btn{position:relative;flex:none;align-self:flex-start;display:inline-flex;align-items:center;gap:3px;min-height:0;margin:-4px -4px -4px 6px;padding:4px 6px;border:1px solid transparent;border-radius:8px;background:none;color:var(--suave);font:inherit;font-size:13px;font-weight:700;line-height:1;cursor:pointer}
+.tar-com-btn::after{content:"";position:absolute;inset:-7px -4px}   /* área de toque maior, invisível */
+.tar-com-btn .ic{width:19px;height:19px}
+.tar-com-btn:not(.tem) .ic{opacity:.5}
+.tar-com-btn.tem{color:var(--tinta)}
+@media (hover:hover){.tar-com-btn:hover{border-color:var(--linha);background-color:var(--papel)}.tar-com-btn:hover .ic{opacity:1}}
+#dlg-com{width:calc(100% - 24px);max-width:540px;height:fit-content;max-height:calc(100% - 24px);margin:auto;padding:0;border-radius:16px;background:var(--papel);overflow-y:auto;overscroll-behavior:contain;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.com-topo{position:sticky;top:0;z-index:1;display:flex;align-items:flex-start;gap:8px;padding:14px 8px 12px 20px;border-bottom:1px solid var(--linha);background:var(--papel)}
+.com-tit{flex:1;min-width:0;padding-top:4px}
+.com-tit strong{display:block;font-size:18px}
+.com-tit small{display:block;margin-top:2px;font-size:14.5px;color:var(--suave);overflow-wrap:anywhere}
+#com-corpo{padding:14px 20px 8px}
+#dlg-com:focus{outline:none}
 .tar-hist summary{padding:8px 2px;color:var(--suave);font-weight:600;cursor:pointer}
 .tar-rodape{margin:14px 2px 0;font-size:13px;color:var(--suave)}
 .tar-desc{max-width:none;margin:0 2px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -1752,6 +1766,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <symbol id="i-contatos" viewBox="0 0 24 24"><rect x="5.5" y="3.5" width="14" height="17" rx="2"/><path d="M3.5 8h3M3.5 12h3M3.5 16h3"/><circle style="stroke:var(--ic-ac)" cx="12.5" cy="10" r="2.5"/><path style="stroke:var(--ic-ac)" d="M8.6 16.6c.8-1.8 2.2-2.7 3.9-2.7s3.1.9 3.9 2.7"/></symbol>
   <symbol id="i-telefone" viewBox="0 0 24 24"><path d="M8.4 4.2 6.6 4a1.7 1.7 0 0 0-1.8 1.5c-.3 3.3 1 6.8 3.8 9.7 2.9 2.9 6.4 4.2 9.8 3.8a1.7 1.7 0 0 0 1.5-1.8l-.2-1.8a1.6 1.6 0 0 0-1.2-1.4l-2.1-.6a1.6 1.6 0 0 0-1.6.4l-.9.9a11.3 11.3 0 0 1-4.3-4.3l.9-.9a1.6 1.6 0 0 0 .4-1.6l-.6-2.1a1.6 1.6 0 0 0-1.4-1.2z"/><path style="stroke:var(--ic-ac)" d="M14.5 3.7a6 6 0 0 1 5.8 5.8M14.3 7.2a2.6 2.6 0 0 1 2.5 2.5"/></symbol>
   <symbol id="i-conversa" viewBox="0 0 24 24"><path d="M12 3.8a8.2 8.2 0 0 0-7.1 12.3l-1.1 4.1 4.2-1.1A8.2 8.2 0 1 0 12 3.8z"/><path style="stroke:var(--ic-ac)" d="M8.6 12h.01M12 12h.01M15.4 12h.01"/></symbol>
+  <symbol id="i-comentario" viewBox="0 0 24 24"><path d="M5 4.5h14a1.8 1.8 0 0 1 1.8 1.8v9.4a1.8 1.8 0 0 1-1.8 1.8H10.2l-4.7 3.4v-3.4H5a1.8 1.8 0 0 1-1.8-1.8V6.3A1.8 1.8 0 0 1 5 4.5z"/><path style="stroke:var(--ic-ac)" d="M7.6 9.4h8.8M7.6 12.8h5.4"/></symbol>
   <symbol id="i-nf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 7.5h7M8.5 10.7h7"/><path style="stroke:var(--ic-ac)" d="M8.5 14.5v3M10.7 14.5v3M12.6 14.5v3M15.5 14.5v3"/></symbol>
   <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
   <symbol id="i-tarefas" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path style="stroke:var(--ic-ac)" d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1"/><path d="M14.4 9.6h2.6M14.4 15.8h2.6"/></symbol>
@@ -2267,6 +2282,11 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <label class="campo" id="perg-campo-rot" hidden><span id="perg-campo-nome"></span><textarea id="perg-campo" rows="2" maxlength="300"></textarea></label>
   <div id="perg-campos"></div>
   <div class="env-acoes perg-acoes"><button class="btn prim" id="perg-sim" type="button"></button><button class="btn sec" id="perg-nao" type="button"></button></div>
+</dialog>
+<!-- comentários de uma tarefa, abertos pelo ícone ao lado do nome na tabela (pedido do Gustavo em 13/11/2026) -->
+<dialog id="dlg-com" class="dlg-com" aria-labelledby="com-titulo" tabindex="-1">
+  <div class="com-topo"><div class="com-tit"><strong id="com-titulo">Comentários</strong><small id="com-tarefa"></small></div><button class="tar-x com-fechar" id="com-fechar" type="button" title="Fechar" aria-label="Fechar os comentários">×</button></div>
+  <div id="com-corpo"></div>
 </dialog>
 
 <div class="tela-avcb" id="tela-admin" hidden role="dialog" aria-label="Administração">
@@ -13648,6 +13668,7 @@ function redesenharInicio() { clearTimeout(redesenharInicio.t); redesenharInicio
 function redesenharCliente() { clearTimeout(redesenharCliente.t); redesenharCliente.t = setTimeout(redCliente, 150); }
 function aoMudarTar() {
   (redesenharTarSeguro ||= redesenhoSeguro("tela-tar", manterQuadro("tela-tar", desenharTar)))();
+  if (comAtual && $("dlg-com").open) desenharComentariosTar();   // janela de comentários aberta: mostra os novos (guarda o que está sendo escrito)
   if (fuTela?.aberta) (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", manterQuadro("tela-funil", desenharFunil)))();   // tarefas da oportunidade aberta
   if (!conta || !document.body.classList.contains("logado")) return;
   atualizarNav();
@@ -14002,18 +14023,24 @@ function linhaTar(t) {
   const ed = pode("tarefas");                       // muda prioridade, prazo e responsáveis
   const nomes = (t.resp || []).map(p => primeiroNome(nomePessoa(p)));
   const ns = (t.sub || []).length, nc = (t.coment || []).length;
-  const extra = [ns && `${t.sub.filter(s => s.f).length}/${ns} subtarefas`, nc && `${nc} comentário${nc > 1 ? "s" : ""}`].filter(Boolean);
+  const extra = [ns && `${t.sub.filter(s => s.f).length}/${ns} subtarefas`].filter(Boolean);   // os comentários ficam no ícone ao lado do nome
   const abrirPri = b => menuOpcoes(b, OPC_PRI_MENU(), pri, v => mudarPriTar(t.id, v));
   const abrirResp = b => menuPessoas(b, (t.resp || []).slice(), nv => mudarRespTar(t.id, nv));
   // tarefa: título; embaixo, no celular, responsáveis e cliente (na tela larga têm coluna própria)
   const abrirCli = b => abrirCliTar(t, b);
   const tit = el("td", "orc-c-cli");
   // no computador o nome muda com um clique (a tarefa abre clicando no resto da linha); no celular tocar no nome abre a tarefa
-  if (ed && computador.matches) {
-    const lt = el("div", "tar-tit-linha");
-    lt.append(tituloEdTar(t));
-    tit.appendChild(lt);
-  } else tit.appendChild(el("span", "orc-cli tar-tab-tit", t.titulo || "(sem título)"));
+  const lt = el("div", "tar-tit-linha");
+  lt.appendChild(ed && computador.matches ? tituloEdTar(t) : el("span", "orc-cli tar-tab-tit", t.titulo || "(sem título)"));
+  // comentários: ícone ao lado do nome (com o número, se houver) abre a janela com os comentários e o campo para escrever
+  const bc = el("button", "tar-com-btn" + (nc ? " tem" : "")); bc.type = "button";
+  bc.title = nc ? `${nc} comentário${nc > 1 ? "s" : ""}` : "Comentar";
+  bc.setAttribute("aria-label", nc ? `Ver os ${nc} comentário${nc > 1 ? "s" : ""}` : "Comentar a tarefa");
+  bc.appendChild(ic("comentario"));
+  if (nc) bc.appendChild(el("span", "", String(nc)));
+  bc.onclick = e => { e.stopPropagation(); abrirComentariosTar(t.id); };
+  lt.appendChild(bc);
+  tit.appendChild(lt);
   const sub = el("small", "orc-sub orc-so-cel");
   if (ed) {
     sub.appendChild(botaoEdTar("tar-ed-resp", "Mudar os responsáveis", [nomes.length ? nomes.join(", ") : el("span", "tar-ed-vazio", "Sem responsável")], abrirResp));
@@ -14074,6 +14101,73 @@ function cartaoTar(t, op = {}) {
   if (meta.children.length) b.appendChild(meta);
   if (op.arrastar && (pode("tarefas") || minhaTar(t))) arrastavel(b, t.id);
   return b;
+}
+/* comentários de uma tarefa: campo para escrever (quem pode mexer na tarefa) e a lista, os mais novos em cima; cada um apaga os seus.
+   Usado no detalhe da tarefa e na janela que abre pelo ícone ao lado do nome na tabela. depois() redesenha quem chamou. */
+function comentariosTar(t, depois, idCampo) {
+  const f = document.createDocumentFragment();
+  const mexe = pode("tarefas") || minhaTar(t);
+  const salvarC = fn => { const p = mudarReg(colTar, t.id, fn); depois(); return p; };   // quando a gravação termina, aoMudarTar redesenha
+  if (mexe) {
+    const nc = el("div", "tar-novo-com");
+    const tc = document.createElement("textarea"); tc.placeholder = "Escreva um comentário ou uma atualização"; tc.setAttribute("aria-label", "Novo comentário");
+    if (idCampo) tc.id = idCampo;
+    const bt = el("button", "btn sec", "Comentar"); bt.type = "button";
+    bt.onclick = () => {
+      const v = tc.value.trim(); if (!v) { tc.focus(); return; }
+      const c = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: v };
+      tc.value = ""; salvarC(r => { (r.coment ||= []).push(c); });
+    };
+    tc.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); bt.click(); } });   // Ctrl+Enter envia
+    nc.append(tc, bt); f.appendChild(nc);
+  }
+  const cs = (t.coment || []).slice().sort((a, b) => (b.em || "").localeCompare(a.em || ""));
+  if (cs.length) {
+    const lc = el("div", "tar-coms");
+    cs.forEach(c => {
+      const d = el("div", "tar-com"); d.append(el("small", "", `${c.por || "-"} · ${dataHoraBR(c.em)}`), el("p", "", c.t));
+      if (c.por === nomeColaborador()) {
+        const x = el("button", "tar-x", "×"); x.type = "button"; x.title = "Apagar o comentário"; x.setAttribute("aria-label", "Apagar o comentário");
+        x.onclick = async () => { if (await confirmarApagar("Apagar este comentário?", "", "Apagar", "Manter")) salvarC(r => { r.coment = (r.coment || []).filter(y => y.id !== c.id); }); };
+        d.appendChild(x);
+      }
+      lc.appendChild(d);
+    });
+    f.appendChild(lc);
+  } else f.appendChild(el("p", "avcb-nota", "Nenhum comentário ainda."));
+  return f;
+}
+// janela de comentários aberta pelo ícone ao lado do nome da tarefa na tabela (pedido do Gustavo em 13/11/2026);
+// o "voltar" do celular fecha só a janela (passo { com } no histórico, como a pergunta do app)
+let comAtual = null;
+function abrirComentariosTar(id) {
+  if (!regsDe(colTar)[id]) return;
+  comAtual = id;
+  history.pushState({ ...(history.state || {}), com: true }, "");
+  desenharComentariosTar();
+  $("dlg-com").showModal();
+  $("dlg-com").scrollTop = 0;
+  ((computador.matches && $("com-novo")) || $("dlg-com")).focus();   // no celular o foco fica na janela (sem abrir o teclado nem marcar o ×)
+}
+function fecharComentariosTar() {
+  if (!comAtual) return;
+  if (history.state?.com) history.back(); else concluirComentariosTar();
+}
+function concluirComentariosTar() {                // chamada pelo popstate (o passo da janela saiu do histórico)
+  comAtual = null;
+  if ($("dlg-com").open) $("dlg-com").close();
+}
+function desenharComentariosTar() {
+  if (!comAtual) return;
+  const t = regsDe(colTar)[comAtual], corpo = $("com-corpo");
+  if (!t) { aviso("A tarefa foi apagada por outra pessoa."); fecharComentariosTar(); return; }
+  const velho = $("com-novo"), rasc = velho?.value || "", foco = !!velho && document.activeElement === velho;   // redesenho (sincronização): mantém o que está sendo escrito
+  $("com-tarefa").textContent = t.titulo || "(sem título)";
+  corpo.innerHTML = "";
+  corpo.appendChild(comentariosTar(t, desenharComentariosTar, "com-novo"));
+  const novo = $("com-novo");
+  if (novo && rasc) novo.value = rasc;
+  if (novo && foco) novo.focus();
 }
 function detalheTar(t) {
   const w = el("div", "tar-det");
@@ -14140,31 +14234,7 @@ function detalheTar(t) {
   }
   // comentários (atualizações, como no monday)
   w.appendChild(el("h2", "secao", "Comentários"));
-  if (mexe) {
-    const nc = el("div", "tar-novo-com");
-    const tc = document.createElement("textarea"); tc.placeholder = "Escreva um comentário ou uma atualização"; tc.setAttribute("aria-label", "Novo comentário");
-    const bt = el("button", "btn sec", "Comentar"); bt.type = "button";
-    bt.onclick = () => {
-      const v = tc.value.trim(); if (!v) { tc.focus(); return; }
-      const c = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: v };
-      tc.value = ""; salvar(r => { (r.coment ||= []).push(c); }); desenharTar();
-    };
-    nc.append(tc, bt); w.appendChild(nc);
-  }
-  const cs = (t.coment || []).slice().sort((a, b) => (b.em || "").localeCompare(a.em || ""));
-  if (cs.length) {
-    const lc = el("div", "tar-coms");
-    cs.forEach(c => {
-      const d = el("div", "tar-com"); d.append(el("small", "", `${c.por || "-"} · ${dataHoraBR(c.em)}`), el("p", "", c.t));
-      if (c.por === nomeColaborador()) {
-        const x = el("button", "tar-x", "×"); x.type = "button"; x.title = "Apagar o comentário"; x.setAttribute("aria-label", "Apagar o comentário");
-        x.onclick = async () => { if (await confirmarApagar("Apagar este comentário?", "", "Apagar", "Manter")) salvar(r => { r.coment = (r.coment || []).filter(y => y.id !== c.id); }); };
-        d.appendChild(x);
-      }
-      lc.appendChild(d);
-    });
-    w.appendChild(lc);
-  } else w.appendChild(el("p", "avcb-nota", "Nenhum comentário ainda."));
+  w.appendChild(comentariosTar(t, desenharTar));
   histDetalhe(w, t);
   w.appendChild(el("p", "tar-rodape", origemReg(t, "Criada")));
   if (tudo) {
@@ -14635,6 +14705,9 @@ function formNovaFu() {
 // botões fixos das duas telas
 $("tar-voltar").onclick = () => { if (tarTela?.aberta || tarTela?.nova) voltarListaTar(); else fecharTar(); };
 $("tar-nova").onclick = () => novaTarefa();
+$("com-fechar").onclick = () => fecharComentariosTar();
+$("dlg-com").addEventListener("cancel", e => { e.preventDefault(); fecharComentariosTar(); });   // Esc: fecha pelo mesmo caminho (tira o passo do histórico)
+$("dlg-com").addEventListener("click", e => { if (e.target === $("dlg-com")) fecharComentariosTar(); });   // clique fora da janela (no fundo escuro)
 $("tar-busca").oninput = () => { clearTimeout(desenharTar.t); desenharTar.t = setTimeout(desenharTar, 200); };
 $("fu-voltar").onclick = () => { if (fuTela?.aberta || fuTela?.nova) voltarListaFu(); else fecharFunil(); };
 $("fu-nova").onclick = () => novaOport();
@@ -15515,6 +15588,7 @@ $("cam-ok").onclick = () => fecharCamera();
 $("cam-luz").onclick = alternarLuz;
 window.addEventListener("popstate", () => {
   if (pergAtual) { concluirPergunta(); return; }                    // a pergunta do app saiu do histórico: responde (o "voltar" desiste)
+  if (comAtual && !history.state?.com) { concluirComentariosTar(); return; }   // janela de comentários da tarefa: o "voltar" fecha só ela
   if (agVoltando) { agVoltando = false; return; }                  // o próprio app tirou o passo do formulário da agenda
   if (fichaVoltando) { fichaVoltando = false; return; }            // idem, da ficha do cliente (o que estava embaixo continua aberto)
   if (tarVoltando || fuVoltando) {                                 // idem, das tarefas e do funil; depois abre o que foi pedido (ex.: a oportunidade)
