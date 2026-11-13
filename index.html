@@ -1887,6 +1887,17 @@ span.fu-orc-lin{cursor:default}
 .fu-orc-lin:not(.tem) .ic{opacity:.5}
 .fu-sub .fu-orc-lin{margin:0 -6px;font-size:inherit}
 @media (hover:hover){button.fu-orc-lin:hover{border-color:var(--linha);background-color:var(--papel)}button.fu-orc-lin:hover .ic{opacity:1}}
+/* Orçamentos: último número e o próximo, no alto da tela (pedido do Gustavo em 13/11/2026) */
+.orc-ultimo{display:flex;gap:10px;margin:0 0 12px}
+.orc-ultimo[hidden]{display:none}
+.orc-ult-b{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 14px;border:1px solid var(--linha-cartao,var(--linha));border-radius:var(--r-l,14px);background:var(--papel);box-shadow:var(--sombra-1,none);color:var(--tinta);font:inherit;text-align:left;cursor:pointer}
+.orc-ult-b small{font-size:13px;font-weight:600;color:var(--suave)}
+.orc-ult-b b{font-family:var(--titulo-fonte);font-size:22px;line-height:1.15;font-variant-numeric:tabular-nums}
+.orc-ult-b span{max-width:100%;font-size:13px;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orc-ult-p{flex:0 1 auto;border-color:var(--laranja)}
+.orc-ult-p b{color:var(--laranja-tx,#B66A00)}
+@media (prefers-color-scheme:dark){.orc-ult-p b{color:var(--laranja)}}
+@media (hover:hover){.orc-ult-b:hover{border-color:var(--borda-hover,var(--linha))}.orc-ult-p:hover{border-color:var(--laranja)}}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2411,6 +2422,7 @@ span.fu-orc-lin{cursor:default}
 <div class="tela-avcb com-nav" id="tela-orc" hidden role="dialog" aria-label="Orçamentos">
   <div class="avcb-topo"><button class="avcb-voltar" id="orc-voltar">‹ Voltar</button><strong>Orçamentos</strong></div>
   <div class="avcb-corpo">
+    <div class="orc-ultimo" id="orc-ultimo" hidden></div>
     <div class="orc-filtros">
       <input class="avcb-busca" id="orc-busca" type="search" placeholder="Buscar número, cliente ou tipo" autocomplete="off">
       <select id="orc-periodo" aria-label="Período"><option value="">Todos os períodos</option></select>
@@ -12289,9 +12301,33 @@ function compOrc(a, b) {
   if (orcOrdem.desc) r = -r;
   return r || dataOrc(b).localeCompare(dataOrc(a)) || (COLS_ORC.num(b) || 0) - (COLS_ORC.num(a) || 0);
 }
+/* último orçamento gerado e o próximo número (pedido do Gustavo em 13/11/2026: "para toda vez que fizer um novo, dar sequência ao número"):
+   o maior número entre todos os orçamentos da lista (o lido de dentro do PDF, senão o do nome; a numeração segue de um ano para o outro);
+   empate (número repetido): o mais novo. O próximo é esse + 1, com o ano atual. */
+function ultimoOrc(todos) {
+  const n = o => Number(pdfOrc(o)?.num || o.num) || 0;
+  return todos.filter(o => (o.ext === "pdf" || o.soPlan) && n(o)).sort((a, b) => n(b) - n(a) || dataOrc(b).localeCompare(dataOrc(a)))[0] || null;
+}
+function desenharUltimoOrc(todos) {
+  const w = $("orc-ultimo"), u = ultimoOrc(todos);
+  w.hidden = !u; w.innerHTML = "";
+  if (!u) return;
+  const d = dataOrc(u), prox = (Number(pdfOrc(u)?.num || u.num) + 1) + "/" + new Date().getFullYear();
+  const a = el("button", "orc-ult-b orc-ult-a"); a.type = "button"; a.title = "Abrir o último orçamento";
+  a.append(el("small", "", "Último orçamento"), el("b", "", "Nº " + numOrc(u)), el("span", "", [u.cli, d && dataBRde(d)].filter(Boolean).join(" · ")));
+  a.onclick = () => abrirArqOrc(u);
+  const p = el("button", "orc-ult-b orc-ult-p"); p.type = "button"; p.title = "Copiar o próximo número";
+  p.append(el("small", "", "Próximo número"), el("b", "", prox), el("span", "", "Toque para copiar"));
+  p.onclick = async () => {
+    try { await navigator.clipboard.writeText(prox); aviso("Copiado: " + prox); }
+    catch { aviso("O próximo orçamento é o nº " + prox); }
+  };
+  w.append(a, p);
+}
 function desenharOrc() {
   const todos = orc?.itens || [];
   filtrosOrc(todos);
+  desenharUltimoOrc(todos);
   const q = semAcento($("orc-busca").value.trim()), per = $("orc-periodo").value, tp = $("orc-tipo").value;
   orcVisiveis = todos.filter(o => {
     const d = dataOrc(o), v = valorOrc(o);
