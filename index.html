@@ -14767,10 +14767,14 @@ function dataPlanilha(v) {
   if (v instanceof Date && !isNaN(v)) return dataISO(v);
   if (typeof v === "number" && v > 20000 && v < 80000) return dataISO(new Date(Math.round((v - 25569) * 864e5) + new Date().getTimezoneOffset() * 6e4));
   const m = String(v).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if (m) { const a = m[3].length === 2 ? "20" + m[3] : m[3]; return `${a}-${pad(+m[2])}-${pad(+m[1])}`; }
   const iso = String(v).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return iso ? `${iso[1]}-${iso[2]}-${iso[3]}` : "";
+  const a = m ? (m[3].length === 2 ? "20" + m[3] : m[3]) : iso?.[1];
+  if (!a || +a < 2000 || +a > 2100) return "";       // ano digitado errado no Fin365 (ex.: 30/04/0026): vale a outra data da linha
+  return m ? `${a}-${pad(+m[2])}-${pad(+m[1])}` : `${iso[1]}-${iso[2]}-${iso[3]}`;
 }
+// forma de pagamento do Fin365 ("pix", "boleto", "cartao_credito"…) com o mesmo nome da lista do app
+const formaFin365 = v => { const t = String(v ?? "").trim(); if (!t || t === "-") return ""; const n = semAcento(t).replace(/[_-]+/g, " ");
+  return TR_FORMAS.find(f => semAcento(f) === n) || (n === "cartao" ? "Cartão de crédito" : t[0].toUpperCase() + t.slice(1).replace(/_/g, " ")); };
 function lerLinhasFin365(linhas, tipo) {
   const iCab = linhas.findIndex(l => l.some(c => normTit(c) === "descricao"));
   if (iCab < 0) throw new Error('não achei a coluna "Descrição" na planilha');
@@ -14791,7 +14795,9 @@ function lerLinhasFin365(linhas, tipo) {
     const st = /cancel/.test(st0) ? "canc" : /pago|receb|efetiv|parcial|quitad|baixad/.test(st0) ? "pago" : /pend|abert|venc|a pagar|a receber/.test(st0) ? "pend" : pg ? "pago" : "pend";
     const limpo = x => { const t = String(x ?? "").trim(); return t === "-" ? "" : t; };
     const r = { tipo, desc, valor: Math.round(valor * 100) / 100, comp: dataPlanilha(g("comp")) || dataPlanilha(g("venc")) || pg, venc: dataPlanilha(g("venc")), pg: st === "pago" ? (pg || dataPlanilha(g("venc"))) : "",
-      st, cat: limpo(g("cat")), centro: limpo(g("centro")), parc: limpo(g("parc")), conta: limpo(g("conta")), forma: limpo(g("forma")), obs: limpo(g("obs")) };
+      st, cat: TR_CATS[tipo].find(c => semAcento(c) === semAcento(limpo(g("cat")))) || limpo(g("cat")),   // "ESTUDO DE CARGA" → "Estudo de carga" (a mesma da lista)
+      centro: typeof g("centro") === "number" ? String(g("centro")).padStart(4, "0") : limpo(g("centro")),   // 718 → "0718", como no Fin365
+      parc: limpo(g("parc")), conta: limpo(g("conta")), forma: formaFin365(g("forma")), obs: limpo(g("obs")) };
     if (/parcial/.test(st0)) r.obs = [r.obs, "Pagamento parcial no Fin365"].filter(Boolean).join(" · ");
     const chave = [tipo, r.comp, r.desc, r.valor, r.parc, r.venc, r.pg, r.centro].join("|");
     vistos[chave] = (vistos[chave] || 0) + 1;       // linhas iguais (ex.: dois impostos de mesmo valor no mesmo dia) ganham ids diferentes
@@ -14810,18 +14816,26 @@ function importarFin365() {
     try {
       if (!window.XLSX) await carregarScript(SHEETJS);
       const wb = XLSX.read(await arq.arrayBuffer(), { type: "array", cellDates: true });
-      const linhas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: "" });
-      const n0 = semAcento(arq.name);
-      let tipo = /receit/.test(n0) ? "rec" : /despes/.test(n0) ? "desp" : null;
-      if (!tipo) {
-        const r = await perguntar({ titulo: "Esta planilha é de receitas ou de despesas?", texto: arq.name, sim: "Despesas", nao: "Receitas" });
-        tipo = r ? "desp" : "rec";
+      const linhasDe = n => XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: "" });
+      // "Exportar Completo" de Transações (13/11/2026): abas Receitas, Despesas, Transferências e Resumo — lê as duas primeiras de uma vez;
+      // exportação de uma tela só: o tipo sai do nome do arquivo (ou pergunta)
+      let regs = [];
+      const abas = wb.SheetNames.map(n => [n, /receit/.test(semAcento(n)) ? "rec" : /despes/.test(semAcento(n)) ? "desp" : null]).filter(([, t]) => t);
+      if (abas.length) for (const [n, t] of abas) regs.push(...lerLinhasFin365(linhasDe(n), t));
+      else {
+        const n0 = semAcento(arq.name);
+        let tipo = /receit/.test(n0) ? "rec" : /despes/.test(n0) ? "desp" : null;
+        if (!tipo) { const r = await perguntar({ titulo: "Esta planilha é de receitas ou de despesas?", texto: arq.name, sim: "Despesas", nao: "Receitas" }); tipo = r ? "desp" : "rec"; }
+        regs = lerLinhasFin365(linhasDe(wb.SheetNames[0]), tipo);
       }
-      const regs = lerLinhasFin365(linhas, tipo), T = TR_TIPO[tipo];
       if (!regs.length) { aviso("Nenhum lançamento encontrado na planilha.", true); return; }
-      const datas = regs.map(refTr).filter(Boolean).sort(), ja = regsDe(colTr), novos = regs.filter(r => !ja[r.id]).length;
-      const resumo = `${regs.length} ${T.plural.toLowerCase()} de ${dataBRde(datas[0])} a ${dataBRde(datas[datas.length - 1])}\nTotal R$ ${moedaBR(somaTr(regs.filter(r => r.st !== "canc")))}\n` +
-        `${novos} nova${novos === 1 ? "" : "s"}${regs.length - novos ? `, ${regs.length - novos} já importada${regs.length - novos === 1 ? "" : "s"} (atualizada${regs.length - novos === 1 ? "" : "s"})` : ""}.`;
+      const ja = regsDe(colTr), tipos = [...new Set(regs.map(r => r.tipo))];
+      const resumo = tipos.map(tp => {
+        const l = regs.filter(r => r.tipo === tp), datas = l.map(refTr).filter(Boolean).sort(), novos = l.filter(r => !ja[r.id]).length;
+        return `${TR_TIPO[tp].plural}: ${l.length} de ${dataBRde(datas[0])} a ${dataBRde(datas[datas.length - 1])}, total R$ ${moedaBR(somaTr(l.filter(r => r.st !== "canc")))}` +
+          ` (${novos} nova${novos === 1 ? "" : "s"}${l.length - novos ? `, ${l.length - novos} já importada${l.length - novos === 1 ? "" : "s"}` : ""})`;
+      }).join("\n");
+      const T = tipos.length === 1 ? TR_TIPO[tipos[0]] : { plural: "Receitas e despesas" }, tipo = tipos.length === 1 ? tipos[0] : "desp";
       if (!await perguntar({ titulo: `Importar ${T.plural.toLowerCase()} do Fin365?`, texto: resumo, sim: "Importar", nao: "Cancelar" })) return;
       await comGravacao(async () => {
         const agora = new Date().toISOString(), quem = nomeColaborador(), porBalde = {};
@@ -14833,7 +14847,7 @@ function importarFin365() {
           feitos += lista.length;
         }
       });
-      aviso(`${regs.length} ${T.plural.toLowerCase()} importadas do Fin365.`);
+      aviso(`${regs.length} lançamento${regs.length === 1 ? "" : "s"} importado${regs.length === 1 ? "" : "s"} do Fin365.`);
       if (trTela) { trTela.tipo = tipo; trTela.ano = trTela.mes = ""; trTela.sit = ""; }
       aoMudarTr();
     } catch (e) { console.error(e); aviso("Não foi possível importar: " + erroEmPortugues(e.message), true); }
