@@ -314,13 +314,13 @@ button,input,label{font:inherit}
   .pc-c-sit small.pc-sit-cel{display:none}
 }
 /* pedidos: marcar várias linhas e aprovar, recusar, pagar, entregar ou excluir de uma vez (pedido do Gustavo em 12/11/2026) */
-.pc-tab .pc-c-sel{width:46px;padding:0!important}
+.pc-tab .pc-c-sel,.cp-tab .pc-c-sel{width:46px;padding:0!important}
 .pc-sel{display:flex!important;align-items:center;justify-content:center;width:100%;min-height:46px;padding:0!important;cursor:pointer}
 .pc-sel input{width:22px;height:22px;margin:0;accent-color:var(--marinho);cursor:pointer}
 .pc-sel input:disabled{cursor:default;opacity:.3}
 .orc-tab tbody tr.pc-marcada{background:rgba(28,60,97,.09)}
-#pc-lote{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:var(--papel);border:1px solid var(--linha-cartao);border-radius:var(--r-l);box-shadow:0 -4px 18px rgba(19,37,59,.16)}
-#pc-lote[hidden],#pc-lista[hidden] + #pc-lote{display:none}
+#pc-lote,#cp-lote{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:var(--papel);border:1px solid var(--linha-cartao);border-radius:var(--r-l);box-shadow:0 -4px 18px rgba(19,37,59,.16)}
+#pc-lote[hidden],#pc-lista[hidden] + #pc-lote,#cp-lote[hidden]{display:none}
 .pc-lote-info{flex:1 1 auto;font-weight:700;font-size:15.5px}
 .pc-lote-info small{display:block;font-weight:400;color:var(--suave);font-size:13px}
 .pc-lote-ac{display:flex;flex-wrap:wrap;gap:8px;width:100%}
@@ -356,6 +356,15 @@ button,input,label{font:inherit}
 .tr-form textarea{width:100%;border-radius:var(--r-m,12px);border:1.5px solid var(--borda-campo,var(--linha));background:var(--papel);color:var(--tinta);padding:10px 14px;font:inherit;font-size:17px}
 .tr-rec-extra{margin-top:10px}
 .tr-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+/* contas a pagar e receber */
+#cp-tipo{margin-bottom:12px}
+.cp-novos{display:flex;gap:8px}
+.cp-novos .btn{flex:1 1 0;min-width:0;padding:0 10px}
+.cp-novos .btn[hidden]{display:none!important}
+.cp-tab .cp-prazo{display:block;font-size:12.5px;color:var(--suave)}
+.cp-tab tr.cp-atraso .cp-prazo{color:var(--crit-tx);font-weight:600}
+.cp-tab .orc-c-cli small.cp-prazo{display:block}
+.btn.cp-efetivar{min-height:36px;padding:0 12px;font-size:14px;width:auto}
 .tr-acoes .btn{flex:1 1 auto}
 @container (min-width:860px){
   .tr-so-pc{display:table-cell}
@@ -372,6 +381,9 @@ button,input,label{font:inherit}
   .tr-cards > .tr-card:nth-child(3){grid-column:auto}
   .tr-card b{font-size:22px}
   .tr-acoes .btn{flex:0 0 auto;padding:0 22px}
+  .cp-tab .cp-c-acao{width:104px;text-align:right}
+  .cp-tab .tr-c-data{width:118px}
+  .cp-novos .btn{flex:0 0 auto;padding:0 24px}
 }
 /* ficha do cliente: contatos (Ligar, WhatsApp, E-mail) e dados; no celular os botões ficam embaixo do contato */
 .ficha-contato{padding:12px;margin-bottom:10px;border:1.5px solid var(--linha);border-left:6px solid var(--laranja);border-radius:12px;background:var(--papel);line-height:1.35}
@@ -2176,6 +2188,24 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
       <button class="btn sec" id="tr-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
       <button class="laudo-link" id="tr-importar" type="button" hidden>Importar planilha do Fin365</button>
       <p class="avcb-nota" id="tr-estado"></p>
+    </div>
+    <!-- contas a pagar e receber (13/11/2026): as transações pendentes, por vencimento -->
+    <div id="cp-w" hidden>
+      <div class="chips" id="cp-tipo" role="group" aria-label="A pagar ou a receber"></div>
+      <div class="cp-novos"><button class="btn prim" id="cp-novo-pagar" type="button">+ Conta a pagar</button><button class="btn prim" id="cp-novo-receber" type="button">+ Conta a receber</button></div>
+      <div class="orc-filtros tr-filtros cp-filtros">
+        <input class="avcb-busca" id="cp-busca" type="search" placeholder="Buscar" aria-label="Buscar por descrição, parceiro, categoria, centro de custo, valor ou data" autocomplete="off">
+        <select id="cp-periodo" aria-label="Período"></select>
+        <select id="cp-venc" aria-label="Vencimento"></select>
+        <select id="cp-parc" aria-label="Parceiro"></select>
+        <select id="cp-cat" aria-label="Categoria"></select>
+      </div>
+      <div class="tr-cards" id="cp-cards"></div>
+      <p class="orc-resumo" id="cp-resumo"></p>
+      <div id="cp-lista"></div>
+      <div id="cp-lote" hidden role="region" aria-label="Contas marcadas"></div>
+      <button class="btn sec" id="cp-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+      <p class="avcb-nota" id="cp-estado"></p>
     </div>
     <div id="tr-det" hidden></div>
   </div>
@@ -14453,7 +14483,8 @@ function opcoesSel(sel, lista, valor) {             // lista: [[valor, texto]]; 
 function abrirTransacoes(op = {}) {
   if (!podeTrans()) return;
   const d = new Date();
-  trTela = { tipo: op.tipo || trTela?.tipo || "desp", ano: String(d.getFullYear()), mes: pad(d.getMonth() + 1), sit: op.sit || "", cat: "", centro: "", ordem: { col: "data", desc: false }, sel: new Set() };
+  trTela = { modo: op.modo || "", cpTipo: op.cpTipo || "pagar", cpPer: op.cpVenc === "venc" ? "todos" : "ate-mes", cpVenc: op.cpVenc || "", cpParc: "", cpCat: "", cpSel: new Set(),
+    tipo: op.tipo || trTela?.tipo || "desp", ano: String(d.getFullYear()), mes: pad(d.getMonth() + 1), sit: op.sit || "", cat: "", centro: "", ordem: { col: "data", desc: false }, sel: new Set() };
   if (op.sit === "venc") trTela.ano = trTela.mes = "";
   $("tr-busca").value = "";
   delete rolLista["tela-tr"];
@@ -14475,9 +14506,12 @@ function fecharTr(voltar = true) {
 
 function desenharTr() {
   if (!trTela || $("tela-tr").hidden) return;
-  const emForm = !!(trTela.aberto || trTela.novo);
-  $("tr-lista-w").hidden = emForm; $("tr-det").hidden = !emForm;
+  const emForm = !!(trTela.aberto || trTela.novo), contas = trTela.modo === "contas";
+  $("tr-lista-w").hidden = emForm || contas; $("cp-w").hidden = emForm || !contas; $("tr-det").hidden = !emForm;
+  $("tela-tr").querySelector(".avcb-topo strong").textContent = contas ? "Contas a pagar e receber" : "Transações";
+  $("tela-tr").setAttribute("aria-label", contas ? "Contas a pagar e receber" : "Transações");
   if (emForm) return;                               // o formulário é montado uma vez (abrirFormTr): uma sincronização não apaga o que está sendo digitado
+  if (contas) { desenharContas(); return; }
   const tp = trTela.tipo, T = TR_TIPO[tp];
   $("tr-tipos").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === tp)));
   $("tr-novo").textContent = T.novo;
@@ -14604,7 +14638,7 @@ function voltarListaTr() {
 function montarFormTr(r) {
   const det = $("tr-det"); det.innerHTML = "";
   const T = TR_TIPO[r.tipo], novo = !r.id;
-  const voltar = el("button", "laudo-link", "‹ " + T.plural); voltar.type = "button"; voltar.onclick = voltarListaTr;
+  const voltar = el("button", "laudo-link", "‹ " + (trTela.modo === "contas" ? "Contas a pagar e receber" : T.plural)); voltar.type = "button"; voltar.onclick = voltarListaTr;
   det.appendChild(voltar);
   const h = el("h2", "secao", novo ? T.nova : T.nome);
   det.appendChild(h);
@@ -14754,6 +14788,174 @@ async function exportarTr() {
     ws["!cols"] = [11, 11, 11, 44, 30, 16, 26, 14, 16, 14, 12, 9, 40].map(w => ({ wch: w }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, T.plural);
     const nome = `${T.plural} - ${trTela.ano || "todos os anos"}${trTela.mes ? "-" + trTela.mes : ""} - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+/* Contas a pagar e receber (pedido do Gustavo em 13/11/2026: "implemente agora o contas a pagar/receber", como no Fin365).
+   É um modo da tela das Transações (trTela.modo = "contas"), só com os lançamentos pendentes: A pagar (despesas) /
+   A receber (receitas) / Todas; período (padrão: até o fim deste mês, com as vencidas de antes), vencimento (vencidas,
+   vencem hoje, a vencer), parceiro, categoria e busca; cartões Total pendente / Vencido / A vencer (em "Todas": A receber /
+   A pagar / Saldo); tabela por vencimento com caixa de marcar e "Efetivar" (uma data para todas as marcadas; no computador
+   também um botão por linha). Tocar na linha abre o lançamento (o mesmo formulário das transações). */
+const CP_TIPOS = [["pagar", "A pagar"], ["receber", "A receber"], ["todas", "Todas"]];
+const CP_PERIODOS = [["ate-mes", "Até o fim deste mês"], ["ate-7", "Próximos 7 dias"], ["ate-30", "Próximos 30 dias"], ["mes", "Só este mês"], ["prox", "Próximo mês"], ["todos", "Todas as datas"]];
+const CP_VENC = [["", "Vencimento"], ["venc", "Vencidas"], ["hoje", "Vencem hoje"], ["avencer", "A vencer"]];
+const vencCp = r => r.venc || r.comp || "";
+// diasAte(iso): a mesma do AVCB (dias de hoje até a data; negativo = já passou)
+const prazoCp = r => { const d = diasAte(vencCp(r)); return d < 0 ? `vencida há ${-d} dia${d === -1 ? "" : "s"}` : d === 0 ? "vence hoje" : d === 1 ? "vence amanhã" : `em ${d} dias`; };
+function abrirContas(op = {}) {                    // op: { tipo: "pagar" | "receber" | "todas", venc: "venc" | "hoje" | "avencer" }
+  $("cp-busca").value = "";
+  abrirTransacoes({ modo: "contas", cpTipo: op.tipo, cpVenc: op.venc });
+}
+function janelaCp(per) {                            // [de, até] em AAAA-MM-DD ("" = sem limite)
+  const h = dataISO(), d = new Date(), fimMes = dataISO(new Date(d.getFullYear(), d.getMonth() + 1, 0)), iniMes = h.slice(0, 8) + "01";
+  const mais = n => { const x = new Date(); x.setDate(x.getDate() + n); return dataISO(x); };
+  return per === "ate-mes" ? ["", fimMes] : per === "ate-7" ? ["", mais(7)] : per === "ate-30" ? ["", mais(30)] : per === "mes" ? [iniMes, fimMes]
+    : per === "prox" ? [dataISO(new Date(d.getFullYear(), d.getMonth() + 1, 1)), dataISO(new Date(d.getFullYear(), d.getMonth() + 2, 0))] : ["", ""];
+}
+function desenharContas() {
+  const S = trTela, hoje = dataISO();
+  // A pagar / A receber / Todas
+  const cx = $("cp-tipo"); cx.innerHTML = "";
+  const pend = trs().filter(r => r.st === "pend");
+  for (const [k, rot] of CP_TIPOS) {
+    const n = pend.filter(r => k === "todas" || r.tipo === (k === "pagar" ? "desp" : "rec")).length;
+    const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("aria-pressed", String(k === S.cpTipo));
+    b.onclick = () => { S.cpTipo = k; S.cpParc = ""; S.cpCat = ""; desenharTr(); };
+    cx.appendChild(b);
+  }
+  const doTipo = pend.filter(r => S.cpTipo === "todas" || r.tipo === (S.cpTipo === "pagar" ? "desp" : "rec"));
+  opcoesSel($("cp-periodo"), CP_PERIODOS, S.cpPer);
+  opcoesSel($("cp-venc"), CP_VENC, S.cpVenc);
+  const parcs = [...new Set(doTipo.map(r => r.parc).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  opcoesSel($("cp-parc"), [["", "Todos os parceiros"], ...parcs.map(p => [p, p])], S.cpParc);
+  const cats = [...new Set(doTipo.map(r => r.cat).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  opcoesSel($("cp-cat"), [["", "Todas as categorias"], ...cats.map(c => [c, c])], S.cpCat);
+  S.cpParc = $("cp-parc").value; S.cpCat = $("cp-cat").value;
+  $("cp-novo-pagar").hidden = S.cpTipo === "receber"; $("cp-novo-receber").hidden = S.cpTipo === "pagar";
+  $("cp-novo-pagar").textContent = S.cpTipo === "todas" ? "+ A pagar" : "+ Conta a pagar"; $("cp-novo-receber").textContent = S.cpTipo === "todas" ? "+ A receber" : "+ Conta a receber";
+  const [de, ate] = janelaCp(S.cpPer), q = semAcento($("cp-busca").value.trim());
+  const base = doTipo.filter(r => { const v = vencCp(r); return (!de || v >= de) && (!ate || v <= ate) && (!S.cpParc || r.parc === S.cpParc) && (!S.cpCat || r.cat === S.cpCat) && (!q || buscaTr(r).includes(q)); });
+  const passaV = r => { const v = vencCp(r); return !S.cpVenc || (S.cpVenc === "venc" ? v < hoje : S.cpVenc === "hoje" ? v === hoje : v >= hoje); };
+  const vis = base.filter(passaV).sort((a, b) => vencCp(a).localeCompare(vencCp(b)) || (a.desc || "").localeCompare(b.desc || "", "pt-BR"));
+  for (const id of [...S.cpSel]) if (!vis.some(r => r.id === id)) S.cpSel.delete(id);
+  // cartões
+  const cards = $("cp-cards"); cards.innerHTML = "";
+  const card = (rot, valor, cls, sub, fn) => { const c = el("button", "tr-card " + cls); c.type = "button"; c.append(el("small", "", rot), el("b", "", "R$ " + moedaBR(valor)), el("span", "", sub)); c.onclick = fn; cards.appendChild(c); };
+  const qt = l => `${l.length} conta${l.length === 1 ? "" : "s"}`;
+  if (S.cpTipo === "todas") {
+    const rec = vis.filter(r => r.tipo === "rec"), desp = vis.filter(r => r.tipo === "desp"), saldo = somaTr(rec) - somaTr(desp);
+    card("A receber", somaTr(rec), "rec", qt(rec), () => { S.cpTipo = "receber"; desenharTr(); });
+    card("A pagar", somaTr(desp), "desp", qt(desp), () => { S.cpTipo = "pagar"; desenharTr(); });
+    card("Saldo previsto", Math.abs(saldo), saldo < 0 ? "crit" : "rec", saldo < 0 ? "vai faltar (a pagar maior)" : "a receber menos a pagar", () => {});
+    cards.lastChild.querySelector("b").textContent = (saldo < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(saldo));
+  } else {
+    const venc = base.filter(r => vencCp(r) < hoje), aVencer = base.filter(r => vencCp(r) >= hoje);
+    card("Total pendente", somaTr(base), S.cpTipo === "pagar" ? "desp" : "rec", qt(base), () => { S.cpVenc = ""; desenharTr(); });
+    card("Vencido", somaTr(venc), venc.length ? "crit" : "zero", venc.length ? qt(venc) : "nada vencido", () => { S.cpVenc = "venc"; desenharTr(); });
+    card("A vencer", somaTr(aVencer), "warn", qt(aVencer), () => { S.cpVenc = "avencer"; desenharTr(); });
+  }
+  const res = $("cp-resumo"); res.innerHTML = "";
+  if (vis.length) { res.append(`${vis.length} conta${vis.length === 1 ? "" : "s"}`); if (S.cpTipo !== "todas") res.append(" · Total ", el("b", "", "R$ " + moedaBR(somaTr(vis)))); }   // em "Todas" a soma misturaria pagar e receber
+  const lista = $("cp-lista"); lista.innerHTML = "";
+  if (!vis.length) lista.appendChild(q ? vazio("lupa", "Nenhuma conta com essa busca", "Confira o texto ou veja os outros filtros.")
+    : vazio("dinheiro", S.cpVenc === "venc" ? "Nada vencido" : "Nenhuma conta pendente neste período", "Troque o período (ex.: Todas as datas) ou o vencimento."));
+  else lista.appendChild(tabelaCp(vis));
+  $("cp-exportar").hidden = !vis.length;
+  S.cpVis = vis;
+  pintarLoteCp();
+  $("cp-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última cópia." : colTr.erro ? (colTr.erro.semAcesso ? colTr.erro.message : "Não foi possível atualizar agora.") : "";
+}
+function tabelaCp(vis) {
+  const todas = trTela.cpTipo === "todas";
+  const tb = el("table", "orc-tab tr-tab cp-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  { const th = el("th", "pc-c-sel"), lb = el("label", "pc-sel"), cb = document.createElement("input");
+    th.scope = "col"; cb.type = "checkbox"; cb.id = "cp-sel-todos"; cb.setAttribute("aria-label", "Marcar todas as contas da lista");
+    cb.onchange = () => { vis.forEach(r => cb.checked ? trTela.cpSel.add(r.id) : trTela.cpSel.delete(r.id)); pintarLoteCp(); };
+    lb.appendChild(cb); th.appendChild(lb); tr.appendChild(th); }
+  for (const [rot, cls] of [["Vencimento", "tr-so-pc tr-c-data"], ["Descrição", "orc-c-cli"], ["Parceiro", "tr-so-pc tr-c-parc"], ["Categoria", "tr-so-pc tr-c-cat"],
+    ["Centro", "tr-so-pc tr-c-centro"], ["Valor (R$)", "orc-c-valor"], ["", "tr-so-pc cp-c-acao"]]) {
+    const th = el("th", cls); th.scope = "col"; th.appendChild(el("span", "", rot)); tr.appendChild(th);
+  }
+  cab.appendChild(tr);
+  for (const r of vis) {
+    const venc = vencCp(r), atraso = venc < dataISO(), linha = el("tr", atraso ? "cp-atraso" : ""); linha.tabIndex = 0;
+    const tdSel = el("td", "pc-c-sel"), lb = el("label", "pc-sel"), cb = document.createElement("input");
+    cb.type = "checkbox"; cb.dataset.id = r.id; cb.checked = trTela.cpSel.has(r.id); cb.setAttribute("aria-label", "Marcar " + r.desc);
+    cb.onchange = () => { cb.checked ? trTela.cpSel.add(r.id) : trTela.cpSel.delete(r.id); pintarLoteCp(); };
+    cb.onkeydown = e => e.stopPropagation();
+    tdSel.onclick = e => e.stopPropagation();
+    lb.appendChild(cb); tdSel.appendChild(lb);
+    const desc = el("td", "orc-c-cli");
+    desc.appendChild(el("span", "orc-cli", (todas ? (r.tipo === "rec" ? "↓ " : "↑ ") : "") + (r.desc || "—")));
+    desc.appendChild(el("small", "orc-sub tr-sub-cel cp-prazo", [`${dataCurtaTr(venc)} · ${prazoCp(r)}`, r.parc].filter(Boolean).join(" · ")));
+    const data = el("td", "tr-so-pc tr-c-data"); data.append(dataCurtaTr(venc), el("small", "cp-prazo", prazoCp(r)));
+    const v = el("td", "orc-c-valor " + (r.tipo === "rec" ? "tr-v-rec" : "tr-v-desp"), moedaBR(+r.valor || 0));
+    const ac = el("td", "tr-so-pc cp-c-acao"), b = el("button", "btn sec cp-efetivar", "Efetivar"); b.type = "button";
+    b.title = r.tipo === "rec" ? "Marcar como recebida" : "Marcar como paga";
+    b.onclick = e => { e.stopPropagation(); efetivarCp([r.id]); };
+    ac.appendChild(b);
+    linha.append(tdSel, data, desc, el("td", "tr-so-pc tr-c-parc", r.parc || "—"), el("td", "tr-so-pc tr-c-cat", r.cat || "—"), el("td", "tr-so-pc tr-c-centro", r.centro || "—"), v, ac);
+    linha.onclick = () => { trTela.tipo = r.tipo; abrirFormTr(r.id); };
+    linha.onkeydown = e => { if (e.key === "Enter" && e.target === linha) { trTela.tipo = r.tipo; abrirFormTr(r.id); } };
+    corpo.appendChild(linha);
+  }
+  tb.append(cab, corpo);
+  return tb;
+}
+function pintarLoteCp() {
+  const lista = $("cp-lista"), bar = $("cp-lote"), S = trTela;
+  const caixas = [...lista.querySelectorAll("tbody input[data-id]")];
+  caixas.forEach(c => { c.checked = S.cpSel.has(c.dataset.id); c.closest("tr").classList.toggle("pc-marcada", c.checked); });
+  const todos = $("cp-sel-todos");
+  if (todos) { const n = caixas.filter(c => c.checked).length; todos.checked = n > 0 && n === caixas.length; todos.indeterminate = n > 0 && n < caixas.length; }
+  const sel = [...S.cpSel].map(id => regsDe(colTr)[id]).filter(Boolean);
+  bar.hidden = !sel.length; bar.innerHTML = "";
+  if (!sel.length) return;
+  const rec = sel.filter(r => r.tipo === "rec"), desp = sel.filter(r => r.tipo === "desp");
+  const info = el("div", "pc-lote-info", `${sel.length} marcada${sel.length === 1 ? "" : "s"} · R$ ${moedaBR(somaTr(sel))}`);
+  if (rec.length && desp.length) info.appendChild(el("small", "", `a receber R$ ${moedaBR(somaTr(rec))} · a pagar R$ ${moedaBR(somaTr(desp))}`));
+  const limpar = el("button", "laudo-link", "Desmarcar"); limpar.type = "button"; limpar.onclick = () => { S.cpSel.clear(); pintarLoteCp(); };
+  const ac = el("div", "pc-lote-ac"), b = el("button", "btn prim", `Efetivar (${sel.length})`); b.type = "button";
+  b.onclick = () => efetivarCp(sel.map(r => r.id));
+  ac.appendChild(b);
+  bar.append(info, limpar, ac);
+}
+// efetivar = marcar como paga (despesa) ou recebida (receita) na data escolhida
+async function efetivarCp(ids) {
+  const regs = ids.map(id => regsDe(colTr)[id]).filter(r => r && r.st === "pend");
+  if (!regs.length) return;
+  if (!navigator.onLine) { aviso("Sem internet: conecte o aparelho para salvar.", true); return; }
+  const um = regs.length === 1, tipos = new Set(regs.map(r => r.tipo));
+  const verbo = tipos.size === 2 ? "pagas ou recebidas" : tipos.has("rec") ? (um ? "recebida" : "recebidas") : (um ? "paga" : "pagas");
+  const linhas = regs.slice(0, 8).map(r => `• ${dataCurtaTr(vencCp(r))} · ${r.desc} · R$ ${moedaBR(+r.valor)}`);
+  if (regs.length > 8) linhas.push(`• e mais ${regs.length - 8}`);
+  const p = await perguntar({ titulo: um ? `Marcar como ${verbo}?` : `Marcar ${regs.length} contas como ${verbo}?`,
+    texto: linhas.join("\n") + (um ? "" : `\nTotal: R$ ${moedaBR(somaTr(regs))}`),
+    campos: [{ id: "data", rotulo: tipos.size === 2 ? "Data do pagamento/recebimento" : tipos.has("rec") ? "Data do recebimento" : "Data do pagamento", tipo: "data", valor: dataISO() }],
+    sim: "Efetivar", nao: "Cancelar" });
+  if (!p) return;
+  if (!p.campos.data) { aviso("Escolha a data.", true); return; }
+  let ok = 0;
+  await comGravacao(async () => {
+    for (const r of regs) {
+      if (await mudarReg(colTr, r.id, x => { if (x.st !== "pend") return "Esta conta já foi efetivada por outra pessoa."; x.st = "pago"; x.pg = p.campos.data; }, r.tipo === "rec" ? "Marcou como recebida" : "Marcou como paga")) { ok++; trTela?.cpSel?.delete(r.id); }
+    }
+  });
+  if (ok) aviso(`${ok} conta${ok === 1 ? "" : "s"} efetivada${ok === 1 ? "" : "s"} em ${dataBRde(p.campos.data)}.` + (ok < regs.length ? ` ${regs.length - ok} não ${regs.length - ok === 1 ? "pôde" : "puderam"} ser salva${regs.length - ok === 1 ? "" : "s"}.` : ""));
+  desenharTr();
+}
+async function exportarContas() {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const linhas = [["Tipo", "Vencimento", "Prazo", "Descrição", "Parceiro", "Categoria", "Centro de custo", "Conta", "Forma", "Valor (R$)", "Observações"]];
+    for (const r of trTela.cpVis) linhas.push([r.tipo === "rec" ? "A receber" : "A pagar", vencCp(r) ? dataBRde(vencCp(r)) : "", prazoCp(r), r.desc, r.parc || "", r.cat || "", centroTxtTr(r.centro), r.conta || "", r.forma || "", +r.valor || 0, r.obs || ""]);
+    linhas.push(["", "", "", "TOTAL", "", "", "", "", "", somaTr(trTela.cpVis), ""]);
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    for (let i = 1; i < linhas.length; i++) { const c = ws[XLSX.utils.encode_cell({ r: i, c: 9 })]; if (c && c.t === "n") c.z = "#,##0.00"; }
+    ws["!cols"] = [11, 11, 18, 44, 30, 16, 26, 14, 16, 14, 40].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Contas");
+    const nome = `Contas ${trTela.cpTipo === "pagar" ? "a pagar" : trTela.cpTipo === "receber" ? "a receber" : "a pagar e receber"} - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
@@ -15854,9 +16056,17 @@ function desenharFin() {
     const vD = venc.filter(r => r.tipo === "desp");
     const vR = venc.filter(r => r.tipo === "rec");   // o valor é o que falta pagar; as receitas atrasadas vão no texto
     card("Vencido a pagar", somaTr(vD), vD.length ? "crit" : "zero", [vD.length ? `${vD.length} despesa${vD.length === 1 ? "" : "s"}` : "nada vencido", vR.length && `${vR.length} a receber (R$ ${moedaBR(somaTr(vR))})`].filter(Boolean).join(" · "),
-      () => abrirTransacoes({ tipo: vD.length || !vR.length ? "desp" : "rec", sit: "venc" }));
+      () => abrirContas({ tipo: vD.length || !vR.length ? "pagar" : "receber", venc: "venc" }));
     t.appendChild(el("p", "hub-rot", "Transações"));
     t.appendChild(g);
+    // contas a pagar e receber: o que venceu e o que vence até o fim do mês
+    const fimMes = dataISO(new Date(+mes.slice(0, 4), +mes.slice(5), 0)), pend = vivos.filter(r => r.st === "pend");
+    const ateFim = tp => pend.filter(r => r.tipo === tp && (r.venc || r.comp || "") <= fimMes);
+    const lc = el("div", "hub-lista");
+    lc.appendChild(linha("calendario", "Contas a pagar e receber",
+      [venc.length && `${venc.length} vencida${venc.length === 1 ? "" : "s"}`, `até o fim do mês: pagar R$ ${moedaBR(somaTr(ateFim("desp")))} · receber R$ ${moedaBR(somaTr(ateFim("rec")))}`].filter(Boolean).join(" · "),
+      () => abrirContas({ tipo: "pagar" }), venc.length));
+    t.appendChild(lc);
     const gt = el("div", "hub-grade"); gt.style.gridTemplateColumns = "1fr 1fr";
     gt.append(tile("dinheiro", "Despesas", () => abrirTransacoes({ tipo: "desp" })), tile("dinheiro", "Receitas", () => abrirTransacoes({ tipo: "rec" })));
     t.appendChild(gt);
@@ -16392,6 +16602,11 @@ $("tr-busca").oninput = () => { clearTimeout(desenharTr.t); desenharTr.t = setTi
 for (const [id, k] of [["tr-ano", "ano"], ["tr-mes", "mes"], ["tr-cat", "cat"], ["tr-centro", "centro"]]) $(id).onchange = () => { if (!trTela) return; trTela[k] = $(id).value; if (trTela.sit === "venc" && (k === "ano" || k === "mes")) trTela.sit = ""; desenharTr(); };
 $("tr-exportar").onclick = exportarTr;
 $("tr-importar").onclick = importarFin365;
+$("cp-busca").oninput = () => { clearTimeout(desenharTr.t); desenharTr.t = setTimeout(desenharTr, 200); };
+for (const [id, k] of [["cp-periodo", "cpPer"], ["cp-venc", "cpVenc"], ["cp-parc", "cpParc"], ["cp-cat", "cpCat"]]) $(id).onchange = () => { if (!trTela) return; trTela[k] = $(id).value; desenharTr(); };
+$("cp-novo-pagar").onclick = () => { trTela.tipo = "desp"; abrirFormTr(null); };
+$("cp-novo-receber").onclick = () => { trTela.tipo = "rec"; abrirFormTr(null); };
+$("cp-exportar").onclick = exportarContas;
 $("pc-novo-btn").onclick = abrirNovoPC;
 $("pc-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { pcTipo = b.dataset.t; pcAberto = null; desenharPedidos(); });
 $("pc-exportar").onclick = exportarPedidos;
