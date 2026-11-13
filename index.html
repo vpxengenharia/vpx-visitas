@@ -610,11 +610,9 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-ctrl .avcb-busca{flex:1 1 180px;min-width:0;margin:0}
 .tar-ctrl select{flex:1 1 140px;min-width:0;min-height:46px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 8px;font-size:15px}
 .tar-ctrl select[hidden],#tar-filtro[hidden],#tar-lista-tela[hidden],#tar-sub[hidden],#fu-lista-tela[hidden],#fu-sub[hidden]{display:none}
-.fu-filtros{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px}   /* funil: Etapa, Responsável e Situação numa linha própria; no celular a Etapa (nome comprido) ocupa a linha toda */
-.fu-filtros #fu-etapa{flex-basis:100%}
 .tar-limpar{min-height:0;padding:2px 4px;border:0;background:none;color:var(--tinta);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
 /* tarefas: título da coluna abre o menu de ordenar e filtrar (pedido do Gustavo em 13/11/2026) */
-.tar-tab thead button.tar-th{display:inline-flex;align-items:center;white-space:nowrap}
+.tar-tab thead button.tar-th,.fu-tab thead button.tar-th{display:inline-flex;align-items:center;white-space:nowrap}
 .orc-tab thead .tar-th-seta{display:inline;width:auto;min-height:0;padding:0 0 0 4px;line-height:inherit;color:var(--laranja)}   /* a regra geral dos spans do cabeçalho (bloco de 40 px) não vale aqui */
 .orc-tab thead .tar-th-menu{display:block;flex:none;width:6px;height:6px;min-height:0;padding:0;line-height:0;margin:0 2px 3px 7px;border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;transform:rotate(45deg);opacity:.5}
 .tar-th-fil{flex:none;width:15px;height:15px;margin-left:5px;stroke:var(--laranja)!important}
@@ -729,15 +727,15 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .fu-sit{display:inline-block;padding:0 8px;border-radius:999px;background:var(--orc-th);color:var(--tinta);font-size:12.5px;font-weight:700}
 #fu-resumo{margin:0 2px 10px}
 #tela-funil .avcb-corpo{container-type:inline-size}
-.fu-tab .fu-c-valor{width:96px;text-align:right}
-.fu-tab .fu-c-data{width:84px}
+.fu-tab .fu-c-valor{width:88px;text-align:right}
+.fu-tab .fu-c-data{width:96px}   /* cabe "Contato" com o funil e a setinha do menu (106 px na tela larga, com a seta da ordem) */
 .fu-tab .fu-c-etapa,.fu-tab .fu-c-resp,.fu-tab .fu-c-sit{display:none}
 .fu-tab td.fu-c-valor{font-variant-numeric:tabular-nums;font-weight:600}
 .fu-tab .fu-n b{display:block;font-weight:600;overflow-wrap:anywhere}
 .fu-tab .fu-n small{display:block;margin-top:2px;font-size:12.5px;color:var(--suave)}
 .fu-tab td.crit{color:var(--crit-tx);font-weight:700}.fu-tab td.warn{color:var(--warn-tx);font-weight:700}
 @container (min-width:600px){.fu-tab .fu-c-etapa{display:table-cell;width:150px;font-size:13px}}
-@container (min-width:900px){.fu-tab .fu-c-resp{display:table-cell;width:130px}.fu-tab .fu-c-sit{display:table-cell;width:150px;font-size:13px}}
+@container (min-width:900px){.fu-tab .fu-c-valor{width:96px}.fu-tab .fu-c-data{width:106px}.fu-tab .fu-c-resp{display:table-cell;width:130px}.fu-tab .fu-c-sit{display:table-cell;width:150px;font-size:13px}}
 .fu-mais-tab{width:100%;margin-top:10px}
 /* funil: etapa, situação, responsáveis, valor e último contato mudam na própria linha (como nas tarefas; .tar-ed dá o quadradinho ao passar o mouse) */
 .fu-tab .fu-n small.fu-sub{margin-top:4px;line-height:1.9}
@@ -752,6 +750,18 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .menu-op{max-height:min(70vh,520px);overflow-y:auto;overscroll-behavior:contain}   /* listas compridas (etapas e situações do funil) rolam dentro do menu */
 @container (min-width:600px){.fu-sub .fu-s-etapa{display:none}}
 @container (min-width:900px){.fu-tab .fu-n small.fu-sub{display:none}}
+/* Comercial: filtros no título da coluna (como nas Tarefas). O funil do título "Nome" aparece quando há filtro de uma coluna escondida
+   (no celular etapa, situação e responsável; até 900 px situação e responsável) */
+.fu-tab .tar-th-fil{display:inline-block}
+.fu-tab .tar-th-fil.fil-nome{display:none}
+.fu-tab .tar-th-fil.fil-nome.f-cel{display:inline-block}
+@container (min-width:600px){.fu-tab .tar-th-fil.fil-nome.f-cel{display:none}.fu-tab .tar-th-fil.fil-nome.f-med{display:inline-block}}
+@container (min-width:900px){.fu-tab .tar-th-fil.fil-nome.f-med{display:none}}
+.fu-tab th.fu-c-valor button.tar-th{justify-content:flex-end}
+.orc-tab thead .fu-rs{display:none;width:auto;min-height:0;padding:0;line-height:inherit;white-space:pre}
+@container (min-width:600px){.orc-tab thead .fu-rs{display:inline}}
+.fu-tab .fu-vazia td{padding:18px 10px;text-align:center}
+#fu-lista .tar-fil-at{margin:-2px 0 10px}
 /* detalhe da tarefa / da oportunidade (cada mudança é salva na hora) */
 .tar-det{padding-bottom:12px}
 .tar-tit-in{display:block;width:100%;margin:0 0 8px;padding:6px 10px;border:1.5px solid transparent;border-radius:10px;background:transparent;color:var(--tinta);font-family:var(--titulo-fonte);font-size:23px;font-weight:700;line-height:1.2}
@@ -1313,7 +1323,6 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   .kb-col{flex:1 0 190px}
   .kb .tar-st{display:none}                        /* no quadro a coluna já diz a situação; no computador muda arrastando */
   .tar-ctrl select{flex:0 1 230px}
-  .fu-filtros select,.fu-filtros #fu-etapa{flex:1 1 0}
   .tar-gr-itens{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));column-gap:12px}
   #tar-sub,#fu-sub{max-width:760px;margin:0 auto}
   .tar-card,.fu-card,.fu-ligacao button{transition:border-color .12s,box-shadow .12s,background-color .12s}
@@ -2241,11 +2250,6 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     <div id="fu-lista-tela">
       <div class="tar-ctrl">
         <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar oportunidade" aria-label="Buscar nome, contato, telefone ou endereço" autocomplete="off">
-        <div class="fu-filtros">
-          <select id="fu-etapa" aria-label="Etapa da oportunidade"></select>
-          <select id="fu-pessoa" aria-label="Responsável"></select>
-          <select id="fu-sit" aria-label="Situação do contato"></select>
-        </div>
       </div>
       <div class="chips avcb-filtro" id="fu-grupos" role="group" aria-label="Grupo de etapas"></div>
       <p class="orc-resumo" id="fu-resumo"></p>
@@ -14306,7 +14310,7 @@ function aoMudarFu() {
   if (conta && secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // número do funil no painel do computador
 }
 const colFu = colecao({ chave: "vpx_funil", pasta: CONFIG.pastaFunil, prefixo: "funil", n: 32, pode: () => pode("funil"), aoMudar: aoMudarFu });
-let fuTela = null, fuVoltando = false;   // { grupo, pessoa, sit, aberta, nova, direto, mais, ordem, limTab }
+let fuTela = null, fuVoltando = false;   // { grupo, etapa, pessoa, sit, valor, contato (filtros), opF, aberta, nova, direto, mais, ordem, limTab }
 const oportunidades = () => Object.values(regsDe(colFu));
 const etapaTxt = e => `${e} - ${NOME_ETAPA[e] || "?"}`;
 const ativaFu = o => o.etapa >= "02" && o.etapa <= "07";
@@ -14352,7 +14356,7 @@ function cartaoFu(o, op = {}) {
 // op: { busca, aberta (abre direto numa oportunidade), nova }
 function abrirFunil(op = {}) {
   if (!conta || !pode("funil")) return;
-  fuTela = { grupo: lerLS("vpx_fu_grupo", "neg"), etapa: "", pessoa: "", sit: "", aberta: null, nova: null,
+  fuTela = { grupo: lerLS("vpx_fu_grupo", "neg"), etapa: "", pessoa: "", sit: "", valor: "", contato: "", aberta: null, nova: null,
     direto: !!(op.aberta || op.nova), mais: {}, ordem: { col: "etapa", desc: false }, limTab: 150 };
   $("fu-busca").value = op.busca || "";
   $("tela-funil").hidden = false;
@@ -14422,30 +14426,33 @@ function desenharFunil() {
   for (const [k, rot, ets] of GRUPOS_FU) {
     const b = el("button", "", `${rot} (${todas.filter(o => ets.includes(o.etapa)).length})`); b.type = "button";
     b.setAttribute("aria-pressed", String(fuTela.grupo === k));
-    b.onclick = () => { fuTela.grupo = k; fuTela.etapa = ""; fuTela.mais = {}; fuTela.limTab = 150; fuTela.sit = ""; gravarLS("vpx_fu_grupo", k); desenharFunil(); };
+    b.onclick = () => { fuTela.grupo = k; fuTela.etapa = ""; fuTela.mais = {}; fuTela.limTab = 150; gravarLS("vpx_fu_grupo", k); desenharFunil(); };
     gr.appendChild(b);
   }
   const ets = (GRUPOS_FU.find(g => g[0] === fuTela.grupo) || GRUPOS_FU[0])[2];
   if (!ets.includes(fuTela.etapa)) fuTela.etapa = "";
-  let lista = todas.filter(o => ets.includes(o.etapa));
-  // responsável e situação: só as opções que existem nesta parte do funil
-  const opcoes = (sel, primeira, pares, atual) => {
-    sel.innerHTML = "";
-    for (const [v, t] of [["", primeira], ...pares]) { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); }
-    sel.value = pares.some(([v]) => v === atual) ? atual : "";
-    return sel.value;
-  };
-  const pessoas = new Map(); let semResp = false;
-  lista.forEach(o => { if (!(o.resp || []).length) semResp = true; (o.resp || []).forEach(p => pessoas.set(p.email, nomePessoa(p))); });
-  fuTela.pessoa = opcoes($("fu-pessoa"), "Responsável", [...[...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")), ...(semResp ? [["-", "Sem responsável"]] : [])], fuTela.pessoa);
-  fuTela.sit = opcoes($("fu-sit"), "Situação", [...new Set(lista.map(o => o.situacao || "A definir"))].sort((a, b) => rankSit(a) - rankSit(b)).map(s => [s, s]), fuTela.sit);
-  if (fuTela.pessoa) lista = lista.filter(o => fuTela.pessoa === "-" ? !(o.resp || []).length : (o.resp || []).some(p => p.email === fuTela.pessoa));
-  if (fuTela.sit) lista = lista.filter(o => (o.situacao || "A definir") === fuTela.sit);
+  const doGrupo = todas.filter(o => ets.includes(o.etapa));
+  /* filtros (pedido do Gustavo em 13/11/2026, como nas Tarefas): no título de cada coluna da tabela (menu com "Ordenar" e as opções do filtro).
+     Cada opção mostra quantas oportunidades a lista teria com ela (depois do grupo, da busca e dos outros filtros); opções com zero somem. */
   const q = semAcento($("fu-busca").value.trim());
-  if (q) lista = lista.filter(o => buscaFu(o, q));
-  // filtro por etapa (pedido do Gustavo em 12/11/2026): um campo de escolha como Responsável e Situação, com as etapas do grupo e a quantidade depois da busca, do responsável e da situação
-  fuTela.etapa = opcoes($("fu-etapa"), "Etapa", ets.map(e => [e, `${etapaTxt(e)} (${lista.filter(o => o.etapa === e).length})`]), fuTela.etapa);
-  if (fuTela.etapa) lista = lista.filter(o => o.etapa === fuTela.etapa);
+  let lista = q ? doGrupo.filter(o => buscaFu(o, q)) : doGrupo;
+  const passaFu = (o, menos) => Object.keys(FILTRO_FU).every(k => k === menos || !fuTela[k] || FILTRO_FU[k](o, fuTela[k]));
+  const conta = (k, v) => lista.filter(o => passaFu(o, k) && FILTRO_FU[k](o, v)).length;
+  const pessoas = new Map();
+  doGrupo.forEach(o => (o.resp || []).forEach(p => pessoas.set(p.email, nomePessoa(p))));
+  const pares = {
+    etapa: ets.map(e => [e, etapaTxt(e)]),
+    sit: [...new Set([...SITUACOES_FU, ...doGrupo.map(o => o.situacao || "A definir")])].sort((a, b) => rankSit(a) - rankSit(b)).map(v => [v, v]),
+    pessoa: [...[...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")), ["-", "Sem responsável"]],
+    valor: Object.entries(VALOR_FU),
+    contato: Object.entries(CONTATO_FU)
+  };
+  fuTela.opF = {};                                   // opções de cada filtro com a quantidade, para o menu do título da coluna
+  for (const [k, ps] of Object.entries(pares)) {
+    if (fuTela[k] && !ps.some(([v]) => v === fuTela[k])) fuTela[k] = "";   // opção que não existe mais (etapa de outro grupo, pessoa)
+    fuTela.opF[k] = ps.map(([v, txt]) => [v, txt, "", conta(k, v)]).filter(([v, , , n]) => n || v === fuTela[k]);
+  }
+  lista = lista.filter(o => passaFu(o));
   // resumo: quantidade e valor do que está na tela; em negociação, os fechados do mês
   const res = $("fu-resumo"); res.innerHTML = "";
   const soma = lista.reduce((s, o) => s + valorFu(o), 0);
@@ -14457,8 +14464,13 @@ function desenharFunil() {
   }
   const alvo = $("fu-lista"); alvo.innerHTML = "";
   if (!colFu.dados.lido && !Object.keys(colFu.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as oportunidades…" : "Sem internet e sem as oportunidades guardadas neste aparelho."));
-  else if (!lista.length && (q || fuTela.pessoa || fuTela.sit)) alvo.appendChild(el("p", "avcb-nota", "Nada encontrado."));
-  else alvo.appendChild(tabelaFu(lista));
+  else if (!lista.length && q && !filtrosFuAtivos()) alvo.appendChild(el("p", "avcb-nota", "Nada encontrado."));
+  else {
+    const esc = filtrosEscolhidosFu(); if (esc) alvo.appendChild(esc);
+    alvo.appendChild(tabelaFu(lista));
+    const tdv = alvo.querySelector(".fu-vazia td");   // linha "nenhuma com esses filtros": ocupa só as colunas à vista (as escondidas desmontavam a tabela no celular)
+    if (tdv) tdv.colSpan = [...alvo.querySelectorAll("thead th")].filter(t => getComputedStyle(t).display !== "none").length;
+  }
   $("fu-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando a última cópia guardada. Para mudar, conecte o aparelho.";
 }
 // (o Quadro do Comercial saiu a pedido do Gustavo em 12/11/2026: só a Lista em tabela)
@@ -14531,26 +14543,97 @@ function linhaFu(o) {
   r.append(n, ce, cr, cs, cv, cd);
   return r;
 }
-// lista: tabela como planilha; tocar no título da coluna ordena (de novo, inverte)
+// filtros da lista (fuTela.etapa / sit / pessoa / valor / contato; "-" = sem responsável, sem data de contato)
+const VALOR_FU = { com: "Com valor", sem: "Sem valor" };
+const CONTATO_FU = { crit: "Mais de 15 dias sem contato", warn: "De 8 a 15 dias sem contato", rec: "Contato nos últimos 7 dias", "-": "Sem data de contato" };
+const FILTRO_FU = {
+  etapa: (o, v) => o.etapa === v,
+  sit: (o, v) => (o.situacao || "A definir") === v,
+  pessoa: (o, v) => v === "-" ? !(o.resp || []).length : (o.resp || []).some(p => p.email === v),
+  valor: (o, v) => (valorFu(o) > 0) === (v === "com"),
+  contato: (o, v) => v === "-" ? !o.ultimoContato : v === "rec" ? !!o.ultimoContato && o.ultimoContato >= dataISO(new Date(Date.now() - 7 * 864e5)) : frioFu(o) === v
+};
+const ROT_FILTRO_FU = { etapa: "Etapa", sit: "Situação", pessoa: "Responsável", valor: "Valor", contato: "Último contato" };
+const filtrosFuAtivos = () => !!fuTela && Object.keys(FILTRO_FU).some(k => fuTela[k]);
+// filtros escolhidos, em cima da tabela: "Etapa: 05 - … ×" (tocar tira o filtro); com 2 ou mais, "Limpar filtros"
+function filtrosEscolhidosFu() {
+  const at = Object.keys(FILTRO_FU).filter(k => fuTela[k]);
+  if (!at.length) return null;
+  const w = el("div", "tar-fil-at");
+  for (const k of at) {
+    const txt = (fuTela.opF?.[k] || []).find(([v]) => v === fuTela[k])?.[1] || fuTela[k];
+    const b = el("button", "tar-fil-chip", `${ROT_FILTRO_FU[k]}: ${txt}`); b.type = "button";
+    b.title = "Tirar este filtro"; b.setAttribute("aria-label", `Tirar o filtro ${ROT_FILTRO_FU[k]}: ${txt}`);
+    b.appendChild(el("span", "tar-fil-x", "×"));
+    b.onclick = () => { fuTela[k] = ""; fuTela.mais = {}; fuTela.limTab = 150; desenharFunil(); };
+    w.appendChild(b);
+  }
+  if (at.length > 1) {
+    const b = el("button", "tar-limpar", "Limpar filtros"); b.type = "button";
+    b.onclick = () => { Object.keys(FILTRO_FU).forEach(k => { fuTela[k] = ""; }); fuTela.mais = {}; fuTela.limTab = 150; desenharFunil(); };
+    w.appendChild(b);
+  }
+  return w;
+}
+/* menu do título da coluna: "Ordenar" e os filtros daquela coluna. Com a tela estreita, o título "Nome" filtra também
+   o que aparece embaixo do nome: etapa (até 600 px), situação e responsável (até 900 px). */
+const ORDENAR_FU = {
+  nome: [["A → Z", false], ["Z → A", true]],
+  etapa: [["Primeira etapa primeiro", false], ["Última etapa primeiro", true]],
+  resp: [["A → Z", false], ["Z → A", true]],
+  sit: [["A → Z", false], ["Z → A", true]],
+  valor: [["Maior valor primeiro", true], ["Menor valor primeiro", false]],
+  data: [["Contato mais recente primeiro", true], ["Contato mais antigo primeiro", false]]
+};
+function filtrosDaColunaFu(col, vis = { etapa: true, resp: true }) {
+  return ({ nome: [!vis.etapa && "etapa", !vis.resp && "sit", !vis.resp && "pessoa"].filter(Boolean),
+    etapa: ["etapa"], resp: ["pessoa"], sit: ["sit"], valor: ["valor"], data: ["contato"] })[col] || [];
+}
+function menuColunaFu(b, col) {
+  const t = b.closest("table"), mostra = c => getComputedStyle(t.querySelector("th." + c)).display !== "none";
+  const ops = [[null, "Ordenar", "menu-tit"]], atual = [];
+  ORDENAR_FU[col].forEach(([rot, desc], i) => { ops.push(["o:" + i, rot]); if (fuTela.ordem.col === col && fuTela.ordem.desc === desc) atual.push("o:" + i); });
+  for (const k of filtrosDaColunaFu(col, { etapa: mostra("fu-c-etapa"), resp: mostra("fu-c-resp") })) {
+    ops.push([null, "Filtrar: " + ROT_FILTRO_FU[k].toLowerCase(), "menu-tit"], ["f:" + k + ":", k === "etapa" || k === "sit" ? "Todas" : "Todos"]);
+    for (const [v, txt, cls, n] of fuTela.opF[k] || []) ops.push(["f:" + k + ":" + v, `${txt} (${n})`, cls]);
+    atual.push("f:" + k + ":" + fuTela[k]);
+  }
+  menuOpcoes(b, ops, atual, v => {
+    if (v.startsWith("o:")) fuTela.ordem = { col, desc: ORDENAR_FU[col][+v.slice(2)][1] };
+    else { const [, k, ...resto] = v.split(":"); fuTela[k] = resto.join(":"); fuTela.mais = {}; fuTela.limTab = 150; }
+    desenharFunil();
+    $("fu-lista").querySelector(`thead button[data-col="${col}"]`)?.focus({ preventScroll: true });
+  });
+}
+// lista: tabela como planilha; o título da coluna abre o menu de ordenar e filtrar
 const COLS_FU = { nome: o => semAcento(o.nome || ""), etapa: o => o.etapa, resp: o => (o.resp || []).map(nomePessoa).join(", ") || null,
   sit: o => o.situacao || null, valor: o => valorFu(o) || null, data: o => o.ultimoContato || null };
 function tabelaFu(lista) {
   const w = el("div"), tb = el("table", "orc-tab fu-tab"), th = el("thead"), tr = el("tr");
+  // título da coluna: abre o menu de ordenar e filtrar (setinha embaixo = tem menu; funil laranja = filtro ligado)
   const cab = (col, rot, cls) => {
-    const c = el("th", cls); c.scope = "col";
-    const b = el("button", "", rot); b.type = "button";
-    if (fuTela.ordem.col === col) b.dataset.seta = fuTela.ordem.desc ? " ↓" : " ↑";
-    b.onclick = () => { fuTela.ordem = fuTela.ordem.col === col ? { col, desc: !fuTela.ordem.desc } : { col, desc: col === "valor" || col === "data" }; desenharFunil(); };
+    const c = el("th", cls), b = el("button", "tar-th", rot), ativa = fuTela.ordem.col === col;
+    c.scope = "col"; b.type = "button"; b.dataset.col = col; b.setAttribute("aria-haspopup", "menu"); b.title = "Ordenar e filtrar";
+    c.setAttribute("aria-sort", ativa ? (fuTela.ordem.desc ? "descending" : "ascending") : "none");
+    if (col === "valor") b.appendChild(el("span", "fu-rs", " (R$)"));   // no celular só "Valor" (sobra espaço para o nome)
+    if (ativa) b.appendChild(el("span", "tar-th-seta", fuTela.ordem.desc ? " ↓" : " ↑"));
+    if (col === "nome") {                            // filtros das colunas que, na tela estreita, aparecem embaixo do nome
+      const cel = ["etapa", "sit", "pessoa"].some(k => fuTela[k]), med = ["sit", "pessoa"].some(k => fuTela[k]);
+      if (cel) b.appendChild(ic("funil", "tar-th-fil fil-nome f-cel" + (med ? " f-med" : "")));
+    } else if (filtrosDaColunaFu(col).some(k => fuTela[k])) b.appendChild(ic("funil", "tar-th-fil"));
+    b.appendChild(el("span", "tar-th-menu"));
+    b.onclick = () => menuColunaFu(b, col);
     c.appendChild(b); tr.appendChild(c);
   };
   cab("nome", "Nome", "fu-c-nome"); cab("etapa", "Etapa", "fu-c-etapa"); cab("resp", "Responsável", "fu-c-resp"); cab("sit", "Situação", "fu-c-sit");
-  cab("valor", "Valor (R$)", "fu-c-valor"); cab("data", "Contato", "fu-c-data");
+  cab("valor", "Valor", "fu-c-valor"); cab("data", "Contato", "fu-c-data");
   th.appendChild(tr); tb.appendChild(th);
   const corpo = el("tbody"), f = COLS_FU[fuTela.ordem.col] || COLS_FU.etapa, s = fuTela.ordem.desc ? -1 : 1;
   const ord = lista.slice().sort((a, b) => { const x = f(a), y = f(b); if (x == null || y == null) return (x == null) - (y == null) || ordemFu(a, b); return (x < y ? -1 : x > y ? 1 : 0) * s || ordemFu(a, b); });
   ord.slice(0, fuTela.limTab).forEach(o => corpo.appendChild(linhaFu(o)));
+  if (!ord.length && filtrosFuAtivos()) { const v = el("tr", "fu-vazia"), td = el("td", "avcb-nota", "Nenhuma oportunidade com esses filtros."); td.colSpan = 6; v.appendChild(td); corpo.appendChild(v); }
   tb.appendChild(corpo); w.appendChild(tb);
-  if (!ord.length) w.appendChild(el("p", "avcb-nota", "Nenhuma oportunidade aqui."));
+  if (!ord.length && !filtrosFuAtivos()) w.appendChild(el("p", "avcb-nota", "Nenhuma oportunidade aqui."));
   if (ord.length > fuTela.limTab) { const m = el("button", "btn sec fu-mais-tab", `Mostrar mais (${ord.length - fuTela.limTab})`); m.type = "button"; m.onclick = () => { fuTela.limTab += 300; desenharFunil(); }; w.appendChild(m); }
   return w;
 }
@@ -14723,9 +14806,6 @@ $("tar-busca").oninput = () => { clearTimeout(desenharTar.t); desenharTar.t = se
 $("fu-voltar").onclick = () => { if (fuTela?.aberta || fuTela?.nova) voltarListaFu(); else fecharFunil(); };
 $("fu-nova").onclick = () => novaOport();
 $("fu-busca").oninput = () => { clearTimeout(desenharFunil.t); desenharFunil.t = setTimeout(() => { if (fuTela) { fuTela.mais = {}; fuTela.limTab = 150; } desenharFunil(); }, 200); };
-$("fu-etapa").onchange = () => { if (fuTela) { fuTela.etapa = $("fu-etapa").value; fuTela.mais = {}; fuTela.limTab = 150; desenharFunil(); } };
-$("fu-pessoa").onchange = () => { if (fuTela) { fuTela.pessoa = $("fu-pessoa").value; fuTela.mais = {}; desenharFunil(); } };
-$("fu-sit").onchange = () => { if (fuTela) { fuTela.sit = $("fu-sit").value; fuTela.mais = {}; desenharFunil(); } };
 try { localStorage.removeItem("vpx_fu_vista"); } catch {}   // escolha antiga entre Quadro e Lista (o Quadro saiu)
 // o orçamento aberto por cima do funil volta à altura de sempre quando fecha
 new MutationObserver(() => { if ($("tela-orc").hidden) $("tela-orc").style.zIndex = ""; }).observe($("tela-orc"), { attributes: true, attributeFilter: ["hidden"] });
