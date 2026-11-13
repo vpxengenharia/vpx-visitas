@@ -1872,6 +1872,9 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   body.logado .nav .nav-sub button:hover{color:var(--tinta)}
   body.logado .nav .nav-sub button[hidden]{display:none}
 }
+/* Comercial: botão Orçamentos ao lado da busca (pedido do Gustavo em 13/11/2026: os orçamentos saíram de Registros) */
+.tar-ctrl .fu-orc-btn{flex:none;min-height:46px;margin:0;padding:0 16px;font-size:15.5px}
+.tar-ctrl .fu-orc-btn .ic{width:20px;height:20px}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2476,6 +2479,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     <div id="fu-lista-tela">
       <div class="tar-ctrl">
         <input class="avcb-busca" id="fu-busca" type="search" placeholder="Buscar oportunidade" aria-label="Buscar nome, contato, telefone ou endereço" autocomplete="off">
+        <button class="btn sec fu-orc-btn" id="fu-orc" type="button" hidden><svg class="ic" aria-hidden="true"><use href="#i-orcamento"/></svg>Orçamentos</button>
       </div>
       <div class="chips avcb-filtro" id="fu-grupos" role="group" aria-label="Grupo de etapas"></div>
       <p class="orc-resumo" id="fu-resumo"></p>
@@ -12200,6 +12204,7 @@ async function lerPdfsOrc(manual) {
 
 function abrirOrcamentos(busca = "") {
   if (!pode("orc")) return;
+  $("orc-voltar").textContent = "‹ Voltar";
   $("orc-busca").value = busca;
   $("orc-periodo").value = ""; $("orc-tipo").value = "";
   $("tela-orc").classList.toggle("com-nav", ![...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-orc" && !t.classList.contains("como-secao")));   // por cima de outra tela (oportunidade do funil): tela cheia; aberta por Registros ou pela página do cliente: a barra de baixo fica à vista
@@ -12211,11 +12216,17 @@ function abrirOrcamentos(busca = "") {
   if (!orc || Date.now() - orc.quando > 10 * 60000) atualizarOrc();
   else if (navigator.onLine && conta) lerIndiceOrc().then(() => { if (!$("tela-orc").hidden) { desenharOrc(); lerPdfsOrc(); } });
 }
+// Orçamentos dentro do Comercial (pedido do Gustavo em 13/11/2026: saíram de Registros): abre por cima da tela do Comercial
+function orcNoComercial(busca = "") {
+  $("tela-orc").style.zIndex = "35";               // a tela do Comercial vem depois no HTML: sem isso, ela ficaria por cima
+  abrirOrcamentos(busca);
+  $("orc-voltar").textContent = "‹ Comercial";
+}
 function fecharOrc(voltar = true) {
   if ($("tela-orc").hidden) return;
   $("tela-orc").hidden = true;
   if (orcLeitura) orcLeitura.parar = true;         // a leitura dos PDFs continua da próxima vez que abrir
-  document.body.style.overflow = "";
+  document.body.style.overflow = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && !t.classList.contains("como-secao")) ? "hidden" : "";   // o Comercial embaixo continua sem rolar a página
   if (voltar && history.state?.orc) history.back();
 }
 async function atualizarOrc() {
@@ -15746,6 +15757,8 @@ function desenharFunil() {
   $("fu-lista-tela").hidden = sub; $("fu-sub").hidden = !sub;
   $("tela-funil").classList.toggle("com-nav", !sub);
   $("fu-nova").hidden = sub;
+  $("fu-orc").hidden = !pode("orc");
+  $("fu-busca").placeholder = computador.matches ? "Buscar oportunidade" : "Buscar";   // no celular o botão Orçamentos divide a linha com a busca
   $("fu-titulo").textContent = fuTela.nova ? "Nova oportunidade" : sub ? "Oportunidade" : "Comercial";
   $("fu-voltar").textContent = sub && !fuTela.direto ? "‹ Comercial" : "‹ Voltar";
   $("fu-voltar").classList.toggle("voltar-lista", !sub);
@@ -16056,7 +16069,7 @@ function detalheFu(o) {
   w.appendChild(g4);
   const links = el("div", "tar-links");
   const link = (txt, fn) => { const b = el("button", "laudo-link", txt); b.type = "button"; b.onclick = fn; links.appendChild(b); };
-  if (o.orc && pode("orc")) link("Ver o orçamento " + o.orc, () => { $("tela-orc").style.zIndex = "35"; abrirOrcamentos(String(o.orc).split("/")[0]); });   // por cima do funil
+  if (o.orc && pode("orc")) link("Ver o orçamento " + o.orc, () => orcNoComercial(String(o.orc).split("/")[0]));   // por cima do funil
   if (o.cliente && clientes.includes(o.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(o.cliente); });
   if (o.cliente && pode("ficha")) link("Contatos do cliente", () => abrirFicha(o.cliente));
   if (o.cliente) link("Tirar o cliente", () => salvar(r => { r.cliente = ""; }, "Tirou o cliente"));
@@ -16158,6 +16171,7 @@ $("dlg-com").addEventListener("click", e => { if (e.target === $("dlg-com")) fec
 $("tar-busca").oninput = () => { clearTimeout(desenharTar.t); desenharTar.t = setTimeout(desenharTar, 200); };
 $("fu-voltar").onclick = () => { if (fuTela?.aberta || fuTela?.nova) voltarListaFu(); else fecharFunil(); };
 $("fu-nova").onclick = () => novaOport();
+$("fu-orc").onclick = () => orcNoComercial();
 $("fu-busca").oninput = () => { clearTimeout(desenharFunil.t); desenharFunil.t = setTimeout(() => { if (fuTela) { fuTela.mais = {}; fuTela.limTab = 150; } desenharFunil(); }, 200); };
 try { localStorage.removeItem("vpx_fu_vista"); } catch {}   // escolha antiga entre Quadro e Lista (o Quadro saiu)
 // o orçamento aberto por cima do funil volta à altura de sempre quando fecha
@@ -16619,7 +16633,7 @@ function desenharReg() {
   grupo("Novo registro");
   if (pode("avcb")) g.appendChild(tile("escudo", "Validade AVCB / CLCB", abrirAvcb));   // saiu do Mais (pedido do Gustavo em 19/10/2026)
   if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", abrirEqv));   // vencimentos de todos os clientes; saiu do Mais (pedido do Gustavo em 19/10/2026)
-  if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos()));   // de todos os clientes (pedido do Gustavo em 05/11/2026)
+  // Orçamentos: saíram daqui e foram para o Comercial (pedido do Gustavo em 13/11/2026); na página do cliente continuam
   if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas()));              // emitidas para os clientes (pedido do Gustavo em 06/11/2026)
   grupo("Consultas e controles");
 }
@@ -16931,7 +16945,6 @@ const SUBMENUS_NAV = {
     ...MODOS_APP.filter(([m]) => m !== "comp").map(([m, , nome]) => ["m-" + m, nome, () => pode(m), () => abrirModulo(m)]),
     ["avcb", "Validade AVCB / CLCB", () => pode("avcb"), () => abrirAvcb(), "reg"],
     ["eqv", "Extintores e mangueiras", () => pode("equip"), () => abrirEqv(), "reg"],
-    ["orc", "Orçamentos", () => pode("orc"), () => abrirOrcamentos(), "reg"],
     ["nf", "Notas fiscais", () => pode("nf"), () => abrirNotas(), "reg"]
   ],
   tar: [
@@ -16942,6 +16955,7 @@ const SUBMENUS_NAV = {
   ],
   funil: [
     ...GRUPOS_FU.map(([k, rot]) => ["g-" + k, rot, () => true, () => { gravarLS("vpx_fu_grupo", k); abrirFunil(); }]),
+    ["orc", "Orçamentos", () => pode("orc"), () => { abrirFunil(); orcNoComercial(); }],
     ["nova", "+ Nova oportunidade", () => true, () => abrirFunil({ nova: {} })]
   ],
   sol: Object.entries(TIPOS_PED).map(([tp, t]) => [tp, t.aba, () => podeTipo(tp), () => { pcTipo = tp; abrirPedidos(); }]),
