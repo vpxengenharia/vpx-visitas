@@ -612,6 +612,9 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-ctrl select[hidden],#tar-filtro[hidden],#tar-lista-tela[hidden],#tar-sub[hidden],#fu-lista-tela[hidden],#fu-sub[hidden]{display:none}
 .fu-filtros{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px}   /* funil: Etapa, Responsável e Situação numa linha própria; no celular a Etapa (nome comprido) ocupa a linha toda */
 .fu-filtros #fu-etapa{flex-basis:100%}
+.tar-filtros select.sel-ativo{border-color:var(--marinho);font-weight:700}   /* tarefas: filtro escolhido fica marcado */
+@media (prefers-color-scheme:dark){.tar-filtros select.sel-ativo{border-color:var(--laranja)}}
+.tar-limpar{min-height:0;padding:2px 4px;border:0;background:none;color:var(--tinta);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
 .tar-vistas{flex:none;display:flex;gap:3px;padding:3px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
 .tar-vistas button{min-height:40px;padding:0 14px;border:0;border-radius:9px;background:none;color:var(--suave);font-weight:700;font-size:15px;cursor:pointer}
 .tar-vistas button[aria-pressed="true"]{background:var(--marinho);color:#fff}
@@ -2226,7 +2229,12 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     <div id="tar-lista-tela">
       <div class="tar-ctrl">
         <input class="avcb-busca" id="tar-busca" type="search" placeholder="Buscar tarefa" aria-label="Buscar tarefa, cliente ou pessoa" autocomplete="off">
-        <select id="tar-pessoa" aria-label="Pessoa"></select>
+        <div class="fu-filtros tar-filtros">
+          <select id="tar-st" aria-label="Situação"></select>
+          <select id="tar-pri" aria-label="Prioridade"></select>
+          <select id="tar-pessoa" aria-label="Responsável"></select>
+          <select id="tar-cli" aria-label="Cliente"></select>
+        </div>
       </div>
       <div class="chips avcb-filtro" id="tar-filtro"></div>
       <div id="tar-lista"></div>
@@ -13652,13 +13660,26 @@ const ordemTar = (a, b) => atrasadaTar(b) - atrasadaTar(a) || (a.prazo || "9").l
 const alertaTar = () => tarefas().filter(t => minhaTar(t) && (atrasadaTar(t) || hojeTar(t))).length;   // número no menu lateral
 const podeVerTarefas = () => !!conta && (pode("tarefas") || tarefas().some(t => minhaTar(t) && abertaTar(t)));
 const filtroTar = f => f === "minhas" ? minhaTar : f === "atrasadas" ? atrasadaTar : () => true;
+// filtros da lista (tarTela.st / pri / pessoa / cli; "-" = sem prioridade, sem responsável, sem cliente)
+const FILTRO_TAR = {
+  st: (t, v) => (ST_TAR[t.status] ? t.status : "nao") === v,
+  pri: (t, v) => v === "-" ? !PRI[t.prioridade] : t.prioridade === v,
+  pessoa: (t, v) => v === "-" ? !(t.resp || []).length : (t.resp || []).some(p => p.email === v),
+  cli: (t, v) => v === "-" ? !t.cliente : t.cliente === v
+};
+const filtrosTarAtivos = () => !!tarTela && Object.keys(FILTRO_TAR).some(k => tarTela[k]);
+function botaoLimparTar() {
+  const b = el("button", "tar-limpar", "Limpar filtros"); b.type = "button";
+  b.onclick = () => { Object.keys(FILTRO_TAR).forEach(k => { tarTela[k] = ""; }); desenharTar(); };
+  return b;
+}
 const mudarStatusTar = (id, st) => mudarReg(colTar, id, r => { r.status = st; r.feitoEm = st === "feito" ? (r.feitoEm || new Date().toISOString()) : ""; }, "Situação: " + ST_TAR[st]);
 
 // op: { filtro, busca, aberta (abre direto numa tarefa), nova (abre direto o formulário, com campos já preenchidos) }
 function abrirTar(op = {}) {
   if (!conta) return;
   const tudo = pode("tarefas");
-  tarTela = { filtro: tudo ? op.filtro || "minhas" : "minhas", pessoa: "", aberta: null, nova: null, verFeitas: false, direto: !!(op.aberta || op.nova), mais: {} };
+  tarTela = { filtro: tudo ? op.filtro || "minhas" : "minhas", pessoa: "", st: "", pri: "", cli: "", aberta: null, nova: null, verFeitas: false, direto: !!(op.aberta || op.nova), mais: {} };
   if (tudo && !op.filtro && !tarefas().some(t => minhaTar(t) && abertaTar(t))) tarTela.filtro = "todas";
   $("tar-busca").value = op.busca || "";
   $("tela-tar").hidden = false;
@@ -13724,25 +13745,40 @@ function desenharTar() {
     b.onclick = () => { tarTela.filtro = f; tarTela.pessoa = ""; tarTela.mais = {}; desenharTar(); };
     fil.appendChild(b);
   });
-  // pessoa: nas listas de todos
-  const sel = $("tar-pessoa"); sel.hidden = !tudo || tarTela.filtro === "minhas";
-  if (!sel.hidden) {
-    const pessoas = new Map();
-    todas.forEach(t => (t.resp || []).forEach(p => pessoas.set(p.email, nomePessoa(p))));
-    sel.innerHTML = "";
-    const opt = (v, txt) => { const o = document.createElement("option"); o.value = v; o.textContent = txt; sel.appendChild(o); };
-    opt("", "Todas as pessoas");
-    [...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")).forEach(([e, n]) => opt(e, n));
-    if (!pessoas.has(tarTela.pessoa)) tarTela.pessoa = "";
-    sel.value = tarTela.pessoa;
-  }
-  let lista = todas.filter(filtroTar(tarTela.filtro));
-  if (tarTela.pessoa && !sel.hidden) lista = lista.filter(t => (t.resp || []).some(p => p.email === tarTela.pessoa));
+  /* filtros de situação, prioridade, responsável e cliente (pedido do Gustavo em 13/11/2026, como os do Comercial):
+     a 1ª opção ("Situação", "Prioridade"…) = todas; cada opção mostra quantas tarefas a lista teria com ela (depois da busca e dos outros filtros) */
   const q = semAcento($("tar-busca").value.trim());
-  if (q) lista = lista.filter(t => semAcento([t.titulo, t.cliente, t.desc, ...(t.resp || []).map(nomePessoa), ...(t.sub || []).map(s => s.t)].filter(Boolean).join(" ")).includes(q));
+  const busca = l => q ? l.filter(t => semAcento([t.titulo, t.cliente, t.desc, ...(t.resp || []).map(nomePessoa), ...(t.sub || []).map(s => s.t)].filter(Boolean).join(" ")).includes(q)) : l;
+  const base = busca(todas.filter(filtroTar(tarTela.filtro)));
+  const comPessoa = tudo;                            // equipe de campo só vê as suas: sem o filtro de responsável
+  if (!comPessoa) tarTela.pessoa = "";
+  const baseP = tarTela.filtro === "minhas" ? busca(todas) : base;   // em "Minhas", escolher outra pessoa passa para "Todas"
+  const passaTar = (t, menos) => Object.keys(FILTRO_TAR).every(k => k === menos || !tarTela[k] || FILTRO_TAR[k](t, tarTela[k]));
+  const visivel = t => (tarTela.st === "feito") !== abertaTar(t);   // a lista mostra as abertas (com "Feito", as concluídas)
+  const conta = (k, v) => (k === "pessoa" ? baseP : base).filter(t => passaTar(t, k) && FILTRO_TAR[k](t, v) && (k === "st" || visivel(t))).length;
+  const opcoesTar = (k, primeira, pares) => {
+    const sel = $("tar-" + k), atual = tarTela[k];
+    const lst = pares.map(([v, txt]) => [v, txt, conta(k, v)]).filter(([v, , n]) => n || v === atual);
+    sel.innerHTML = "";
+    for (const [v, txt, n] of [["", primeira, null], ...lst]) { const o = document.createElement("option"); o.value = v; o.textContent = n == null ? txt : `${txt} (${n})`; sel.appendChild(o); }
+    sel.value = lst.some(([v]) => v === atual) ? atual : "";
+    tarTela[k] = sel.value;
+    sel.classList.toggle("sel-ativo", !!sel.value);
+  };
+  opcoesTar("st", "Situação", Object.entries(ST_TAR));
+  opcoesTar("pri", "Prioridade", [...Object.entries(PRI), ["-", "Sem prioridade"]]);
+  $("tar-pessoa").hidden = !comPessoa;
+  if (comPessoa) {
+    const pessoas = new Map();
+    baseP.forEach(t => (t.resp || []).forEach(p => pessoas.set(p.email, nomePessoa(p))));
+    opcoesTar("pessoa", "Responsável", [...[...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")), ["-", "Sem responsável"]]);
+  }
+  opcoesTar("cli", "Cliente", [...[...new Set(base.map(t => t.cliente).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR")).map(c => [c, c]), ["-", "Sem cliente"]]);
+  const lista = base.filter(t => passaTar(t));
   const alvo = $("tar-lista"); alvo.innerHTML = "";
   if (!colTar.dados.lido && !Object.keys(colTar.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as tarefas…" : "Sem internet e sem tarefas guardadas neste aparelho."));
-  else if (!lista.length) alvo.appendChild(el("p", "avcb-nota", q ? "Nenhuma tarefa encontrada." : tarTela.filtro === "atrasadas" ? "Nenhuma tarefa atrasada." : tarTela.filtro === "minhas" ? "Nenhuma tarefa com você." + (tudo ? " Toque em + Nova para criar uma." : "") : "Nenhuma tarefa ainda. Toque em + Nova para criar uma."));
+  else if (!lista.length && filtrosTarAtivos()) { const p = el("p", "avcb-nota", "Nenhuma tarefa com esses filtros. "); p.appendChild(botaoLimparTar()); alvo.appendChild(p); }
+  else if (!lista.length) alvo.appendChild(el("p", "avcb-nota", q ? "Nenhuma tarefa encontrada." :tarTela.filtro === "atrasadas" ? "Nenhuma tarefa atrasada." : tarTela.filtro === "minhas" ? "Nenhuma tarefa com você." + (tudo ? " Toque em + Nova para criar uma." : "") : "Nenhuma tarefa ainda. Toque em + Nova para criar uma."));
   else listaTar(lista, alvo);
   $("tar-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando as últimas tarefas guardadas. Para mudar, conecte o aparelho.";
 }
@@ -13772,12 +13808,16 @@ function compTar(a, b) {
 }
 function listaTar(lista, alvo) {
   const abertas = lista.filter(abertaTar), feitas = lista.filter(t => !abertaTar(t));
-  const vis = [...abertas, ...(tarTela.verFeitas ? feitas.sort((a, b) => (b.feitoEm || b.atualizado || "").localeCompare(a.feitoEm || a.atualizado || "")).slice(0, 150) : [])].sort(compTar);
+  const soFeitas = tarTela.st === "feito";           // filtro Situação = Feito: mostra as concluídas direto
+  const vis = [...abertas, ...(tarTela.verFeitas || soFeitas ? feitas.sort((a, b) => (b.feitoEm || b.atualizado || "").localeCompare(a.feitoEm || a.atualizado || "")).slice(0, 150) : [])].sort(compTar);
   const atr = abertas.filter(atrasadaTar).length;
-  alvo.appendChild(el("p", "orc-resumo tar-resumo", `${abertas.length} tarefa${abertas.length === 1 ? "" : "s"} aberta${abertas.length === 1 ? "" : "s"}` + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : "")));
+  const res = el("p", "orc-resumo tar-resumo", soFeitas ? `${feitas.length} tarefa${feitas.length === 1 ? "" : "s"} concluída${feitas.length === 1 ? "" : "s"}` + (feitas.length > 150 ? " (as 150 mais recentes)" : "")
+    : `${abertas.length} tarefa${abertas.length === 1 ? "" : "s"} aberta${abertas.length === 1 ? "" : "s"}` + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : ""));
+  if (filtrosTarAtivos()) res.append(" · ", botaoLimparTar());
+  alvo.appendChild(res);
   if (vis.length) alvo.appendChild(tabelaTar(vis));
   else alvo.appendChild(el("p", "avcb-nota", "Nenhuma tarefa aberta aqui."));
-  if (!feitas.length) return;
+  if (!feitas.length || soFeitas) return;
   const b = el("button", "btn sec tar-feitas", `${tarTela.verFeitas ? "Esconder" : "Ver"} as concluídas (${feitas.length})`); b.type = "button";
   b.onclick = () => { tarTela.verFeitas = !tarTela.verFeitas; desenharTar(); };
   alvo.appendChild(b);
@@ -14532,7 +14572,12 @@ function formNovaFu() {
 $("tar-voltar").onclick = () => { if (tarTela?.aberta || tarTela?.nova) voltarListaTar(); else fecharTar(); };
 $("tar-nova").onclick = () => novaTarefa();
 $("tar-busca").oninput = () => { clearTimeout(desenharTar.t); desenharTar.t = setTimeout(desenharTar, 200); };
-$("tar-pessoa").onchange = () => { if (tarTela) { tarTela.pessoa = $("tar-pessoa").value; desenharTar(); } };
+["st", "pri", "pessoa", "cli"].forEach(k => $("tar-" + k).onchange = () => {
+  if (!tarTela) return;
+  tarTela[k] = $("tar-" + k).value;
+  if (k === "pessoa" && tarTela.pessoa && tarTela.filtro === "minhas") tarTela.filtro = "todas";   // outra pessoa: sai de "Minhas"
+  desenharTar();
+});
 $("fu-voltar").onclick = () => { if (fuTela?.aberta || fuTela?.nova) voltarListaFu(); else fecharFunil(); };
 $("fu-nova").onclick = () => novaOport();
 $("fu-busca").oninput = () => { clearTimeout(desenharFunil.t); desenharFunil.t = setTimeout(() => { if (fuTela) { fuTela.mais = {}; fuTela.limTab = 150; } desenharFunil(); }, 200); };
