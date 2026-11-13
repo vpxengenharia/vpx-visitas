@@ -439,6 +439,20 @@ button,input,label{font:inherit}
 .dre-anual tr.dre-caixa td{color:var(--suave);border-top:2px solid var(--linha)}
 .dre-anual tr{cursor:default}
 @media (prefers-color-scheme:dark){.dre-tab tr.dre-res td,.dre-anual tr.dre-res td{background:rgba(255,255,255,.08)}}
+/* cadastros: centros de custo e parceiros (13/11/2026) */
+.cad-filtros{margin:12px 0 0}
+.cad-st{margin-top:12px}
+.cad-tab .cad-c-cod{width:96px;font-weight:700;font-variant-numeric:tabular-nums}
+.cad-tab .cad-c-st{width:92px}
+.cad-cli{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.cad-cli .btn{width:auto;min-height:44px;padding:0 16px}
+.cad-form .chips button[disabled]{opacity:.7}
+@container (min-width:860px){
+  .cad-tab .cad-c-cli{width:220px}.cad-tab .cad-c-n{width:110px;text-align:right}
+  .cad-tab .cad-c-tipo{width:110px}.cad-tab .cad-c-doc{width:170px;font-variant-numeric:tabular-nums}.cad-tab .cad-c-tel{width:140px}.cad-tab .cad-c-pag{width:200px;color:var(--suave);font-size:14px}
+  .cad-filtros{grid-template-columns:minmax(0,1fr) 220px}
+  .cad-filtros .avcb-busca{grid-column:auto}
+}
 /* contas a pagar e receber */
 #cp-tipo{margin-bottom:12px}
 .cp-novos{display:flex;gap:8px}
@@ -2380,6 +2394,7 @@ span.fu-orc-lin{cursor:default}
     </div>
     <div id="fx-w" hidden></div><!-- fluxo de caixa (13/11/2026) -->
     <div id="dre-w" hidden></div><!-- DRE (13/11/2026) -->
+    <div id="cad-w" hidden></div><!-- cadastros: centros de custo e parceiros (13/11/2026) -->
     <div id="tr-det" hidden></div>
   </div>
 </div>
@@ -2791,11 +2806,12 @@ const CONFIG = {
   // responsáveis técnicos que assinam os laudos (da placa institucional da VPX)
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
   subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
-  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i, /^00 - Tarefas$/i, /^00 - Funil Comercial$/i],
+  ignorar: [/^01 - Arquivado$/i, /-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i, /^00 - Tarefas$/i, /^00 - Funil Comercial$/i, /^00 - Centros de Custo$/i],
   pastaOS: "00 - Ordens de Serviço",           // dentro de 02 - Clientes: um .json por ordem de serviço (OS-0001.json…)
   pastaEquip: "00 - Extintores e Mangueiras",  // dentro de 02 - Clientes: um .json por cliente com os grupos de extintores e mangueiras
   pastaFichas: "00 - Fichas dos Clientes",     // dentro de 02 - Clientes: um .json por cliente com os dados e os contatos (ficha do cliente)
   pastaTarefas: "00 - Tarefas",                // dentro de 02 - Clientes: tarefas da equipe, em 8 arquivos (tarefas-00.json … tarefas-07.json)
+  pastaCentros: "00 - Centros de Custo",       // dentro de 02 - Clientes: cadastro de centros de custo (centros-00/01.json; 13/11/2026)
   pastaFunil: "00 - Funil Comercial",          // dentro de 02 - Clientes: oportunidades do funil comercial, em 32 arquivos (funil-00.json …)
   admins: ["gustavoponchio@vpxengenharia.com.br"],                     // administrador principal (área ⚙ e tudo liberado)
   contatoVPX: [                                                        // no fim do aviso ao cliente (mensagem e PDF); tirados do site da VPX
@@ -5121,11 +5137,13 @@ function montarCentros() {
   const opc = (valor, texto) => { const o = document.createElement("option"); o.value = valor; o.textContent = texto; s.appendChild(o); };
   opc("", "Nenhum");
   // "código · descrição", em ordem crescente de código (0584, 0717, …, 1139); os sem descrição vão por último
-  const com = CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true }));
-  const sem = CONFIG.centrosCusto.filter(([, d]) => !d);
+  const antes = s.value;                           // a lista é refeita quando o cadastro muda: mantém o escolhido
+  const com = centrosCusto().filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true }));
+  const sem = centrosCusto().filter(([, d]) => !d);
   com.forEach(([n, d]) => opc(n, `${n} · ${d}`));
   sem.forEach(([n]) => opc(n, n));
   opc(OUTRO, "Outro (digitar)");
+  if (antes && [...s.options].some(o => o.value === antes)) s.value = antes;
 }
 function aoEscolherCentro() {
   const outro = $("centro-sel").value === OUTRO;
@@ -7544,7 +7562,7 @@ function lerNomeComp(nome, t) {
   if (t === "compra" && Object.values(PAGAMENTOS).includes(p[3])) { r.forma = p[3]; i = 4; }
   const resto = p.slice(i), iv = resto.findIndex(x => /^R\$ /.test(x));
   if (iv >= 0) { r.valor = lerValor(resto[iv].slice(3)); r.desc = resto.slice(0, iv).join("_"); r.centro = resto.slice(iv + 1).join("_"); }
-  else if (resto.length > 1 && CONFIG.centrosCusto.some(([n]) => n.replace(/[\/_]/g, "-") === resto[resto.length - 1])) { r.centro = resto.pop(); r.desc = resto.join("_"); }
+  else if (resto.length > 1 && centrosTodos().some(([n]) => n.replace(/[\/_]/g, "-") === resto[resto.length - 1])) { r.centro = resto.pop(); r.desc = resto.join("_"); }
   else r.desc = resto.join("_");               // comprovante antigo (antes do campo valor)
   return r;
 }
@@ -10095,18 +10113,18 @@ function campoCentroPC(f) {
   const sel = document.createElement("select");
   const opc = (v, t) => { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); };
   opc("", "Escolha o centro de custo");
-  CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true })).forEach(([n, d]) => opc(n, `${n} · ${d}`));
-  CONFIG.centrosCusto.filter(([, d]) => !d).forEach(([n]) => opc(n, n));
+  centrosCusto().filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true })).forEach(([n, d]) => opc(n, `${n} · ${d}`));
+  centrosCusto().filter(([, d]) => !d).forEach(([n]) => opc(n, n));
   opc(OUTRO, "Outro (digitar)");
   const outro = document.createElement("input"); outro.placeholder = "Digite o centro de custo"; outro.autocomplete = "off"; outro.style.marginTop = "6px";
-  const ehOutro = pcNovo.centro && !CONFIG.centrosCusto.some(([n]) => n === pcNovo.centro);
+  const ehOutro = pcNovo.centro && !centrosCusto().some(([n]) => n === pcNovo.centro);
   sel.value = ehOutro ? OUTRO : pcNovo.centro || "";
   outro.hidden = !ehOutro; outro.value = ehOutro ? pcNovo.centro : "";
   const mudouCentro = () => {
     const v = sel.value;
     outro.hidden = v !== OUTRO;
     pcNovo.centro = v === OUTRO ? outro.value.trim() : v;
-    pcNovo.centroDesc = v === OUTRO ? "" : (CONFIG.centrosCusto.find(([n]) => n === v)?.[1] || "");
+    pcNovo.centroDesc = v === OUTRO ? "" : (centrosTodos().find(([n]) => n === v)?.[1] || "");
     gravarRascPC(); atualizarEnvioPC();
   };
   sel.onchange = () => { mudouCentro(); if (sel.value === OUTRO) outro.focus(); };
@@ -10242,7 +10260,7 @@ function desenharNovoPC() {
   if (pag) blocoFavoritosPP(f);
   campoCentroPC(f);
   if (pag) {
-    textoPC(f, "Favorecido (quem recebe) *", "favorecido", { dica: "Empresa ou pessoa" });
+    ligarParceiroPC(textoPC(f, "Favorecido (quem recebe) *", "favorecido", { dica: "Empresa ou pessoa (escolha um parceiro cadastrado)" }).querySelector("input"));
     botaoFavoritoPP(f);
     textoPC(f, "CPF/CNPJ do favorecido", "docFav", { num: true });
     textoPC(f, "Valor (R$) *", "valor", { num: true, dica: "Ex.: 1.250,00" });
@@ -14783,7 +14801,7 @@ const refTr = r => r.st === "pago" ? (r.pg || r.venc || r.comp || "") : (r.venc 
 const vencidaTr = r => r.st === "pend" && !!r.venc && r.venc < dataISO();
 const stTrTxt = r => r.st === "pago" ? TR_TIPO[r.tipo].pago : r.st === "canc" ? "Cancelada" : vencidaTr(r) ? "Vencida" : "Pendente";
 const clsTr = r => r.st === "pago" ? "ok" : r.st === "canc" ? "pc-neu" : vencidaTr(r) ? "crit" : "warn";
-const centroDescTr = c => CONFIG.centrosCusto.find(([n]) => n === c)?.[1] || "";
+const centroDescTr = c => centrosTodos().find(([n]) => n === c)?.[1] || "";
 const centroTxtTr = c => c ? c + (centroDescTr(c) ? " · " + centroDescTr(c) : "") : "";
 const somaTr = l => l.reduce((s, r) => s + (+r.valor || 0), 0);
 const buscaTr = r => semAcento([r.desc, r.parc, r.cat, r.centro, centroDescTr(r.centro), r.conta, r.forma, r.obs, r.parcela, r.valor != null && moedaBR(r.valor),
@@ -14816,25 +14834,27 @@ function abrirTransacoes(op = {}) {
   $("tr-importar").hidden = !ehAdmin();
   desenharTr();
   sincronizarCol(colTr, true);
+  sincronizarCol(colPa);                         // parceiros (sugestões no lançamento)
 }
 function fecharTr(voltar = true) {
   if ($("tela-tr").hidden) return;
   $("tela-tr").hidden = true;
   document.body.style.overflow = "";
-  if (trTela) { trTela.aberto = trTela.novo = null; }
+  if (trTela) { trTela.aberto = trTela.novo = null; if (trTela.cad) trTela.cad.edit = null; }
   if (voltar && history.state?.tr) history.back();
 }
 
 function desenharTr() {
   if (!trTela || $("tela-tr").hidden) return;
-  const emForm = !!(trTela.aberto || trTela.novo), contas = trTela.modo === "contas", fluxo = trTela.modo === "fluxo", dre = trTela.modo === "dre";
-  $("tr-lista-w").hidden = emForm || contas || fluxo || dre; $("cp-w").hidden = emForm || !contas; $("fx-w").hidden = emForm || !fluxo; $("dre-w").hidden = emForm || !dre; $("tr-det").hidden = !emForm;
-  const titulo = contas ? "Contas a pagar e receber" : fluxo ? "Fluxo de caixa" : dre ? "DRE (resultado)" : "Transações";
+  const emForm = !!(trTela.aberto || trTela.novo), contas = trTela.modo === "contas", fluxo = trTela.modo === "fluxo", dre = trTela.modo === "dre", cad = trTela.modo === "cad";
+  $("tr-lista-w").hidden = emForm || contas || fluxo || dre || cad; $("cp-w").hidden = emForm || !contas; $("fx-w").hidden = emForm || !fluxo; $("dre-w").hidden = emForm || !dre; $("cad-w").hidden = emForm || !cad; $("tr-det").hidden = !emForm;
+  const titulo = contas ? "Contas a pagar e receber" : fluxo ? "Fluxo de caixa" : dre ? "DRE (resultado)" : cad ? "Cadastros" : "Transações";
   $("tela-tr").querySelector(".avcb-topo strong").textContent = titulo; $("tela-tr").setAttribute("aria-label", titulo);
   if (emForm) return;                               // o formulário é montado uma vez (abrirFormTr): uma sincronização não apaga o que está sendo digitado
   if (contas) { desenharContas(); return; }
   if (fluxo) { if (trTela.fx) desenharFluxo(); return; }
   if (dre) { if (trTela.dre) desenharDre(); return; }
+  if (cad) { if (trTela.cad) desenharCad(); return; }
   const tp = trTela.tipo, T = TR_TIPO[tp];
   $("tr-tipos").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === tp)));
   $("tr-novo").textContent = T.novo;
@@ -14979,15 +14999,15 @@ function montarFormTr(r) {
   const sCat = sel([...cats, [OUTRO, "Outra (digitar)"]], r.cat, "Escolha a categoria");
   const iCatOutra = inp("text", "", { placeholder: "Nome da categoria", maxLength: 40 }); iCatOutra.hidden = true; iCatOutra.style.marginTop = "6px";
   sCat.onchange = () => { iCatOutra.hidden = sCat.value !== OUTRO; if (!iCatOutra.hidden) iCatOutra.focus(); };
-  const centrosLista = [...CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true })).map(([n, d]) => [n, `${n} · ${d}`]),
-    ...CONFIG.centrosCusto.filter(([, d]) => !d).map(([n]) => [n, n])];
+  const centrosLista = [...centrosCusto().filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true })).map(([n, d]) => [n, `${n} · ${d}`]),
+    ...centrosCusto().filter(([, d]) => !d).map(([n]) => [n, n])];
   for (const c of new Set(todos.map(x => x.centro).filter(Boolean).concat(r.centro || []))) if (!centrosLista.some(([n]) => n === c)) centrosLista.push([c, c]);
   const sCentro = sel([...centrosLista, [OUTRO, "Outro (digitar)"]], r.centro, "Sem centro de custo");
   const iCentroOutro = inp("text", "", { placeholder: "Centro de custo (ex.: número do contrato)", maxLength: 40 }); iCentroOutro.hidden = true; iCentroOutro.style.marginTop = "6px";
   sCentro.onchange = () => { iCentroOutro.hidden = sCentro.value !== OUTRO; if (!iCentroOutro.hidden) iCentroOutro.focus(); };
   // parceiro: o que já foi usado nas transações e os favorecidos das solicitações de pagamento
   const dl = document.createElement("datalist"); dl.id = "tr-parceiros";
-  [...new Set([...todos.map(x => x.parc), ...Object.values(pedidos).map(p => p.favorecido)].filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"))
+  [...new Set([...parceirosDe(r.tipo).map(p => p.nome), ...todos.map(x => x.parc), ...Object.values(pedidos).map(p => p.favorecido)].filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"))
     .forEach(n => { const o = document.createElement("option"); o.value = n; dl.appendChild(o); });
   const iParc = inp("text", r.parc, { maxLength: 100 }); iParc.setAttribute("list", "tr-parceiros");
   const contas = [...new Set([...TR_CONTAS, ...todos.map(x => x.conta).filter(Boolean), r.conta].filter(Boolean))];
@@ -15471,6 +15491,244 @@ async function exportarDre(colunas, anual) {          // colunas: [[título, som
     const nome = `DRE ${anual ? D.ano : colunas[0][0]}${D.centro ? " - " + D.centro : ""} - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+/* Cadastros do Financeiro: centros de custo e parceiros comerciais (pedido do Gustavo em 13/11/2026: "a aba Cadastro, onde eu
+   possa cadastrar os centros de custos, dar nome a eles, para ser usado ao longo de todo o sistema; também parceiros comerciais",
+   como em Fin365 › Cadastros). Decisões dele: centro = código, descrição, CLIENTE LIGADO e ativo/inativo; parceiro = os campos
+   do Fin365 + DADOS PARA PAGAR (PIX, banco, agência, conta); cadastra e edita quem pode as Transações (podeTrans); os cadastros
+   do Fin365 foram trazidos (33 centros e 85 parceiros, 13/11/2026). Mesmo sistema de baldes das tarefas:
+   - centros: 02 - Clientes › 00 - Centros de Custo (centros-00/01.json; toda a equipe lê, porque a lista aparece no
+     comprovante, nas solicitações e nas transações) — { id, codigo, desc, cliente, ativo };
+   - parceiros: 02 - Financeiro › 03 - Pedidos de Pagamento › Parceiros (parceiros-00…03.json; quem faz solicitação de
+     pagamento ou vê as transações) — { id, nome, fantasia, tipo, aparece: "rec" | "desp" | "ambos", pessoa: "PF" | "PJ", doc,
+     email, tel, cep, logradouro, numero, compl, bairro, cidade, uf, pix, banco, agencia, conta, obs, ativo }.
+   centrosCusto() (ativos, para escolher) e centrosTodos() (para achar a descrição) substituem a lista fixa CONFIG.centrosCusto,
+   que continua valendo enquanto o cadastro não foi lido no aparelho. */
+async function baseParceiros() { return (await garantirFilhas(await basePedidos("pag"), ["Parceiros"])).id; }
+function aoMudarCad() {
+  if (trTela?.modo === "cad") redesTr();
+  if ($("centro-sel") && document.activeElement !== $("centro-sel")) montarCentros();   // a lista do comprovante acompanha o cadastro
+}
+const colCc = colecao({ chave: "vpx_cc", pasta: CONFIG.pastaCentros, prefixo: "centros", n: 2, pode: () => liberado(), aoMudar: aoMudarCad });
+const colPa = colecao({ chave: "vpx_par", prefixo: "parceiros", n: 4, base: baseParceiros, pode: () => podeTipo("pag") || podeTrans(), aoMudar: aoMudarCad });
+const centrosCad = () => Object.values(regsDe(colCc));
+const parceiros = () => Object.values(regsDe(colPa));
+const ordemCc = (a, b) => String(a[0]).localeCompare(String(b[0]), "pt-BR", { numeric: true });
+const centrosTodos = () => { const c = centrosCad(); return c.length ? c.map(x => [x.codigo, x.desc || ""]).sort(ordemCc) : CONFIG.centrosCusto; };
+const centrosCusto = () => { const c = centrosCad(); return c.length ? c.filter(x => x.ativo !== false).map(x => [x.codigo, x.desc || ""]).sort(ordemCc) : CONFIG.centrosCusto; };
+const TIPOS_PAR = ["Cliente", "Fornecedor", "Sócio", "Colaborador", "Parceiro", "Outro"];
+const APARECE_PAR = [["rec", "Receitas"], ["desp", "Despesas"], ["ambos", "Ambos"]];
+const UFS = ["AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"];
+const docBR = d => { const n = digitos(d); return n.length === 14 ? n.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : n.length === 11 ? n.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4") : String(d || "").trim(); };
+const pagarPar = p => p.pix ? "PIX " + p.pix : (p.banco || p.conta) ? [p.banco, p.agencia && "ag. " + p.agencia, p.conta && "c/c " + p.conta].filter(Boolean).join(" · ") : "";
+const endPar = p => [[p.logradouro, p.numero].filter(Boolean).join(", "), p.compl, p.bairro, [p.cidade, p.uf].filter(Boolean).join("/")].filter(Boolean).join(" — ");
+// parceiros ativos que aparecem no tipo de lançamento ("desp" ou "rec"); sem tipo, todos
+const parceirosDe = tp => parceiros().filter(p => p.ativo !== false && (!tp || !p.aparece || p.aparece === "ambos" || p.aparece === tp)).sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"));
+const usoCentro = cod => trs().filter(r => r.centro === cod).length;
+const usoParceiro = p => trs().filter(r => r.parc && semAcento(r.parc) === semAcento(p.nome)).length;
+
+function abrirCadastros(op = {}) {
+  abrirTransacoes({ modo: "cad" });
+  if (!trTela) return;
+  trTela.cad = { aba: op.aba || "centros", st: "ativos", tipo: "", edit: null };
+  sincronizarCol(colCc, true); sincronizarCol(colPa, true);
+  desenharTr();
+}
+function desenharCad() {
+  const C = trTela.cad, w = $("cad-w");
+  if (C.edit) { if (!w.querySelector(".cad-form")) montarFormCad(); return; }   // o formulário é montado uma vez (uma sincronização não apaga o que se digita)
+  const rol = $("tela-tr").querySelector(".avcb-corpo").scrollTop, foco = document.activeElement?.id;
+  w.innerHTML = "";
+  const ab = el("div", "abas pc-tipos"); ab.setAttribute("role", "tablist");
+  for (const [k, rot, n] of [["centros", "Centros de custo", centrosCad().filter(x => x.ativo !== false).length], ["parceiros", "Parceiros", parceiros().filter(x => x.ativo !== false).length]]) {
+    const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(C.aba === k));
+    b.onclick = () => { if (C.aba === k) return; C.aba = k; C.tipo = ""; $("cad-busca") && ($("cad-busca").value = ""); desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
+    ab.appendChild(b);
+  }
+  w.appendChild(ab);
+  const centros = C.aba === "centros", pode = podeTrans();
+  if (pode) { const nv = el("button", "btn prim", centros ? "+ Novo centro de custo" : "+ Novo parceiro"); nv.type = "button"; nv.onclick = () => abrirFormCad(null); w.appendChild(nv); }
+  const filtros = el("div", "orc-filtros cad-filtros");
+  const busca = document.createElement("input"); busca.type = "search"; busca.className = "avcb-busca"; busca.id = "cad-busca"; busca.placeholder = "Buscar"; busca.autocomplete = "off";
+  busca.setAttribute("aria-label", centros ? "Buscar por código, descrição ou cliente" : "Buscar por nome, fantasia, CPF/CNPJ, telefone, e-mail ou cidade");
+  busca.value = C.busca || ""; busca.oninput = () => { C.busca = busca.value; clearTimeout(desenharCad.t); desenharCad.t = setTimeout(() => desenharTr(), 200); };
+  filtros.appendChild(busca);
+  if (!centros) { const s = document.createElement("select"); s.setAttribute("aria-label", "Tipo"); opcoesSel(s, [["", "Todos os tipos"], ...TIPOS_PAR.map(t => [t, t])], C.tipo); s.onchange = () => { C.tipo = s.value; desenharTr(); }; filtros.appendChild(s); }
+  w.appendChild(filtros);
+  const cx = el("div", "chips avcb-filtro cad-st");
+  const regs = centros ? centrosCad() : parceiros(), q = semAcento((C.busca || "").trim());
+  const passaQ = r => !q || semAcento(centros ? [r.codigo, r.desc, r.cliente].join(" ") : [r.nome, r.fantasia, r.tipo, r.doc, digitos(r.doc), r.tel, digitos(r.tel), r.email, r.cidade, r.bairro, r.pix, r.obs].filter(Boolean).join(" ")).includes(q);
+  const base = regs.filter(r => passaQ(r) && (centros || !C.tipo || r.tipo === C.tipo));
+  for (const [k, rot] of [["ativos", "Ativos"], ["inativos", "Inativos"], ["todos", "Todos"]]) {
+    const n = base.filter(r => k === "todos" || (k === "ativos") === (r.ativo !== false)).length;
+    const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("aria-pressed", String(C.st === k)); b.onclick = () => { C.st = k; desenharTr(); };
+    cx.appendChild(b);
+  }
+  w.appendChild(cx);
+  const vis = base.filter(r => C.st === "todos" || (C.st === "ativos") === (r.ativo !== false))
+    .sort(centros ? ((a, b) => String(a.codigo).localeCompare(String(b.codigo), "pt-BR", { numeric: true })) : ((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")));
+  w.appendChild(el("p", "orc-resumo", vis.length ? `${vis.length} ${centros ? "centro" + (vis.length === 1 ? "" : "s") + " de custo" : "parceiro" + (vis.length === 1 ? "" : "s")}` : ""));
+  const col = centros ? colCc : colPa;
+  if (!vis.length) w.appendChild(vazio(centros ? "predio" : "contatos", q ? "Nada com essa busca" : !col.dados.lido ? "Carregando…" : col.erro ? "Não foi possível ler o cadastro" : centros ? "Nenhum centro de custo" : "Nenhum parceiro",
+    col.erro ? (col.erro.semAcesso ? col.erro.message : "Confira a internet e abra de novo.") : q ? "Confira o texto ou troque o filtro." : ""));
+  else w.appendChild(centros ? tabelaCentros(vis) : tabelaParceiros(vis));
+  const nota = el("p", "avcb-nota", centros ? "Os centros ativos aparecem para escolher no comprovante, nas solicitações e nas transações. Inativo continua nos lançamentos antigos, mas não aparece para escolher."
+    : "Ao escolher um parceiro na solicitação de pagamento, o app preenche CPF/CNPJ e os dados para pagar (PIX ou banco). Inativo não aparece para escolher.");
+  w.appendChild(nota);
+  if (!pode) w.appendChild(el("p", "avcb-nota", "Só o administrador e quem tem as Transações cadastram e editam."));
+  $("tela-tr").querySelector(".avcb-corpo").scrollTop = rol;
+  if (foco === "cad-busca") { busca.focus(); busca.setSelectionRange(busca.value.length, busca.value.length); }
+}
+function cabTab(cols) {                           // cabeçalho simples (sem ordenar): [[texto, classe]]
+  const tb = el("table", "orc-tab cad-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  for (const [t, c] of cols) { const th = el("th", c); th.scope = "col"; th.appendChild(el("span", "", t)); tr.appendChild(th); }
+  cab.appendChild(tr); tb.append(cab, corpo); return [tb, corpo];
+}
+const etiquetaAtivo = r => el("span", "avcb-sit " + (r.ativo === false ? "pc-neu" : "ok"), r.ativo === false ? "Inativo" : "Ativo");
+function tabelaCentros(vis) {
+  const [tb, corpo] = cabTab([["Código", "cad-c-cod"], ["Descrição", "orc-c-cli"], ["Cliente", "tr-so-pc cad-c-cli"], ["Lançamentos", "tr-so-pc cad-c-n"], ["Situação", "cad-c-st"]]);
+  for (const r of vis) {
+    const tr = el("tr"); tr.tabIndex = 0;
+    const d = el("td", "orc-c-cli"); d.appendChild(el("span", "orc-cli", r.desc || "—")); if (r.cliente) d.appendChild(el("small", "orc-sub tr-sub-cel", r.cliente));
+    const st = el("td", "cad-c-st"); st.appendChild(etiquetaAtivo(r));
+    tr.append(el("td", "cad-c-cod", r.codigo), d, el("td", "tr-so-pc cad-c-cli", r.cliente || "—"), el("td", "tr-so-pc cad-c-n", String(usoCentro(r.codigo) || "—")), st);
+    tr.onclick = () => abrirFormCad(r); tr.onkeydown = e => { if (e.key === "Enter") abrirFormCad(r); };
+    corpo.appendChild(tr);
+  }
+  return tb;
+}
+function tabelaParceiros(vis) {
+  const [tb, corpo] = cabTab([["Nome", "orc-c-cli"], ["Tipo", "tr-so-pc cad-c-tipo"], ["CPF/CNPJ", "tr-so-pc cad-c-doc"], ["Telefone", "tr-so-pc cad-c-tel"], ["Dados para pagar", "tr-so-pc cad-c-pag"], ["Situação", "cad-c-st"]]);
+  for (const r of vis) {
+    const tr = el("tr"); tr.tabIndex = 0;
+    const d = el("td", "orc-c-cli"); d.appendChild(el("span", "orc-cli", r.nome || "—"));
+    const sub = [r.fantasia && semAcento(r.fantasia) !== semAcento(r.nome) && r.fantasia].filter(Boolean).join("");
+    if (sub) d.appendChild(el("small", "orc-sub", sub));
+    d.appendChild(el("small", "orc-sub tr-sub-cel", [r.tipo, r.doc && docBR(r.doc), pagarPar(r)].filter(Boolean).join(" · ")));
+    const st = el("td", "cad-c-st"); st.appendChild(etiquetaAtivo(r));
+    tr.append(d, el("td", "tr-so-pc cad-c-tipo", r.tipo || "—"), el("td", "tr-so-pc cad-c-doc", r.doc ? docBR(r.doc) : "—"), el("td", "tr-so-pc cad-c-tel", r.tel || "—"), el("td", "tr-so-pc cad-c-pag", pagarPar(r) || "—"), st);
+    tr.onclick = () => abrirFormCad(r); tr.onkeydown = e => { if (e.key === "Enter") abrirFormCad(r); };
+    corpo.appendChild(tr);
+  }
+  return tb;
+}
+function abrirFormCad(r) {
+  const C = trTela.cad;
+  C.edit = r ? JSON.parse(JSON.stringify(r)) : (C.aba === "centros" ? { ativo: true, codigo: "", desc: "", cliente: "" } : { ativo: true, nome: "", tipo: "Fornecedor", aparece: "desp", pessoa: "PJ" });
+  C.edit._novo = !r; C.edit._aba = C.aba;
+  history.pushState({ tr: true, trSub: true }, "");
+  $("cad-w").innerHTML = ""; montarFormCad();
+  $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0;
+}
+function voltarCad() {
+  if (history.state?.trSub) history.back();        // o popstate volta para a lista
+  else { trTela.cad.edit = null; desenharTr(); }
+}
+function montarFormCad() {
+  const C = trTela.cad, e = C.edit, w = $("cad-w"), centros = e._aba === "centros", pode = podeTrans();
+  w.innerHTML = "";
+  const v = el("button", "laudo-link", "‹ " + (centros ? "Centros de custo" : "Parceiros")); v.type = "button"; v.onclick = voltarCad; w.appendChild(v);
+  w.appendChild(el("h2", "secao", e._novo ? (centros ? "Novo centro de custo" : "Novo parceiro") : (centros ? "Centro de custo " + e.codigo : e.nome)));
+  const f = el("form", "tr-form cad-form"); f.noValidate = true;
+  const campo = (rot, x) => { const l = el("label", "campo"); l.appendChild(el("span", "", rot)); l.appendChild(x); return l; };
+  const inp = (k, extra = {}) => { const i = document.createElement("input"); i.type = "text"; i.value = e[k] || ""; i.autocomplete = "off"; Object.assign(i, extra); i.oninput = () => { e[k] = i.value; }; i.disabled = !pode; return i; };
+  const par = (...cs) => { const d = el("div", "tr-par"); d.append(...cs); return d; };
+  const chips = (rot, k, ops) => { const wc = el("div", "campo"); wc.appendChild(el("span", "", rot)); const c = el("div", "chips");
+    for (const o of ops) { const [val, txt] = Array.isArray(o) ? o : [o, o]; const b = el("button", "", txt); b.type = "button"; b.disabled = !pode; b.setAttribute("aria-pressed", String(e[k] === val));
+      b.onclick = () => { e[k] = val; c.querySelectorAll("button").forEach((x, i) => x.setAttribute("aria-pressed", String((Array.isArray(ops[i]) ? ops[i][0] : ops[i]) === val))); if (k === "tipo" && !e._apareceMexido) { e.aparece = val === "Cliente" ? "rec" : ["Sócio", "Outro"].includes(val) ? "ambos" : "desp"; c.closest("form").querySelectorAll("[data-ap] button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v === e.aparece))); } if (k === "aparece") e._apareceMexido = true; };
+      b.dataset.v = val; c.appendChild(b); }
+    if (k === "aparece") wc.dataset.ap = "1";
+    wc.appendChild(c); return wc; };
+  if (centros) {
+    const iCod = inp("codigo", { maxLength: 40, placeholder: "Ex.: 1160 (o número do orçamento)" });
+    f.append(campo("Código *", iCod), campo("Descrição", inp("desc", { maxLength: 140, placeholder: "Ex.: Condomínio Nau - Corretivas" })));
+    const wc = el("div", "campo"); wc.appendChild(el("span", "", "Cliente ligado"));
+    const linhaCli = el("div", "cad-cli");
+    const pintarCli = () => {
+      linhaCli.innerHTML = "";
+      linhaCli.appendChild(el("strong", "", e.cliente || "Nenhum"));
+      if (!pode) return;
+      const b = el("button", "btn sec", e.cliente ? "Trocar" : "Escolher cliente"); b.type = "button";
+      b.onclick = () => abrirDialogo(c => { e.cliente = c; pintarCli(); }, true);
+      linhaCli.appendChild(b);
+      if (e.cliente) { const t = el("button", "laudo-link", "Tirar"); t.type = "button"; t.onclick = () => { e.cliente = ""; pintarCli(); }; linhaCli.appendChild(t); }
+    };
+    pintarCli(); wc.appendChild(linhaCli); f.appendChild(wc);
+    f.appendChild(chips("Situação", "ativo", [[true, "Ativo"], [false, "Inativo"]]));
+    if (!e._novo) f.appendChild(el("p", "avcb-nota", `Usado em ${usoCentro(e.codigo)} lançamento(s) das transações.`));
+  } else {
+    f.append(campo("Nome / Razão social *", inp("nome", { maxLength: 120 })), chips("Tipo *", "tipo", TIPOS_PAR), chips("Aparece em", "aparece", APARECE_PAR),
+      campo("Nome fantasia", inp("fantasia", { maxLength: 120 })), chips("Pessoa", "pessoa", [["PF", "Física (CPF)"], ["PJ", "Jurídica (CNPJ)"]]),
+      par(campo("CPF/CNPJ", inp("doc", { inputMode: "numeric", maxLength: 20 })), campo("Telefone", inp("tel", { inputMode: "tel", maxLength: 20 }))),
+      campo("E-mail", inp("email", { type: "email", maxLength: 120 })));
+    f.appendChild(el("h3", "avcb-grupo", "Dados para pagar"));
+    f.append(campo("Chave PIX", inp("pix", { maxLength: 120 })), par(campo("Banco", inp("banco", { maxLength: 60 })), campo("Agência", inp("agencia", { inputMode: "numeric", maxLength: 12 }))), campo("Conta", inp("conta", { maxLength: 20 })));
+    f.appendChild(el("h3", "avcb-grupo", "Endereço"));
+    const uf = document.createElement("select"); opcoesSel(uf, [["", "UF"], ...UFS.map(u => [u, u])], e.uf || ""); uf.disabled = !pode; uf.onchange = () => { e.uf = uf.value; };
+    f.append(par(campo("CEP", inp("cep", { inputMode: "numeric", maxLength: 9 })), campo("Número", inp("numero", { maxLength: 12 }))), campo("Logradouro", inp("logradouro", { maxLength: 120 })),
+      par(campo("Complemento", inp("compl", { maxLength: 60 })), campo("Bairro", inp("bairro", { maxLength: 60 }))), par(campo("Cidade", inp("cidade", { maxLength: 60 })), campo("UF", uf)));
+    const ob = document.createElement("textarea"); ob.value = e.obs || ""; ob.rows = 3; ob.maxLength = 500; ob.disabled = !pode; ob.oninput = () => { e.obs = ob.value; };
+    f.append(campo("Observações", ob), chips("Situação", "ativo", [[true, "Ativo"], [false, "Inativo"]]));
+    if (!e._novo) f.appendChild(el("p", "avcb-nota", `Usado em ${usoParceiro(e)} lançamento(s) das transações.`));
+  }
+  if (pode) {
+    const ac = el("div", "pc-acoes tr-acoes");
+    const bS = el("button", "btn prim", e._novo ? "Salvar" : "Salvar alterações"); bS.type = "submit"; ac.appendChild(bS);
+    if (!e._novo) { const bX = el("button", "btn sec perigo", "Excluir"); bX.type = "button"; bX.onclick = () => excluirCad(e); ac.appendChild(bX); }
+    f.appendChild(ac);
+    f.onsubmit = async ev => {
+      ev.preventDefault(); if (bS.disabled) return;
+      const dados = { ...e }; delete dados._novo; delete dados._aba; delete dados._apareceMexido;
+      if (centros) {
+        dados.codigo = (dados.codigo || "").trim().replace(/[\/_]/g, "-"); dados.desc = (dados.desc || "").trim();
+        if (!dados.codigo) { aviso("Escreva o código do centro de custo.", true); return; }
+        if (centrosCad().some(x => x.id !== e.id && semAcento(x.codigo) === semAcento(dados.codigo))) { aviso(`Já existe o centro de custo ${dados.codigo}.`, true); return; }
+      } else {
+        dados.nome = (dados.nome || "").trim(); if (!dados.nome) { aviso("Escreva o nome do parceiro.", true); return; }
+        if (dados.doc && digitos(dados.doc).length && !(dados.pessoa === "PF" ? cpfValido(dados.doc) : cnpjValido(dados.doc)) &&
+          !await perguntar({ titulo: `${dados.pessoa === "PF" ? "CPF" : "CNPJ"} não confere`, texto: `${dados.doc} não parece um ${dados.pessoa === "PF" ? "CPF" : "CNPJ"} válido. Salvar assim mesmo?`, sim: "Salvar assim", nao: "Corrigir" })) return;
+        if (dados.doc) dados.doc = docBR(dados.doc);
+        if (dados.tel) dados.tel = telBR(dados.tel);
+        for (const k of ["fantasia", "email", "pix", "banco", "agencia", "conta", "cep", "logradouro", "numero", "compl", "bairro", "cidade", "obs"]) if (typeof dados[k] === "string") dados[k] = dados[k].trim();
+      }
+      bS.disabled = true; bS.textContent = "Salvando…";
+      const col = centros ? colCc : colPa;
+      const ok = e._novo ? !!(await criarReg(col, { ...dados, id: (centros ? "cc-" : "pa-") + novoIdReg() })) : await mudarReg(col, e.id, x => { Object.assign(x, dados); }, "Editou");
+      bS.disabled = false; bS.textContent = e._novo ? "Salvar" : "Salvar alterações";
+      if (!ok) return;
+      aviso(centros ? `Centro de custo ${dados.codigo} salvo.` : `${dados.nome} salvo.`);
+      voltarCad();
+    };
+  }
+  w.appendChild(f);
+}
+async function excluirCad(e) {
+  const centros = e._aba === "centros", n = centros ? usoCentro(e.codigo) : usoParceiro(e);
+  if (n) { aviso(`${centros ? "Este centro de custo" : "Este parceiro"} está em ${n} lançamento(s). Em vez de excluir, marque como Inativo: ele some das listas e continua nos lançamentos.`, true); return; }
+  if (!await confirmarApagar(centros ? `Excluir o centro de custo ${e.codigo}?` : `Excluir ${e.nome}?`, "Sai do cadastro para todos.", "Sim, excluir", "Não, manter")) return;
+  if (await apagarReg(centros ? colCc : colPa, e.id)) { aviso("Excluído do cadastro."); voltarCad(); }
+}
+// solicitação de pagamento: escolher um parceiro do cadastro preenche CPF/CNPJ e os dados para pagar
+function ligarParceiroPC(inp) {
+  if (!inp) return;
+  sincronizarCol(colPa);
+  const lista = parceirosDe("desp");
+  if (!lista.length) return;
+  let dl = $("pc-parceiros");
+  if (!dl) { dl = document.createElement("datalist"); dl.id = "pc-parceiros"; document.body.appendChild(dl); }
+  dl.innerHTML = "";
+  lista.forEach(p => { const o = document.createElement("option"); o.value = p.nome; o.label = [p.fantasia !== p.nome && p.fantasia, p.tipo, p.pix && "PIX"].filter(Boolean).join(" · "); dl.appendChild(o); });
+  inp.setAttribute("list", "pc-parceiros");
+  inp.addEventListener("change", () => {
+    const p = lista.find(x => semAcento(x.nome) === semAcento(inp.value.trim()) || (x.fantasia && semAcento(x.fantasia) === semAcento(inp.value.trim())));
+    if (!p || !pcNovo) return;
+    pcNovo.favorecido = p.nome;
+    if (p.doc) pcNovo.docFav = docBR(p.doc);
+    if (p.pix) { pcNovo.forma = "PIX"; pcNovo.pix = p.pix; }
+    else if (p.banco || p.conta) { pcNovo.forma = "Transferência"; pcNovo.banco = p.banco || ""; pcNovo.agencia = p.agencia || ""; pcNovo.contaBanco = p.conta || ""; }
+    gravarRascPC(); desenharNovoPC();
+    aviso(`Dados de ${p.nome} preenchidos pelo cadastro de parceiros.`);
+  });
 }
 /* Contas a pagar e receber (pedido do Gustavo em 13/11/2026: "implemente agora o contas a pagar/receber", como no Fin365).
    É um modo da tela das Transações (trTela.modo = "contas"), só com os lançamentos pendentes: A pagar (despesas) /
@@ -16837,6 +17095,13 @@ function desenharFin() {
     const gt = el("div", "hub-grade"); gt.style.gridTemplateColumns = "1fr 1fr";
     gt.append(tile("dinheiro", "Despesas", () => abrirTransacoes({ tipo: "desp" })), tile("dinheiro", "Receitas", () => abrirTransacoes({ tipo: "rec" })));
     t.appendChild(gt);
+    // cadastros (13/11/2026): centros de custo e parceiros comerciais
+    t.appendChild(el("p", "hub-rot", "Cadastros"));
+    const lcad = el("div", "hub-lista"), nCc = centrosCad().filter(x => x.ativo !== false).length, nPa = parceiros().filter(x => x.ativo !== false).length;
+    lcad.appendChild(linha("predio", "Centros de custo", nCc ? `${nCc} ativo${nCc === 1 ? "" : "s"}` : "Código, descrição e cliente de cada obra ou contrato", () => abrirCadastros({ aba: "centros" })));
+    lcad.appendChild(linha("contatos", "Parceiros comerciais", nPa ? `${nPa} ativo${nPa === 1 ? "" : "s"}` : "Clientes, fornecedores e colaboradores, com os dados para pagar", () => abrirCadastros({ aba: "parceiros" })));
+    t.appendChild(lcad);
+    sincronizarCol(colCc); sincronizarCol(colPa);
     if (pode("comp")) t.appendChild(el("p", "hub-rot", "Comprovantes"));
   }
   if (pode("comp")) {
@@ -17029,6 +17294,7 @@ async function iniciarApp() {
   sincronizarFichas(true);                        // fichas dos clientes (contatos), para ver sem internet
   sincronizarOS();                                // ordens de serviço (fila no Início) e baixas que ficaram sem internet
   sincronizarCol(colTar, true);                   // tarefas (cartão no Início e número no menu lateral); o funil só ao abrir (no celular)
+  sincronizarCol(colCc, true);                    // centros de custo (listas do comprovante, das solicitações e das transações)
   if (computador.matches) permOk.then(() => sincronizarCol(colFu, true), () => {});   // computador: número do funil no painel do Início, só depois de conferir as permissões (sincronizarCol confere pode("funil"))
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") redesenharInicio();     // "Continuar de onde parou" com o que foi recuperado
@@ -17122,6 +17388,8 @@ const SUBMENUS_NAV = {
     ["receber", "Contas a receber", () => podeTrans(), () => abrirContas({ tipo: "receber" }), "fin"],
     ["fluxo", "Fluxo de caixa", () => podeTrans(), () => abrirFluxo(), "fin"],
     ["dre", "DRE (resultado)", () => podeTrans(), () => abrirDre(), "fin"],
+    ["cc", "Centros de custo", () => podeTrans(), () => abrirCadastros({ aba: "centros" }), "fin"],
+    ["par", "Parceiros comerciais", () => podeTrans(), () => abrirCadastros({ aba: "parceiros" }), "fin"],
     ["comp", "Enviar comprovante", () => pode("comp"), () => abrirTrabalho("comp"), "fin"],
     ["comph", "Histórico de comprovantes", () => pode("comp"), () => abrirCompHist(), "fin"]
   ]
@@ -17393,8 +17661,8 @@ window.addEventListener("popstate", () => {
   }
   if (!$("tela-tr").hidden) {                     // transações: "voltar" no lançamento volta para a lista; na lista, fecha
     if (!history.state?.tr) { fecharTr(false); return; }
-    if ((trTela?.aberto || trTela?.novo) && !history.state?.trSub) { trTela.aberto = trTela.novo = null; desenharTr(); reporRol("tela-tr"); return; }
-    if (history.state?.trSub && !trTela?.aberto && !trTela?.novo) return;
+    if ((trTela?.aberto || trTela?.novo || trTela?.cad?.edit) && !history.state?.trSub) { trTela.aberto = trTela.novo = null; if (trTela.cad) trTela.cad.edit = null; desenharTr(); reporRol("tela-tr"); return; }
+    if (history.state?.trSub && !trTela?.aberto && !trTela?.novo && !trTela?.cad?.edit) return;
   }
   if (!$("tela-funil").hidden && $("tela-tar").hidden) {
     if (!history.state?.fu) { fecharFunil(false); return; }
