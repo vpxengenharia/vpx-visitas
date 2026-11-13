@@ -1921,6 +1921,28 @@ span.fu-orc-lin{cursor:default}
   body.ajustando-menu{cursor:col-resize;user-select:none}
   body.ajustando-menu *{cursor:col-resize!important}
 }
+
+/* Operacional (pedido do Gustavo em 13/11/2026): lista dos clientes com o andamento e as tarefas do cliente por grupo */
+.op-and{display:flex;align-items:center;gap:8px;min-width:0}
+.op-barra{flex:1;height:8px;min-width:44px;border-radius:99px;background:var(--linha);overflow:hidden}
+.op-barra i{display:block;height:100%;border-radius:inherit;background:var(--ok)}
+.op-and small{white-space:nowrap;color:var(--suave);font-size:12.5px;font-variant-numeric:tabular-nums}
+.op-cli-tab .op-c-and{width:132px}
+.op-cli-tab .op-c-atr{width:96px;text-align:center}
+.op-cli-tab td.crit,.op-cli-tab .op-atr{color:var(--crit-tx);font-weight:700}
+.op-cli-tab tr.op-concluido .orc-cli{color:var(--suave)}
+.op-resumo{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:4px 2px 4px}
+.op-resumo .op-and{flex:1 1 200px;max-width:340px}
+.op-resumo .tar-resumo{margin:0}
+.op-pag{margin:2px 0 4px}
+.op-grupo{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin:22px 0 8px;padding-left:10px;border-left:4px solid var(--marinho)}
+.op-grupo h2{margin:0;font-family:var(--titulo-fonte);font-size:19px;color:var(--tinta)}
+.op-grupo small{color:var(--suave);font-size:13.5px}
+.op-grupo .laudo-link{margin-left:auto;min-height:40px}
+.op-grupo.g-1{border-left-color:var(--laranja)}.op-grupo.g-2{border-left-color:var(--ok)}.op-grupo.g-3{border-left-color:var(--suave)}
+.op-tudo{margin:0 0 6px 14px}
+.tar-tab.op-proj .tar-c-cli{display:none!important}
+@media (prefers-color-scheme:dark){.op-grupo{border-left-color:#7FA6D6}.op-barra i{background:#4FB97A}.op-grupo.g-2{border-left-color:#4FB97A}}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2013,6 +2035,7 @@ span.fu-orc-lin{cursor:default}
   <symbol id="i-nf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 7.5h7M8.5 10.7h7"/><path style="stroke:var(--ic-ac)" d="M8.5 14.5v3M10.7 14.5v3M12.6 14.5v3M15.5 14.5v3"/></symbol>
   <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
   <symbol id="i-tarefas" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path style="stroke:var(--ic-ac)" d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1"/><path d="M14.4 9.6h2.6M14.4 15.8h2.6"/></symbol>
+  <symbol id="i-operacional" viewBox="0 0 24 24"><path d="M5.5 15a6.5 6.5 0 0 1 13 0"/><path d="M3.5 15h17v2.3a1.2 1.2 0 0 1-1.2 1.2H4.7a1.2 1.2 0 0 1-1.2-1.2z"/><path style="stroke:var(--ic-ac)" d="M10.4 8.8V12.5M13.6 8.8V12.5"/></symbol>
   <symbol id="i-solicitacao" viewBox="0 0 24 24"><path d="M12 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5h6.5l5 5V13"/><path d="M13.5 3.5v5h5M8.5 12h6M8.5 15.5h3.5"/><path style="stroke:var(--ic-ac)" d="M14.5 18.5h6M18 16l2.5 2.5L18 21"/></symbol>
   <symbol id="i-funil" viewBox="0 0 24 24"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/><path style="stroke:var(--ic-ac)" d="M7.6 9.2h8.8"/></symbol>
 </svg>
@@ -2228,6 +2251,7 @@ span.fu-orc-lin{cursor:default}
   <!-- tarefas e funil comercial (pedido do Gustavo em 07/11/2026): no computador, direto no menu; no celular, no Mais, em Registros e no Início -->
   <button class="so-pc" data-acao="tar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1M14.4 9.6h2.6M14.4 15.8h2.6"/></svg>Tarefas<span class="avcb-qtd" id="nav-tar-qtd" hidden></span></button>
   <button class="so-pc" data-acao="funil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/></svg>Comercial</button>
+  <button class="so-pc" data-acao="op"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5.5 15a6.5 6.5 0 0 1 13 0M3.5 15h17v2.3a1.2 1.2 0 0 1-1.2 1.2H4.7a1.2 1.2 0 0 1-1.2-1.2zM10.4 8.8V12.5M13.6 8.8V12.5"/></svg>Operacional<span class="avcb-qtd" id="nav-op-qtd" hidden></span></button>
   <!-- solicitações de compra e de pagamento (pedido do Gustavo em 12/11/2026: saíram do Financeiro) -->
   <button class="so-pc" data-acao="sol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5h6.5l5 5V13"/><path d="M13.5 3.5v5h5M8.5 12h6M8.5 15.5h3.5"/><path d="M14.5 18.5h6M18 16l2.5 2.5L18 21"/></svg>Solicitações<span class="avcb-qtd" id="nav-sol-qtd" hidden></span></button>
   <button class="so-pc" data-s="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 12h.01M17.5 12h.01"/></svg>Financeiro</button>
@@ -11849,6 +11873,9 @@ function atualizarNav() {
   nav.querySelector('[data-acao="admin"]').hidden = !ehAdmin();
   nav.querySelector('[data-acao="tar"]').hidden = !podeVerTarefas();
   nav.querySelector('[data-acao="funil"]').hidden = !pode("funil");
+  nav.querySelector('[data-acao="op"]').hidden = !podeVerOp();
+  const nOp = conta ? alertaOp() : 0;               // tarefas do Operacional da pessoa atrasadas ou para hoje
+  $("nav-op-qtd").hidden = !nOp; $("nav-op-qtd").textContent = nOp;
   nav.querySelector('[data-acao="sol"]').hidden = !podeSol();
   const nAdm = ehAdmin() ? pedidosAcesso.length : 0;
   $("nav-adm-qtd").hidden = !nAdm; $("nav-adm-qtd").textContent = nAdm;
@@ -11863,7 +11890,7 @@ function atualizarNav() {
     if (!$("tela-its").hidden) atual = "its";      // ITs e Administração abrem por cima: ficam marcadas enquanto abertas
     if (!$("tela-admin").hidden) atual = "admin";
     if (!$("tela-funil").hidden) atual = "funil";  // tarefas e funil também (as tarefas podem estar por cima do funil)
-    if (!$("tela-tar").hidden) atual = "tar";
+    if (!$("tela-tar").hidden) atual = tarTela?.op ? "op" : "tar";
     if (!$("tela-pc").hidden) atual = "sol";
     if ($("tela-tr") && !$("tela-tr").hidden) atual = "fin";   // transações e contas a pagar/receber (abertas pelo submenu do Financeiro)
     if (!$("tela-nf").hidden && secao === "fin") atual = "fin";   // notas fiscais abertas pelo Financeiro (pela página do cliente, fica o cliente)
@@ -14089,8 +14116,83 @@ function aoMudarTar() {
   if (secao === "mais" && !$("tela-mais").hidden) desenharMais();
 }
 const colTar = colecao({ chave: "vpx_tar", pasta: CONFIG.pastaTarefas, prefixo: "tarefas", n: 8, pode: () => liberado(), aoMudar: aoMudarTar });
-let tarTela = null, tarVoltando = false;   // { filtro, pessoa, aberta, nova, verFeitas, direto, mais }
-const tarefas = () => Object.values(regsDe(colTar));
+let tarTela = null, tarVoltando = false;   // { op, proj, filtro, pessoa, aberta, nova, verFeitas, direto, mais }
+const tarefas = () => Object.values(regsDe(colTar)).filter(t => !t.op);   // as do Operacional ficam de fora (têm a tela delas)
+/* Operacional (pedido do Gustavo em 13/11/2026: a área de trabalho "Operacional" do monday — um quadro por cliente, copiado do
+   "01 - Modelo", com os grupos Administrativo, Materiais e Serviços). São tarefas como as outras (mesma coleção, mesma tela,
+   mesmas permissões), marcadas com op: true, grupo e ordem (a posição no quadro). A tela das Tarefas abre no modo Operacional
+   (tarTela.op): primeiro a lista dos clientes com o andamento; tocar num cliente (tarTela.proj) mostra as tarefas dele por grupo.
+   "Minhas" e "Atrasadas" usam a tabela das Tarefas, com o cliente. "+ Cliente" cria as tarefas do modelo para um cliente. */
+const GRUPOS_OP = ["Administrativo", "Materiais", "Serviços", "Geral"];
+const tarefasOp = () => Object.values(regsDe(colTar)).filter(t => t.op);
+const grupoOp = t => GRUPOS_OP.includes(t.grupo) ? t.grupo : "Geral";
+const alertaOp = () => tarefasOp().filter(t => minhaTar(t) && (atrasadaTar(t) || hojeTar(t))).length;
+const podeVerOp = () => !!conta && (pode("tarefas") || tarefasOp().some(t => minhaTar(t) && abertaTar(t)));
+const abrirOp = (op = {}) => abrirTar({ ...op, op: true });
+// o "01 - Modelo" do monday (13/11/2026): [grupo, tarefa, responsáveis (g = Gustavo, a = Ana Clara, w = William), subtarefas]
+const PESSOAS_OP = { g: ["gustavoponchio@vpxengenharia.com.br", "Gustavo Ponchio"], a: ["anaclarasena@vpxengenharia.com.br", "Ana Clara Sena de Brito Silva"], w: ["williamreis@vpxengenharia.com.br", "William Reis Delgado"] };
+const MODELO_OP = [
+  ["Administrativo", "Criar grupo no Whatsapp", "g"],
+  ["Administrativo", "Contrato", "a", ["Elaborar contrato", "Enviar contrato para cliente", "Assinar contrato"]],
+  ["Administrativo", "Enviar NF e Boleto", "a"],
+  ["Administrativo", "Solicitar procuração", "a"],
+  ["Administrativo", "Emitir Art's", "a", ["Assinar ART"]],
+  ["Administrativo", "Pagar comissão", "g"],
+  ["Administrativo", "Emitir taxas CBM-BA", "gaw"],
+  ["Administrativo", "Criar pasta técnica", "g", ["Certificado de treinamento de brigada", "Comprovante de pagamento de taxas CBM-BA", "Projeto de Incêndio com MD", "Comprar pasta", "Imprimir capa", "Pasta técnica física"]],
+  ["Administrativo", "Enviar documentos no Fênix", "a"],
+  ["Administrativo", "Solicitar vistoria", "awg", ["Aprovação William", "Aprovação Gustavo", "Aprovação Ana Clara", "Aprovação cliente"]],
+  ["Materiais", "Levantar qtd material", "w"],
+  ["Serviços", "Fazer programação", "w"],
+  ["Serviços", "Alinhar programação com cliente", "w"],
+  ["Serviços", "Instalar placa na obra", "w"],
+  ["Serviços", "Fazer laudos", "w"],
+  ["Serviços", "Acompanhar vistoria", "w"]
+];
+const proximaOrdemOp = cli => Math.max(-1, ...tarefasOp().filter(t => t.cliente === cli).map(t => t.ordem ?? -1)) + 1;
+// cria as tarefas do modelo para o cliente (vão para o fim, se ele já tiver tarefas) e mostra a lista dele
+function criarDoModeloOp(cli) {
+  if (!navigator.onLine) { aviso("Sem internet: conecte o aparelho para criar as tarefas.", true); return; }
+  const base = proximaOrdemOp(cli);
+  MODELO_OP.forEach(([grupo, titulo, quem, subs], i) => criarReg(colTar, {
+    titulo, status: "nao", prioridade: "", prazo: "", cliente: cli, desc: "", coment: [], op: true, grupo, ordem: base + i,
+    resp: [...quem].map(k => ({ email: PESSOAS_OP[k][0], nome: PESSOAS_OP[k][1] })),
+    sub: (subs || []).map((t, j) => ({ id: novoIdReg() + j, t, f: false }))
+  }));
+  aviso(`${MODELO_OP.length} tarefas do modelo criadas para ${cli}.`);
+  if (tarTela?.op) { if (tarTela.proj === cli) desenharTar(); else entrarProjOp(cli); }
+}
+async function novoClienteOp() {
+  if (!pode("tarefas")) return;
+  abrirDialogo(async nome => {
+    if (!nome) return;
+    const ja = tarefasOp().filter(t => t.cliente === nome).length;
+    if (ja) {
+      const r = await perguntar({ titulo: nome + " já está no Operacional", texto: `Este cliente já tem ${ja} tarefa${ja > 1 ? "s" : ""}. Acrescentar as ${MODELO_OP.length} tarefas do modelo?`, sim: "Acrescentar", nao: "Só abrir o cliente" });
+      if (!r) { if (tarTela?.op) entrarProjOp(nome); return; }
+    }
+    criarDoModeloOp(nome);
+  });
+}
+// entrar num cliente / voltar para a lista dos clientes (o "voltar" do celular também: passo { tarProj } no histórico)
+function entrarProjOp(cli) {
+  if (!tarTela) return;
+  const corpo = $("tela-tar").querySelector(".avcb-corpo");
+  if (!tarTela.proj) { tarTela.rolCli = corpo.scrollTop; tarTela.buscaCli = $("tar-busca").value; }
+  Object.assign(tarTela, { proj: cli, projDireto: false, aberta: null, nova: null, verFeitas: false, st: "", pri: "", prazo: "", pessoa: "", cli: "" });
+  tarOrdem = { col: "ordem", desc: false };
+  $("tar-busca").value = "";
+  if (!history.state?.tarProj) history.pushState({ tar: true, tarProj: true }, "");
+  desenharTar();
+  corpo.scrollTop = 0;
+}
+function sairProjOp() {                            // chamada pelo popstate (o passo do cliente saiu do histórico)
+  if (!tarTela) return;
+  Object.assign(tarTela, { proj: "", aberta: null, nova: null, verFeitas: false, st: "", pri: "", prazo: "", pessoa: "", cli: "" });
+  $("tar-busca").value = tarTela.buscaCli || "";
+  desenharTar();
+  $("tela-tar").querySelector(".avcb-corpo").scrollTop = tarTela.rolCli || 0;
+}
 const minhaTar = t => (t.resp || []).some(p => p.email === emailDe());
 const veTar = t => pode("tarefas") || minhaTar(t);
 const abertaTar = t => t.status !== "feito";
@@ -14141,11 +14243,12 @@ const ORDENAR_TAR = {
 };
 function filtrosDaColunaTar(col, larga) {
   const f = { tit: larga ? [] : ["pessoa", "cli"], st: larga ? ["st"] : ["st", "pri"], pri: ["pri"], prazo: ["prazo"], resp: ["pessoa"], cli: ["cli"] }[col] || [];
-  return f.filter(k => k !== "pessoa" || pode("tarefas"));
+  return f.filter(k => (k !== "pessoa" || pode("tarefas")) && (k !== "cli" || !tarTela?.proj));   // dentro de um cliente do Operacional, sem o filtro de cliente
 }
 function menuColunaTar(b, col) {
   const larga = getComputedStyle($("tar-lista").querySelector("th.tar-c-pri") || b).display !== "none";
   const ops = [[null, "Ordenar", "menu-tit"]], atual = [];
+  if (tarTela.op && col === "tit") { ops.push(["o:ordem", "Ordem do processo"]); if (tarOrdem.col === "ordem") atual.push("o:ordem"); }   // a ordem do quadro do monday / do modelo
   ORDENAR_TAR[col].forEach((rot, i) => ops.push(["o:" + i, rot]));
   if (tarOrdem.col === col) atual.push("o:" + (tarOrdem.desc ? 1 : 0));
   for (const k of filtrosDaColunaTar(col, larga)) {
@@ -14154,7 +14257,8 @@ function menuColunaTar(b, col) {
     atual.push("f:" + k + ":" + tarTela[k]);
   }
   menuOpcoes(b, ops, atual, v => {
-    if (v.startsWith("o:")) tarOrdem = { col, desc: v === "o:1" };
+    if (v === "o:ordem") tarOrdem = { col: "ordem", desc: false };
+    else if (v.startsWith("o:")) tarOrdem = { col, desc: v === "o:1" };
     else {
       const [, k, ...resto] = v.split(":"), val = resto.join(":");
       tarTela[k] = val;
@@ -14166,13 +14270,18 @@ function menuColunaTar(b, col) {
 }
 const mudarStatusTar = (id, st) => mudarReg(colTar, id, r => { r.status = st; r.feitoEm = st === "feito" ? (r.feitoEm || new Date().toISOString()) : ""; }, "Situação: " + ST_TAR[st]);
 
-// op: { filtro, busca, aberta (abre direto numa tarefa), nova (abre direto o formulário, com campos já preenchidos) }
+// op: { filtro, busca, aberta (abre direto numa tarefa), nova (abre direto o formulário, com campos já preenchidos),
+//       op (modo Operacional), proj (Operacional já dentro de um cliente: página do cliente) }
 function abrirTar(op = {}) {
   if (!conta) return;
-  const tudo = pode("tarefas");
-  tarTela = { filtro: tudo ? op.filtro || "minhas" : "minhas", pessoa: "", st: "", pri: "", cli: "", aberta: null, nova: null, verFeitas: false, direto: !!(op.aberta || op.nova), mais: {} };
-  if (tudo && !op.filtro && !tarefas().some(t => minhaTar(t) && abertaTar(t))) tarTela.filtro = "todas";
+  const tudo = pode("tarefas"), modoOp = !!op.op;
+  tarTela = { op: modoOp, proj: modoOp && op.proj || "", projDireto: !!(modoOp && op.proj), filtro: modoOp ? op.filtro || "clientes" : tudo ? op.filtro || "minhas" : "minhas",
+    pessoa: "", st: "", pri: "", cli: "", aberta: null, nova: null, verFeitas: false, direto: !!(op.aberta || op.nova), mais: {} };
+  if (!modoOp && tudo && !op.filtro && !tarefas().some(t => minhaTar(t) && abertaTar(t))) tarTela.filtro = "todas";
+  tarOrdem = { col: modoOp ? "ordem" : "pri", desc: false };
   $("tar-busca").value = op.busca || "";
+  $("tar-busca").placeholder = modoOp ? "Buscar cliente ou tarefa" : "Buscar tarefa";
+  $("tela-tar").setAttribute("aria-label", modoOp ? "Operacional" : "Tarefas");
   $("tela-tar").hidden = false;
   $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0; delete rolLista["tela-tar"];
   document.body.style.overflow = "hidden";
@@ -14190,22 +14299,23 @@ function fecharTar(voltar = true) {
   tarTela = null;
   document.body.style.overflow = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden) ? "hidden" : "";
   if (fuTela && !$("tela-funil").hidden) desenharFunil();   // estava sobre o funil: ele mostra as tarefas novas
-  if (voltar && st?.tar) { tarVoltando = true; history.go(st.tarSub ? -2 : -1); return true; }
+  if (voltar && st?.tar) { tarVoltando = true; history.go(-1 - (st.tarSub ? 1 : 0) - (st.tarProj ? 1 : 0)); return true; }
   return false;
 }
 function abrirTarefa(id) {
   if (!tarTela.aberta && !tarTela.nova && !tarTela.direto) guardarRol("tela-tar");   // saindo da lista: guarda onde ela estava
   tarTela.aberta = id; tarTela.nova = null;
-  if (!tarTela.direto && !history.state?.tarSub) history.pushState({ tar: true, tarSub: true }, "");   // o "voltar" volta para a lista
+  if (!tarTela.direto && !history.state?.tarSub) history.pushState({ ...history.state, tar: true, tarSub: true }, "");   // o "voltar" volta para a lista (mantém o passo do cliente do Operacional)
   desenharTar();
   $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0;
 }
 function novaTarefa(base = {}) {
   if (!tarTela || !pode("tarefas")) return;
   if (!tarTela.aberta && !tarTela.nova && !tarTela.direto) guardarRol("tela-tar");
+  if (tarTela.op) base = { cliente: tarTela.proj || "", grupo: "Administrativo", ...base };   // Operacional: no cliente aberto
   tarTela.nova = { titulo: "", status: "nao", prioridade: "", prazo: "", resp: [eu()], cliente: "", funil: "", desc: "", ...base };
   tarTela.aberta = null;
-  if (!tarTela.direto && !history.state?.tarSub) history.pushState({ tar: true, tarSub: true }, "");
+  if (!tarTela.direto && !history.state?.tarSub) history.pushState({ ...history.state, tar: true, tarSub: true }, "");
   desenharTar();
   $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0;
   if (computador.matches) setTimeout(() => $("tar-novo-tit")?.focus(), 60);
@@ -14220,21 +14330,28 @@ function desenharTar() {
   const sub = !!(tarTela.aberta || tarTela.nova), tudo = pode("tarefas");
   $("tar-lista-tela").hidden = sub; $("tar-sub").hidden = !sub;
   $("tela-tar").classList.toggle("com-nav", !sub);   // na lista a barra de baixo fica à vista (celular); no detalhe, tela cheia
+  const op = tarTela.op, proj = tarTela.proj, noCli = op && proj && !tarTela.projDireto;   // noCli: dentro de um cliente aberto pela lista
   $("tar-nova").hidden = !tudo || sub;
-  $("tar-titulo").textContent = tarTela.nova ? "Nova tarefa" : sub ? "Tarefa" : "Tarefas";
-  $("tar-voltar").textContent = sub && !tarTela.direto ? "‹ Tarefas" : "‹ Voltar";
-  $("tar-voltar").classList.toggle("voltar-lista", !sub);   // aberta pelo menu lateral do computador: a lista fica sem "Voltar"
+  $("tar-nova").textContent = op && !proj ? "+ Cliente" : "+ Nova";
+  $("tar-nova").title = op && !proj ? "Pôr um cliente no Operacional (com as tarefas do modelo)" : "";
+  $("tar-titulo").textContent = tarTela.nova ? "Nova tarefa" : sub ? "Tarefa" : op ? proj || "Operacional" : "Tarefas";
+  $("tar-voltar").textContent = sub && !tarTela.direto ? (op ? "‹ Voltar" : "‹ Tarefas") : noCli && computador.matches ? "‹ Operacional" : "‹ Voltar";   // no celular o nome do cliente ocupa o topo
+  $("tar-voltar").classList.toggle("voltar-lista", !sub && !noCli);   // aberta pelo menu lateral do computador: a lista fica sem "Voltar"
   if (sub) {
     const s = $("tar-sub"); s.innerHTML = "";
     s.appendChild(tarTela.nova ? formNovaTar() : detalheTar(regsDe(colTar)[tarTela.aberta]));
     return;
   }
-  const todas = tarefas().filter(veTar), abertas = todas.filter(abertaTar);
-  const fil = $("tar-filtro"); fil.innerHTML = ""; fil.hidden = !tudo;
-  if (tudo) [["minhas", "Minhas"], ["todas", "Todas"], ["atrasadas", "Atrasadas"]].forEach(([f, rot]) => {
-    const b = el("button", "", `${rot} (${abertas.filter(filtroTar(f)).length})`); b.type = "button";
+  let todas = (op ? tarefasOp() : tarefas()).filter(veTar);
+  if (proj) todas = todas.filter(t => t.cliente === proj);
+  const abertas = todas.filter(abertaTar);
+  const fil = $("tar-filtro"); fil.innerHTML = ""; fil.hidden = op ? !!proj : !tudo;
+  const chips = op ? [["clientes", "Clientes"], ["minhas", "Minhas"], ["atrasadas", "Atrasadas"]] : [["minhas", "Minhas"], ["todas", "Todas"], ["atrasadas", "Atrasadas"]];
+  if (!fil.hidden) chips.forEach(([f, rot]) => {
+    const n = f === "clientes" ? new Set(abertas.map(t => t.cliente)).size : abertas.filter(filtroTar(f)).length;
+    const b = el("button", "", `${rot} (${n})`); b.type = "button";
     b.setAttribute("aria-pressed", String(tarTela.filtro === f));
-    b.onclick = () => { tarTela.filtro = f; tarTela.pessoa = ""; tarTela.mais = {}; desenharTar(); };
+    b.onclick = () => { tarTela.filtro = f; Object.keys(FILTRO_TAR).forEach(k => { tarTela[k] = ""; }); tarTela.mais = {}; desenharTar(); };
     fil.appendChild(b);
   });
   /* filtros (pedido do Gustavo em 13/11/2026): no título de cada coluna da tabela (menu com "Ordenar" e as opções do filtro, como no Excel).
@@ -14265,7 +14382,13 @@ function desenharTar() {
   const lista = base.filter(t => passaTar(t));
   const alvo = $("tar-lista"); alvo.innerHTML = "";
   if (!colTar.dados.lido && !Object.keys(colTar.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as tarefas…" : "Sem internet e sem tarefas guardadas neste aparelho."));
-  else if (!lista.length && !filtrosTarAtivos()) alvo.appendChild(el("p", "avcb-nota", q ? "Nenhuma tarefa encontrada." :tarTela.filtro === "atrasadas" ? "Nenhuma tarefa atrasada." : tarTela.filtro === "minhas" ? "Nenhuma tarefa com você." + (tudo ? " Toque em + Nova para criar uma." : "") : "Nenhuma tarefa ainda. Toque em + Nova para criar uma."));
+  else if (op && !proj && tarTela.filtro === "clientes") listaClientesOp(base, alvo, !!q);
+  else if (op && proj && !todas.length) {           // cliente ainda sem tarefas no Operacional (aberto pela página do cliente)
+    alvo.appendChild(el("p", "avcb-nota", "Este cliente ainda não tem tarefas no Operacional."));
+    if (tudo) { const b = comIc(el("button", "btn prim"), "operacional", "Criar as tarefas do modelo"); b.type = "button"; b.onclick = () => criarDoModeloOp(proj); alvo.appendChild(b); }
+  }
+  else if (!lista.length && !filtrosTarAtivos()) alvo.appendChild(el("p", "avcb-nota", q ? "Nenhuma tarefa encontrada." :tarTela.filtro === "atrasadas" ? "Nenhuma tarefa atrasada." : tarTela.filtro === "minhas" ? "Nenhuma tarefa com você." + (tudo && !op ? " Toque em + Nova para criar uma." : "") : "Nenhuma tarefa ainda. Toque em + Nova para criar uma."));
+  else if (op && proj) listaProjOp(lista, alvo);
   else listaTar(lista, alvo);
   $("tar-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando as últimas tarefas guardadas. Para mudar, conecte o aparelho.";
 }
@@ -14283,9 +14406,12 @@ const COLS_TAR = {
   resp: t => (t.resp || []).map(p => nomePessoa(p)).join(", ") || null,
   cli: t => t.cliente || null
 };
+// Operacional, "Ordem do processo": por cliente e, dentro dele, na ordem do quadro (abertas e concluídas)
+const compOrdemOp = (a, b) => (a.cliente || "").localeCompare(b.cliente || "", "pt-BR") || (a.ordem ?? 1e9) - (b.ordem ?? 1e9) || (a.criado || "").localeCompare(b.criado || "");
 function compTar(a, b) {
   const fa = abertaTar(a), fb = abertaTar(b);
   if (fa !== fb) return fa ? -1 : 1;                 // abertas antes das concluídas
+  if (tarOrdem.col === "ordem") return compOrdemOp(a, b);
   if (!fa) return (b.feitoEm || b.atualizado || "").localeCompare(a.feitoEm || a.atualizado || "");   // concluídas: as mais recentes primeiro
   const f = COLS_TAR[tarOrdem.col] || COLS_TAR.pri, x = f(a), y = f(b);
   if ((x == null) !== (y == null)) return x == null ? 1 : -1;
@@ -14309,10 +14435,87 @@ function listaTar(lista, alvo) {
   b.onclick = () => { tarTela.verFeitas = !tarTela.verFeitas; desenharTar(); };
   alvo.appendChild(b);
 }
+// Operacional: barra de andamento (feitas / total)
+function barraOp(feitas, n) {
+  const w = el("div", "op-and"), b = el("div", "op-barra"), i = el("i");
+  i.style.width = (n ? Math.round(feitas / n * 100) : 0) + "%";
+  b.appendChild(i); w.append(b, el("small", "", `${feitas} de ${n}`));
+  b.setAttribute("role", "img"); b.setAttribute("aria-label", `${feitas} de ${n} tarefas feitas`);
+  return w;
+}
+// Operacional: lista dos clientes (como os quadros do monday), com o andamento; tocar abre as tarefas do cliente
+function listaClientesOp(lista, alvo, buscando) {
+  const por = new Map();
+  for (const t of lista) { const c = t.cliente || "(sem cliente)"; if (!por.has(c)) por.set(c, []); por.get(c).push(t); }
+  const linhas = [...por].map(([c, ts]) => {
+    const ab = ts.filter(abertaTar);
+    return { c, n: ts.length, ab: ab.length, atr: ab.filter(atrasadaTar).length, minhas: ab.filter(minhaTar).length, prazo: ab.map(t => t.prazo).filter(Boolean).sort()[0] || "" };
+  }).sort((a, b) => a.c.localeCompare(b.c, "pt-BR"));
+  const and = linhas.filter(l => l.ab), fim = linhas.filter(l => !l.ab);
+  if (!linhas.length) { alvo.appendChild(el("p", "avcb-nota", buscando ? "Nenhum cliente ou tarefa encontrado." : "Nenhum cliente no Operacional ainda." + (pode("tarefas") ? " Toque em + Cliente para começar um." : ""))); return; }
+  const nAb = and.reduce((s, l) => s + l.ab, 0), nAtr = and.reduce((s, l) => s + l.atr, 0);
+  alvo.appendChild(el("p", "orc-resumo tar-resumo", `${and.length} cliente${and.length === 1 ? "" : "s"} em andamento · ${nAb} tarefa${nAb === 1 ? "" : "s"} aberta${nAb === 1 ? "" : "s"}` + (nAtr ? ` · ${nAtr} atrasada${nAtr === 1 ? "" : "s"}` : "")));
+  const vis = [...and, ...(tarTela.verFeitas || !and.length ? fim : [])];
+  const tb = el("table", "orc-tab tar-tab op-cli-tab"), cab = el("thead"), hr = el("tr"), corpo = el("tbody");
+  [["Cliente", "orc-c-cli"], ["Andamento", "op-c-and"], ["Atrasadas", "tar-so-pc op-c-atr"], ["Próximo prazo", "tar-so-pc tar-c-prazo"]].forEach(([r, cls]) => { const th = el("th", cls, r); th.scope = "col"; hr.appendChild(th); });
+  cab.appendChild(hr);
+  for (const l of vis) {
+    const tr = el("tr", l.ab ? "" : "op-concluido"); tr.tabIndex = 0;
+    const tc = el("td", "orc-c-cli"); tc.appendChild(el("span", "orc-cli", l.c));
+    const info = [l.ab ? `${l.ab} aberta${l.ab === 1 ? "" : "s"}` : "Concluído", l.minhas && `${l.minhas} com você`].filter(Boolean).join(" · ");
+    tc.appendChild(el("small", "orc-sub", info));
+    if (l.atr || l.prazo) { const s = el("small", "orc-sub orc-so-cel" + (l.atr ? " op-atr" : "")); s.textContent = l.atr ? `${l.atr} atrasada${l.atr === 1 ? "" : "s"}` : "Próximo prazo " + dataCurta(l.prazo); tc.appendChild(s); }
+    const ta = el("td", "op-c-and"); ta.appendChild(barraOp(l.n - l.ab, l.n));
+    const tt = el("td", "tar-so-pc op-c-atr" + (l.atr ? " crit" : ""), l.atr ? String(l.atr) : "—");
+    const tz = el("td", "tar-so-pc tar-c-prazo" + (l.prazo && l.prazo < dataISO() ? " crit" : l.prazo === dataISO() ? " warn" : ""), l.prazo ? dataCurta(l.prazo) : "—");
+    tr.append(tc, ta, tt, tz);
+    tr.onclick = () => entrarProjOp(l.c);
+    tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) entrarProjOp(l.c); };
+    corpo.appendChild(tr);
+  }
+  tb.append(cab, corpo); alvo.appendChild(tb);
+  if (!fim.length || !and.length) return;
+  const b = el("button", "btn sec tar-feitas", `${tarTela.verFeitas ? "Esconder" : "Ver"} os clientes concluídos (${fim.length})`); b.type = "button";
+  b.onclick = () => { tarTela.verFeitas = !tarTela.verFeitas; desenharTar(); };
+  alvo.appendChild(b);
+}
+// Operacional, dentro de um cliente: as tarefas por grupo (Administrativo, Materiais, Serviços), na ordem do quadro
+function listaProjOp(lista, alvo) {
+  const todas = tarefasOp().filter(t => t.cliente === tarTela.proj && veTar(t));
+  const nF = todas.filter(t => !abertaTar(t)).length, atr = todas.filter(atrasadaTar).length;
+  const res = el("div", "op-resumo");
+  res.append(barraOp(nF, todas.length), el("span", "orc-resumo tar-resumo", `${todas.length - nF} aberta${todas.length - nF === 1 ? "" : "s"}` + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : "")));
+  alvo.appendChild(res);
+  if (clientes.includes(tarTela.proj)) {
+    const lk = el("button", "laudo-link op-pag", "Abrir a página do cliente"); lk.type = "button";
+    lk.onclick = () => { const c = tarTela.proj; if (fecharTelasPorCima()) abrirCliente(c); };
+    alvo.appendChild(lk);
+  }
+  const esc = filtrosEscolhidosTar(); if (esc) alvo.appendChild(esc);
+  const soFeitas = tarTela.st === "feito", mostra = t => abertaTar(t) || tarTela.verFeitas || soFeitas;
+  const feitas = lista.filter(t => !abertaTar(t)).length;
+  let algum = false;
+  for (const g of GRUPOS_OP) {
+    const doG = lista.filter(t => grupoOp(t) === g);
+    if (!doG.length) continue;
+    const ab = doG.filter(abertaTar).length, vis = doG.filter(mostra).sort(compTar);
+    const cab = el("div", "op-grupo g-" + GRUPOS_OP.indexOf(g));
+    cab.append(el("h2", "", g), el("small", "", ab ? `${doG.length - ab} de ${doG.length} feitas` : `${doG.length} de ${doG.length} feitas`));
+    if (pode("tarefas")) { const n = el("button", "laudo-link", "+ Tarefa"); n.type = "button"; n.title = "Nova tarefa em " + g; n.onclick = () => novaTarefa({ grupo: g }); cab.appendChild(n); }
+    alvo.appendChild(cab);
+    if (vis.length) { alvo.appendChild(tabelaTar(vis)); algum = true; }
+    else alvo.appendChild(el("p", "avcb-nota op-tudo", "✓ Tudo feito neste grupo."));
+  }
+  if (!algum && filtrosTarAtivos() && !lista.length) alvo.appendChild(el("p", "avcb-nota", "Nenhuma tarefa com esses filtros."));
+  if (!feitas || soFeitas) return;
+  const b = el("button", "btn sec tar-feitas", `${tarTela.verFeitas ? "Esconder" : "Ver"} as concluídas (${feitas})`); b.type = "button";
+  b.onclick = () => { tarTela.verFeitas = !tarTela.verFeitas; desenharTar(); };
+  alvo.appendChild(b);
+}
 function tabelaTar(vis) {
   const cols = [["tit", "Tarefa", "orc-c-cli"], ["st", "Situação", "tar-c-st"], ["pri", "Prioridade", "tar-so-pc tar-c-pri"],
     ["prazo", "Prazo", "tar-c-prazo"], ["resp", "Responsáveis", "tar-so-pc tar-c-resp"], ["cli", "Cliente", "tar-so-pc tar-c-cli"]];
-  const tb = el("table", "orc-tab tar-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  const tb = el("table", "orc-tab tar-tab" + (tarTela?.proj ? " op-proj" : "")), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
   // título da coluna: abre o menu de ordenar e filtrar (setinha embaixo = tem menu; funil = filtro ligado nesta coluna)
   for (const [k, rot, cls] of cols) {
     if (k === "st") {                                // coluna dos comentários (pedido do Gustavo em 13/11/2026: ícones alinhados numa coluna)
@@ -14460,9 +14663,9 @@ function linhaTar(t) {
   const sub = el("small", "orc-sub orc-so-cel");
   if (ed) {
     sub.appendChild(botaoEdTar("tar-ed-resp", "Mudar os responsáveis", [nomes.length ? nomes.join(", ") : el("span", "tar-ed-vazio", "Sem responsável")], abrirResp));
-    if (t.cliente) sub.append(" · ", botaoEdTar("tar-ed-resp", "Mudar o cliente", [t.cliente], abrirCli));
+    if (t.cliente && !tarTela?.proj) sub.append(" · ", botaoEdTar("tar-ed-resp", "Mudar o cliente", [t.cliente], abrirCli));   // dentro de um cliente do Operacional, sem repetir o cliente
   } else if (pri) sub.appendChild(el("span", "tar-pri-tx pri-" + pri, PRI[pri]));
-  const resto = [!ed && nomes.join(", "), !ed && t.cliente, ...extra].filter(Boolean).join(" · ");
+  const resto = [!ed && nomes.join(", "), !ed && !tarTela?.proj && t.cliente, ...extra].filter(Boolean).join(" · ");
   if (resto) sub.append((sub.childNodes.length ? " · " : "") + resto);
   if (sub.childNodes.length) tit.appendChild(sub);
   if (extra.length) tit.appendChild(el("small", "orc-sub tar-so-pc-b", extra.join(" · ")));
@@ -14598,12 +14801,16 @@ function detalheTar(t) {
     w.appendChild(ti);
   } else w.appendChild(el("h2", "tar-h", t.titulo || "(sem título)"));
   if (mexe) w.appendChild(chipsCampo("Situação", Object.entries(ST_TAR), ST_TAR[t.status] ? t.status : "nao", v => mudarStatusTar(t.id, v)));
+  if (t.op) {                                      // Operacional: o grupo (como os grupos do quadro do monday)
+    if (tudo) w.appendChild(chipsCampo("Grupo", GRUPOS_OP.map(g => [g, g]), grupoOp(t), v => salvar(r => { r.grupo = v; }, "Grupo: " + v)));
+    else w.appendChild(el("p", "tar-desc", "Grupo: " + grupoOp(t)));
+  }
   if (tudo) {
     w.appendChild(chipsCampo("Prioridade", OPC_PRI, PRI[t.prioridade] ? t.prioridade : "", v => salvar(r => { r.prioridade = v; }, "Prioridade: " + (PRI[v] || "sem"))));
     w.appendChild(chipsPessoas("Responsáveis", t.resp || [], nv => salvar(r => { r.resp = nv; }, "Responsáveis: " + (nv.map(p => primeiroNome(p.nome)).join(", ") || "ninguém"))));
     const g = el("div", "tar-2col");
     g.appendChild(campoTxt("Prazo", t.prazo || "", v => salvar(r => { r.prazo = v; }, v ? "Prazo: " + dataBRde(v) : "Tirou o prazo"), { tipo: "date" }));
-    const wc = el("div", "campo"); wc.appendChild(el("span", "", "Cliente (opcional)"));
+    const wc = el("div", "campo"); wc.appendChild(el("span", "", t.op ? "Cliente" : "Cliente (opcional)"));
     const bc = el("button", "cliente" + (t.cliente ? "" : " vazio")); bc.type = "button";
     bc.appendChild(el("strong", "", t.cliente || "Escolher cliente"));
     bc.onclick = () => abrirDialogo(nome => salvar(r => { r.cliente = nome; }, "Cliente: " + nome));
@@ -14671,9 +14878,11 @@ function formNovaTar() {
   f.appendChild(chipsPessoas("Responsáveis", n.resp, nv => { n.resp = nv; desenharTar(); }));
   f.appendChild(chipsCampo("Prioridade", OPC_PRI, n.prioridade, v => { n.prioridade = v; desenharTar(); }));
   f.appendChild(chipsCampo("Situação", Object.entries(ST_TAR).filter(([k]) => k !== "feito"), n.status, v => { n.status = v; desenharTar(); }));
+  const ehOp = !!tarTela.op;
+  if (ehOp) f.appendChild(chipsCampo("Grupo", GRUPOS_OP.map(g => [g, g]), n.grupo, v => { n.grupo = v; desenharTar(); }));
   const g = el("div", "tar-2col");
   g.appendChild(campoTxt("Prazo (opcional)", n.prazo, null, { tipo: "date", local: v => { n.prazo = v; } }));
-  const wc = el("div", "campo"); wc.appendChild(el("span", "", "Cliente (opcional)"));
+  const wc = el("div", "campo"); wc.appendChild(el("span", "", ehOp ? "Cliente" : "Cliente (opcional)"));
   const bc = el("button", "cliente" + (n.cliente ? "" : " vazio")); bc.type = "button"; bc.appendChild(el("strong", "", n.cliente || "Escolher cliente"));
   bc.onclick = () => abrirDialogo(nome => { n.cliente = nome; desenharTar(); });
   wc.appendChild(bc); g.appendChild(wc); f.appendChild(g);
@@ -14684,8 +14893,10 @@ function formNovaTar() {
   criar.onclick = async () => {
     n.titulo = ti.value.trim();
     if (!n.titulo) { aviso("Escreva o que precisa ser feito.", true); ti.focus(); return; }
+    if (ehOp && !n.cliente) { aviso("Escolha o cliente.", true); return; }
     n.criando = true; desenharTar();
-    const id = await criarReg(colTar, { titulo: n.titulo, status: n.status, prioridade: n.prioridade, prazo: n.prazo, resp: n.resp, cliente: n.cliente, funil: n.funil, desc: (n.desc || "").trim(), sub: [], coment: [] });
+    const id = await criarReg(colTar, { titulo: n.titulo, status: n.status, prioridade: n.prioridade, prazo: n.prazo, resp: n.resp, cliente: n.cliente, funil: n.funil, desc: (n.desc || "").trim(), sub: [], coment: [],
+      ...(ehOp ? { op: true, grupo: n.grupo || "Geral", ordem: proximaOrdemOp(n.cliente) } : {}) });
     n.criando = false;
     if (!id) { desenharTar(); return; }
     aviso("Tarefa criada.");
@@ -16572,8 +16783,12 @@ function formNovaFu() {
   return f;
 }
 // botões fixos das duas telas
-$("tar-voltar").onclick = () => { if (tarTela?.aberta || tarTela?.nova) voltarListaTar(); else fecharTar(); };
-$("tar-nova").onclick = () => novaTarefa();
+$("tar-voltar").onclick = () => {
+  if (tarTela?.aberta || tarTela?.nova) voltarListaTar();
+  else if (tarTela?.proj && !tarTela.projDireto) { if (history.state?.tarProj) history.back(); else sairProjOp(); }   // Operacional: do cliente para a lista dos clientes
+  else fecharTar();
+};
+$("tar-nova").onclick = () => tarTela?.op && !tarTela.proj ? novoClienteOp() : novaTarefa();
 $("com-fechar").onclick = () => fecharComentariosTar();
 $("dlg-com").addEventListener("cancel", e => { e.preventDefault(); fecharComentariosTar(); });   // Esc: fecha pelo mesmo caminho (tira o passo do histórico)
 $("dlg-com").addEventListener("click", e => { if (e.target === $("dlg-com")) fecharComentariosTar(); });   // clique fora da janela (no fundo escuro)
@@ -17007,6 +17222,7 @@ function desenharPaginaCliente() {
   if (pode("laudo")) g.appendChild(tile("salvo", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
   if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos(c)));   // a lista de todos, já buscando este cliente
   if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas(c)));             // idem, notas fiscais
+  if (podeVerOp() && (pode("tarefas") || tarefasOp().some(x => x.cliente === c && veTar(x)))) g.appendChild(tile("operacional", "Operacional", () => abrirOp({ proj: c })));   // tarefas do cliente no Operacional
   if (g.children.length) { t.appendChild(el("p", "hub-rot", "Documentos e controles")); if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
   if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
   if (pode("funil")) {
@@ -17027,6 +17243,7 @@ function desenharReg() {
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   if (podeVerTarefas()) g.appendChild(tile("tarefas", "Tarefas", () => abrirTar()));             // como no monday (pedido do Gustavo em 07/11/2026)
   if (pode("funil")) g.appendChild(tile("funil", "Comercial", () => abrirFunil()));
+  if (podeVerOp()) g.appendChild(tile("operacional", "Operacional", () => abrirOp()));   // as tarefas de cada cliente (área Operacional do monday)
   if (podeSol()) g.appendChild(tile("solicitacao", "Solicitações", abrirSolicitacoes));   // compra e pagamento (saíram do Financeiro em 12/11/2026)
   grupo("Filas de trabalho");
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
@@ -17157,6 +17374,10 @@ function desenharMais() {
     tf.appendChild(linha("tarefas", "Tarefas", minhas.length ? `${minhas.length} com você` + (atr ? ` · ${atr} atrasada${atr > 1 ? "s" : ""}` : hj ? ` · ${hj} para hoje` : "") : "Nenhuma tarefa com você", () => abrirTar(), atr + hj));
   }
   if (pode("funil")) tf.appendChild(linha("funil", "Comercial", "Oportunidades, propostas e ligações", () => abrirFunil()));
+  if (podeVerOp()) {
+    const ab = tarefasOp().filter(x => abertaTar(x) && veTar(x)), nCli = new Set(ab.map(x => x.cliente)).size, minhas = ab.filter(minhaTar), atr = minhas.filter(atrasadaTar).length, hj = minhas.filter(hojeTar).length;
+    tf.appendChild(linha("operacional", "Operacional", nCli ? `${nCli} cliente${nCli > 1 ? "s" : ""} em andamento` + (minhas.length ? ` · ${minhas.length} com você` : "") : "Tarefas de cada cliente", () => abrirOp(), atr + hj));
+  }
   if (tf.children.length) t.appendChild(tf);
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
@@ -17333,16 +17554,18 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (b.dataset.acao === "tema") { alternarTema(); return; }
   // celular: lista aberta por cima com a barra à vista (com-nav) — o passo dela sai do histórico, senão o "voltar" do aparelho ficaria uma vez sem efeito
   const passo = !computador.matches && !history.state?.sub && !!document.querySelector(".tela-avcb.com-nav:not([hidden])");
+  const passos = history.state?.tarProj ? 2 : 1;   // Operacional dentro de um cliente: dois passos (lista dos clientes e o cliente)
   if (!fecharTelasPorCima()) return;
   const ir = () => {
     if (b.dataset.acao === "its") abrirNormas();
     else if (b.dataset.acao === "admin") abrirAdmin();
     else if (b.dataset.acao === "tar") abrirTar();
     else if (b.dataset.acao === "funil") abrirFunil();
+    else if (b.dataset.acao === "op") abrirOp();
     else if (b.dataset.acao === "sol") abrirSolicitacoes();
     else irPara(b.dataset.s, true);
     // computador: tela aberta pelo menu lateral é uma seção como as outras — sem o "‹ Voltar" (pedido do Gustavo em 13/11/2026); sai ao fechar
-    const tela = { its: "tela-its", admin: "tela-admin", tar: "tela-tar", funil: "tela-funil", sol: "tela-pc" }[b.dataset.acao];
+    const tela = { its: "tela-its", admin: "tela-admin", tar: "tela-tar", op: "tela-tar", funil: "tela-funil", sol: "tela-pc" }[b.dataset.acao];
     if (tela && computador.matches && !$(tela).hidden) $(tela).classList.add("pela-lateral");
   };
   // computador: a Agenda (aberta como seção) fica por cima das telas que abrem por cima — Tarefas, Comercial, Solicitações,
@@ -17351,7 +17574,7 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
     if (agForm && history.state?.agform) { fecharAgenda(false); addEventListener("popstate", ir, { once: true }); return; }   // abre depois que o passo do formulário saiu do histórico
     fecharAgenda(false);
   }
-  if (passo) { tarVoltando = true; depoisVoltar = ir; history.back(); } else ir();   // o popstate (ramo tarVoltando) abre a seção depois que o passo saiu
+  if (passo) { tarVoltando = true; depoisVoltar = ir; history.go(-passos); } else ir();   // o popstate (ramo tarVoltando) abre a seção depois que o passo saiu
 });
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
 for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil", "tela-pc"]) new MutationObserver(() => { if ($(id).hidden) $(id).classList.remove("pela-lateral"); if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
@@ -17649,6 +17872,8 @@ window.addEventListener("popstate", () => {
   // tarefas e funil: "voltar" no detalhe volta para a lista; na lista, fecha (as tarefas podem estar por cima do funil)
   if (!$("tela-tar").hidden) {
     if (!history.state?.tar) { fecharTar(false); return; }
+    // Operacional: saiu o passo do cliente (voltar na lista do cliente, ou duas vezes seguidas no detalhe) → lista dos clientes
+    if (tarTela?.proj && !tarTela.projDireto && !history.state?.tarProj) { sairProjOp(); return; }
     if ((tarTela?.aberta || tarTela?.nova) && !tarTela.direto && !history.state?.tarSub) { tarTela.aberta = tarTela.nova = null; desenharTar(); reporRol("tela-tar"); return; }
   }
   if (!$("tela-tr").hidden) {                     // transações: "voltar" no lançamento volta para a lista; na lista, fecha
