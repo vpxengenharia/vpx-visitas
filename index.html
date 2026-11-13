@@ -11844,7 +11844,7 @@ function linha(ico, texto, sub, fn, qtd) {
   b.onclick = fn;
   return b;
 }
-const podeFin = () => pode("comp") || podeTrans();  // Financeiro = comprovantes e transações (as solicitações têm entrada própria desde 12/11/2026)
+const podeFin = () => pode("comp") || podeTrans() || pode("nf");  // Financeiro = comprovantes, transações e notas fiscais (as solicitações têm entrada própria desde 12/11/2026; as notas vieram de Registros em 13/11/2026)
 const podeSol = () => Object.keys(TIPOS_PED).some(podeTipo);
 function atualizarNav() {
   const nav = $("nav");
@@ -11872,6 +11872,7 @@ function atualizarNav() {
     if (!$("tela-tar").hidden) atual = "tar";
     if (!$("tela-pc").hidden) atual = "sol";
     if ($("tela-tr") && !$("tela-tr").hidden) atual = "fin";   // transações e contas a pagar/receber (abertas pelo submenu do Financeiro)
+    if (!$("tela-nf").hidden && secao === "fin") atual = "fin";   // notas fiscais abertas pelo Financeiro (pela página do cliente, fica o cliente)
   } else if (atual === "fin") atual = "mais";      // celular: o Financeiro fica dentro do Mais
   nav.querySelectorAll("button").forEach(b => { if ((b.dataset.s || b.dataset.acao) === atual) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   pintarSubmenusNav();
@@ -17048,7 +17049,7 @@ function desenharReg() {
   if (pode("avcb")) g.appendChild(tile("escudo", "Validade AVCB / CLCB", abrirAvcb));   // saiu do Mais (pedido do Gustavo em 19/10/2026)
   if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", abrirEqv));   // vencimentos de todos os clientes; saiu do Mais (pedido do Gustavo em 19/10/2026)
   // Orçamentos: saíram daqui e foram para o Comercial (pedido do Gustavo em 13/11/2026); na página do cliente continuam
-  if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas()));              // emitidas para os clientes (pedido do Gustavo em 06/11/2026)
+  // Notas fiscais: saíram daqui e foram para o Financeiro (pedido do Gustavo em 13/11/2026); na página do cliente continuam
   grupo("Consultas e controles");
 }
 
@@ -17102,8 +17103,21 @@ function desenharFin() {
     lcad.appendChild(linha("contatos", "Parceiros comerciais", nPa ? `${nPa} ativo${nPa === 1 ? "" : "s"}` : "Clientes, fornecedores e colaboradores, com os dados para pagar", () => abrirCadastros({ aba: "parceiros" })));
     t.appendChild(lcad);
     sincronizarCol(colCc); sincronizarCol(colPa);
-    if (pode("comp")) t.appendChild(el("p", "hub-rot", "Comprovantes"));
   }
+  // notas fiscais emitidas para os clientes (vieram de Registros em 13/11/2026): as do mês e o total, sem as canceladas
+  if (pode("nf")) {
+    const mes = dataISO().slice(0, 7);
+    let sub = "Emitidas para os clientes, com os boletos";
+    try {
+      if (nf) {
+        const doMes = [...prepararNf().info.values()].filter(x => !x.canc && (x.data || "").startsWith(mes));
+        sub = doMes.length ? `${doMes.length} emitida${doMes.length === 1 ? "" : "s"} em ${MESES[+mes.slice(5) - 1]} · R$ ${moedaBR(doMes.reduce((s, x) => s + (x.valor || 0), 0))}` : `Nenhuma emitida em ${MESES[+mes.slice(5) - 1]}`;
+      }
+    } catch {}
+    t.appendChild(el("p", "hub-rot", "Faturamento"));
+    const ln = el("div", "hub-lista"); ln.appendChild(linha("nf", "Notas fiscais", sub, () => abrirNotas())); t.appendChild(ln);
+  }
+  if (pode("comp") && (podeTrans() || pode("nf"))) t.appendChild(el("p", "hub-rot", "Comprovantes"));
   if (pode("comp")) {
     const mes = dataISO().slice(0, 7), eu = semAcento(nomeColaborador());
     const cache = lerLS("vpx_comp_hist", null);
@@ -17148,7 +17162,7 @@ function desenharMais() {
   if (podeSol() || podeFin()) {                    // solicitações (com o número do que espera a pessoa) e o Financeiro (comprovantes)
     const f = el("div", "hub-lista");
     if (podeSol()) f.appendChild(linha("solicitacao", "Solicitações", resumoSolicitacoes(), abrirSolicitacoes, esperandoMim()));
-    if (podeFin()) f.appendChild(linha("dinheiro", "Financeiro", podeTrans() ? (pode("comp") ? "Receitas, despesas e comprovantes" : "Receitas e despesas") : "Comprovantes de compras", () => irPara("fin")));
+    if (podeFin()) f.appendChild(linha("dinheiro", "Financeiro", (t => t.charAt(0).toUpperCase() + t.slice(1))([podeTrans() && "receitas e despesas", pode("nf") && "notas fiscais", pode("comp") && (podeTrans() || pode("nf") ? "comprovantes" : "comprovantes de compras")].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " e $1")), () => irPara("fin")));
     t.appendChild(f);
   }
   // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também em Registros e no Início)
@@ -17366,8 +17380,7 @@ const SUBMENUS_NAV = {
     ["os", "Ordens de serviço", () => pode("os"), () => abrirOS(), "reg"],
     ...MODOS_APP.filter(([m]) => m !== "comp").map(([m, , nome]) => ["m-" + m, nome, () => pode(m), () => abrirModulo(m)]),
     ["avcb", "Validade AVCB / CLCB", () => pode("avcb"), () => abrirAvcb(), "reg"],
-    ["eqv", "Extintores e mangueiras", () => pode("equip"), () => abrirEqv(), "reg"],
-    ["nf", "Notas fiscais", () => pode("nf"), () => abrirNotas(), "reg"]
+    ["eqv", "Extintores e mangueiras", () => pode("equip"), () => abrirEqv(), "reg"]
   ],
   tar: [
     ["minhas", "Minhas tarefas", () => true, () => abrirTar({ filtro: "minhas" })],
@@ -17390,6 +17403,7 @@ const SUBMENUS_NAV = {
     ["dre", "DRE (resultado)", () => podeTrans(), () => abrirDre(), "fin"],
     ["cc", "Centros de custo", () => podeTrans(), () => abrirCadastros({ aba: "centros" }), "fin"],
     ["par", "Parceiros comerciais", () => podeTrans(), () => abrirCadastros({ aba: "parceiros" }), "fin"],
+    ["nf", "Notas fiscais", () => pode("nf"), () => abrirNotas(), "fin"],
     ["comp", "Enviar comprovante", () => pode("comp"), () => abrirTrabalho("comp"), "fin"],
     ["comph", "Histórico de comprovantes", () => pode("comp"), () => abrirCompHist(), "fin"]
   ]
