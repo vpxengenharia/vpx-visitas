@@ -14619,18 +14619,37 @@ function formNovaTar() {
 }
 
 /* funil comercial: as etapas do monday (cada quadro do monday virou uma etapa) */
-const ETAPAS = [["01", "Leads"], ["02", "Primeiro contato"], ["03", "Reunião de diagnóstico"], ["04", "Visita técnica"], ["05", "Elaborar proposta"],
+/* etapas do funil: o código (1º valor) é o que fica gravado em cada oportunidade e não muda; o número mostrado na tela é a posição na lista (NUM_ETAPA).
+   A etapa 03 "Reunião de diagnóstico" saiu (pedido do Gustavo em 13/11/2026): as oportunidades dela vão para a Visita técnica (migrarEtapa03)
+   e a tela renumera (03 Visita técnica … 10 Não qualificado); os códigos guardados continuam 04 … 11. */
+const ETAPAS = [["01", "Leads"], ["02", "Primeiro contato"], ["04", "Visita técnica"], ["05", "Elaborar proposta"],
   ["06", "Apresentar proposta"], ["07", "Fechar contrato"], ["08", "Fechado"], ["09", "Oportunidade futura"], ["10", "Perdido"], ["11", "Não qualificado"]];
 const NOME_ETAPA = Object.fromEntries(ETAPAS);
-const GRUPOS_FU = [["neg", "Em negociação", ["03", "04", "05", "06", "07", "08"]], ["prosp", "Prospecção", ["01", "02", "03"]],
+const NUM_ETAPA = Object.fromEntries(ETAPAS.map(([k], i) => [k, String(i + 1).padStart(2, "0")]));
+const GRUPOS_FU = [["neg", "Em negociação", ["04", "05", "06", "07", "08"]], ["prosp", "Prospecção", ["01", "02"]],
   ["fim", "Encerradas", ["08", "09", "10", "11"]], ["todas", "Todas", ETAPAS.map(e => e[0])]];
-const PROX_ETAPA = { "01": "02", "02": "03", "03": "04", "04": "05", "05": "06", "06": "07", "07": "08", "09": "03" };
+const PROX_ETAPA = { "01": "02", "02": "04", "04": "05", "05": "06", "06": "07", "07": "08", "09": "04" };
 const SITUACOES_FU = ["A definir", "Ligar novamente", "Não atendeu", "Atendeu", "Aguardando resposta", "Enviar mensagem", "Enviar e-mail", "Já foi feito contato",
   "Interesse", "Marcar visita", "Visita marcada", "Em andamento", "Parado", "Sem telefone", "Inválido"];
 const ORDEM_SIT = ["Interesse", "Marcar visita", "Visita marcada", "Ligar novamente", "Aguardando resposta", "Enviar mensagem", "Enviar e-mail", "Atendeu",
   "Em andamento", "Já foi feito contato", "A definir", "Não atendeu", "Parado", "Sem telefone", "Inválido"];
 const rankSit = s => { const i = ORDEM_SIT.indexOf(s || "A definir"); return i < 0 ? 11 : i; };
+// a etapa 03 (Reunião de diagnóstico) saiu (pedido do Gustavo em 13/11/2026): as oportunidades que estavam nela passam para a Visita técnica (04),
+// gravado no OneDrive por quem tem o Comercial, uma por vez, quando a lista chega (outro aparelho pode estar fazendo o mesmo: a mudança é a mesma)
+function migrarEtapa03() {
+  if (migrarEtapa03.rodando || !conta || !navigator.onLine || !pode("funil") || !colFu.dados.lido) return;
+  const ids = Object.values(regsDe(colFu)).filter(o => o.etapa === "03").map(o => o.id);
+  if (!ids.length) return;
+  migrarEtapa03.rodando = true;
+  (async () => {
+    for (const id of ids) {
+      if (regsDe(colFu)[id]?.etapa !== "03" || !navigator.onLine) continue;
+      try { await mudarReg(colFu, id, r => { if (r.etapa === "03") { r.etapa = "04"; r.etapaEm = new Date().toISOString(); } }, "Etapa: Visita técnica (a etapa Reunião de diagnóstico saiu do funil)"); } catch {}
+    }
+  })().finally(() => { migrarEtapa03.rodando = false; });
+}
 function aoMudarFu() {
+  setTimeout(migrarEtapa03, 0);
   if (comAtual && comTipo === "fu" && $("dlg-com").open) desenharComentariosTar();   // janela de anotações aberta: mostra as novas (guarda o que está sendo escrito)
   (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", manterQuadro("tela-funil", desenharFunil)))();
   if (conta && secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
@@ -15655,8 +15674,8 @@ function importarFin365() {
   inp.click();
 }
 let fuTela = null, fuVoltando = false;   // { grupo, etapa, pessoa, sit, valor, contato (filtros), opF, aberta, nova, direto, mais, ordem, limTab }
-const oportunidades = () => Object.values(regsDe(colFu));
-const etapaTxt = e => `${e} - ${NOME_ETAPA[e] || "?"}`;
+const oportunidades = () => Object.values(regsDe(colFu)).map(o => o.etapa === "03" ? { ...o, etapa: "04" } : o);   // etapa 03 que ainda não foi trocada no OneDrive: já aparece na Visita técnica
+const etapaTxt = e => { if (e === "03") e = "04"; return `${NUM_ETAPA[e] || e} - ${NOME_ETAPA[e] || "?"}`; };   // número da tela (posição), não o código guardado
 const ativaFu = o => o.etapa >= "02" && o.etapa <= "07";
 function diasSemContato(o) {
   const ref = o.ultimoContato || (o.etapaEm || o.criado || "").slice(0, 10);
@@ -15734,7 +15753,7 @@ function novaOport(base = {}) {
   if (!fuTela) return;
   if (!fuTela.aberta && !fuTela.nova && !fuTela.direto) guardarRol("tela-funil");
   const g = fuTela.grupo;
-  fuTela.nova = { nome: "", etapa: fuTela.etapa || (g === "prosp" ? "01" : g === "fim" ? "09" : "03"), prioridade: "", resp: [eu()], cliente: "", ...base };
+  fuTela.nova = { nome: "", etapa: fuTela.etapa || (g === "prosp" ? "01" : g === "fim" ? "09" : "04"), prioridade: "", resp: [eu()], cliente: "", ...base };
   fuTela.aberta = null;
   if (!fuTela.direto && !history.state?.fuSub) history.pushState({ fu: true, fuSub: true }, "");
   desenharFunil();
@@ -15867,7 +15886,7 @@ function linhaFu(o) {
   const r = el("tr"); r.tabIndex = 0;
   r.onclick = () => abrirOport(o.id); r.onkeydown = e => { if (e.key === "Enter" && e.target === r) abrirOport(o.id); };
   const sit = o.situacao || "A definir";
-  const abrirEtapa = b => menuOpcoes(b, ETAPAS.map(([k, n]) => [k, `${k} - ${n}`]), o.etapa, v => moverEtapa(o.id, v));
+  const abrirEtapa = b => menuOpcoes(b, ETAPAS.map(([k]) => [k, etapaTxt(k)]), o.etapa, v => moverEtapa(o.id, v));
   const abrirSit = b => menuOpcoes(b, [...new Set([...SITUACOES_FU, sit])].map(s => [s, s]), sit, v => mudarSitFu(o.id, v));
   const abrirResp = b => menuPessoas(b, (o.resp || []).slice(), nv => mudarRespFu(o.id, nv));
   const curtos = (o.resp || []).map(p => primeiroNome(nomePessoa(p))).join(", ");
@@ -16009,8 +16028,8 @@ function detalheFu(o) {
   // etapa: escolher ou avançar para a próxima
   const we = el("div", "campo"); we.appendChild(el("span", "", "Etapa"));
   const le = el("div", "fu-etapa-l"), se = document.createElement("select"); se.setAttribute("aria-label", "Etapa");
-  ETAPAS.forEach(([k, r]) => { const x = document.createElement("option"); x.value = k; x.textContent = `${k} - ${r}`; se.appendChild(x); });
-  se.value = o.etapa; se.onchange = () => moverEtapa(o.id, se.value);
+  ETAPAS.forEach(([k]) => { const x = document.createElement("option"); x.value = k; x.textContent = etapaTxt(k); se.appendChild(x); });
+  se.value = o.etapa === "03" ? "04" : o.etapa; se.onchange = () => moverEtapa(o.id, se.value);
   le.appendChild(se);
   const prox = PROX_ETAPA[o.etapa];
   if (prox) { const av = el("button", "btn prim", prox === "08" ? "Marcar como fechado" : "Avançar: " + NOME_ETAPA[prox]); av.type = "button"; av.onclick = () => moverEtapa(o.id, prox); le.appendChild(av); }
@@ -16125,7 +16144,7 @@ function formNovaFu() {
   f.appendChild(ti);
   const we = el("label", "campo"); we.appendChild(el("span", "", "Etapa"));
   const se = document.createElement("select");
-  ETAPAS.forEach(([k, r]) => { const x = document.createElement("option"); x.value = k; x.textContent = `${k} - ${r}`; se.appendChild(x); });
+  ETAPAS.forEach(([k]) => { const x = document.createElement("option"); x.value = k; x.textContent = etapaTxt(k); se.appendChild(x); });
   se.value = n.etapa; se.onchange = () => { n.etapa = se.value; };
   we.appendChild(se); f.appendChild(we);
   f.appendChild(chipsPessoas("Responsáveis (VPX)", n.resp, nv => { n.resp = nv; desenharFunil(); }));
