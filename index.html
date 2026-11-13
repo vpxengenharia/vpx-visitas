@@ -617,7 +617,7 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 #pp-fav-btn{margin:-6px 0 8px}
 .pc-tipos{grid-template-columns:1fr 1fr;margin-bottom:12px}
 /* Compra / Pagamento: a regra das abas antigas (.abas{display:none!important}) os escondia; com a entrada única "Solicitações" (12/11/2026) eles são o jeito de trocar */
-.abas.pc-tipos:not([hidden]){display:grid!important;grid-template-columns:1fr 1fr}
+.abas.pc-tipos:not([hidden]){display:grid!important;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}   /* 2 ou 3 botões, do mesmo tamanho */
 .pc-tipos[hidden]{display:none!important}
 .pc-card{display:block;width:100%;text-align:left;background:var(--papel);border:1.5px solid var(--linha);border-left-width:6px;border-radius:12px;padding:10px 12px;margin-bottom:8px;color:var(--tinta);cursor:pointer}
 .pc-card.warn{border-left-color:#E0A100}.pc-card.ok{border-left-color:#1F7A45}.pc-card.crit{border-left-color:#B22222;opacity:.8}
@@ -2029,10 +2029,10 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     <div id="form-comp" hidden>
       <button class="btn-arq ch-abrir" id="btn-comphist" type="button"><span><svg class="ic in" aria-hidden="true"><use href="#i-historico"/></svg>Histórico de comprovantes</span></button>
       <div class="tipos">
-        <button id="tipo-compra" aria-pressed="false">Compra<small>nota fiscal</small></button>
-        <button id="tipo-reembolso" aria-pressed="false">Reembolso<small>gasto pago por você</small></button>
+        <button id="tipo-compra" aria-pressed="true">Compra<small>nota fiscal</small></button>
+        <button id="tipo-reembolso" aria-pressed="false">Reembolso<small>agora em Solicitações ›</small></button>
       </div>
-      <div id="bloco-pag" hidden>
+      <div id="bloco-pag">
         <p class="rotulo">Como foi pago?</p>
         <div class="tipos">
           <button id="pag-cartao" aria-pressed="false">Cartão de crédito<small>corporativo</small></button>
@@ -2256,7 +2256,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <div class="avcb-topo"><button class="avcb-voltar voltar-lista" id="pc-voltar">‹ Voltar</button><strong>Solicitações</strong></div>
   <div class="avcb-corpo">
     <div id="pc-topo-lista">
-      <div class="abas pc-tipos" id="pc-tipos" role="tablist"><button role="tab" data-t="compra" aria-selected="true">Compra</button><button role="tab" data-t="pag" aria-selected="false">Pagamento</button></div>
+      <div class="abas pc-tipos" id="pc-tipos" role="tablist"><button role="tab" data-t="compra" aria-selected="true">Compra</button><button role="tab" data-t="pag" aria-selected="false">Pagamento</button><button role="tab" data-t="reemb" aria-selected="false">Reembolso</button></div>
       <button class="btn prim" id="pc-novo-btn">+ Nova solicitação</button>
       <input class="avcb-busca" id="pc-busca" type="search" placeholder="Buscar solicitação" aria-label="Buscar por favorecido, item, centro de custo, solicitante, valor ou número" autocomplete="off" style="margin:12px 0 0">
       <div class="chips avcb-filtro" id="pc-filtro" style="margin-top:12px" role="group" aria-label="Situação das solicitações"></div>
@@ -2711,7 +2711,11 @@ const CONFIG = {
   pedidosId: "01VYL4Q52VNBNRGSDNXZCY346CELADCOZR",                    // id dessa pasta (achada pelo id mesmo quando o compartilhamento veio de uma pasta acima)
   pagamentosCaminho: "VPX Engenharia - AVCB/02 - Financeiro/03 - Pedidos de Pagamento",   // pedidos de pagamento (.json + PDF + anexos)
   pagamentosNome: "03 - Pedidos de Pagamento",
-  pagamentosId: "01VYL4Q54MQSQ6OLOT5FCZJEJGIW7SU6EF",                 // id dessa pasta
+  pagamentosId: "01VYL4Q54MQSQ6OLOT5FCZJEJGIW7SU6EF",
+  // solicitações de reembolso (13/11/2026; antes eram comprovantes "Reembolso" em 01 - Comprovantes): criada pelo app quando o Gustavo abre;
+  // compartilhar à mão (com edição) com quem pede reembolso
+  reembolsosCaminho: "VPX Engenharia - AVCB/02 - Financeiro/05 - Pedidos de Reembolso",
+  reembolsosNome: "05 - Pedidos de Reembolso",                 // id dessa pasta
   pastaTecnica: "Pasta Técnica CBM-BA",                                  // documentação para a vistoria do Corpo de Bombeiros (dentro do cliente)
   pastaOrcamento: "02 - Orçamento",                                    // lista de serviços (planilha e PDF) das não conformidades
   pastaLaudos: "Laudos Técnicos",                                      // laudos (PDF) dentro da pasta do cliente
@@ -2818,7 +2822,7 @@ const computador = matchMedia("(min-width:900px) and (hover:hover) and (pointer:
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
-let modo = ["visita", "com", "laudo", "insp", "trein", "serv", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = null;
+let modo = ["visita", "com", "laudo", "insp", "trein", "serv", "comp"].includes(lerLS("vpx_modo", "visita")) ? lerLS("vpx_modo", "visita") : "visita", tipo = "compra";   // comprovante: só compra (o reembolso virou solicitação em 13/11/2026)
 const guardado = { visita: { fotos: [], cliente: null }, com: { fotos: [], cliente: null }, comp: { fotos: [], cliente: null }, laudo: { fotos: [], cliente: null }, insp: { fotos: [], cliente: null }, trein: { fotos: [], cliente: null }, serv: { fotos: [], cliente: null }, pt: { fotos: [], cliente: null }, pc: { fotos: [], cliente: null }, avcb: { fotos: [], cliente: null }, ld: { fotos: [], cliente: null } };   // avcb: só fila (AVCBs fotografados); ld: só fila (dados dos laudos para reabrir)
 const ehComp = () => modo === "comp";
 const listaDe = m => m === modo ? fotos : guardado[m].fotos;      // itens de uma aba, esteja ela aberta ou não
@@ -8355,7 +8359,7 @@ function pintarFaixaOS() {
    continua sendo o compartilhamento do OneDrive. */
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Visita comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
-  ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
+  ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes e reembolsos", "aba"],
   ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Solicitações de compra"], ["pagamentos", "Solicitações de pagamento"], ["pagar", "Realizar pagamentos"], ["comprar", "Realizar compras"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
   ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Comercial (oportunidades e propostas)"], ["trans", "Transações (receitas e despesas)"]
 ];
@@ -9341,7 +9345,8 @@ const ST_PC = {
 };
 const TIPOS_PED = {
   compra: { sigla: "PC", nome: "Solicitação de compra", aba: "Compra", ico: "carrinho", perm: "pedidos", rasc: "vpx_pc_rascunho", abertos: ["aguardando", "aprovado", "comprado"] },
-  pag: { sigla: "PP", nome: "Solicitação de pagamento", aba: "Pagamento", ico: "cartao", perm: "pagamentos", rasc: "vpx_pp_rascunho", abertos: ["aguardando", "aprovado"] }
+  pag: { sigla: "PP", nome: "Solicitação de pagamento", aba: "Pagamento", ico: "cartao", perm: "pagamentos", rasc: "vpx_pp_rascunho", abertos: ["aguardando", "aprovado"] },
+  reemb: { sigla: "PR", nome: "Solicitação de reembolso", aba: "Reembolso", ico: "recibo", perm: "comp", rasc: "vpx_pr_rascunho", abertos: ["aguardando", "aprovado"] }   // gasto pago do próprio bolso; mesma permissão dos comprovantes
 };
 // filtros da lista, na ordem do fluxo (pedido do Gustavo em 11/11/2026: um filtro para cada etapa): [id, rótulo, situações] — sem situações = todos;
 // "Em aberto" = o que ainda falta resolver; recusados e cancelados aparecem em Todos
@@ -9351,9 +9356,11 @@ const FILTROS_PED = {
   pag: [["abertos", "Em aberto", TIPOS_PED.pag.abertos], ["aguardando", "Aguardando aprovação", ["aguardando"]], ["aprovado", "Aprovadas", ["aprovado"]],
     ["pago", "Pagas", ["pago"]], ["todos", "Todas", null]]
 };
+FILTROS_PED.reemb = FILTROS_PED.pag.map(f => f.slice());   // reembolso: as mesmas etapas do pagamento
 const FORMAS_PAG = ["Boleto", "PIX", "Transferência", "Dinheiro"];
-const caminhoPed = t => t === "pag" ? CONFIG.pagamentosCaminho : CONFIG.pedidosCaminho;
-const nomePastaPed = t => t === "pag" ? CONFIG.pagamentosNome : CONFIG.pedidosNome;
+const caminhoPed = t => t === "pag" ? CONFIG.pagamentosCaminho : t === "reemb" ? CONFIG.reembolsosCaminho : CONFIG.pedidosCaminho;
+const nomePastaPed = t => t === "pag" ? CONFIG.pagamentosNome : t === "reemb" ? CONFIG.reembolsosNome : CONFIG.pedidosNome;
+const ehPagT = t => t === "pag" || t === "reemb";            // pagamento e reembolso: têm valor, favorecido e "pago"
 const tipoDe = p => p.tipo || "compra";                         // pedidos antigos (antes dos pagamentos) são de compra
 // quem faz os pagamentos (ex.: Raquel): vê os pedidos de pagamento de todos e marca os aprovados como pagos.
 // Só com a função marcada na administração (sem o arquivo de permissões não vale, para não mostrar a todos)
@@ -9363,13 +9370,13 @@ const podeTrans = () => ehAdmin() || (!!perm && !ehConvidado() && !!perm.usuario
 const ehPagador = () => !ehAdmin() && !!perm && pode("pagar");
 // quem faz as compras (pedido do Gustavo em 11/11/2026, para a Raquel): vê os pedidos de compra de todos, marca os aprovados como comprados e os comprados como entregues; não aprova
 const ehComprador = () => !ehAdmin() && !!perm && pode("comprar");
-const resolveTipo = t => t === "pag" ? ehPagador() : ehComprador();   // esta pessoa resolve (paga ou compra) os pedidos deste tipo, de todos
+const resolveTipo = t => ehPagT(t) ? ehPagador() : ehComprador();   // esta pessoa resolve (paga ou compra) os pedidos deste tipo, de todos
 const podeTipo = t => ehAdmin() || pode(TIPOS_PED[t].perm) || resolveTipo(t);
 // pedidos que esperam esta pessoa: o administrador aprova; quem paga ou compra resolve os aprovados
 const esperandoMim = tp => Object.values(pedidos).filter(p => (!tp || tipoDe(p) === tp) &&
   (ehAdmin() ? p.status === "aguardando" : p.status === "aprovado" && resolveTipo(tipoDe(p)))).length;
 // tp = tipo dos pedidos contados; sem ele (os dois juntos), o verbo sai do que está de fato esperando a pessoa
-const verboEsperando = tp => { const nPag = tp ? 0 : esperandoMim("pag"), pg = tp ? tp === "pag" : nPag > 0, cp = tp ? tp !== "pag" : esperandoMim() > nPag; return pg && cp ? "pagar ou comprar" : cp ? "comprar" : "pagar"; };
+const verboEsperando = tp => { const nPag = tp ? 0 : esperandoMim("pag") + esperandoMim("reemb"), pg = tp ? ehPagT(tp) : nPag > 0, cp = tp ? !ehPagT(tp) : esperandoMim() > nPag; return pg && cp ? "pagar ou comprar" : cp ? "comprar" : "pagar"; };
 const txtEsperando = (n, tp) => ehAdmin() ? `${n} aguardando sua aprovação` : `${n} aprovada${n > 1 ? "s" : ""} para ${verboEsperando(tp)}`;
 let pedidos = lerLS("vpx_pc", {});                 // id → { ...json, etag, itemId, pdfWeb, anexosWeb }
 let pcTipo = "compra", pcFiltro = "abertos", pcNovo = null, pcAberto = null;
@@ -9380,7 +9387,7 @@ const pcExcluidos = new Set();                    // pedidos excluídos neste ap
 async function basePedidos(tipo = "compra") {
   basePedidos.ids ||= {};
   if (basePedidos.ids[tipo]) return basePedidos.ids[tipo];
-  const caminho = caminhoPed(tipo), nome = nomePastaPed(tipo), fixo = tipo === "pag" ? CONFIG.pagamentosId : CONFIG.pedidosId;
+  const caminho = caminhoPed(tipo), nome = nomePastaPed(tipo), fixo = tipo === "pag" ? CONFIG.pagamentosId : tipo === "reemb" ? CONFIG.reembolsosId : CONFIG.pedidosId;
   let id = null;
   // 1º pelo id: funciona com a pasta compartilhada direto, por uma pasta acima ou por link (pelo caminho e por "Compartilhados comigo" nem sempre)
   if (fixo) { try { id = (await graph(`/drives/${CONFIG.driveId}/items/${fixo}?$select=id`)).id; } catch (e) { if (e.status !== 403 && e.status !== 404) throw e; } }
@@ -9441,6 +9448,7 @@ async function sincronizarPedidos() {
   gravarLS("vpx_pc", pedidos);
   sincronizarPedidos.rodando = false;
   sincronizarPedidos.erros = erros; sincronizarPedidos.porTipo = porTipo;
+  lancarReembolsosPagos();                       // reembolso pago em outro aparelho: vira despesa nas Transações
   carregarFavoritosPP();                          // favoritos do pedido de pagamento (mesmos em outro celular)
   atualizarContadores();
   if (!$("tela-pc").hidden) desenharPedidos();
@@ -9488,12 +9496,12 @@ let pcOrdem = { col: "data", desc: true };          // padrão: os mais novos pr
 const ST_PC_CURTO = { aguardando: "Aguardando", aprovado: "Aprovada", recusado: "Recusada", comprado: "Comprada", entregue: "Entregue", pago: "Paga", cancelado: "Cancelada" };
 const CLS_PC_TAB = { aguardando: "warn", aprovado: "pc-and", comprado: "pc-and", entregue: "ok", pago: "ok", recusado: "crit", cancelado: "crit" };
 const ORDEM_ST_PC = ["aguardando", "aprovado", "comprado", "entregue", "pago", "recusado", "cancelado"];
-const nomePC = p => tipoDe(p) === "pag" ? (p.favorecido || "—") : (p.itens?.[0]?.desc || "—");
-const valorPC = p => tipoDe(p) === "pag" ? lerValor(p.valor) : null;   // aceita "1.250,00" e "1250.50"
+const nomePC = p => tipoDe(p) === "reemb" ? (p.descricao || "—") : tipoDe(p) === "pag" ? (p.favorecido || "—") : (p.itens?.[0]?.desc || "—");
+const valorPC = p => ehPagT(tipoDe(p)) ? lerValor(p.valor) : null;   // aceita "1.250,00" e "1250.50"
 const dataCurtaPC = iso => dataBRde(iso).replace(/\d{2}(\d{2})$/, "$1");
 const COLS_PC = {
   nome: p => nomePC(p), centro: p => centroPC(p), sol: p => p.solicitante?.nome || null, data: p => p.criadoEm || null,
-  prazo: p => (tipoDe(p) === "pag" ? p.vencimento : p.precisaAte) || null, valor: valorPC,
+  prazo: p => (tipoDe(p) === "pag" ? p.vencimento : tipoDe(p) === "reemb" ? p.dataGasto : p.precisaAte) || null, valor: valorPC,
   sit: p => p.pendente ? -1 : ORDEM_ST_PC.indexOf(p.status)
 };
 function compPC(a, b) {
@@ -9508,10 +9516,10 @@ const buscaPC = p => semAcento([p.numero, p.favorecido, p.docFav, digitos(p.docF
   p.vencimento && dataBRde(p.vencimento), p.precisaAte && dataBRde(p.precisaAte), p.criadoEm && new Date(p.criadoEm).toLocaleDateString("pt-BR"),
   ST_PC[p.status]?.[0]].filter(Boolean).join(" "));
 function tabelaPC(vis, comSel) {
-  const pag = pcTipo === "pag";
+  const pag = ehPagT(pcTipo), reemb = pcTipo === "reemb";
   const cols = pag
-    ? [["nome", "Favorecido", "orc-c-cli"], ["centro", "Centro de custo", "pc-so-pc pc-c-centro"], ["sol", "Solicitante", "pc-so-pc pc-c-sol"],
-       ["prazo", "Vencimento", "pc-so-pc pc-c-prazo"], ["valor", "Valor (R$)", "orc-c-valor"], ["sit", "Situação", "pc-c-sit"]]
+    ? [["nome", reemb ? "Gasto" : "Favorecido", "orc-c-cli"], ["centro", "Centro de custo", "pc-so-pc pc-c-centro"], ["sol", "Solicitante", "pc-so-pc pc-c-sol"],
+       ["prazo", reemb ? "Data do gasto" : "Vencimento", "pc-so-pc pc-c-prazo"], ["valor", "Valor (R$)", "orc-c-valor"], ["sit", "Situação", "pc-c-sit"]]
     : [["nome", "Itens", "orc-c-cli"], ["centro", "Centro de custo", "pc-so-pc pc-c-centro"], ["sol", "Solicitante", "pc-so-pc pc-c-sol"],
        ["data", "Data", "orc-so-cel orc-c-data"], ["prazo", "Precisa até", "pc-so-pc pc-c-prazo"], ["sit", "Situação", "pc-c-sit"]];
   const tb = el("table", "orc-tab pc-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
@@ -9557,7 +9565,7 @@ function linhaPC(p, pag, comSel) {
   sit.appendChild(tag);
   // embaixo da situação: pago em (sempre); vencimento / precisa até só no celular (na tela larga têm coluna)
   if (pag && p.status === "pago" && p.pagamento?.data) sit.appendChild(el("small", "", "em " + dataCurtaPC(p.pagamento.data)));
-  else if (prazo && (p.pendente || TIPOS_PED[tipoDe(p)].abertos.includes(p.status))) sit.appendChild(el("small", "pc-sit-cel", (pag ? "vence " : "até ") + dataCurtaPC(prazo)));
+  else if (prazo && (p.pendente || TIPOS_PED[tipoDe(p)].abertos.includes(p.status))) sit.appendChild(el("small", "pc-sit-cel", (pag ? (tipoDe(p) === "reemb" ? "gasto em " : "vence ") : "até ") + dataCurtaPC(prazo)));
   const cels = [nome, el("td", "pc-so-pc pc-c-centro", centroPC(p)), sol];
   if (pag) {
     const v = valorPC(p);
@@ -9585,7 +9593,7 @@ let pcSelUlt = null, pcLote = null;                // último marcado (Shift+cli
 const meuPC = p => p.solicitante?.email === emailDe();
 const ACOES_LOTE_PC = [   // mesmas regras dos botões do detalhe (desenharDetalhePC)
   { id: "aprovar", rot: "Aprovar", cls: "prim", st: "aprovado", ger: "Aprovando", pode: p => ehAdmin() && p.status === "aguardando" },
-  { id: "pago", rot: "Marcar como paga", cls: "prim", st: "pago", ger: "Marcando como paga", pode: p => tipoDe(p) === "pag" && (ehAdmin() || ehPagador()) && p.status === "aprovado" },
+  { id: "pago", rot: "Marcar como paga", cls: "prim", st: "pago", ger: "Marcando como paga", pode: p => ehPagT(tipoDe(p)) && (ehAdmin() || ehPagador()) && p.status === "aprovado" },
   { id: "entregue", rot: "Marcar como entregue", cls: "prim", st: "entregue", ger: "Marcando como entregue", pode: p => tipoDe(p) === "compra" && (ehAdmin() || meuPC(p) || ehComprador()) && p.status === "comprado" },
   { id: "recusar", rot: "Recusar", cls: "sec", st: "recusado", ger: "Recusando", pode: p => ehAdmin() && p.status === "aguardando" },
   { id: "cancelar", rot: "Cancelar", cls: "sec", st: "cancelado", ger: "Cancelando", pode: p => !ehAdmin() && meuPC(p) && p.status === "aguardando" },   // o administrador recusa ou exclui
@@ -9631,7 +9639,7 @@ function pintarLotePC() {
     bar.appendChild(info);
     return;
   }
-  const vals = pcTipo === "pag" ? sel.map(valorPC).filter(v => v != null) : [];
+  const vals = ehPagT(pcTipo) ? sel.map(valorPC).filter(v => v != null) : [];
   info.append(`${sel.length} marcada${sel.length === 1 ? "" : "s"}`);
   if (vals.length) info.append(" · R$ " + moedaBR(vals.reduce((s, v) => s + v, 0)));
   const limpar = el("button", "laudo-link", "Desmarcar"); limpar.type = "button"; limpar.dataset.a = "limpar";
@@ -9653,7 +9661,7 @@ async function executarLotePC(a) {
   const alvo = sel.filter(p => acoesLotePC(p).some(x => x.id === a.id));
   if (!alvo.length) return;
   if (!navigator.onLine) { aviso("Sem internet para alterar as solicitações.", true); return; }
-  const tipo = tipoDe(alvo[0]), pag = tipo === "pag", n = alvo.length, um = n === 1;
+  const tipo = tipoDe(alvo[0]), pag = ehPagT(tipo), n = alvo.length, um = n === 1;
   // a pergunta mostra a lista (até 8), o total e o que fica de fora
   const linhas = alvo.slice(0, 8).map(p => `• ${p.numero} · ${nomePC(p)}${pag && p.valor ? " · " + valorBR(p.valor) : ""}`);
   if (n > 8) linhas.push(`• e mais ${n - 8}`);
@@ -9708,6 +9716,7 @@ async function executarLotePC(a) {
     alvo.forEach(p => pcExcluindo.delete(p.id));
   }
   ok.forEach(p => pcSel.delete(p.id));
+  if (a.id === "pago" && ok.some(p => tipoDe(p) === "reemb")) lancarReembolsosPagos();   // reembolsos pagos em grupo também viram despesas
   if (pcAberto && !pedidos[pcAberto]) pcAberto = null;
   atualizarContadores();
   if (!$("tela-pc").hidden && $("pc-novo").hidden) desenharPedidos(); else pintarLotePC();
@@ -9734,7 +9743,7 @@ function desenharPedidos() {
   abas.querySelectorAll("button").forEach(b => { b.hidden = !tipos.includes(b.dataset.t); b.setAttribute("aria-selected", String(b.dataset.t === pcTipo));
     const n = esperandoMim(b.dataset.t);
     comIc(b, TIPOS_PED[b.dataset.t].ico, TIPOS_PED[b.dataset.t].aba + (n ? ` (${n})` : "")); });
-  $("pc-novo-btn").textContent = pcTipo === "pag" ? "+ Nova solicitação de pagamento" : "+ Nova solicitação de compra";
+  $("pc-novo-btn").textContent = pcTipo === "pag" ? "+ Nova solicitação de pagamento" : pcTipo === "reemb" ? "+ Nova solicitação de reembolso" : "+ Nova solicitação de compra";
   const daAba = meusPedidos().filter(p => tipoDe(p) === pcTipo);
   const q = semAcento($("pc-busca").value.trim());
   const todos = q ? daAba.filter(p => buscaPC(p).includes(q)) : daAba;   // os números dos filtros contam depois da busca
@@ -9770,7 +9779,7 @@ function desenharPedidos() {
     res.append(`${vis.length} solicitaç${vis.length === 1 ? "ão" : "ões"}${q ? ` de ${daAba.filter(p => passa(p, stsFiltro)).length}` : ""}`);
     // recusados e cancelados não somam (como as notas canceladas)
     const fora = vis.filter(p => ["recusado", "cancelado"].includes(p.status)).length;
-    const vals = pcTipo === "pag" ? vis.filter(p => !["recusado", "cancelado"].includes(p.status)).map(valorPC).filter(v => v != null) : [];
+    const vals = ehPagT(pcTipo) ? vis.filter(p => !["recusado", "cancelado"].includes(p.status)).map(valorPC).filter(v => v != null) : [];
     if (vals.length) { res.append(" · Total ", el("b", "", "R$ " + moedaBR(vals.reduce((s, v) => s + v, 0)))); if (fora) res.append(` (${fora} recusado${fora > 1 ? "s" : ""} ou cancelado${fora > 1 ? "s" : ""} fora do total)`); }
   }
   const erroPc = navigator.onLine ? sincronizarPedidos.porTipo?.[pcTipo] : "";   // pasta sem acesso ou falha na leitura: diz isso no lugar de "Nenhum pedido"
@@ -9788,7 +9797,7 @@ const dadosPag = p => p.forma === "PIX" ? `Chave PIX: ${p.pix || "-"}` : p.forma
   : p.forma === "Boleto" ? (p.linha ? `Código: ${p.linha}` : "Boleto em anexo") : "Dinheiro";
 
 function desenharDetalhePC(p) {
-  const det = $("pc-detalhe"), pag = tipoDe(p) === "pag";
+  const det = $("pc-detalhe"), pag = ehPagT(tipoDe(p));
   det.innerHTML = "";
   const voltar = el("button", "laudo-link", "‹ Todas as solicitações"); voltar.type = "button";
   voltar.onclick = () => { pcAberto = null; desenharPedidos(); reporRol("tela-pc"); };
@@ -9797,7 +9806,10 @@ function desenharDetalhePC(p) {
   det.appendChild(el("h2", "secao", `${TIPOS_PED[tipoDe(p)].nome} ${p.numero}`));
   det.appendChild(el("p", "avcb-aviso " + cls, p.pendente ? "⏳ Guardado no celular, aguardando envio" : rot));
   const quando = new Date(p.criadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-  const linhas = pag
+  const linhas = tipoDe(p) === "reemb"
+    ? [["Solicitante", p.solicitante?.nome], ["Data", quando], ["Centro de custo", centroPC(p)], ["O que foi gasto", p.descricao], ["Valor", valorBR(p.valor)],
+       ["Data do gasto", p.dataGasto && dataBRde(p.dataGasto)], ["Chave PIX para o reembolso", p.pix], ["Urgência", p.urgencia], ["Pago em", p.pagamento?.data && dataBRde(p.pagamento.data)]]
+    : pag
     ? [["Solicitante", p.solicitante?.nome], ["Data", quando], ["Centro de custo", centroPC(p)], ["Favorecido", p.favorecido], ["CPF/CNPJ", p.docFav],
        ["Valor", valorBR(p.valor)], ["Vencimento", p.vencimento && dataBRde(p.vencimento)], ["Forma", p.forma], ["Dados para pagar", dadosPag(p)],
        ["Urgência", p.urgencia], ["Descrição", p.descricao], ["Pago em", p.pagamento?.data && dataBRde(p.pagamento.data)]]
@@ -9824,7 +9836,7 @@ function desenharDetalhePC(p) {
   const excluindo = pcExcluindo.has(p.id);         // excluindo: nada de aprovar, pagar, anexar ou excluir de novo no meio
   if (!p.pendente && !excluindo) {
     if (adm && p.status === "aguardando") { botao("✓ Aprovar", "prim", () => mudarStatusPC(p, "aprovado")); botao("Recusar", "sec", () => mudarStatusPC(p, "recusado", true)); }
-    if ((adm || resolveTipo(pag ? "pag" : "compra")) && p.status === "aprovado") pag ? botao("Marcar como paga", "prim", () => marcarPago(p)) : botao("Marcar como comprada", "prim", () => marcarComprado(p));
+    if ((adm || resolveTipo(tipoDe(p))) && p.status === "aprovado") pag ? botao("Marcar como paga", "prim", () => marcarPago(p)) : botao("Marcar como comprada", "prim", () => marcarComprado(p));
     if (pag && (adm || ehPagador()) && p.status === "pago" && !p.pagamento?.comprovante) botao("Anexar comprovante", "sec", () => anexarComprovantePago(p));   // pago sem comprovante: dá para anexar depois
     if (!pag && (adm || meu || ehComprador()) && p.status === "comprado") botao("Marcar como entregue", "prim", () => mudarStatusPC(p, "entregue"));
     if (meu && p.status === "aguardando") botao("Cancelar solicitação", "sec", () => mudarStatusPC(p, "cancelado", true));
@@ -9841,7 +9853,7 @@ function desenharDetalhePC(p) {
 async function excluirPedido(p) {
   if (!ehAdmin() || p.pendente || pcExcluindo.has(p.id)) return;
   if (!navigator.onLine) { aviso("Sem internet para excluir a solicitação.", true); return; }
-  const pag = tipoDe(p) === "pag", sit = (ST_PC[p.status]?.[0] || p.status).toLowerCase();
+  const pag = ehPagT(tipoDe(p)), sit = (ST_PC[p.status]?.[0] || p.status).toLowerCase();
   const resumo = pag ? `${valorBR(p.valor)} para ${p.favorecido || "-"}` : `${p.itens?.length || 0} ite${(p.itens?.length || 0) === 1 ? "m" : "ns"}`;
   const forte = ["pago", "comprado", "entregue"].includes(p.status) ? (pag ? " O pagamento já foi registrado: o comprovante também é apagado." : " A compra já foi registrada.") : "";
   if (!await confirmarApagar(`Excluir a solicitação ${p.numero}?`,
@@ -9932,6 +9944,7 @@ async function mudarStatusPCJa(p, status, pedirMotivo, extra, obsPronta = "") { 
   try {
     await gravarStatusPC(p, status, extra, obs);
     aviso(`Solicitação ${p.numero}: ${ST_PC[status][0].toLowerCase()}.`);
+    if (status === "pago" && tipoDe(p) === "reemb") lancarReembolsosPagos();
     atualizarContadores(); desenharPedidos();
     if (extra?.pagamento) sincronizarPedidos();           // mostra o comprovante recém-enviado
   } catch (e) {
@@ -9967,7 +9980,7 @@ async function marcarPago(p) {
         if (!await pedidoExistePC(p)) return;        // pedido excluído: não deixa um comprovante solto na pasta
         const nome = nomeComprovantePP(p, arq);
         aviso("Enviando o comprovante…");
-        const it = await enviarArquivo(await basePedidos("pag"), nome, arq, undefined, true);   // grava por cima: nova tentativa não cria "comprovante 1"
+        const it = await enviarArquivo(await basePedidos(tipoDe(p)), nome, arq, undefined, true);   // grava por cima: nova tentativa não cria "comprovante 1"
         pagamento.comprovante = (it?.name || nome).slice(p.id.length + 3);
       }
     } catch (e) { aviso("Não foi possível enviar o comprovante: " + erroEmPortugues(e.message) + " — a solicitação continua como aprovada.", true); return; }
@@ -9985,7 +9998,7 @@ function anexarComprovantePago(p) {
       let it;
       try {
         if (!await pedidoExistePC(p)) return;        // pedido excluído: não deixa um comprovante solto na pasta
-        aviso("Enviando o comprovante…"); it = await enviarArquivo(await basePedidos("pag"), nome, arq, undefined, true);   // grava por cima: nova tentativa não cria "comprovante 1"
+        aviso("Enviando o comprovante…"); it = await enviarArquivo(await basePedidos(tipoDe(p)), nome, arq, undefined, true);   // grava por cima: nova tentativa não cria "comprovante 1"
       }
       catch (e) { aviso("Não foi possível enviar o comprovante: " + erroEmPortugues(e.message), true); return; }
       await mudarStatusPC(p, "pago", false, { pagamento: { ...(p.pagamento || {}), comprovante: (it?.name || nome).slice(p.id.length + 3) } }, "comprovante anexado");
@@ -9997,7 +10010,7 @@ function anexarComprovantePago(p) {
 /* novo pedido (compra ou pagamento) */
 function abrirNovoPC() {
   const t = TIPOS_PED[pcTipo];
-  pcNovo = lerLS(t.rasc, null) || (pcTipo === "pag"
+  pcNovo = lerLS(t.rasc, null) || (pcTipo === "reemb" ? novoReemb() : pcTipo === "pag"
     ? { tipo: "pag", centro: "", centroDesc: "", favorecido: "", docFav: "", valor: "", vencimento: "", forma: "Boleto", linha: "", pix: "", banco: "", agencia: "", contaBanco: "", urgencia: "Normal", descricao: "" }
     : { tipo: "compra", centro: "", centroDesc: "", urgencia: "Normal", entrega: "Na obra", precisaAte: "", obs: "", itens: [] });
   pcNovo.anexos = [];                              // anexos ficam só na memória até enviar
@@ -10153,6 +10166,7 @@ async function carregarFavoritosPP() {
 
 function desenharNovoPC() {
   const f = $("pc-novo"); f.innerHTML = "";
+  if (pcNovo.tipo === "reemb") { desenharNovoReemb(f); return; }
   const pag = pcNovo.tipo === "pag";
   const voltar = el("button", "laudo-link", "‹ Cancelar"); voltar.type = "button"; voltar.onclick = fecharNovoPC;
   f.append(voltar, el("h2", "secao", pag ? "Nova solicitação de pagamento" : "Nova solicitação de compra"));
@@ -10217,10 +10231,40 @@ function desenharNovoPC() {
   atualizarEnvioPC();
 }
 // o que falta para enviar
+// solicitação de reembolso (13/11/2026): gasto pago do próprio bolso; quem recebe é quem pede (PIX lembrado no aparelho e pelos pedidos anteriores)
+const pixReemb = () => lerLS("vpx_reemb_pix", "") || meusPedidos().filter(p => tipoDe(p) === "reemb" && p.solicitante?.email === emailDe() && p.pix)
+  .sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""))[0]?.pix || "";
+const novoReemb = () => ({ tipo: "reemb", centro: "", centroDesc: "", favorecido: nomeColaborador(), descricao: "", valor: "", dataGasto: dataISO(), forma: "PIX", pix: pixReemb(), urgencia: "Normal" });
+function desenharNovoReemb(f) {
+  pcNovo.favorecido = nomeColaborador();
+  const voltar = el("button", "laudo-link", "‹ Cancelar"); voltar.type = "button"; voltar.onclick = fecharNovoPC;
+  f.append(voltar, el("h2", "secao", "Nova solicitação de reembolso"), el("p", "laudo-dica", "Para um gasto da empresa que você pagou do próprio bolso. Depois de aprovado, quem paga faz o PIX para você."));
+  textoPC(f, "O que foi gasto *", "descricao", { dica: "Ex.: Almoço da equipe na obra, combustível, material" });
+  textoPC(f, "Valor (R$) *", "valor", { num: true, dica: "Ex.: 150,00" });
+  textoPC(f, "Data do gasto *", "dataGasto", { tipo: "date" });
+  campoCentroPC(f);
+  textoPC(f, "Sua chave PIX (para receber) *", "pix", { dica: "CPF, celular, e-mail ou chave aleatória" });
+  f.appendChild(chipsPC("Urgência", "urgencia", ["Normal", "Urgente"]));
+  f.appendChild(el("h3", "avcb-grupo", `Comprovante do gasto (${pcNovo.anexos.length})`));
+  pcNovo.anexos.forEach((a, i) => {
+    const d = el("div", "pc-item pc-item-ed"); d.appendChild(comIc(el("span"), "clipe", a.name));
+    const rm = el("button", "trein-rm", "×"); rm.type = "button"; rm.setAttribute("aria-label", "Tirar " + a.name); rm.onclick = () => { pcNovo.anexos.splice(i, 1); desenharNovoPC(); };
+    d.appendChild(rm); f.appendChild(d);
+  });
+  const lab = comIc(el("label", "btn sec"), "camera", pcNovo.anexos.length ? "Anexar outro comprovante" : "Foto ou PDF do comprovante *");
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*,application/pdf"; inp.multiple = true; inp.className = "oculto";
+  inp.onchange = () => { pcNovo.anexos.push(...inp.files); inp.value = ""; desenharNovoPC(); };
+  lab.appendChild(inp); f.appendChild(lab);
+  const env = el("button", "btn prim"); env.id = "pc-enviar"; env.type = "button"; env.onclick = enviarNovoPC;
+  f.appendChild(env);
+  atualizarEnvioPC();
+}
 function faltaPC() {
   const p = pcNovo;
   if (!p.centro) return "Escolha o centro de custo";
   if (p.tipo === "compra") return p.itens.length ? "" : "Adicione pelo menos um item";
+  if (p.tipo === "reemb") return !(p.descricao || "").trim() ? "Diga o que foi gasto" : !(numBR(p.valor) > 0) ? "Informe o valor" : !p.dataGasto ? "Informe a data do gasto"
+    : !(p.pix || "").trim() ? "Informe sua chave PIX" : !p.anexos.length ? "Anexe o comprovante do gasto" : "";
   if (!(p.favorecido || "").trim()) return "Informe o favorecido";
   if (!(numBR(p.valor) > 0)) return "Informe o valor";
   if (!p.vencimento) return "Informe o vencimento";
@@ -10233,7 +10277,7 @@ function atualizarEnvioPC() {
   const b = $("pc-enviar"); if (!b || !pcNovo) return;
   const falta = faltaPC();
   b.disabled = !!falta;
-  b.textContent = falta || (pcNovo.tipo === "pag" ? `Enviar solicitação de pagamento (${valorBR(pcNovo.valor)})` : `Enviar solicitação (${pcNovo.itens.length} ite${pcNovo.itens.length > 1 ? "ns" : "m"})`);
+  b.textContent = falta || (pcNovo.tipo === "reemb" ? `Enviar reembolso (${valorBR(pcNovo.valor)})` : pcNovo.tipo === "pag" ? `Enviar solicitação de pagamento (${valorBR(pcNovo.valor)})` : `Enviar solicitação (${pcNovo.itens.length} ite${pcNovo.itens.length > 1 ? "ns" : "m"})`);
 }
 const centroPC = p => p.centro ? `${p.centro}${p.centroDesc ? " · " + p.centroDesc : ""}` : p.cliente || "Escritório/estoque";   // pedidos antigos tinham cliente
 
@@ -10250,7 +10294,8 @@ async function enviarNovoPC() {
   const ped = { versao: 1, ...dados, tipo, id, numero, criadoEm: agora.toISOString(), solicitante: { nome: nomeColaborador(), email: emailDe() },
     anexos: anexos.map((a, i) => `${nomeAnexoPC(a, i)}.${(a.name.split(".").pop() || "jpg").toLowerCase()}`),
     status: "aguardando", historico: [{ status: "aguardando", por: nomeColaborador(), em: agora.toISOString(), obs: "" }] };
-  if (tipo === "pag") { ped.descricao = ped.descricao.trim(); ped.favorecido = ped.favorecido.trim(); } else ped.obs = (ped.obs || "").trim();
+  if (ehPagT(tipo)) { ped.descricao = ped.descricao.trim(); ped.favorecido = ped.favorecido.trim(); } else ped.obs = (ped.obs || "").trim();
+  if (tipo === "reemb") { ped.pix = ped.pix.trim(); gravarLS("vpx_reemb_pix", ped.pix); }   // a chave PIX da pessoa volta preenchida no próximo reembolso
   let pdf;
   try { pdf = await gerarPedidoPDF(ped); } catch (e) { aviso("Não foi possível gerar o PDF: " + e.message, true); return; }
   const arqs = [[new File([JSON.stringify(ped, null, 2)], id + ".json", { type: "application/json" }), id],
@@ -10273,20 +10318,23 @@ async function enviarNovoPC() {
 async function gerarPedidoPDF(p) {
   const jsPDF = window.jspdf?.jsPDF;
   if (!jsPDF) throw new Error("a ferramenta de PDF não carregou");
-  const pag = tipoDe(p) === "pag";
+  const pag = ehPagT(tipoDe(p)), reemb = tipoDe(p) === "reemb";
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const M = 15, L = 180, AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59];
   let y = 15;
   const cabe = h => { if (y + h > 280) { doc.addPage(); y = 15; return true; } return false; };
   try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 32, 18, "logo", "FAST"); } catch {}
-  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL); doc.text(pag ? "Solicitação de Pagamento" : "Solicitação de Compra", 210 - M, y + 7, { align: "right" });
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL); doc.text(reemb ? "Solicitação de Reembolso" : pag ? "Solicitação de Pagamento" : "Solicitação de Compra", 210 - M, y + 7, { align: "right" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...CINZA);
   doc.text(`Nº ${p.numero}`, 210 - M, y + 13, { align: "right" });
   doc.text(new Date(p.criadoEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }), 210 - M, y + 18, { align: "right" });
   y += 23; doc.setDrawColor(...LARANJA); doc.setLineWidth(1); doc.line(M, y, 210 - M, y); y += 9;
   const linha = (r, v) => { doc.setFontSize(10); const tv = doc.splitTextToSize(String(v), L - 50); cabe(tv.length * 4.6 + 2);
     doc.setFont("helvetica", "bold"); doc.setTextColor(...CINZA); doc.text(r, M, y); doc.setFont("helvetica", "normal"); doc.setTextColor(...TINTA); doc.text(tv, M + 50, y); y += tv.length * 4.6 + 2; };
-  if (pag) {
+  if (reemb) {
+    [["Solicitante", p.solicitante.nome], ["Centro de custo", centroPC(p)], ["O que foi gasto", p.descricao], ["Valor", valorBR(p.valor)], ["Data do gasto", p.dataGasto && dataBRde(p.dataGasto)],
+     ["Pagar por PIX para", `${p.solicitante.nome} - chave ${p.pix}`], ["Urgência", p.urgencia], ["Comprovantes", (p.anexos || []).join(", ")]].filter(([, v]) => v).forEach(([r, v]) => linha(r, v));
+  } else if (pag) {
     [["Solicitante", p.solicitante.nome], ["Centro de custo", centroPC(p)], ["Favorecido", p.favorecido], ["CPF/CNPJ", p.docFav], ["Valor", valorBR(p.valor)],
      ["Vencimento", p.vencimento && dataBRde(p.vencimento)], ["Forma de pagamento", p.forma], ["Dados para pagar", dadosPag(p)], ["Urgência", p.urgencia],
      ["Descrição", p.descricao], ["Anexos", (p.anexos || []).join(", ")]].filter(([, v]) => v).forEach(([r, v]) => linha(r, v));
@@ -10311,7 +10359,7 @@ async function gerarPedidoPDF(p) {
   y += 10; cabe(30);
   doc.setFontSize(9); doc.setTextColor(...CINZA);
   doc.text("Aprovação: ______________________________   Data: ____/____/______", M, y + 10);
-  doc.setFontSize(8); doc.text(`VPX Engenharia - ${pag ? "Solicitação de pagamento" : "Solicitação de compra"} ${p.numero}`, 105, 290, { align: "center" });
+  doc.setFontSize(8); doc.text(`VPX Engenharia - ${reemb ? "Solicitação de reembolso" : pag ? "Solicitação de pagamento" : "Solicitação de compra"} ${p.numero}`, 105, 290, { align: "center" });
   return doc.output("blob");
 }
 
@@ -10321,11 +10369,11 @@ async function exportarPedidos() {
     if (!window.XLSX) await carregarScript(SHEETJS);
     const lista = Object.values(pedidos).filter(p => tipoDe(p) === pcTipo).sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
     let linhas, cols, nome;
-    if (pcTipo === "pag") {
-      nome = "Solicitações de pagamento";
+    if (ehPagT(pcTipo)) {
+      nome = pcTipo === "reemb" ? "Solicitações de reembolso" : "Solicitações de pagamento";
       linhas = [["Solicitação", "Data", "Solicitante", "Centro de custo", "Favorecido", "CPF/CNPJ", "Valor (R$)", "Vencimento", "Forma", "Dados para pagar", "Descrição", "Urgência", "Situação", "Pago em"]];
       for (const p of lista) linhas.push([p.numero, new Date(p.criadoEm).toLocaleDateString("pt-BR"), p.solicitante?.nome, centroPC(p), p.favorecido, p.docFav,
-        numBR(p.valor) ?? p.valor, p.vencimento && dataBRde(p.vencimento), p.forma, dadosPag(p), p.descricao, p.urgencia, ST_PC[p.status]?.[0] || p.status, p.pagamento?.data && dataBRde(p.pagamento.data)]);
+        numBR(p.valor) ?? p.valor, (p.vencimento || p.dataGasto) && dataBRde(p.vencimento || p.dataGasto), p.forma, dadosPag(p), p.descricao, p.urgencia, ST_PC[p.status]?.[0] || p.status, p.pagamento?.data && dataBRde(p.pagamento.data)]);
       cols = [18, 11, 22, 26, 26, 18, 12, 11, 12, 34, 40, 10, 20, 11];
     } else {
       nome = "Solicitações de compra";
@@ -11640,7 +11688,7 @@ async function restaurarItens() {
 }
 
 // zera os campos do comprovante (o que foi preenchido já está no destino e no nome de cada item salvo)
-function limparComp() { $("descricao").value = ""; $("comp-valor").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo(null); }
+function limparComp() { $("descricao").value = ""; $("comp-valor").value = ""; $("centro-sel").value = ""; aoEscolherCentro(); escolherPagamento(null); escolherTipo("compra"); }
 function novaVisita() {
   fotos.filter(f => f.st === "ok").forEach(liberar);
   fotos = fotos.filter(f => f.st !== "ok");        // o que ainda está na fila continua na lista
@@ -14560,7 +14608,22 @@ async function baseTransacoes() {
 }
 function aoMudarTr() {
   redesTr();
+  lancarReembolsosPagos();
   if (secao === "fin" && !$("tela-fin").hidden) desenharFin();
+}
+// solicitações de reembolso pagas viram despesas pagas nas Transações, sem ninguém digitar de novo (id fixo "reemb-<id>": não duplica;
+// depois de criada, a despesa pode ser editada à vontade — o app não grava por cima). Roda com as transações lidas, para quem pode vê-las.
+const despesaDoReembolso = p => ({ id: "reemb-" + p.id, tipo: "desp", desc: `Reembolso ${p.solicitante?.nome || ""} - ${p.descricao || ""}`.trim(),
+  valor: Math.round((lerValor(p.valor) || 0) * 100) / 100, comp: p.dataGasto || p.pagamento?.data || dataISO(), venc: p.pagamento?.data || "", pg: p.pagamento?.data || dataISO(),
+  st: "pago", cat: "Empresa", centro: p.centro || "", parc: p.solicitante?.nome || "", conta: TR_CONTAS[0], forma: "PIX", obs: `Solicitação de reembolso ${p.numero}`, origem: { reemb: p.id } });
+async function lancarReembolsosPagos() {
+  if (lancarReembolsosPagos.rodando || !podeTrans() || !colTr.dados.lido || !navigator.onLine) return;
+  const ja = regsDe(colTr);
+  const faltam = Object.values(pedidos).filter(p => tipoDe(p) === "reemb" && p.status === "pago" && !p.pendente && !ja["reemb-" + p.id] && !colTr.pend["reemb-" + p.id]);
+  if (!faltam.length) return;
+  lancarReembolsosPagos.rodando = true;
+  try { for (const p of faltam) await criarReg(colTr, despesaDoReembolso(p)); }
+  finally { lancarReembolsosPagos.rodando = false; }
 }
 const colTr = colecao({ chave: "vpx_tr", prefixo: "transacoes", n: 32, base: baseTransacoes, pode: podeTrans, aoMudar: aoMudarTr });
 const redesTr = redesenhoSeguro("tela-tr", () => desenharTr());
@@ -16594,7 +16657,7 @@ function desenharMais() {
   if (podeSol() || podeFin()) {                    // solicitações (com o número do que espera a pessoa) e o Financeiro (comprovantes)
     const f = el("div", "hub-lista");
     if (podeSol()) f.appendChild(linha("solicitacao", "Solicitações", resumoSolicitacoes(), abrirSolicitacoes, esperandoMim()));
-    if (podeFin()) f.appendChild(linha("dinheiro", "Financeiro", podeTrans() ? (pode("comp") ? "Receitas, despesas e comprovantes" : "Receitas e despesas") : "Comprovantes de compras e reembolsos", () => irPara("fin")));
+    if (podeFin()) f.appendChild(linha("dinheiro", "Financeiro", podeTrans() ? (pode("comp") ? "Receitas, despesas e comprovantes" : "Receitas e despesas") : "Comprovantes de compras", () => irPara("fin")));
     t.appendChild(f);
   }
   // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também em Registros e no Início)
@@ -17007,7 +17070,11 @@ montarTrein();
 montarServ();
 $("aba-serv").onclick = () => trocarModo("serv");
 $("tipo-compra").onclick = () => escolherTipo("compra");
-$("tipo-reembolso").onclick = () => escolherTipo("reembolso");
+$("tipo-reembolso").onclick = () => {               // o reembolso agora é uma solicitação (aprovada pelo administrador e paga por PIX)
+  if (enviando) return;
+  if (!podeTipo("reemb")) { aviso("Sem acesso às solicitações de reembolso. Peça ao administrador.", true); return; }
+  pcTipo = "reemb"; abrirPedidos(); abrirNovoPC();
+};
 $("pag-cartao").onclick = () => escolherPagamento("cartao");
 $("pag-conta").onclick = () => escolherPagamento("conta");
 $("descricao").oninput = () => { atualizarBotao(); };
