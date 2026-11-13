@@ -1380,7 +1380,7 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
    nas telas que abrem por cima, que ficam ao lado dele, abaixo do topo); as telas do menu usam a largura da tela
    (quadrados e listas em colunas). No celular nada muda. A mesma condição está em "computador" no script. */
 @media (min-width:900px) and (hover:hover) and (pointer:fine){
-  :root{--lateral:232px;--topo-pc:72px;--borda-hover:#B5C3D4}
+  :root{--lateral:256px;--topo-pc:72px;--borda-hover:#B5C3D4}   /* 256 px (antes 232) e ajustável pela alça na borda do menu */
   html{scrollbar-gutter:stable}
   .topo{height:var(--topo-pc);padding:0 28px;justify-content:flex-start}
   .marca img{height:44px}
@@ -1903,6 +1903,16 @@ span.fu-orc-lin{cursor:default}
 .nav button svg{flex:none}
 .nav-rot{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (min-width:900px) and (hover:hover) and (pointer:fine){body.logado .nav{scrollbar-width:thin;scrollbar-gutter:stable}}
+/* alça para ajustar a largura do menu lateral do computador (pedido do Gustavo em 13/11/2026): arrastar a borda direita do menu */
+.nav-alca{display:none}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  body.logado .nav-alca{display:block;position:fixed;top:0;bottom:0;left:calc(var(--lateral) - 5px);z-index:7;width:10px;cursor:col-resize;touch-action:none}
+  body.logado .nav-alca::after{content:"";position:absolute;top:0;bottom:0;left:4px;width:2px;background:transparent;transition:background-color .12s}
+  body.logado .nav-alca:hover::after,body.logado .nav-alca:focus-visible::after,body.ajustando-menu .nav-alca::after{background:var(--laranja)}
+  body.logado .nav-alca:focus-visible{outline:none}
+  body.ajustando-menu{cursor:col-resize;user-select:none}
+  body.ajustando-menu *{cursor:col-resize!important}
+}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2200,6 +2210,7 @@ span.fu-orc-lin{cursor:default}
 </main>
 
 <!-- barra de baixo: o caminho para tudo do app -->
+<div class="nav-alca" id="nav-alca" role="separator" aria-orientation="vertical" aria-label="Largura do menu" tabindex="0" title="Arraste para ajustar a largura do menu (duplo clique volta ao normal)"></div>
 <nav class="nav" id="nav" hidden aria-label="Menu principal">
   <button data-s="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Início</button>
   <button data-s="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16"/><path d="M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg>Clientes<kbd class="nav-atalho" title="Ir para um cliente (Ctrl+K)" aria-hidden="true">Ctrl K</kbd></button>
@@ -17177,6 +17188,33 @@ function pintarSubmenusNav() {
   }
 }
 montarSubmenusNav();
+/* largura do menu lateral (computador): arrastar a alça na borda direita (200 a 400 px), setas do teclado com a alça em foco,
+   duplo clique volta ao normal (256 px). Fica guardada no aparelho (vpx_lateral) e muda a variável --lateral, que todo o layout usa. */
+const LATERAL_MIN = 200, LATERAL_MAX = 400;
+function aplicarLateral(w) {
+  if (w) document.documentElement.style.setProperty("--lateral", Math.round(Math.min(LATERAL_MAX, Math.max(LATERAL_MIN, w))) + "px");
+  else document.documentElement.style.removeProperty("--lateral");
+  $("nav-alca").setAttribute("aria-valuenow", String(Math.round($("nav").getBoundingClientRect().width) || 256));
+}
+aplicarLateral(lerLS("vpx_lateral", 0));
+{
+  const alca = $("nav-alca");
+  alca.setAttribute("aria-valuemin", String(LATERAL_MIN)); alca.setAttribute("aria-valuemax", String(LATERAL_MAX));
+  const guardar = () => gravarLS("vpx_lateral", Math.round($("nav").getBoundingClientRect().width));
+  alca.addEventListener("pointerdown", e => {
+    if (e.button !== 0) return;
+    e.preventDefault(); alca.setPointerCapture(e.pointerId); document.body.classList.add("ajustando-menu");
+    const mover = ev => aplicarLateral(ev.clientX);
+    const soltar = () => { alca.removeEventListener("pointermove", mover); document.body.classList.remove("ajustando-menu"); guardar(); window.dispatchEvent(new Event("resize")); };
+    alca.addEventListener("pointermove", mover);
+    alca.addEventListener("pointerup", soltar, { once: true }); alca.addEventListener("pointercancel", soltar, { once: true });
+  });
+  alca.addEventListener("dblclick", () => { aplicarLateral(0); try { localStorage.removeItem("vpx_lateral"); } catch {} window.dispatchEvent(new Event("resize")); });
+  alca.addEventListener("keydown", e => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault(); aplicarLateral($("nav").getBoundingClientRect().width + (e.key === "ArrowRight" ? 16 : -16)); guardar();
+  });
+}
 computador.addEventListener("change", () => {      // janela passou da largura do celular para a do computador (ou o contrário)
   if (!conta) return;
   if (secao === "inicio") desenharInicio();
