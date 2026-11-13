@@ -17387,7 +17387,6 @@ const SUBMENUS_NAV = {
     ["orc", "Orçamentos", () => pode("orc"), () => { abrirFunil(); orcNoComercial(); }],
     ["nova", "+ Nova oportunidade", () => true, () => abrirFunil({ nova: {} })]
   ],
-  sol: Object.entries(TIPOS_PED).map(([tp, t]) => [tp, t.aba, () => podeTipo(tp), () => { pcTipo = tp; abrirPedidos(); }]),
   fin: [
     ["desp", "Despesas", () => podeTrans(), () => abrirTransacoes({ tipo: "desp" }), "fin"],
     ["rec", "Receitas", () => podeTrans(), () => abrirTransacoes({ tipo: "rec" }), "fin"],
