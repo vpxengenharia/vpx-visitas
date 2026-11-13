@@ -16901,7 +16901,14 @@ const SUBMENUS_NAV = {
   ]
 };
 const NOME_NAV = { reg: "Registros", tar: "Tarefas", funil: "Comercial", sol: "Solicitações", fin: "Financeiro" };
-const navAbertos = new Set(lerLS("vpx_nav_sub", []));
+const navAbertos = new Set(lerLS("vpx_nav_sub", []).slice(-1));   // só um submenu aberto por vez (pedido do Gustavo em 13/11/2026)
+const pintarNavSub = {};                           // item → função que mostra ou esconde o submenu dele
+// abre só o submenu de "pai" (ou nenhum, com null) e recolhe os outros
+function abrirSoSubmenu(pai) {
+  navAbertos.clear(); if (pai) navAbertos.add(pai);
+  gravarLS("vpx_nav_sub", [...navAbertos]);
+  Object.values(pintarNavSub).forEach(f => f());
+}
 // opção do submenu: os mesmos cuidados do clique no item (fecha o que está por cima, sai da Agenda) e marca a tela como aberta pela lateral
 function abrirDoSubmenu(pai, [, , , fn, fundo]) {
   if (!fecharTelasPorCima()) return;
@@ -16929,9 +16936,17 @@ function montarSubmenusNav() {
       const ab = navAbertos.has(pai); sub.hidden = !ab;
       seta.setAttribute("aria-expanded", String(ab)); seta.title = `${ab ? "Esconder" : "Mostrar"} as opções de ${NOME_NAV[pai]}`; seta.setAttribute("aria-label", seta.title);
     };
-    seta.onclick = () => { if (navAbertos.has(pai)) navAbertos.delete(pai); else navAbertos.add(pai); gravarLS("vpx_nav_sub", [...navAbertos]); pintar(); };
+    seta.onclick = () => abrirSoSubmenu(navAbertos.has(pai) ? null : pai);   // abrir um recolhe os outros; de novo, recolhe este
+    pintarNavSub[pai] = pintar;
     w.append(seta, sub); pintar();
   }
+  // clicar no nome de outro item do menu (com ou sem submenu) também recolhe os submenus abertos; o do próprio item continua como está
+  $("nav").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b || b.classList.contains("nav-seta") || b.closest(".nav-sub, .nav-conta")) return;
+    const pai = b.dataset.s || b.dataset.acao;
+    if ([...navAbertos].some(p => p !== pai)) abrirSoSubmenu(navAbertos.has(pai) ? pai : null);
+  });
   pintarSubmenusNav();
 }
 // chamada no fim do atualizarNav: a caixa do item some junto com ele; cada opção só para quem pode; sem opção, sem setinha
