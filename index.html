@@ -17383,7 +17383,7 @@ const SUBMENUS_NAV = {
     ["eqv", "Extintores e mangueiras", () => pode("equip"), () => abrirEqv(), "reg"]
   ],
   funil: [
-    ...GRUPOS_FU.map(([k, rot]) => ["g-" + k, rot, () => true, () => { gravarLS("vpx_fu_grupo", k); abrirFunil(); }]),
+    ["vendas", "Vendas", () => true, () => abrirFunil()],   // os grupos (Em negociação, Prospecção, Encerradas, Todas) ficam na própria tela (pedido do Gustavo em 13/11/2026)
     ["orc", "Orçamentos", () => pode("orc"), () => { abrirFunil(); orcNoComercial(); }],
     ["nova", "+ Nova oportunidade", () => true, () => abrirFunil({ nova: {} })]
   ],
