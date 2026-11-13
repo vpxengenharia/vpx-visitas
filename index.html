@@ -15260,6 +15260,12 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
     else if (b.dataset.acao === "sol") abrirSolicitacoes();
     else irPara(b.dataset.s, true);
   };
+  // computador: a Agenda (aberta como seção) fica por cima das telas que abrem por cima — Tarefas, Comercial, Solicitações,
+  // ITs e Administração abririam escondidas embaixo dela; fecha antes (as seções o irPara já fecha)
+  if (b.dataset.acao && secao === "agenda") {
+    if (agForm && history.state?.agform) { fecharAgenda(false); addEventListener("popstate", ir, { once: true }); return; }   // abre depois que o passo do formulário saiu do histórico
+    fecharAgenda(false);
+  }
   if (passo) { tarVoltando = true; depoisVoltar = ir; history.back(); } else ir();   // o popstate (ramo tarVoltando) abre a seção depois que o passo saiu
 });
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
