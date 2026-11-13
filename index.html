@@ -1875,6 +1875,18 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 /* Comercial: botão Orçamentos ao lado da busca (pedido do Gustavo em 13/11/2026: os orçamentos saíram de Registros) */
 .tar-ctrl .fu-orc-btn{flex:none;min-height:46px;margin:0;padding:0 16px;font-size:15.5px}
 .tar-ctrl .fu-orc-btn .ic{width:20px;height:20px}
+/* Comercial: orçamento da oportunidade na tabela (pedido do Gustavo em 13/11/2026): coluna a partir de 600 px de área; no celular, embaixo do nome */
+.fu-tab .fu-c-orc{display:none}
+@container (min-width:600px){.fu-tab .fu-c-orc{display:table-cell;width:118px}}
+.fu-sub .fu-s-orc{display:block}
+@container (min-width:600px){.fu-sub .fu-s-orc{display:none}}
+.fu-orc-lin{display:inline-flex;align-items:center;gap:5px;min-height:0;margin:-3px -6px;padding:3px 6px;border:1px solid transparent;border-radius:8px;background:none;color:var(--tinta);font:inherit;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer}
+span.fu-orc-lin{cursor:default}
+.fu-orc-lin .ic{flex:none;width:18px;height:18px}
+.fu-orc-lin:not(.tem){color:var(--suave);font-weight:500}
+.fu-orc-lin:not(.tem) .ic{opacity:.5}
+.fu-sub .fu-orc-lin{margin:0 -6px;font-size:inherit}
+@media (hover:hover){button.fu-orc-lin:hover{border-color:var(--linha);background-color:var(--papel)}button.fu-orc-lin:hover .ic{opacity:1}}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -15673,7 +15685,7 @@ function importarFin365() {
   };
   inp.click();
 }
-let fuTela = null, fuVoltando = false;   // { grupo, etapa, pessoa, sit, valor, contato (filtros), opF, aberta, nova, direto, mais, ordem, limTab }
+let fuTela = null, fuVoltando = false;   // { grupo, etapa, pessoa, sit, valor, orc, contato (filtros), opF, aberta, nova, direto, mais, ordem, limTab }
 const oportunidades = () => Object.values(regsDe(colFu)).map(o => o.etapa === "03" ? { ...o, etapa: "04" } : o);   // etapa 03 que ainda não foi trocada no OneDrive: já aparece na Visita técnica
 const etapaTxt = e => { if (e === "03") e = "04"; return `${NUM_ETAPA[e] || e} - ${NOME_ETAPA[e] || "?"}`; };   // número da tela (posição), não o código guardado
 const ativaFu = o => o.etapa >= "02" && o.etapa <= "07";
@@ -15691,6 +15703,72 @@ function moverEtapa(id, e) {
   const o = regsDe(colFu)[id]; if (!o || o.etapa === e) return;
   mudarReg(colFu, id, r => { r.etapa = e; r.etapaEm = new Date().toISOString(); r.fechadoEm = e === "08" ? (r.fechadoEm || dataISO()) : ""; }, "Etapa: " + etapaTxt(e));
   if (e === "08") aviso(`${o.nome}: fechado!`);
+  // chegou em "Fechar contrato" sem orçamento ligado: aviso com botão para escolher (pedido do Gustavo em 13/11/2026)
+  else if (e === "07" && !o.orc && pode("orc")) setTimeout(() => aviso("Fechar contrato: ligue o orçamento desta oportunidade.", false, { rotulo: "Ligar orçamento", fn: () => {
+    const b = [...document.querySelectorAll(`[data-orc-de="${id}"]`)].find(x => x.offsetParent);
+    if (b && regsDe(colFu)[id]) escolherOrcFu(regsDe(colFu)[id], b); else abrirOport(id);
+  } }), 400);
+}
+/* orçamento ligado à oportunidade (pedido do Gustavo em 13/11/2026: "integrar as etapas do funil com os orçamentos"): o campo "orc"
+   guarda o número ("1154/2026" ou só "1154", como veio do monday); o PDF é achado na lista dos Orçamentos pelo número
+   (mesmo ano, mesmo cliente e o mais novo primeiro). */
+function orcDoNumero(txt, cli) {
+  const m = String(txt || "").match(/(\d+)\s*(?:\/\s*(\d{4}))?/); if (!m || !orc) return null;
+  const n = Number(m[1]), ano = m[2];
+  const nota = x => (ano && String(pdfOrc(x)?.ano || x.ano || "") === ano ? 2 : 0) + (cli && x.cli === cli ? 1 : 0);
+  return (orc.itens || []).filter(x => x.ext === "pdf" && Number(pdfOrc(x)?.num || x.num) === n)
+    .sort((a, b) => nota(b) - nota(a) || dataOrc(b).localeCompare(dataOrc(a)))[0] || null;
+}
+// abre o PDF do orçamento ligado; sem o PDF na lista, abre os Orçamentos já buscando o número
+function abrirOrcFu(o) {
+  const x = orcDoNumero(o.orc, o.cliente);
+  if (x) { abrirArqOrc(x); return; }
+  orcNoComercial(String(o.orc).match(/\d+/)?.[0] || "");
+  if (orc) aviso(`O orçamento ${o.orc} não foi achado nas pastas dos clientes: confira o número.`);
+}
+// escolher o orçamento: os do cliente da oportunidade primeiro, depois os mais recentes; ou digitar o número.
+// O valor do orçamento entra no valor da oportunidade quando ela ainda não tem valor.
+function escolherOrcFu(o, alvo) {
+  if (!pode("orc")) return;
+  const ops = [], mapa = new Map();
+  if (!orc) {
+    ops.push([null, navigator.onLine ? "Carregando a lista de orçamentos… tente de novo em instantes" : "Sem internet: a lista de orçamentos ainda não está no aparelho", "menu-tit"]);
+    if (navigator.onLine && !atualizarOrc.rodando) atualizarOrc();
+  } else {
+    const todos = orc.itens.filter(x => x.ext === "pdf" && numOrc(x) !== "Sem número").sort((a, b) => dataOrc(b).localeCompare(dataOrc(a)));
+    const rot = x => { const v = valorOrc(x); return `${numOrc(x)} · ${x.cli}${v != null ? " · R$ " + moedaBR(v) : ""}`; };
+    const doCli = o.cliente ? todos.filter(x => x.cli === o.cliente) : [];
+    const grupo = (tit, l) => { if (!l.length) return; ops.push([null, tit, "menu-tit"]); l.forEach(x => { mapa.set(x.id, x); ops.push(["x:" + x.id, rot(x)]); }); };
+    grupo("Orçamentos de " + o.cliente, doCli.slice(0, 12));
+    grupo(doCli.length ? "Outros orçamentos recentes" : "Orçamentos mais recentes", todos.filter(x => !doCli.includes(x)).slice(0, 20));
+  }
+  ops.push([null, "Outro", "menu-tit"], ["digitar", "Digitar o número…"]);
+  if (o.orc) ops.push(["tirar", "Tirar o orçamento"]);
+  menuOpcoes(alvo, ops, "x:" + (orcDoNumero(o.orc, o.cliente)?.id || ""), async v => {
+    if (v === "tirar") { mudarReg(colFu, o.id, r => { r.orc = ""; }, "Tirou o orçamento"); return; }
+    if (v === "digitar") {
+      const r = await perguntar({ titulo: "Número do orçamento", campos: [{ id: "n", rotulo: "Número (ex.: 1154 ou 1154/2026)", tipo: "texto", valor: o.orc || "" }], sim: "Ligar", nao: "Cancelar" });
+      const t = String(r?.campos?.n || "").trim();
+      if (t && t !== o.orc) mudarReg(colFu, o.id, x => { x.orc = t; }, "Orçamento: " + t);
+      return;
+    }
+    const x = mapa.get(v.slice(2)); if (!x) return;
+    const num = numOrc(x), val = valorOrc(x), comValor = !valorFu(o) && val != null;
+    mudarReg(colFu, o.id, r => { r.orc = num; if (comValor && !r.valor) r.valor = val; }, "Orçamento: " + num + (comValor ? ` (valor R$ ${moedaBR(val)})` : ""));
+  });
+}
+// botão do orçamento na linha da tabela: ícone + número (abre o PDF); sem orçamento, o ícone apagado escolhe um
+function botaoOrcFu(o, sub) {
+  if (!pode("orc")) return o.orc ? el("span", "fu-orc-lin tem", (sub ? "Orç. " : "") + o.orc) : el("span", "tar-ed-vazio", sub ? "" : "—");
+  const b = el("button", "fu-orc-lin" + (o.orc ? " tem" : "")); b.type = "button"; b.dataset.orcDe = o.id;
+  b.appendChild(ic("orcamento"));
+  const achado = o.orc ? orcDoNumero(o.orc, o.cliente) : null;   // número como na aba Orçamentos (com o ano), quando o PDF está na lista
+  if (o.orc) b.appendChild(el("span", "", (sub ? "Orç. " : "") + (achado ? numOrc(achado) : o.orc)));
+  else if (sub) b.appendChild(el("span", "", "Ligar orçamento"));
+  b.title = o.orc ? "Abrir o orçamento " + o.orc : "Ligar um orçamento a esta oportunidade";
+  b.setAttribute("aria-label", b.title);
+  b.onclick = e => { e.stopPropagation(); if (o.orc) abrirOrcFu(o); else escolherOrcFu(o, b); };
+  return b;
 }
 // registro de contato (ligação, visita, mensagem): entra nas anotações e vira o "último contato"
 function registrarContatoFu(id, texto, situacao) {
@@ -15719,7 +15797,7 @@ function cartaoFu(o, op = {}) {
 // op: { busca, aberta (abre direto numa oportunidade), nova }
 function abrirFunil(op = {}) {
   if (!conta || !pode("funil")) return;
-  fuTela = { grupo: lerLS("vpx_fu_grupo", "neg"), etapa: "", pessoa: "", sit: "", valor: "", contato: "", aberta: null, nova: null,
+  fuTela = { grupo: lerLS("vpx_fu_grupo", "neg"), etapa: "", pessoa: "", sit: "", valor: "", orc: "", contato: "", aberta: null, nova: null,
     direto: !!(op.aberta || op.nova), mais: {}, ordem: { col: "etapa", desc: false }, limTab: 150 };
   $("fu-busca").value = op.busca || "";
   $("tela-funil").hidden = false;
@@ -15810,6 +15888,7 @@ function desenharFunil() {
     sit: [...new Set([...SITUACOES_FU, ...doGrupo.map(o => o.situacao || "A definir")])].sort((a, b) => rankSit(a) - rankSit(b)).map(v => [v, v]),
     pessoa: [...[...pessoas].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")), ["-", "Sem responsável"]],
     valor: Object.entries(VALOR_FU),
+    orc: Object.entries(ORC_FU),
     contato: Object.entries(CONTATO_FU)
   };
   fuTela.opF = {};                                   // opções de cada filtro com a quantidade, para o menu do título da coluna
@@ -15898,6 +15977,7 @@ function linhaFu(o) {
   pedaco("fu-s-etapa", botaoEdTar("tar-ed-resp", "Mudar a etapa", [etapaTxt(o.etapa)], abrirEtapa));
   pedaco("fu-s-sit", botaoEdTar("tar-ed-resp", "Mudar a situação do contato", [sit === "A definir" ? vazio(sit) : sit], abrirSit));
   pedaco("fu-s-resp", botaoEdTar("tar-ed-resp", "Mudar os responsáveis", [curtos || vazio("Sem responsável")], abrirResp));
+  if (o.orc || (o.etapa === "07" && pode("orc"))) pedaco("fu-s-orc", botaoOrcFu(o, true));
   n.appendChild(sub);
   const ce = el("td", "fu-c-etapa"), cr = el("td", "fu-c-resp"), cs = el("td", "fu-c-sit"), cv = el("td", "fu-c-valor"), cd = el("td", "fu-c-data " + frioFu(o));
   ce.appendChild(botaoEdTar("", "Mudar a etapa", [etapaTxt(o.etapa)], abrirEtapa));
@@ -15913,20 +15993,23 @@ function linhaFu(o) {
   if (na) bc.appendChild(el("span", "", String(na)));
   bc.onclick = e => { e.stopPropagation(); abrirComentariosTar(o.id, "fu"); };
   const ck = el("td", "fu-c-com"); ck.appendChild(bc);
-  r.append(n, ck, ce, cr, cs, cv, cd);
+  const co = el("td", "fu-c-orc"); co.appendChild(botaoOrcFu(o));
+  r.append(n, ck, ce, cr, cs, cv, co, cd);
   return r;
 }
 // filtros da lista (fuTela.etapa / sit / pessoa / valor / contato; "-" = sem responsável, sem data de contato)
 const VALOR_FU = { com: "Com valor", sem: "Sem valor" };
+const ORC_FU = { com: "Com orçamento", sem: "Sem orçamento" };
 const CONTATO_FU = { crit: "Mais de 15 dias sem contato", warn: "De 8 a 15 dias sem contato", rec: "Contato nos últimos 7 dias", "-": "Sem data de contato" };
 const FILTRO_FU = {
   etapa: (o, v) => o.etapa === v,
   sit: (o, v) => (o.situacao || "A definir") === v,
   pessoa: (o, v) => v === "-" ? !(o.resp || []).length : (o.resp || []).some(p => p.email === v),
   valor: (o, v) => (valorFu(o) > 0) === (v === "com"),
+  orc: (o, v) => !!o.orc === (v === "com"),
   contato: (o, v) => v === "-" ? !o.ultimoContato : v === "rec" ? !!o.ultimoContato && o.ultimoContato >= dataISO(new Date(Date.now() - 7 * 864e5)) : frioFu(o) === v
 };
-const ROT_FILTRO_FU = { etapa: "Etapa", sit: "Situação", pessoa: "Responsável", valor: "Valor", contato: "Último contato" };
+const ROT_FILTRO_FU = { etapa: "Etapa", sit: "Situação", pessoa: "Responsável", valor: "Valor", orc: "Orçamento", contato: "Último contato" };
 const filtrosFuAtivos = () => !!fuTela && Object.keys(FILTRO_FU).some(k => fuTela[k]);
 // filtros escolhidos, em cima da tabela: "Etapa: 05 - … ×" (tocar tira o filtro); com 2 ou mais, "Limpar filtros"
 function filtrosEscolhidosFu() {
@@ -15956,17 +16039,18 @@ const ORDENAR_FU = {
   resp: [["A → Z", false], ["Z → A", true]],
   sit: [["A → Z", false], ["Z → A", true]],
   valor: [["Maior valor primeiro", true], ["Menor valor primeiro", false]],
+  orc: [["Menor número primeiro", false], ["Maior número primeiro", true]],
   data: [["Contato mais recente primeiro", true], ["Contato mais antigo primeiro", false]]
 };
-function filtrosDaColunaFu(col, vis = { etapa: true, resp: true }) {
-  return ({ nome: [!vis.etapa && "etapa", !vis.resp && "sit", !vis.resp && "pessoa"].filter(Boolean),
-    etapa: ["etapa"], resp: ["pessoa"], sit: ["sit"], valor: ["valor"], data: ["contato"] })[col] || [];
+function filtrosDaColunaFu(col, vis = { etapa: true, resp: true, orc: true }) {
+  return ({ nome: [!vis.etapa && "etapa", !vis.resp && "sit", !vis.resp && "pessoa", !vis.orc && "orc"].filter(Boolean),
+    etapa: ["etapa"], resp: ["pessoa"], sit: ["sit"], valor: ["valor"], orc: ["orc"], data: ["contato"] })[col] || [];
 }
 function menuColunaFu(b, col) {
   const t = b.closest("table"), mostra = c => getComputedStyle(t.querySelector("th." + c)).display !== "none";
   const ops = [[null, "Ordenar", "menu-tit"]], atual = [];
   ORDENAR_FU[col].forEach(([rot, desc], i) => { ops.push(["o:" + i, rot]); if (fuTela.ordem.col === col && fuTela.ordem.desc === desc) atual.push("o:" + i); });
-  for (const k of filtrosDaColunaFu(col, { etapa: mostra("fu-c-etapa"), resp: mostra("fu-c-resp") })) {
+  for (const k of filtrosDaColunaFu(col, { etapa: mostra("fu-c-etapa"), resp: mostra("fu-c-resp"), orc: mostra("fu-c-orc") })) {
     ops.push([null, "Filtrar: " + ROT_FILTRO_FU[k].toLowerCase(), "menu-tit"], ["f:" + k + ":", k === "etapa" || k === "sit" ? "Todas" : "Todos"]);
     for (const [v, txt, cls, n] of fuTela.opF[k] || []) ops.push(["f:" + k + ":" + v, `${txt} (${n})`, cls]);
     atual.push("f:" + k + ":" + fuTela[k]);
@@ -15980,7 +16064,7 @@ function menuColunaFu(b, col) {
 }
 // lista: tabela como planilha; o título da coluna abre o menu de ordenar e filtrar
 const COLS_FU = { nome: o => semAcento(o.nome || ""), etapa: o => o.etapa, resp: o => (o.resp || []).map(nomePessoa).join(", ") || null,
-  sit: o => o.situacao || null, valor: o => valorFu(o) || null, data: o => o.ultimoContato || null };
+  sit: o => o.situacao || null, valor: o => valorFu(o) || null, orc: o => Number(String(o.orc || "").match(/\d+/)?.[0]) || null, data: o => o.ultimoContato || null };
 function tabelaFu(lista) {
   const w = el("div"), tb = el("table", "orc-tab fu-tab"), th = el("thead"), tr = el("tr");
   // título da coluna: abre o menu de ordenar e filtrar (setinha embaixo = tem menu; funil laranja = filtro ligado)
@@ -15991,7 +16075,7 @@ function tabelaFu(lista) {
     if (col === "valor") b.appendChild(el("span", "fu-rs", " (R$)"));   // no celular só "Valor" (sobra espaço para o nome)
     if (ativa) b.appendChild(el("span", "tar-th-seta", fuTela.ordem.desc ? " ↓" : " ↑"));
     if (col === "nome") {                            // filtros das colunas que, na tela estreita, aparecem embaixo do nome
-      const cel = ["etapa", "sit", "pessoa"].some(k => fuTela[k]), med = ["sit", "pessoa"].some(k => fuTela[k]);
+      const cel = ["etapa", "sit", "pessoa", "orc"].some(k => fuTela[k]), med = ["sit", "pessoa"].some(k => fuTela[k]);
       if (cel) b.appendChild(ic("funil", "tar-th-fil fil-nome f-cel" + (med ? " f-med" : "")));
     } else if (filtrosDaColunaFu(col).some(k => fuTela[k])) b.appendChild(ic("funil", "tar-th-fil"));
     b.appendChild(el("span", "tar-th-menu"));
@@ -16002,12 +16086,12 @@ function tabelaFu(lista) {
   const thc = el("th", "fu-c-com"); thc.scope = "col"; thc.title = "Contatos e anotações"; thc.setAttribute("aria-label", "Contatos e anotações");
   thc.appendChild(ic("comentario")); tr.appendChild(thc);
   cab("etapa", "Etapa", "fu-c-etapa"); cab("resp", "Responsável", "fu-c-resp"); cab("sit", "Situação", "fu-c-sit");
-  cab("valor", "Valor", "fu-c-valor"); cab("data", "Contato", "fu-c-data");
+  cab("valor", "Valor", "fu-c-valor"); cab("orc", "Orçamento", "fu-c-orc"); cab("data", "Contato", "fu-c-data");
   th.appendChild(tr); tb.appendChild(th);
   const corpo = el("tbody"), f = COLS_FU[fuTela.ordem.col] || COLS_FU.etapa, s = fuTela.ordem.desc ? -1 : 1;
   const ord = lista.slice().sort((a, b) => { const x = f(a), y = f(b); if (x == null || y == null) return (x == null) - (y == null) || ordemFu(a, b); return (x < y ? -1 : x > y ? 1 : 0) * s || ordemFu(a, b); });
   ord.slice(0, fuTela.limTab).forEach(o => corpo.appendChild(linhaFu(o)));
-  if (!ord.length && filtrosFuAtivos()) { const v = el("tr", "fu-vazia"), td = el("td", "avcb-nota", "Nenhuma oportunidade com esses filtros."); td.colSpan = 7; v.appendChild(td); corpo.appendChild(v); }
+  if (!ord.length && filtrosFuAtivos()) { const v = el("tr", "fu-vazia"), td = el("td", "avcb-nota", "Nenhuma oportunidade com esses filtros."); td.colSpan = 8; v.appendChild(td); corpo.appendChild(v); }
   tb.appendChild(corpo); w.appendChild(tb);
   if (!ord.length && !filtrosFuAtivos()) w.appendChild(el("p", "avcb-nota", "Nenhuma oportunidade aqui."));
   if (ord.length > fuTela.limTab) { const m = el("button", "btn sec fu-mais-tab", `Mostrar mais (${ord.length - fuTela.limTab})`); m.type = "button"; m.onclick = () => { fuTela.limTab += 300; desenharFunil(); }; w.appendChild(m); }
@@ -16088,7 +16172,8 @@ function detalheFu(o) {
   w.appendChild(g4);
   const links = el("div", "tar-links");
   const link = (txt, fn) => { const b = el("button", "laudo-link", txt); b.type = "button"; b.onclick = fn; links.appendChild(b); };
-  if (o.orc && pode("orc")) link("Ver o orçamento " + o.orc, () => orcNoComercial(String(o.orc).split("/")[0]));   // por cima do funil
+  if (o.orc && pode("orc")) link("Ver o orçamento " + o.orc, () => abrirOrcFu(o));   // abre o PDF (sem ele na lista, os Orçamentos por cima do Comercial)
+  if (pode("orc")) { const bo = el("button", "laudo-link", o.orc ? "Trocar o orçamento" : "Escolher o orçamento na lista"); bo.type = "button"; bo.dataset.orcDe = o.id; bo.onclick = () => escolherOrcFu(o, bo); links.appendChild(bo); }
   if (o.cliente && clientes.includes(o.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(o.cliente); });
   if (o.cliente && pode("ficha")) link("Contatos do cliente", () => abrirFicha(o.cliente));
   if (o.cliente) link("Tirar o cliente", () => salvar(r => { r.cliente = ""; }, "Tirou o cliente"));
