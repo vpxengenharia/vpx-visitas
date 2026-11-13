@@ -415,6 +415,30 @@ button,input,label{font:inherit}
   .fx-tab .fx-c-mes{width:110px}
   .fx-item{grid-template-columns:10px minmax(0,1fr) 110px 130px;grid-template-areas:"pt tx sit v"}
 }
+/* DRE (13/11/2026): a mesma aparência do fluxo de caixa */
+.dre-per{margin:0 2px 10px;font-weight:600;color:var(--suave)}
+.dre-tab{table-layout:auto}
+.dre-tab .dre-pct{width:64px;color:var(--suave)} .dre-tab .fx-n{text-align:right!important;white-space:nowrap;font-variant-numeric:tabular-nums}
+.dre-tab tr.dre-tot td{font-weight:700;font-size:15.5px}
+.dre-tab tr.dre-rec td{background:rgba(46,158,91,.09)}.dre-tab tr.dre-desp td{background:rgba(214,69,69,.08)}
+.dre-tab tr.dre-res td{background:rgba(28,60,97,.08);font-size:17px}
+.dre-tab tr.dre-neg td:nth-child(2){color:var(--crit-tx)}
+.dre-tab tr.dre-grupo td:first-child{padding-left:18px}
+.dre-tab tr.dre-grupo{cursor:default}.dre-tab tr.dre-grupo.dre-abre{cursor:pointer}
+.dre-tab tr.dre-cat td{font-size:13.5px;color:var(--suave)}
+.dre-tab tr.dre-cat td:first-child{padding-left:38px}
+.dre-tab tr.dre-tot,.dre-tab tr.dre-cat{cursor:default}
+.dre-rolar{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--linha);border-radius:var(--r-m,12px)}
+.dre-anual{table-layout:fixed;border:0;width:1310px;font-size:13.5px}   /* 170 (conta) + 12 x 86 (meses) + 108 (total): rola de lado, a conta fica parada */ .dre-anual th,.dre-anual td{width:86px} .dre-anual .fx-n{text-align:right!important;white-space:nowrap;font-variant-numeric:tabular-nums} .dre-anual td.dre-total,.dre-anual thead th:last-child{width:108px}
+.dre-anual .dre-conta{position:sticky;left:0;z-index:1;width:170px;background:var(--papel);font-weight:600;white-space:normal}
+.dre-anual thead .dre-conta{background:var(--orc-th);z-index:2}
+.dre-anual tr.dre-tot td{font-weight:700}
+.dre-anual tr.dre-rec td{background:rgba(46,158,91,.09)}.dre-anual tr.dre-desp td{background:rgba(214,69,69,.08)}.dre-anual tr.dre-res td{background:rgba(28,60,97,.08)}
+.dre-anual tr.dre-tot td.dre-conta{background:var(--papel)}
+.dre-anual .dre-total{font-weight:700}
+.dre-anual tr.dre-caixa td{color:var(--suave);border-top:2px solid var(--linha)}
+.dre-anual tr{cursor:default}
+@media (prefers-color-scheme:dark){.dre-tab tr.dre-res td,.dre-anual tr.dre-res td{background:rgba(255,255,255,.08)}}
 /* contas a pagar e receber */
 #cp-tipo{margin-bottom:12px}
 .cp-novos{display:flex;gap:8px}
@@ -2288,6 +2312,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
       <p class="avcb-nota" id="cp-estado"></p>
     </div>
     <div id="fx-w" hidden></div><!-- fluxo de caixa (13/11/2026) -->
+    <div id="dre-w" hidden></div><!-- DRE (13/11/2026) -->
     <div id="tr-det" hidden></div>
   </div>
 </div>
@@ -14589,13 +14614,14 @@ function fecharTr(voltar = true) {
 
 function desenharTr() {
   if (!trTela || $("tela-tr").hidden) return;
-  const emForm = !!(trTela.aberto || trTela.novo), contas = trTela.modo === "contas", fluxo = trTela.modo === "fluxo";
-  $("tr-lista-w").hidden = emForm || contas || fluxo; $("cp-w").hidden = emForm || !contas; $("fx-w").hidden = emForm || !fluxo; $("tr-det").hidden = !emForm;
-  const titulo = contas ? "Contas a pagar e receber" : fluxo ? "Fluxo de caixa" : "Transações";
+  const emForm = !!(trTela.aberto || trTela.novo), contas = trTela.modo === "contas", fluxo = trTela.modo === "fluxo", dre = trTela.modo === "dre";
+  $("tr-lista-w").hidden = emForm || contas || fluxo || dre; $("cp-w").hidden = emForm || !contas; $("fx-w").hidden = emForm || !fluxo; $("dre-w").hidden = emForm || !dre; $("tr-det").hidden = !emForm;
+  const titulo = contas ? "Contas a pagar e receber" : fluxo ? "Fluxo de caixa" : dre ? "DRE (resultado)" : "Transações";
   $("tela-tr").querySelector(".avcb-topo strong").textContent = titulo; $("tela-tr").setAttribute("aria-label", titulo);
   if (emForm) return;                               // o formulário é montado uma vez (abrirFormTr): uma sincronização não apaga o que está sendo digitado
   if (contas) { desenharContas(); return; }
   if (fluxo) { if (trTela.fx) desenharFluxo(); return; }
+  if (dre) { if (trTela.dre) desenharDre(); return; }
   const tp = trTela.tipo, T = TR_TIPO[tp];
   $("tr-tipos").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === tp)));
   $("tr-novo").textContent = T.novo;
@@ -15073,6 +15099,163 @@ async function exportarFluxo(meses) {
     ws["!cols"] = [12, 14, 14, 14, 14, 14, 18, 16, 15].map(w => ({ wch: w }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fluxo de caixa " + F.ano);
     const nome = `Fluxo de caixa ${F.ano}${F.conta ? " - " + F.conta : ""}${F.centro ? " - " + F.centro : ""} - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+/* DRE — Demonstração do Resultado (pedido do Gustavo em 13/11/2026: "agora vamos implementar o DRE", como o DRE do Fin365).
+   Modo da tela das Transações (trTela.modo = "dre"). Como no Fin365: só o que já foi pago ou recebido, no mês da
+   COMPETÊNCIA (comp); canceladas e pendentes ficam de fora. Cada categoria pertence a um grupo (DRE_GRUPOS, o cadastro
+   Grupos › Subgrupos › Categorias do Fin365, lido em 13/11/2026). As faturas do cartão de crédito vieram do Fin365 sem
+   categoria: aparecem na linha "Cartão de crédito (faturas)" (o Fin365 divide a fatura pelas categorias das compras do
+   cartão, que o app ainda não tem — os totais são os mesmos, muda só a divisão entre os grupos). Categoria criada no app
+   que não está no cadastro vai para "Outras categorias".
+   Visões: Período (mês, trimestre, semestre ou ano; tocar num grupo mostra as categorias, com o valor e o % da receita)
+   e Anual (os 12 meses lado a lado, total, e a posição em caixa no fim de cada mês). Filtro: centro de custo. */
+const DRE_GRUPOS = {
+  rec: [["Receitas Operacionais", { "AVCB": "Prestação de Serviços", "Estudo de carga": "Prestação de Serviços" }],
+        ["Receitas Não Operacionais", { "CLCB": "Receitas Financeiras", "Empresa": "Outras Receitas" }]],
+  desp: [["Pessoal", { "Mão de obra": "Serviços Contratados", "PSCIP": "Serviços Contratados", "Estudo de carga": "Serviços Contratados" }],
+         ["Operacionais", { "Empresa": "Água, Luz e Telefone", "Pagamentos via Open Finance": "Água, Luz e Telefone", "AVCB": "Outras Despesas Operacionais" }],
+         ["Materiais", { "Material": "Compra de Mercadorias" }],
+         ["Financeiras", {}],
+         ["Impostos e Taxas", { "Imposto": "Impostos sobre Vendas" }]]
+};
+const DRE_CARTAO = "Cartão de crédito (faturas)", DRE_OUTRAS = "Outras categorias", DRE_SEMCAT = "Não categorizado";
+function grupoDre(r) {                              // [grupo, categoria mostrada]
+  const lista = DRE_GRUPOS[r.tipo], cat = r.cat || "";
+  if (!cat) return r.tipo === "desp" && /fatura/i.test(r.desc || "") ? [DRE_CARTAO, (r.desc || "").replace(/^fatura\s*/i, "") || "Fatura"] : [DRE_SEMCAT, "Sem categoria"];
+  const g = lista.find(([, m]) => Object.keys(m).some(c => semAcento(c) === semAcento(cat)));
+  return g ? [g[0], cat] : [DRE_OUTRAS, cat];
+}
+const ordemGruposDre = tp => [...DRE_GRUPOS[tp].map(g => g[0]), ...(tp === "desp" ? [DRE_CARTAO] : []), DRE_OUTRAS, DRE_SEMCAT];
+function abrirDre(op = {}) {
+  const d = new Date();
+  abrirTransacoes({ modo: "dre" });
+  if (!trTela) return;
+  trTela.dre = { vista: op.vista || "periodo", ano: String(d.getFullYear()), per: "mes", qual: String(d.getMonth() + 1), centro: "", abertos: new Set() };
+  desenharTr();
+}
+// soma por grupo e categoria dos lançamentos pagos cuja competência cai em [de, ate]
+function somarDre(de, ate) {
+  const D = trTela.dre, out = { rec: {}, desp: {}, tot: { rec: 0, desp: 0 } };
+  for (const r of trs()) {
+    if (r.st !== "pago" || (D.centro && r.centro !== D.centro)) continue;
+    const c = r.comp || r.pg; if (!c || c < de || c > ate) continue;
+    const [g, cat] = grupoDre(r), v = +r.valor || 0;
+    const G = out[r.tipo][g] ||= { total: 0, cats: {} };
+    G.total += v; G.cats[cat] = (G.cats[cat] || 0) + v; out.tot[r.tipo] += v;
+  }
+  return out;
+}
+function periodoDre() {                             // [de, até, texto]
+  const D = trTela.dre, a = +D.ano, q = +D.qual, fim = (y, m) => dataISO(new Date(y, m, 0));
+  if (D.per === "mes") return [`${a}-${pad(q)}-01`, fim(a, q), MESES[q - 1].replace(/^./, c => c.toUpperCase()) + " de " + a];
+  if (D.per === "tri") return [`${a}-${pad(q * 3 - 2)}-01`, fim(a, q * 3), `${q}º trimestre de ${a}`];
+  if (D.per === "sem") return [`${a}-${pad(q * 6 - 5)}-01`, fim(a, q * 6), `${q}º semestre de ${a}`];
+  return [`${a}-01-01`, `${a}-12-31`, "Ano de " + a];
+}
+function desenharDre() {
+  const D = trTela.dre, w = $("dre-w"); w.innerHTML = "";
+  const ab = el("div", "abas pc-tipos fx-vistas"); ab.setAttribute("role", "tablist");
+  for (const [k, rot] of [["periodo", "Período"], ["anual", "Anual"]]) {
+    const b = el("button", "", rot); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(D.vista === k));
+    b.onclick = () => { D.vista = k; desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
+    ab.appendChild(b);
+  }
+  w.appendChild(ab);
+  const filtros = el("div", "orc-filtros fx-filtros");
+  const sel = (lista, valor, rot, fn) => { const s = document.createElement("select"); s.setAttribute("aria-label", rot); opcoesSel(s, lista, valor); s.onchange = () => { fn(s.value); desenharTr(); }; filtros.appendChild(s); return s; };
+  const anos = [...new Set([String(new Date().getFullYear()), ...trs().map(r => (r.comp || r.pg || "").slice(0, 4)).filter(a => a >= "2000")])].sort().reverse();
+  sel(anos.map(a => [a, a]), D.ano, "Ano", v => D.ano = v);
+  if (D.vista === "periodo") {
+    sel([["mes", "Mês"], ["tri", "Trimestre"], ["sem", "Semestre"], ["ano", "Ano inteiro"]], D.per, "Período", v => { D.per = v; D.qual = v === "mes" ? String(new Date().getMonth() + 1) : v === "tri" ? String(Math.floor(new Date().getMonth() / 3) + 1) : v === "sem" ? String(new Date().getMonth() < 6 ? 1 : 2) : "1"; });
+    if (D.per === "mes") sel(MESES.map((m, i) => [String(i + 1), m.replace(/^./, c => c.toUpperCase())]), D.qual, "Mês", v => D.qual = v);
+    else if (D.per === "tri") sel([1, 2, 3, 4].map(i => [String(i), `${i}º trimestre`]), D.qual, "Trimestre", v => D.qual = v);
+    else if (D.per === "sem") sel([["1", "1º semestre"], ["2", "2º semestre"]], D.qual, "Semestre", v => D.qual = v);
+  }
+  const centros = [...new Set(trs().map(r => r.centro).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  sel([["", "Todos os centros"], ...centros.map(c => [c, centroTxtTr(c)])], D.centro, "Centro de custo", v => D.centro = v);
+  w.appendChild(filtros);
+  if (D.vista === "anual") desenharDreAnual(w); else desenharDrePeriodo(w);
+  w.appendChild(el("p", "avcb-nota", "Como no Fin365: só o que já foi pago ou recebido, no mês da competência. As faturas do cartão de crédito vieram do Fin365 sem categoria e aparecem numa linha própria (o Fin365 divide cada fatura pelas categorias das compras do cartão)."));
+}
+const pctDre = (v, base) => base ? (Math.round(v / base * 1000) / 10).toLocaleString("pt-BR") + "%" : "—";
+function desenharDrePeriodo(w) {
+  const D = trTela.dre, [de, ate, txt] = periodoDre(), s = somarDre(de, ate), rb = s.tot.rec, res = rb - s.tot.desp;
+  w.appendChild(el("p", "dre-per", `${txt} · ${dataBRde(de)} a ${dataBRde(ate)}`));
+  const tb = el("table", "orc-tab dre-tab"), corpo = el("tbody");
+  const linhaT = (rot, v, cls, pct) => { const tr = el("tr", "dre-tot " + cls); tr.append(el("td", "", rot), el("td", "fx-n", (v < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(v))), el("td", "fx-n dre-pct", pct)); corpo.appendChild(tr); };
+  const grupos = tp => {
+    for (const g of ordemGruposDre(tp)) {
+      const G = s[tp][g]; if (!G && (g === DRE_OUTRAS || g === DRE_SEMCAT || g === DRE_CARTAO)) continue;
+      const v = G?.total || 0, chave = tp + ":" + g, aberto = D.abertos.has(chave), cats = Object.entries(G?.cats || {}).sort((a, b) => b[1] - a[1]);
+      const tr = el("tr", "dre-grupo" + (cats.length ? " dre-abre" : "")); tr.tabIndex = cats.length ? 0 : -1;
+      const nome = el("td", "", (cats.length ? (aberto ? "▾ " : "▸ ") : "") + g);
+      if (cats.length) { tr.setAttribute("aria-expanded", String(aberto)); tr.title = aberto ? "Esconder as categorias" : "Ver as categorias"; }
+      tr.append(nome, el("td", "fx-n " + (tp === "rec" ? "fx-ent" : "fx-sai"), v ? "R$ " + moedaBR(v) : "—"), el("td", "fx-n dre-pct", v ? pctDre(v, rb) : "—"));
+      if (cats.length) { const alt = () => { aberto ? D.abertos.delete(chave) : D.abertos.add(chave); desenharTr(); }; tr.onclick = alt; tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alt(); } }; }
+      corpo.appendChild(tr);
+      if (aberto) for (const [c, cv] of cats) { const sub = el("tr", "dre-cat"); sub.append(el("td", "", c), el("td", "fx-n", "R$ " + moedaBR(cv)), el("td", "fx-n dre-pct", pctDre(cv, rb))); corpo.appendChild(sub); }
+    }
+  };
+  linhaT("Receitas brutas", rb, "dre-rec", rb ? "100%" : "—");
+  grupos("rec");
+  linhaT("(−) Despesas totais", s.tot.desp, "dre-desp", pctDre(s.tot.desp, rb));
+  grupos("desp");
+  linhaT("(=) Resultado líquido", res, res < 0 ? "dre-res dre-neg" : "dre-res", pctDre(res, rb));
+  const cab = el("thead"), h = el("tr");
+  for (const [t, c] of [["Demonstração do resultado", ""], ["Valor", "fx-n"], ["% receita", "fx-n dre-pct"]]) { const th = el("th", c); th.scope = "col"; th.appendChild(el("span", "", t)); h.appendChild(th); }
+  cab.appendChild(h); tb.append(cab, corpo); w.appendChild(tb);
+  const ex = el("button", "btn sec", "Exportar planilha (Excel)"); ex.type = "button"; ex.style.cssText = "width:100%;margin-top:12px";
+  ex.onclick = () => exportarDre([[txt, s]]); w.appendChild(ex);
+}
+function desenharDreAnual(w) {
+  const D = trTela.dre, a = +D.ano, meses = [];
+  for (let m = 1; m <= 12; m++) meses.push(somarDre(`${a}-${pad(m)}-01`, dataISO(new Date(a, m, 0))));
+  const ano = somarDre(`${a}-01-01`, `${a}-12-31`);
+  const box = el("div", "dre-rolar"), tb = el("table", "orc-tab dre-anual"), cab = el("thead"), h = el("tr"), corpo = el("tbody");
+  const nomesM = MESES.map(m => m.slice(0, 3).replace(/^./, c => c.toUpperCase()));
+  for (const t of ["Conta", ...nomesM, "Total"]) { const th = el("th", t === "Conta" ? "dre-conta" : "fx-n"); th.scope = "col"; th.appendChild(el("span", "", t)); h.appendChild(th); }
+  cab.appendChild(h);
+  const fmt = v => v ? (v < 0 ? "− " : "") + moedaBR(Math.abs(v)) : "—";
+  const linha = (rot, f, cls = "") => { const tr = el("tr", cls); tr.appendChild(el("td", "dre-conta", rot)); meses.forEach(m => { const v = f(m); tr.appendChild(el("td", "fx-n" + (v < 0 ? " fx-neg" : ""), fmt(v))); }); const t = f(ano); tr.appendChild(el("td", "fx-n dre-total" + (t < 0 ? " fx-neg" : ""), fmt(t))); corpo.appendChild(tr); };
+  const usados = tp => ordemGruposDre(tp).filter(g => DRE_GRUPOS[tp].some(x => x[0] === g) || ano[tp][g]);
+  for (const g of usados("rec")) linha("(+) " + g, m => m.rec[g]?.total || 0, "dre-l-rec");
+  linha("(=) Receita bruta", m => m.tot.rec, "dre-tot dre-rec");
+  for (const g of usados("desp")) linha("(−) " + g, m => m.desp[g]?.total || 0, "dre-l-desp");
+  linha("(=) Total despesas", m => m.tot.desp, "dre-tot dre-desp");
+  linha("(=) Resultado líquido", m => m.tot.rec - m.tot.desp, "dre-tot dre-res");
+  // posição em caixa no fim de cada mês (o mesmo saldo do fluxo de caixa: pago e recebido até o fim do mês)
+  const pagos = trs().filter(r => r.st === "pago" && r.pg && (!D.centro || r.centro === D.centro));
+  const saldoAte = d => pagos.filter(r => r.pg <= d).reduce((s, r) => s + (r.tipo === "rec" ? 1 : -1) * (+r.valor || 0), 0);
+  const tr = el("tr", "dre-caixa"); tr.appendChild(el("td", "dre-conta", "Saldo em caixa no fim do mês"));
+  for (let m = 1; m <= 12; m++) { const v = Math.round(saldoAte(dataISO(new Date(a, m, 0))) * 100) / 100; tr.appendChild(el("td", "fx-n" + (v < 0 ? " fx-neg" : ""), fmt(v))); }
+  tr.appendChild(el("td", "fx-n dre-total", "—")); corpo.appendChild(tr);
+  tb.append(cab, corpo); box.appendChild(tb); w.appendChild(box);
+  const ex = el("button", "btn sec", "Exportar planilha (Excel)"); ex.type = "button"; ex.style.cssText = "width:100%;margin-top:12px";
+  ex.onclick = () => exportarDre(meses.map((s, i) => [nomesM[i], s]).concat([["Total " + a, ano]]), true);
+  w.appendChild(ex);
+}
+async function exportarDre(colunas, anual) {          // colunas: [[título, soma]]
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const D = trTela.dre, linhas = [["Conta", ...colunas.map(c => c[0])]];
+    const add = (rot, f) => linhas.push([rot, ...colunas.map(([, s]) => Math.round(f(s) * 100) / 100)]);
+    for (const tp of ["rec", "desp"]) {
+      const todosG = ordemGruposDre(tp).filter(g => colunas.some(([, s]) => s[tp][g]));
+      for (const g of todosG) {
+        add((tp === "rec" ? "(+) " : "(−) ") + g, s => s[tp][g]?.total || 0);
+        const cats = [...new Set(colunas.flatMap(([, s]) => Object.keys(s[tp][g]?.cats || {})))];
+        for (const c of cats) add("      " + c, s => s[tp][g]?.cats[c] || 0);
+      }
+      add(tp === "rec" ? "(=) Receita bruta" : "(=) Total despesas", s => s.tot[tp]);
+    }
+    add("(=) Resultado líquido", s => s.tot.rec - s.tot.desp);
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    for (let i = 1; i < linhas.length; i++) for (let c = 1; c < linhas[0].length; c++) { const x = ws[XLSX.utils.encode_cell({ r: i, c })]; if (x && x.t === "n") x.z = "#,##0.00"; }
+    ws["!cols"] = [{ wch: 36 }, ...colunas.map(() => ({ wch: 14 }))];
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "DRE");
+    const nome = `DRE ${anual ? D.ano : colunas[0][0]}${D.centro ? " - " + D.centro : ""} - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
@@ -16355,6 +16538,10 @@ function desenharFin() {
       const hoje = dataISO(), sinal = r => (r.tipo === "rec" ? 1 : -1) * (+r.valor || 0);
       const saldoHoje = vivos.filter(r => r.st === "pago" && r.pg && r.pg <= hoje).reduce((s, r) => s + sinal(r), 0);
       const prevFim = vivos.filter(r => r.st === "pago" ? r.pg && r.pg <= fimMes : (r.venc || r.comp || "") <= fimMes).reduce((s, r) => s + sinal(r), 0);
+      {                                             // DRE: resultado do mês (pago e recebido, pela competência)
+        const pg = vivos.filter(r => r.st === "pago" && (r.comp || r.pg || "").startsWith(mes)), rb = somaTr(pg.filter(r => r.tipo === "rec")), res = rb - somaTr(pg.filter(r => r.tipo === "desp"));
+        lc.appendChild(linha("planilha", "DRE (resultado)", `resultado de ${nomeMes}: R$ ${moedaSinal(res)}${rb ? ` (${pctDre(res, rb)} da receita)` : ""}`, () => abrirDre()));
+      }
       lc.appendChild(linha("grafico", "Fluxo de caixa", `saldo hoje R$ ${moedaSinal(saldoHoje)} · previsto no fim do mês R$ ${moedaSinal(prevFim)}`, () => abrirFluxo()));
     }
     t.appendChild(lc);
@@ -16645,6 +16832,7 @@ const SUBMENUS_NAV = {
     ["pagar", "Contas a pagar", () => podeTrans(), () => abrirContas({ tipo: "pagar" }), "fin"],
     ["receber", "Contas a receber", () => podeTrans(), () => abrirContas({ tipo: "receber" }), "fin"],
     ["fluxo", "Fluxo de caixa", () => podeTrans(), () => abrirFluxo(), "fin"],
+    ["dre", "DRE (resultado)", () => podeTrans(), () => abrirDre(), "fin"],
     ["comp", "Enviar comprovante", () => pode("comp"), () => abrirTrabalho("comp"), "fin"],
     ["comph", "Histórico de comprovantes", () => pode("comp"), () => abrirCompHist(), "fin"]
   ]
