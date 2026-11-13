@@ -798,9 +798,9 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .tar-com p{margin:4px 0 0;max-width:none;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15.5px;line-height:1.4}
 .tar-com .tar-x{position:absolute;top:2px;right:2px;min-width:40px;min-height:40px;font-size:20px}
 /* comentários pela tabela (pedido do Gustavo em 13/11/2026): ícone ao lado do nome e janela com a lista e o campo para escrever */
-.tar-tab .tar-c-com{width:44px;padding-left:0;padding-right:0;text-align:center;color:var(--suave)}
-.tar-tab th.tar-c-com .ic{width:17px;height:17px;opacity:.7;vertical-align:middle}
-@container (min-width:860px){.tar-tab .tar-c-com{width:52px}}
+.tar-tab .tar-c-com,.fu-tab .fu-c-com{width:44px;padding-left:0;padding-right:0;text-align:center;color:var(--suave)}
+.tar-tab th.tar-c-com .ic,.fu-tab th.fu-c-com .ic{width:17px;height:17px;opacity:.7;vertical-align:middle}
+@container (min-width:860px){.tar-tab .tar-c-com,.fu-tab .fu-c-com{width:52px}}
 .tar-com-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:34px;min-height:0;margin:-4px 0;padding:4px 5px;border:1px solid transparent;border-radius:8px;background:none;color:var(--suave);font:inherit;font-size:13px;font-weight:700;line-height:1;cursor:pointer}
 .tar-com-btn::after{content:"";position:absolute;inset:-7px -4px}   /* área de toque maior, invisível */
 .tar-com-btn .ic{width:19px;height:19px}
@@ -2541,6 +2541,9 @@ const CONFIG = {
   // Comprovantes: pasta no mesmo OneDrive, compartilhada com a equipe (permissão de edição)
   comprovantesCaminho: "VPX Engenharia - AVCB/02 - Financeiro/01 - Comprovantes",
   comprovantesNome: "01 - Comprovantes",
+  // Transações (receitas e despesas, no lugar do Fin365): criada pelo app quando o Gustavo abre; compartilhar à mão (com edição) só com quem ele liberar
+  financeiroCaminho: "VPX Engenharia - AVCB/02 - Financeiro",
+  transacoesNome: "04 - Transações",
   pastasComprovante: { compra: "Compras", reembolso: "Reembolsos" },   // os arquivos vão direto nelas
   // Notas fiscais emitidas e boletos (pedido do Gustavo em 06/11/2026): pasta no mesmo OneDrive (compartilhar com quem tiver a função)
   notasCaminho: "VPX Engenharia - AVCB/06 - Comercial/04 - Notas Fiscais e Boletos",
@@ -8153,7 +8156,7 @@ const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Visita comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes", "aba"],
   ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Solicitações de compra"], ["pagamentos", "Solicitações de pagamento"], ["pagar", "Realizar pagamentos"], ["comprar", "Realizar compras"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
-  ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Comercial (oportunidades e propostas)"]
+  ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Comercial (oportunidades e propostas)"], ["trans", "Transações (receitas e despesas)"]
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -9153,6 +9156,9 @@ const nomePastaPed = t => t === "pag" ? CONFIG.pagamentosNome : CONFIG.pedidosNo
 const tipoDe = p => p.tipo || "compra";                         // pedidos antigos (antes dos pagamentos) são de compra
 // quem faz os pagamentos (ex.: Raquel): vê os pedidos de pagamento de todos e marca os aprovados como pagos.
 // Só com a função marcada na administração (sem o arquivo de permissões não vale, para não mostrar a todos)
+// transações (receitas e despesas da empresa, inclusive retiradas de lucro): só o administrador e quem ele marcar na Administração.
+// Diferente das outras funções: sem o arquivo de permissões lido, ou sem a marcação explícita da pessoa, não aparece (nem pelo perfil padrão)
+const podeTrans = () => ehAdmin() || (!!perm && !ehConvidado() && !!perm.usuarios?.[emailDe()]?.funcoes?.includes("trans"));
 const ehPagador = () => !ehAdmin() && !!perm && pode("pagar");
 // quem faz as compras (pedido do Gustavo em 11/11/2026, para a Raquel): vê os pedidos de compra de todos, marca os aprovados como comprados e os comprados como entregues; não aprova
 const ehComprador = () => !ehAdmin() && !!perm && pode("comprar");
@@ -13439,7 +13445,7 @@ function regsDe(c) {                               // todos os registros (com as
   for (const [id, r] of Object.entries(c.sobre)) { if (r) out[id] = r; else delete out[id]; }
   return out;
 }
-async function pastaCol(c) { return c.pastaId ||= (await garantirFilhas(CONFIG.pastaClientesId, [c.pasta])).id; }
+async function pastaCol(c) { return c.pastaId ||= c.base ? await c.base() : (await garantirFilhas(CONFIG.pastaClientesId, [c.pasta])).id; }   // c.base: coleção fora de 02 - Clientes (transações)
 // baixa só os arquivos que mudaram (eTag); no máximo 1 vez por minuto, a não ser forçado
 async function sincronizarCol(c, forcar) {
   if (!conta || !navigator.onLine || c.rodando || !c.pode()) return;
@@ -14153,10 +14159,10 @@ function comentariosTar(t, depois, idCampo) {
 }
 // janela de comentários aberta pelo ícone ao lado do nome da tarefa na tabela (pedido do Gustavo em 13/11/2026);
 // o "voltar" do celular fecha só a janela (passo { com } no histórico, como a pergunta do app)
-let comAtual = null;
-function abrirComentariosTar(id) {
-  if (!regsDe(colTar)[id]) return;
-  comAtual = id;
+let comAtual = null, comTipo = "tar";            // comTipo "fu" = contatos e anotações de uma oportunidade do Comercial
+function abrirComentariosTar(id, tipo = "tar") {
+  if (!regsDe(tipo === "fu" ? colFu : colTar)[id]) return;
+  comAtual = id; comTipo = tipo;
   history.pushState({ ...(history.state || {}), com: true }, "");
   desenharComentariosTar();
   $("dlg-com").showModal();
@@ -14173,12 +14179,13 @@ function concluirComentariosTar() {                // chamada pelo popstate (o p
 }
 function desenharComentariosTar() {
   if (!comAtual) return;
-  const t = regsDe(colTar)[comAtual], corpo = $("com-corpo");
-  if (!t) { aviso("A tarefa foi apagada por outra pessoa."); fecharComentariosTar(); return; }
+  const fu = comTipo === "fu", t = regsDe(fu ? colFu : colTar)[comAtual], corpo = $("com-corpo");
+  if (!t) { aviso(fu ? "A oportunidade foi apagada por outra pessoa." : "A tarefa foi apagada por outra pessoa."); fecharComentariosTar(); return; }
   const velho = $("com-novo"), rasc = velho?.value || "", foco = !!velho && document.activeElement === velho;   // redesenho (sincronização): mantém o que está sendo escrito
-  $("com-tarefa").textContent = t.titulo || "(sem título)";
+  $("com-titulo").textContent = fu ? "Contatos e anotações" : "Comentários";
+  $("com-tarefa").textContent = fu ? t.nome || "(sem nome)" : t.titulo || "(sem título)";
   corpo.innerHTML = "";
-  corpo.appendChild(comentariosTar(t, desenharComentariosTar, "com-novo"));
+  corpo.appendChild(fu ? anotacoesFu(t, desenharComentariosTar, "com-novo") : comentariosTar(t, desenharComentariosTar, "com-novo"));
   const novo = $("com-novo");
   if (novo && rasc) novo.value = rasc;
   if (novo && foco) novo.focus();
@@ -14305,6 +14312,7 @@ const ORDEM_SIT = ["Interesse", "Marcar visita", "Visita marcada", "Ligar novame
   "Em andamento", "Já foi feito contato", "A definir", "Não atendeu", "Parado", "Sem telefone", "Inválido"];
 const rankSit = s => { const i = ORDEM_SIT.indexOf(s || "A definir"); return i < 0 ? 11 : i; };
 function aoMudarFu() {
+  if (comAtual && comTipo === "fu" && $("dlg-com").open) desenharComentariosTar();   // janela de anotações aberta: mostra as novas (guarda o que está sendo escrito)
   (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", manterQuadro("tela-funil", desenharFunil)))();
   if (conta && secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
   if (conta && secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // número do funil no painel do computador
@@ -14540,7 +14548,15 @@ function linhaFu(o) {
   cs.appendChild(botaoEdTar("", "Mudar a situação do contato", [sit === "A definir" ? vazio(sit) : sit], abrirSit));
   cv.appendChild(valorEdFu(o));
   cd.appendChild(contatoEdFu(o));
-  r.append(n, ce, cr, cs, cv, cd);
+  // contatos e anotações: ícone na coluna logo depois do nome (com o número, se houver), abre a janela com a lista e o campo para registrar
+  const na = (o.ativ || []).length, bc = el("button", "tar-com-btn" + (na ? " tem" : "")); bc.type = "button";
+  bc.title = na ? `${na} anotaç${na > 1 ? "ões" : "ão"}` : "Registrar contato";
+  bc.setAttribute("aria-label", na ? `Ver as ${na} anotaç${na > 1 ? "ões" : "ão"} de contato` : "Registrar um contato");
+  bc.appendChild(ic("comentario"));
+  if (na) bc.appendChild(el("span", "", String(na)));
+  bc.onclick = e => { e.stopPropagation(); abrirComentariosTar(o.id, "fu"); };
+  const ck = el("td", "fu-c-com"); ck.appendChild(bc);
+  r.append(n, ck, ce, cr, cs, cv, cd);
   return r;
 }
 // filtros da lista (fuTela.etapa / sit / pessoa / valor / contato; "-" = sem responsável, sem data de contato)
@@ -14625,13 +14641,16 @@ function tabelaFu(lista) {
     b.onclick = () => menuColunaFu(b, col);
     c.appendChild(b); tr.appendChild(c);
   };
-  cab("nome", "Nome", "fu-c-nome"); cab("etapa", "Etapa", "fu-c-etapa"); cab("resp", "Responsável", "fu-c-resp"); cab("sit", "Situação", "fu-c-sit");
+  cab("nome", "Nome", "fu-c-nome");
+  const thc = el("th", "fu-c-com"); thc.scope = "col"; thc.title = "Contatos e anotações"; thc.setAttribute("aria-label", "Contatos e anotações");
+  thc.appendChild(ic("comentario")); tr.appendChild(thc);
+  cab("etapa", "Etapa", "fu-c-etapa"); cab("resp", "Responsável", "fu-c-resp"); cab("sit", "Situação", "fu-c-sit");
   cab("valor", "Valor", "fu-c-valor"); cab("data", "Contato", "fu-c-data");
   th.appendChild(tr); tb.appendChild(th);
   const corpo = el("tbody"), f = COLS_FU[fuTela.ordem.col] || COLS_FU.etapa, s = fuTela.ordem.desc ? -1 : 1;
   const ord = lista.slice().sort((a, b) => { const x = f(a), y = f(b); if (x == null || y == null) return (x == null) - (y == null) || ordemFu(a, b); return (x < y ? -1 : x > y ? 1 : 0) * s || ordemFu(a, b); });
   ord.slice(0, fuTela.limTab).forEach(o => corpo.appendChild(linhaFu(o)));
-  if (!ord.length && filtrosFuAtivos()) { const v = el("tr", "fu-vazia"), td = el("td", "avcb-nota", "Nenhuma oportunidade com esses filtros."); td.colSpan = 6; v.appendChild(td); corpo.appendChild(v); }
+  if (!ord.length && filtrosFuAtivos()) { const v = el("tr", "fu-vazia"), td = el("td", "avcb-nota", "Nenhuma oportunidade com esses filtros."); td.colSpan = 7; v.appendChild(td); corpo.appendChild(v); }
   tb.appendChild(corpo); w.appendChild(tb);
   if (!ord.length && !filtrosFuAtivos()) w.appendChild(el("p", "avcb-nota", "Nenhuma oportunidade aqui."));
   if (ord.length > fuTela.limTab) { const m = el("button", "btn sec fu-mais-tab", `Mostrar mais (${ord.length - fuTela.limTab})`); m.type = "button"; m.onclick = () => { fuTela.limTab += 300; desenharFunil(); }; w.appendChild(m); }
@@ -14729,17 +14748,7 @@ function detalheFu(o) {
   }
   // contatos e anotações (as atualizações do monday vieram para cá)
   w.appendChild(el("h2", "secao", "Contatos e anotações"));
-  const nc = el("div", "tar-novo-com");
-  const ta = document.createElement("textarea"); ta.placeholder = "O que foi conversado? (ligação, visita, mensagem…)"; ta.setAttribute("aria-label", "Novo registro de contato");
-  const bt = el("button", "btn sec", "Registrar contato de hoje"); bt.type = "button";
-  bt.onclick = () => { const v = ta.value.trim(); if (!v) { ta.focus(); return; } ta.value = ""; registrarContatoFu(o.id, v); desenharFunil(); };
-  nc.append(ta, bt); w.appendChild(nc);
-  const at = (o.ativ || []).slice().sort((a, b) => (b.em || "").localeCompare(a.em || ""));
-  if (at.length) {
-    const l = el("div", "tar-coms");
-    at.slice(0, 60).forEach(a => { const d = el("div", "tar-com"); d.append(el("small", "", `${a.por || "-"} · ${dataHoraBR(a.em)}`), el("p", "", a.t)); l.appendChild(d); });
-    w.appendChild(l);
-  } else w.appendChild(el("p", "avcb-nota", "Nenhum contato registrado ainda."));
+  w.appendChild(anotacoesFu(o, desenharFunil));
   histDetalhe(w, o);
   w.appendChild(el("p", "tar-rodape", origemReg(o, "Criada")));
   const x = el("button", "btn sec perigo tar-excluir", "Excluir oportunidade"); x.type = "button";
@@ -14749,6 +14758,25 @@ function detalheFu(o) {
   };
   w.appendChild(x);
   return w;
+}
+/* contatos e anotações de uma oportunidade: campo "Registrar contato de hoje" (vira o último contato) e a lista, os mais novos em cima.
+   Usado no detalhe e na janela que abre pelo ícone da tabela (a mesma dos comentários das tarefas). depois() redesenha quem chamou. */
+function anotacoesFu(o, depois, idCampo) {
+  const f = document.createDocumentFragment();
+  const nc = el("div", "tar-novo-com");
+  const ta = document.createElement("textarea"); ta.placeholder = "O que foi conversado? (ligação, visita, mensagem…)"; ta.setAttribute("aria-label", "Novo registro de contato");
+  if (idCampo) ta.id = idCampo;
+  const bt = el("button", "btn sec", "Registrar contato de hoje"); bt.type = "button";
+  bt.onclick = () => { const v = ta.value.trim(); if (!v) { ta.focus(); return; } ta.value = ""; registrarContatoFu(o.id, v); depois(); };
+  ta.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); bt.click(); } });   // Ctrl+Enter registra
+  nc.append(ta, bt); f.appendChild(nc);
+  const at = (o.ativ || []).slice().sort((a, b) => (b.em || "").localeCompare(a.em || ""));
+  if (at.length) {
+    const l = el("div", "tar-coms");
+    at.slice(0, 60).forEach(a => { const d = el("div", "tar-com"); d.append(el("small", "", `${a.por || "-"} · ${dataHoraBR(a.em)}`), el("p", "", a.t)); l.appendChild(d); });
+    f.appendChild(l);
+  } else f.appendChild(el("p", "avcb-nota", "Nenhum contato registrado ainda."));
+  return f;
 }
 function formNovaFu() {
   const n = fuTela.nova, f = el("div", "tar-det");
