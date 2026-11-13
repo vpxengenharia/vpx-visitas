@@ -17382,12 +17382,6 @@ const SUBMENUS_NAV = {
     ["avcb", "Validade AVCB / CLCB", () => pode("avcb"), () => abrirAvcb(), "reg"],
     ["eqv", "Extintores e mangueiras", () => pode("equip"), () => abrirEqv(), "reg"]
   ],
-  tar: [
-    ["minhas", "Minhas tarefas", () => true, () => abrirTar({ filtro: "minhas" })],
-    ["todas", "Todas", () => pode("tarefas"), () => abrirTar({ filtro: "todas" })],
-    ["atrasadas", "Atrasadas", () => pode("tarefas"), () => abrirTar({ filtro: "atrasadas" })],
-    ["nova", "+ Nova tarefa", () => pode("tarefas"), () => abrirTar({ nova: {} })]
-  ],
   funil: [
     ...GRUPOS_FU.map(([k, rot]) => ["g-" + k, rot, () => true, () => { gravarLS("vpx_fu_grupo", k); abrirFunil(); }]),
     ["orc", "Orçamentos", () => pode("orc"), () => { abrirFunil(); orcNoComercial(); }],
@@ -17409,7 +17403,7 @@ const SUBMENUS_NAV = {
   ]
 };
 const NOME_NAV = { reg: "Registros", tar: "Tarefas", funil: "Comercial", sol: "Solicitações", fin: "Financeiro" };
-const navAbertos = new Set(lerLS("vpx_nav_sub", []).slice(-1));   // só um submenu aberto por vez (pedido do Gustavo em 13/11/2026)
+const navAbertos = new Set(lerLS("vpx_nav_sub", []).filter(p => p in SUBMENUS_NAV).slice(-1));   // só um submenu aberto por vez (pedido do Gustavo em 13/11/2026); o de um item que perdeu o submenu (Tarefas) é esquecido
 const pintarNavSub = {};                           // item → função que mostra ou esconde o submenu dele
 // abre só o submenu de "pai" (ou nenhum, com null) e recolhe os outros
 function abrirSoSubmenu(pai) {
