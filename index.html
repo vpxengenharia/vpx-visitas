@@ -1803,6 +1803,26 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 @media (min-width:900px) and (hover:hover) and (pointer:fine) and (min-width:1180px){
   #agenda-lista > .ag-leg{grid-column:1}
 }
+/* menu lateral do computador: submenus com setinha, como no Fin365 (pedido do Gustavo em 13/11/2026).
+   No celular a caixa do item some (display:contents) e a barra de baixo continua igual; setinha e submenu só no computador. */
+.nav-item{display:contents}
+.nav .nav-seta,.nav .nav-sub{display:none}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  body.logado .nav .nav-item{display:block;position:relative;flex:none}
+  body.logado .nav .nav-item[hidden]{display:none}
+  body.logado .nav .nav-item > button:first-child{width:100%;padding-right:42px}
+  body.logado .nav .nav-item:has(> [data-s="fin"]){margin-top:9px}
+  body.logado .nav .nav-item > [data-s="fin"]{margin-top:0}
+  body.logado .nav .nav-seta{display:grid;place-items:center;position:absolute;top:4px;right:4px;width:34px;min-height:34px;height:34px;padding:0;border-radius:8px;color:var(--suave)}
+  body.logado .nav .nav-seta:hover{background:rgba(127,127,127,.16);color:var(--tinta)}
+  body.logado .nav .nav-seta svg{width:17px;height:17px;transition:transform .15s}
+  body.logado .nav .nav-seta[aria-expanded="true"] svg{transform:rotate(180deg)}
+  body.logado .nav .nav-sub{display:flex;flex-direction:column;gap:1px;margin:2px 0 6px}
+  body.logado .nav .nav-sub[hidden],body.logado .nav .nav-item.sem-sub .nav-sub,body.logado .nav .nav-item.sem-sub .nav-seta{display:none}
+  body.logado .nav .nav-sub button{min-height:34px;padding:0 10px 0 50px;border-radius:10px;font-size:14.5px;font-weight:500;color:var(--suave);text-align:left}
+  body.logado .nav .nav-sub button:hover{color:var(--tinta)}
+  body.logado .nav .nav-sub button[hidden]{display:none}
+}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -11660,8 +11680,10 @@ function atualizarNav() {
     if (!$("tela-funil").hidden) atual = "funil";  // tarefas e funil também (as tarefas podem estar por cima do funil)
     if (!$("tela-tar").hidden) atual = "tar";
     if (!$("tela-pc").hidden) atual = "sol";
+    if ($("tela-tr") && !$("tela-tr").hidden) atual = "fin";   // transações e contas a pagar/receber (abertas pelo submenu do Financeiro)
   } else if (atual === "fin") atual = "mais";      // celular: o Financeiro fica dentro do Mais
   nav.querySelectorAll("button").forEach(b => { if ((b.dataset.s || b.dataset.acao) === atual) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  pintarSubmenusNav();
 }
 
 // troca de seção pela barra de baixo (a Agenda abre por cima, como antes)
@@ -16592,6 +16614,86 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
 });
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
 for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil", "tela-pc"]) new MutationObserver(() => { if ($(id).hidden) $(id).classList.remove("pela-lateral"); if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
+if ($("tela-tr")) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($("tela-tr"), { attributes: true, attributeFilter: ["hidden"] });
+/* submenus do menu lateral do computador (pedido do Gustavo em 13/11/2026, como no Fin365): a setinha à direita do item mostra ou esconde
+   as opções embaixo; o nome do item continua abrindo a tela como antes. Cada opção: [chave, rótulo, quem vê, o que abre, seção de fundo].
+   A seção de fundo ("reg", "fin") é aberta antes quando a opção abre uma tela por cima: ao fechar ela, a pessoa fica nessa seção.
+   Item sem nenhuma opção liberada fica sem setinha. O que fica aberto é lembrado no aparelho (vpx_nav_sub). */
+const SUBMENUS_NAV = {
+  reg: [
+    ["os", "Ordens de serviço", () => pode("os"), () => abrirOS(), "reg"],
+    ...MODOS_APP.filter(([m]) => m !== "comp").map(([m, , nome]) => ["m-" + m, nome, () => pode(m), () => abrirModulo(m)]),
+    ["avcb", "Validade AVCB / CLCB", () => pode("avcb"), () => abrirAvcb(), "reg"],
+    ["eqv", "Extintores e mangueiras", () => pode("equip"), () => abrirEqv(), "reg"],
+    ["orc", "Orçamentos", () => pode("orc"), () => abrirOrcamentos(), "reg"],
+    ["nf", "Notas fiscais", () => pode("nf"), () => abrirNotas(), "reg"]
+  ],
+  tar: [
+    ["minhas", "Minhas tarefas", () => true, () => abrirTar({ filtro: "minhas" })],
+    ["todas", "Todas", () => pode("tarefas"), () => abrirTar({ filtro: "todas" })],
+    ["atrasadas", "Atrasadas", () => pode("tarefas"), () => abrirTar({ filtro: "atrasadas" })],
+    ["nova", "+ Nova tarefa", () => pode("tarefas"), () => abrirTar({ nova: {} })]
+  ],
+  funil: [
+    ...GRUPOS_FU.map(([k, rot]) => ["g-" + k, rot, () => true, () => { gravarLS("vpx_fu_grupo", k); abrirFunil(); }]),
+    ["nova", "+ Nova oportunidade", () => true, () => abrirFunil({ nova: {} })]
+  ],
+  sol: Object.entries(TIPOS_PED).map(([tp, t]) => [tp, t.aba, () => podeTipo(tp), () => { pcTipo = tp; abrirPedidos(); }]),
+  fin: [
+    ["desp", "Despesas", () => podeTrans(), () => abrirTransacoes({ tipo: "desp" }), "fin"],
+    ["rec", "Receitas", () => podeTrans(), () => abrirTransacoes({ tipo: "rec" }), "fin"],
+    ["pagar", "Contas a pagar", () => podeTrans(), () => abrirContas({ tipo: "pagar" }), "fin"],
+    ["receber", "Contas a receber", () => podeTrans(), () => abrirContas({ tipo: "receber" }), "fin"],
+    ["fluxo", "Fluxo de caixa", () => podeTrans(), () => abrirFluxo(), "fin"],
+    ["comp", "Enviar comprovante", () => pode("comp"), () => abrirTrabalho("comp"), "fin"],
+    ["comph", "Histórico de comprovantes", () => pode("comp"), () => abrirCompHist(), "fin"]
+  ]
+};
+const NOME_NAV = { reg: "Registros", tar: "Tarefas", funil: "Comercial", sol: "Solicitações", fin: "Financeiro" };
+const navAbertos = new Set(lerLS("vpx_nav_sub", []));
+// opção do submenu: os mesmos cuidados do clique no item (fecha o que está por cima, sai da Agenda) e marca a tela como aberta pela lateral
+function abrirDoSubmenu(pai, [, , , fn, fundo]) {
+  if (!fecharTelasPorCima()) return;
+  const ir = () => {
+    if (fundo && secao !== fundo) irPara(fundo, true);
+    fn();
+    const tela = { tar: "tela-tar", funil: "tela-funil", sol: "tela-pc" }[pai];
+    if (tela && !$(tela).hidden) $(tela).classList.add("pela-lateral");
+  };
+  if (secao === "agenda") {
+    if (agForm && history.state?.agform) { fecharAgenda(false); addEventListener("popstate", ir, { once: true }); return; }
+    fecharAgenda(false);
+  }
+  ir();
+}
+function montarSubmenusNav() {
+  for (const [pai, itens] of Object.entries(SUBMENUS_NAV)) {
+    const b = $("nav").querySelector(`[data-s="${pai}"],[data-acao="${pai}"]`); if (!b) continue;
+    const w = el("div", "nav-item"); b.before(w); w.appendChild(b);
+    const seta = el("button", "nav-seta"); seta.type = "button"; seta.setAttribute("aria-controls", "nav-sub-" + pai);
+    seta.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+    const sub = el("div", "nav-sub"); sub.id = "nav-sub-" + pai; sub.setAttribute("role", "group"); sub.setAttribute("aria-label", NOME_NAV[pai]);
+    for (const it of itens) { const sb = el("button", "", it[1]); sb.type = "button"; sb.dataset.sub = it[0]; sb.onclick = () => abrirDoSubmenu(pai, it); sub.appendChild(sb); }
+    const pintar = () => {
+      const ab = navAbertos.has(pai); sub.hidden = !ab;
+      seta.setAttribute("aria-expanded", String(ab)); seta.title = `${ab ? "Esconder" : "Mostrar"} as opções de ${NOME_NAV[pai]}`; seta.setAttribute("aria-label", seta.title);
+    };
+    seta.onclick = () => { if (navAbertos.has(pai)) navAbertos.delete(pai); else navAbertos.add(pai); gravarLS("vpx_nav_sub", [...navAbertos]); pintar(); };
+    w.append(seta, sub); pintar();
+  }
+  pintarSubmenusNav();
+}
+// chamada no fim do atualizarNav: a caixa do item some junto com ele; cada opção só para quem pode; sem opção, sem setinha
+function pintarSubmenusNav() {
+  for (const [pai, itens] of Object.entries(SUBMENUS_NAV)) {
+    const sub = $("nav-sub-" + pai); if (!sub) continue;
+    const w = sub.parentNode; w.hidden = w.firstElementChild.hidden;
+    let n = 0;
+    itens.forEach((it, i) => { const v = !!conta && !!it[2](); sub.children[i].hidden = !v; n += v; });
+    w.classList.toggle("sem-sub", !n);
+  }
+}
+montarSubmenusNav();
 computador.addEventListener("change", () => {      // janela passou da largura do celular para a do computador (ou o contrário)
   if (!conta) return;
   if (secao === "inicio") desenharInicio();
