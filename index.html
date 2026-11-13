@@ -147,6 +147,7 @@ button,input,label{font:inherit}
 /* as colunas extras dependem da largura da área da tabela, não da janela (no computador o menu lateral ocupa espaço;
    tablet e celular deitado ficam com a tabela do celular) */
 #tela-orc .avcb-corpo,#tela-nf .avcb-corpo,#tela-avcb .avcb-corpo,#tela-pc .avcb-corpo,#tela-tr .avcb-corpo{container-type:inline-size}
+#fx-w .fx-tab{table-layout:auto}
 @container (min-width:600px){
   .orc-filtros{grid-template-columns:minmax(0,1fr) 210px 190px}
   .orc-filtros .avcb-busca{grid-column:auto}
@@ -356,6 +357,64 @@ button,input,label{font:inherit}
 .tr-form textarea{width:100%;border-radius:var(--r-m,12px);border:1.5px solid var(--borda-campo,var(--linha));background:var(--papel);color:var(--tinta);padding:10px 14px;font:inherit;font-size:17px}
 .tr-rec-extra{margin-top:10px}
 .tr-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+/* fluxo de caixa (13/11/2026): cartões, gráfico em SVG, tabela mensal e os dias */
+.fx-vistas{margin-bottom:12px}
+.fx-filtros{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:4px}
+.tr-card.fx-saldo b{color:var(--marinho)}.tr-card.fx-prev b{color:#1F5FAD}
+.fx-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+.fx-cards > .tr-card:nth-child(3){grid-column:auto}
+.fx-graf-box{margin:4px 0 12px;padding:10px 8px 8px;border:1px solid var(--linha-cartao,var(--linha));border-radius:var(--r-l,14px);background:var(--papel)}
+.fx-graf{display:block;width:100%;height:auto}
+.fx-g-grade{stroke:var(--linha);stroke-width:1}.fx-g-zero{stroke:var(--suave);stroke-width:1}
+.fx-g-txt{fill:var(--suave);font-size:12px;font-family:inherit}.fx-g-hoje{fill:var(--tinta);font-weight:700}
+.fx-g-ent{fill:#2E9E5B}.fx-g-sai{fill:#D64545}
+.fx-g-saldo{fill:none;stroke:var(--laranja);stroke-width:2.5;stroke-linejoin:round}
+.fx-g-prev{fill:none;stroke:var(--laranja);stroke-width:2;stroke-dasharray:5 4;opacity:.8}
+.fx-g-ponto{fill:var(--laranja)}
+.fx-leg{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center;font-size:13px;color:var(--suave)}
+.fx-leg span{display:inline-flex;align-items:center;gap:6px}
+.fx-leg span::before{content:"";width:12px;height:12px;border-radius:3px}
+.fx-l-ent::before{background:#2E9E5B}.fx-l-sai::before{background:#D64545}
+.fx-l-saldo::before{height:3px!important;background:var(--laranja)}.fx-l-prev::before{height:0!important;border-top:2px dashed var(--laranja)}
+.fx-tab .fx-c-mes{width:auto;font-weight:600}
+.fx-tab .fx-c-mes small{display:block;font-weight:400;font-size:12px;color:#1F5FAD}
+.fx-tab .fx-n{text-align:right!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fx-tab thead .fx-n span{text-align:right}
+.fx-tab .fx-ent{color:var(--ok-tx,#1E7B45)}.fx-tab .fx-sai{color:var(--crit-tx)}.fx-tab .fx-saldo-c{font-weight:600}
+.fx-tab .fx-neg{color:var(--crit-tx)}
+.fx-tab tr.fx-atual td{background:rgba(235,157,43,.12)}
+.fx-tab tr.fx-futuro td{color:var(--suave)}
+.fx-tab tr.fx-total td{font-weight:700;border-top:2px solid var(--linha)}
+.fx-tab tr.fx-total{cursor:default}
+.fx-so-pc{display:none}
+.fx-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 12px}
+.fx-nav .btn{width:auto;min-height:44px;padding:0 12px;font-size:14.5px}
+.fx-nav strong{font-family:var(--titulo-fonte);font-size:17px;text-align:center}
+.fx-dia{margin-bottom:10px;border:1px solid var(--linha-cartao,var(--linha));border-radius:var(--r-l,14px);background:var(--papel);overflow:hidden}
+.fx-dia.fx-hoje{border-color:var(--laranja)}
+.fx-dia-cab{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;padding:9px 12px;background:var(--orc-th);font-size:13.5px}
+.fx-dia-cab strong{flex:1 1 100%;font-size:15px}
+.fx-dia-tot{color:var(--suave)}
+.fx-pos{color:var(--ok-tx,#1E7B45)}.fx-neg{color:var(--crit-tx)}
+.fx-item{display:grid;grid-template-columns:10px minmax(0,1fr) auto;grid-template-areas:"pt tx v" "pt tx sit";gap:2px 10px;align-items:center;width:100%;padding:10px 12px;border:0;border-top:1px solid var(--linha);background:none;color:var(--tinta);text-align:left;font:inherit;cursor:pointer}
+.fx-item > i{grid-area:pt;width:8px;height:8px;border-radius:50%}
+.fx-pt-ent{background:#2E9E5B}.fx-pt-sai{background:#D64545}
+.fx-item-tx{grid-area:tx;min-width:0}
+.fx-item-tx b{display:block;font-weight:600;overflow-wrap:anywhere}
+.fx-item-tx small{display:block;color:var(--suave);font-size:12.5px}
+.fx-item .avcb-sit{grid-area:sit;justify-self:end;font-size:12px;padding:1px 8px}
+.fx-item-v{grid-area:v;justify-self:end;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fx-item-v.fx-ent{color:var(--ok-tx,#1E7B45)}.fx-item-v.fx-sai{color:var(--crit-tx)}
+@media (prefers-color-scheme:dark){.tr-card.fx-prev b,.fx-tab .fx-c-mes small{color:#8DB8F0}.fx-tab tr.fx-atual td{background:rgba(235,157,43,.16)}}
+@container (min-width:860px){
+  .fx-so-pc{display:table-cell}
+  .fx-so-cel{display:none!important}
+  .fx-filtros{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .tr-cards.fx-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .fx-graf{max-height:300px}
+  .fx-tab .fx-c-mes{width:110px}
+  .fx-item{grid-template-columns:10px minmax(0,1fr) 110px 130px;grid-template-areas:"pt tx sit v"}
+}
 /* contas a pagar e receber */
 #cp-tipo{margin-bottom:12px}
 .cp-novos{display:flex;gap:8px}
@@ -1815,6 +1874,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   <symbol id="i-lapis" viewBox="0 0 24 24"><path d="M15.6 4.4a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/><path style="stroke:var(--ic-ac)" d="m13.6 6.4 3 3"/></symbol>
   <symbol id="i-impressora" viewBox="0 0 24 24"><path d="M7 8.5v-5h10v5"/><path d="M7 17H5a1.5 1.5 0 0 1-1.5-1.5V10A1.5 1.5 0 0 1 5 8.5h14a1.5 1.5 0 0 1 1.5 1.5v5.5A1.5 1.5 0 0 1 19 17h-2"/><path style="stroke:var(--ic-ac)" d="M7 13.5h10v7H7z"/></symbol>
   <symbol id="i-pausa" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></symbol>
+  <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M8 16v-3M12 16v-6M16 16v-4M20 16v-8"/><path style="stroke:var(--ic-ac)" d="m7 9 4-3 4 3 5-4"/></symbol>
   <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.8h17M8 3v4M16 3v4"/><path style="stroke:var(--ic-ac)" d="M8 13.5h.01M12 13.5h.01M16 13.5h.01M8 17h.01M12 17h.01"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle style="stroke:var(--ic-ac)" cx="12" cy="10" r="2.3"/></symbol>
   <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
@@ -2207,6 +2267,7 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
       <button class="btn sec" id="cp-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
       <p class="avcb-nota" id="cp-estado"></p>
     </div>
+    <div id="fx-w" hidden></div><!-- fluxo de caixa (13/11/2026) -->
     <div id="tr-det" hidden></div>
   </div>
 </div>
@@ -14506,12 +14567,13 @@ function fecharTr(voltar = true) {
 
 function desenharTr() {
   if (!trTela || $("tela-tr").hidden) return;
-  const emForm = !!(trTela.aberto || trTela.novo), contas = trTela.modo === "contas";
-  $("tr-lista-w").hidden = emForm || contas; $("cp-w").hidden = emForm || !contas; $("tr-det").hidden = !emForm;
-  $("tela-tr").querySelector(".avcb-topo strong").textContent = contas ? "Contas a pagar e receber" : "Transações";
-  $("tela-tr").setAttribute("aria-label", contas ? "Contas a pagar e receber" : "Transações");
+  const emForm = !!(trTela.aberto || trTela.novo), contas = trTela.modo === "contas", fluxo = trTela.modo === "fluxo";
+  $("tr-lista-w").hidden = emForm || contas || fluxo; $("cp-w").hidden = emForm || !contas; $("fx-w").hidden = emForm || !fluxo; $("tr-det").hidden = !emForm;
+  const titulo = contas ? "Contas a pagar e receber" : fluxo ? "Fluxo de caixa" : "Transações";
+  $("tela-tr").querySelector(".avcb-topo strong").textContent = titulo; $("tela-tr").setAttribute("aria-label", titulo);
   if (emForm) return;                               // o formulário é montado uma vez (abrirFormTr): uma sincronização não apaga o que está sendo digitado
   if (contas) { desenharContas(); return; }
+  if (fluxo) { if (trTela.fx) desenharFluxo(); return; }
   const tp = trTela.tipo, T = TR_TIPO[tp];
   $("tr-tipos").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === tp)));
   $("tr-novo").textContent = T.novo;
@@ -14638,7 +14700,7 @@ function voltarListaTr() {
 function montarFormTr(r) {
   const det = $("tr-det"); det.innerHTML = "";
   const T = TR_TIPO[r.tipo], novo = !r.id;
-  const voltar = el("button", "laudo-link", "‹ " + (trTela.modo === "contas" ? "Contas a pagar e receber" : T.plural)); voltar.type = "button"; voltar.onclick = voltarListaTr;
+  const voltar = el("button", "laudo-link", "‹ " + (trTela.modo === "contas" ? "Contas a pagar e receber" : trTela.modo === "fluxo" ? "Fluxo de caixa" : T.plural)); voltar.type = "button"; voltar.onclick = voltarListaTr;
   det.appendChild(voltar);
   const h = el("h2", "secao", novo ? T.nova : T.nome);
   det.appendChild(h);
@@ -14788,6 +14850,207 @@ async function exportarTr() {
     ws["!cols"] = [11, 11, 11, 44, 30, 16, 26, 14, 16, 14, 12, 9, 40].map(w => ({ wch: w }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, T.plural);
     const nome = `${T.plural} - ${trTela.ano || "todos os anos"}${trTela.mes ? "-" + trTela.mes : ""} - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+/* Fluxo de caixa (pedido do Gustavo em 13/11/2026: "agora vamos implementar o fluxo de caixa", como no Fin365, Mensal e Diário).
+   Modo da tela das Transações (trTela.modo = "fluxo"). Regime de caixa: o realizado entra na data do pagamento/recebimento
+   (pg); o previsto (pendente) na data de vencimento (vencCp) — o que já venceu e não foi pago entra hoje (é dinheiro que
+   ainda vai sair ou entrar). Canceladas ficam de fora. Saldo inicial das contas = R$ 0,00 em 01/01/2026, como no cadastro
+   do Fin365 (Bancos e Pagamentos), então o saldo é a soma de tudo o que já foi recebido menos o que já foi pago.
+   Mensal: cartões (entradas e saídas do ano, saldo final, saldo previsto), gráfico (barras de entradas e saídas, linha do
+   saldo: cheia até o mês atual e tracejada no previsto) e a tabela do Fin365 (saldo inicial, entradas, saídas, saldo final,
+   lucratividade, entradas/saídas previstas e saldo previsto); tocar no mês abre o Diário dele. Diário: os dias do mês com
+   os lançamentos, subtotal e saldo do dia; tocar abre o lançamento. Filtros: conta e centro de custo. */
+function abrirFluxo(op = {}) {
+  const d = new Date();
+  abrirTransacoes({ modo: "fluxo" });
+  if (!trTela) return;
+  trTela.fx = { vista: op.vista || "mensal", ano: String(d.getFullYear()), mes: pad(d.getMonth() + 1), conta: "", centro: "" };
+  desenharTr();
+}
+// movimentos do fluxo: { r, data, real, v (+ entrada / − saída), atrasada }
+function movFluxo() {
+  const F = trTela.fx, hoje = dataISO();
+  return trs().filter(r => r.st !== "canc" && (!F.conta || r.conta === F.conta) && (!F.centro || r.centro === F.centro)).map(r => {
+    const v = (r.tipo === "rec" ? 1 : -1) * (+r.valor || 0);
+    if (r.st === "pago") return r.pg ? { r, data: r.pg, real: true, v } : null;
+    const d = vencCp(r); if (!d) return null;
+    return { r, data: d < hoje ? hoje : d, real: false, v, atrasada: d < hoje };
+  }).filter(Boolean);
+}
+const somaV = l => Math.round(l.reduce((s, m) => s + m.v, 0) * 100) / 100;
+const moedaSinal = v => (v < 0 ? "− " : "") + moedaBR(Math.abs(v));
+function mesesFluxo(movs, ano) {                    // as 12 linhas da tabela mensal
+  const ini = `${ano}-01-01`, mesHoje = dataISO().slice(0, 7);
+  let saldo = somaV(movs.filter(m => m.real && m.data < ini)), prev = somaV(movs.filter(m => m.data < ini));
+  const out = [];
+  for (let i = 1; i <= 12; i++) {
+    const ym = `${ano}-${pad(i)}`, doMes = movs.filter(m => m.data.startsWith(ym));
+    const real = doMes.filter(m => m.real), pv = doMes.filter(m => !m.real);
+    const ent = somaV(real.filter(m => m.v > 0)), sai = -somaV(real.filter(m => m.v < 0));
+    const pe = somaV(pv.filter(m => m.v > 0)), ps = -somaV(pv.filter(m => m.v < 0));
+    const linha = { ym, i, saldoIni: saldo, ent, sai, pe, ps, futuro: ym > mesHoje };
+    saldo = Math.round((saldo + ent - sai) * 100) / 100; prev = Math.round((prev + ent - sai + pe - ps) * 100) / 100;
+    Object.assign(linha, { saldoFim: saldo, saldoPrev: prev, lucro: sai ? (ent - sai) / sai * 100 : null });   // como no Fin365: o resultado do mês sobre as saídas (janeiro: 44,7%)
+    out.push(linha);
+  }
+  return out;
+}
+function desenharFluxo() {
+  const F = trTela.fx, w = $("fx-w"); w.innerHTML = "";
+  // Mensal / Diário
+  const ab = el("div", "abas pc-tipos fx-vistas"); ab.setAttribute("role", "tablist");
+  for (const [k, rot] of [["mensal", "Mensal"], ["diario", "Diário"]]) {
+    const b = el("button", "", rot); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(F.vista === k));
+    b.onclick = () => { F.vista = k; desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
+    ab.appendChild(b);
+  }
+  w.appendChild(ab);
+  // filtros: ano (e mês no diário), conta e centro de custo
+  const todos = trs(), filtros = el("div", "orc-filtros fx-filtros");
+  const sel = (lista, valor, rot, fn) => { const s = document.createElement("select"); s.setAttribute("aria-label", rot); opcoesSel(s, lista, valor); s.onchange = () => { fn(s.value); desenharTr(); }; filtros.appendChild(s); return s; };
+  const anos = [...new Set([String(new Date().getFullYear()), ...todos.map(r => (r.pg || vencCp(r)).slice(0, 4)).filter(a => a >= "2000")])].sort().reverse();
+  sel(anos.map(a => [a, a]), F.ano, "Ano", v => F.ano = v);
+  if (F.vista === "diario") sel(MESES.map((m, i) => [pad(i + 1), m[0].toUpperCase() + m.slice(1)]), F.mes, "Mês", v => F.mes = v);
+  const contas = [...new Set([...TR_CONTAS, ...todos.map(r => r.conta).filter(Boolean)])];
+  sel([["", "Todas as contas"], ...contas.map(c => [c, c])], F.conta, "Conta", v => F.conta = v);
+  const centros = [...new Set(todos.map(r => r.centro).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  sel([["", "Todos os centros"], ...centros.map(c => [c, centroTxtTr(c)])], F.centro, "Centro de custo", v => F.centro = v);
+  w.appendChild(filtros);
+  const movs = movFluxo();
+  if (F.vista === "diario") desenharFluxoDiario(w, movs); else desenharFluxoMensal(w, movs);
+  const nota = el("p", "avcb-nota", "Regime de caixa: o que foi pago ou recebido entra na data do pagamento; o que está pendente, no vencimento (o que já venceu entra hoje). Saldo inicial das contas: R$ 0,00 em 01/01/2026.");
+  w.appendChild(nota);
+  if (!navigator.onLine) w.appendChild(el("p", "avcb-nota", "Sem internet: mostrando a última cópia."));
+}
+function desenharFluxoMensal(w, movs) {
+  const F = trTela.fx, meses = mesesFluxo(movs, F.ano), ult = meses[11];
+  const entAno = meses.reduce((s, m) => s + m.ent, 0), saiAno = meses.reduce((s, m) => s + m.sai, 0);
+  const cards = el("div", "tr-cards fx-cards");
+  const card = (rot, valor, cls, sub) => { const c = el("div", "tr-card " + cls); c.append(el("small", "", rot), el("b", "", (valor < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(valor)))); if (sub) c.appendChild(el("span", "", sub)); cards.appendChild(c); };
+  card("Entradas do ano", entAno, "rec"); card("Saídas do ano", saiAno, "desp");
+  card("Saldo final", ult.saldoFim, ult.saldoFim < 0 ? "crit" : "fx-saldo", "o que já foi pago e recebido");
+  card("Saldo previsto", ult.saldoPrev, ult.saldoPrev < 0 ? "crit" : "fx-prev", "com as pendentes até dezembro");
+  w.appendChild(cards);
+  w.appendChild(graficoFluxo(meses));
+  // tabela
+  const tb = el("table", "orc-tab fx-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  for (const [rot, cls] of [["Mês", "fx-c-mes"], ["Saldo inicial", "fx-so-pc fx-n"], ["Entradas", "fx-n"], ["Saídas", "fx-n"], ["Saldo final", "fx-n"], ["Lucrat.", "fx-so-pc fx-n fx-c-luc"],
+    ["Ent. prev.", "fx-so-pc fx-n"], ["Saí. prev.", "fx-so-pc fx-n"], ["Saldo prev.", "fx-so-pc fx-n"]]) { const th = el("th", cls); th.scope = "col"; th.appendChild(el("span", "", rot)); tr.appendChild(th); }
+  cab.appendChild(tr);
+  const mesHoje = dataISO().slice(0, 7);
+  for (const m of meses) {
+    const l = el("tr", m.ym === mesHoje ? "fx-atual" : m.futuro ? "fx-futuro" : ""); l.tabIndex = 0;
+    const nome = el("td", "fx-c-mes", MESES[m.i - 1][0].toUpperCase() + MESES[m.i - 1].slice(1));
+    if (m.futuro && (m.pe || m.ps)) nome.appendChild(el("small", "fx-so-cel", "previsto " + moedaSinal(m.saldoPrev)));
+    else if (m.ym === mesHoje && (m.pe || m.ps)) nome.appendChild(el("small", "fx-so-cel", "previsto " + moedaSinal(m.saldoPrev)));
+    const n = (v, cls = "") => el("td", "fx-n " + cls + (v < 0 ? " fx-neg" : ""), v ? moedaSinal(v) : "—");
+    l.append(nome, n(m.saldoIni, "fx-so-pc"), n(m.ent, "fx-ent"), n(m.sai, "fx-sai"), n(m.saldoFim, "fx-saldo-c"),
+      el("td", "fx-so-pc fx-n fx-c-luc" + (m.lucro < 0 ? " fx-neg" : ""), m.lucro == null ? "—" : Math.round(m.lucro * 10) / 10 + "%"),
+      n(m.pe, "fx-so-pc fx-ent"), n(m.ps, "fx-so-pc fx-sai"), n(m.saldoPrev, "fx-so-pc fx-saldo-c"));
+    const abrir = () => { F.vista = "diario"; F.mes = pad(m.i); desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
+    l.onclick = abrir; l.onkeydown = e => { if (e.key === "Enter") abrir(); };
+    l.title = "Ver os dias de " + MESES[m.i - 1];
+    corpo.appendChild(l);
+  }
+  const tot = el("tr", "fx-total");
+  const peAno = meses.reduce((s, m) => s + m.pe, 0), psAno = meses.reduce((s, m) => s + m.ps, 0);
+  tot.append(el("td", "fx-c-mes", "Total"), el("td", "fx-so-pc fx-n", "—"), el("td", "fx-n fx-ent", moedaBR(entAno)), el("td", "fx-n fx-sai", moedaBR(saiAno)),
+    el("td", "fx-n fx-saldo-c" + (ult.saldoFim < 0 ? " fx-neg" : ""), moedaSinal(ult.saldoFim)), el("td", "fx-so-pc fx-n", "—"), el("td", "fx-so-pc fx-n fx-ent", moedaBR(peAno)),
+    el("td", "fx-so-pc fx-n fx-sai", moedaBR(psAno)), el("td", "fx-so-pc fx-n fx-saldo-c" + (ult.saldoPrev < 0 ? " fx-neg" : ""), moedaSinal(ult.saldoPrev)));
+  corpo.appendChild(tot);
+  tb.append(cab, corpo);
+  w.appendChild(tb);
+  const ex = el("button", "btn sec", "Exportar planilha (Excel)"); ex.type = "button"; ex.style.cssText = "width:100%;margin-top:12px";
+  ex.onclick = () => exportarFluxo(meses);
+  w.appendChild(ex);
+}
+// gráfico em SVG (sem biblioteca): barras de entradas e saídas por mês e a linha do saldo
+function graficoFluxo(meses) {
+  const W = 720, H = 260, pe = 52, pd = 10, pt = 14, pb = 26, mesHoje = dataISO().slice(0, 7);
+  const vals = meses.flatMap(m => [m.ent, m.sai, m.saldoFim, m.saldoPrev, 0]);
+  let max = Math.max(...vals), min = Math.min(...vals);
+  const passo = (() => { const bruto = (max - min) / 4 || 1, p10 = 10 ** Math.floor(Math.log10(bruto)); return [1, 2, 2.5, 5, 10].map(k => k * p10).find(k => k >= bruto); })();
+  max = Math.ceil(max / passo) * passo; min = Math.floor(min / passo) * passo;
+  const y = v => pt + (max - v) / (max - min || 1) * (H - pt - pb), larg = (W - pe - pd) / 12;
+  const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("class", "fx-graf"); svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Entradas, saídas e saldo por mês");
+  const add = (tag, at, txt) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(at)) e.setAttribute(k, v); if (txt != null) e.textContent = txt; svg.appendChild(e); return e; };
+  const curto = v => Math.abs(v) >= 1000 ? (v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 0 }) + " mil" : String(v);
+  for (let v = min; v <= max + 1e-6; v += passo) {
+    add("line", { x1: pe, x2: W - pd, y1: y(v), y2: y(v), class: v === 0 ? "fx-g-zero" : "fx-g-grade" });
+    add("text", { x: pe - 6, y: y(v) + 4, "text-anchor": "end", class: "fx-g-txt" }, curto(v));
+  }
+  meses.forEach((m, i) => {
+    const x0 = pe + i * larg, bw = Math.min(16, larg * 0.32);
+    if (m.ent) add("rect", { x: x0 + larg / 2 - bw - 1, y: y(m.ent), width: bw, height: Math.max(1, y(0) - y(m.ent)), rx: 2, class: "fx-g-ent" });
+    if (m.sai) add("rect", { x: x0 + larg / 2 + 1, y: y(m.sai), width: bw, height: Math.max(1, y(0) - y(m.sai)), rx: 2, class: "fx-g-sai" });
+    add("text", { x: x0 + larg / 2, y: H - 8, "text-anchor": "middle", class: "fx-g-txt" + (m.ym === mesHoje ? " fx-g-hoje" : "") }, MESES[i].slice(0, 3).replace(/^./, c => c.toUpperCase()));
+  });
+  const ponto = (m, i, v) => `${pe + i * larg + larg / 2},${y(v)}`;
+  const iHoje = meses.findIndex(m => m.ym === mesHoje), ate = iHoje < 0 ? (meses[0].ym > mesHoje ? -1 : 11) : iHoje;
+  if (ate >= 0) add("polyline", { points: meses.slice(0, ate + 1).map((m, i) => ponto(m, i, m.saldoFim)).join(" "), class: "fx-g-saldo" });
+  if (ate < 11) add("polyline", { points: meses.map((m, i) => i >= Math.max(ate, 0) ? ponto(m, i, i === ate ? m.saldoFim : m.saldoPrev) : null).filter(Boolean).join(" "), class: "fx-g-prev" });
+  meses.forEach((m, i) => { if (i <= ate) add("circle", { cx: pe + i * larg + larg / 2, cy: y(m.saldoFim), r: 3, class: "fx-g-ponto" }); });
+  const box = el("div", "fx-graf-box");
+  const leg = el("div", "fx-leg");
+  for (const [cls, t] of [["fx-l-ent", "Entradas"], ["fx-l-sai", "Saídas"], ["fx-l-saldo", "Saldo"], ["fx-l-prev", "Saldo previsto"]]) leg.appendChild(el("span", cls, t));
+  box.append(svg, leg);
+  return box;
+}
+function desenharFluxoDiario(w, movs) {
+  const F = trTela.fx, ym = `${F.ano}-${F.mes}`, hoje = dataISO();
+  const ini = somaV(movs.filter(m => m.data < ym + "-01")), doMes = movs.filter(m => m.data.startsWith(ym));
+  const ent = somaV(doMes.filter(m => m.v > 0)), sai = -somaV(doMes.filter(m => m.v < 0)), fim = Math.round((ini + ent - sai) * 100) / 100;
+  const cards = el("div", "tr-cards fx-cards");
+  const card = (rot, valor, cls) => { const c = el("div", "tr-card " + cls); c.append(el("small", "", rot), el("b", "", (valor < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(valor)))); cards.appendChild(c); };
+  card("Saldo no início do mês", ini, ini < 0 ? "crit" : "fx-saldo"); card("Entradas", ent, "rec"); card("Saídas", sai, "desp"); card(ym < hoje.slice(0, 7) ? "Saldo no fim do mês" : "Saldo previsto no fim do mês", fim, fim < 0 ? "crit" : "fx-prev");
+  w.appendChild(cards);
+  // navegação entre meses
+  const nav = el("div", "fx-nav");
+  const ir = k => { const d = new Date(+F.ano, +F.mes - 1 + k, 1); F.ano = String(d.getFullYear()); F.mes = pad(d.getMonth() + 1); desenharTr(); };
+  const bA = el("button", "btn sec", "‹ Anterior"), bP = el("button", "btn sec", "Próximo ›"); bA.type = bP.type = "button"; bA.onclick = () => ir(-1); bP.onclick = () => ir(1); bA.setAttribute("aria-label", "Mês anterior"); bP.setAttribute("aria-label", "Próximo mês");
+  nav.append(bA, el("strong", "", MESES[+F.mes - 1].replace(/^./, c => c.toUpperCase()) + " de " + F.ano), bP);
+  w.appendChild(nav);
+  if (!doMes.length) { w.appendChild(vazio("calendario", "Nenhum lançamento neste mês", "Troque o mês ou os filtros.")); return; }
+  const dias = [...new Set(doMes.map(m => m.data))].sort();
+  let saldo = ini;
+  for (const d of dias) {
+    const l = doMes.filter(m => m.data === d).sort((a, b) => (b.real - a.real) || (b.v - a.v));
+    const sub = somaV(l); saldo = Math.round((saldo + sub) * 100) / 100;
+    const g = el("section", "fx-dia" + (d === hoje ? " fx-hoje" : ""));
+    const cab = el("div", "fx-dia-cab");
+    const dt = new Date(d + "T12:00:00");
+    cab.append(el("strong", "", `${dt.getDate()} de ${MESES[dt.getMonth()]}${d === hoje ? " · hoje" : ""}`),
+      el("span", "fx-dia-tot", "Subtotal "), el("b", sub < 0 ? "fx-neg" : "fx-pos", (sub > 0 ? "+ " : "") + moedaSinal(sub)), el("span", "fx-dia-tot", " · Saldo "), el("b", saldo < 0 ? "fx-neg" : "", moedaSinal(saldo)));
+    g.appendChild(cab);
+    for (const m of l) {
+      const it = el("button", "fx-item"); it.type = "button";
+      const tx = el("span", "fx-item-tx");
+      tx.append(el("b", "", m.r.desc || "—"), el("small", "", [m.r.cat, m.r.parc, m.r.centro].filter(Boolean).join(" · ")));
+      const sit = el("span", "avcb-sit " + (m.real ? "ok" : m.atrasada ? "crit" : "warn"), m.real ? (m.r.tipo === "rec" ? "Recebida" : "Paga") : m.atrasada ? "Vencida" : "Pendente");
+      if (m.atrasada) sit.title = "Venceu em " + dataBRde(vencCp(m.r)) + " e ainda não foi " + (m.r.tipo === "rec" ? "recebida" : "paga");
+      it.append(el("i", m.v > 0 ? "fx-pt-ent" : "fx-pt-sai"), tx, sit, el("span", "fx-item-v " + (m.v > 0 ? "fx-ent" : "fx-sai"), (m.v > 0 ? "+ " : "− ") + moedaBR(Math.abs(m.v))));
+      it.onclick = () => { trTela.tipo = m.r.tipo; abrirFormTr(m.r.id); };
+      g.appendChild(it);
+    }
+    w.appendChild(g);
+  }
+}
+async function exportarFluxo(meses) {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const F = trTela.fx, cap = s => s[0].toUpperCase() + s.slice(1);
+    const linhas = [["Mês", "Saldo inicial", "Entradas", "Saídas", "Saldo final", "Lucratividade %", "Entradas previstas", "Saídas previstas", "Saldo previsto"]];
+    for (const m of meses) linhas.push([cap(MESES[m.i - 1]), m.saldoIni, m.ent, m.sai, m.saldoFim, m.lucro == null ? "" : Math.round(m.lucro * 10) / 10, m.pe, m.ps, m.saldoPrev]);
+    linhas.push(["TOTAL", "", meses.reduce((s, m) => s + m.ent, 0), meses.reduce((s, m) => s + m.sai, 0), meses[11].saldoFim, "", meses.reduce((s, m) => s + m.pe, 0), meses.reduce((s, m) => s + m.ps, 0), meses[11].saldoPrev]);
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    for (let i = 1; i < linhas.length; i++) for (const c of [1, 2, 3, 4, 6, 7, 8]) { const x = ws[XLSX.utils.encode_cell({ r: i, c })]; if (x && x.t === "n") x.z = "#,##0.00"; }
+    ws["!cols"] = [12, 14, 14, 14, 14, 14, 18, 16, 15].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fluxo de caixa " + F.ano);
+    const nome = `Fluxo de caixa ${F.ano}${F.conta ? " - " + F.conta : ""}${F.centro ? " - " + F.centro : ""} - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
@@ -16066,6 +16329,12 @@ function desenharFin() {
     lc.appendChild(linha("calendario", "Contas a pagar e receber",
       [venc.length && `${venc.length} vencida${venc.length === 1 ? "" : "s"}`, `até o fim do mês: pagar R$ ${moedaBR(somaTr(ateFim("desp")))} · receber R$ ${moedaBR(somaTr(ateFim("rec")))}`].filter(Boolean).join(" · "),
       () => abrirContas({ tipo: "pagar" }), venc.length));
+    {                                               // fluxo de caixa: saldo de hoje (o que já foi pago e recebido) e o previsto no fim do mês
+      const hoje = dataISO(), sinal = r => (r.tipo === "rec" ? 1 : -1) * (+r.valor || 0);
+      const saldoHoje = vivos.filter(r => r.st === "pago" && r.pg && r.pg <= hoje).reduce((s, r) => s + sinal(r), 0);
+      const prevFim = vivos.filter(r => r.st === "pago" ? r.pg && r.pg <= fimMes : (r.venc || r.comp || "") <= fimMes).reduce((s, r) => s + sinal(r), 0);
+      lc.appendChild(linha("grafico", "Fluxo de caixa", `saldo hoje R$ ${moedaSinal(saldoHoje)} · previsto no fim do mês R$ ${moedaSinal(prevFim)}`, () => abrirFluxo()));
+    }
     t.appendChild(lc);
     const gt = el("div", "hub-grade"); gt.style.gridTemplateColumns = "1fr 1fr";
     gt.append(tile("dinheiro", "Despesas", () => abrirTransacoes({ tipo: "desp" })), tile("dinheiro", "Receitas", () => abrirTransacoes({ tipo: "rec" })));
