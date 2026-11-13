@@ -1567,17 +1567,11 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 /* página do cliente: "Novo para este cliente" logo abaixo do nome, em quadrados mais baixos */
 .hub-grade.compacta{gap:8px;margin-bottom:6px}
 .hub-grade.compacta .hub-tile{min-height:72px;padding:8px 4px;gap:4px;font-size:14px}
-/* Início: clientes recentes */
-.ini-recentes{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -18px 12px;padding:0 18px;align-items:center}
-.ini-recentes::-webkit-scrollbar{display:none}
-.ini-recentes p{flex:none;flex-basis:auto;margin:0 2px 0 0}
-.ini-recentes button{flex:none;max-width:240px}
 /* Início: os avisos gerais (AVCB, extintores) ficam em cartão branco com o número colorido; o fundo vermelho fica para o que é da pessoa e de hoje */
 .hub-card.alerta.crit,.hub-card.alerta.warn,.hub-card.alerta.okv{background:var(--papel);border-color:var(--linha-cartao);color:var(--tinta)}
 .hub-card.alerta.okv b{color:var(--okv-tx)}
 .hub-card.alerta.crit b{color:var(--crit-tx)}
 .hub-card.alerta.warn b{color:var(--warn-tx)}
-@media (min-width:900px) and (hover:hover) and (pointer:fine){.ini-recentes{flex-wrap:wrap;margin:0 0 12px;padding:0}}
 /* ===== Agenda em calendário (pedido do Gustavo em 10/11/2026): o mês em cima; embaixo, os compromissos do dia tocado ===== */
 .ag-mes-cab{display:flex;align-items:center;gap:8px;margin:0 0 6px}
 .ag-mes-cab strong{flex:1;font-family:var(--titulo-fonte);font-size:22px;color:var(--tinta)}
@@ -16675,16 +16669,7 @@ function desenharInicio() {
       esq.appendChild(b);
     });
   }
-  // clientes recentes (aprovado pelo Gustavo em 10/11/2026); o botão "Fotografar visita" saiu a pedido dele em 13/11/2026
-  {
-    const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c)).slice(0, 8);
-    if (rec.length) {
-      const cx = el("div", "recentes ini-recentes");
-      cx.appendChild(el("p", "", "Recentes:"));
-      rec.forEach(c => { const b = el("button", "", c); b.type = "button"; b.onclick = () => abrirCliente(c); cx.appendChild(b); });
-      if (computador.matches) t.insertBefore(cx, esq.parentNode); else esq.appendChild(cx);
-    }
-  }
+  // o botão "Fotografar visita" e a linha de clientes recentes saíram do Início a pedido do Gustavo em 13/11/2026
   const temEq = pode("equip") && Object.keys(eqDados).length;
   const partes = [pode("os") && "ordens de serviço", podeVerTarefas() && "tarefas", !pc && (pode("avcb") || temEq) && "avisos"].filter(Boolean);   // no computador os avisos estão nos números de cima
   let rotOS = null;
