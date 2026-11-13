@@ -1407,8 +1407,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 /* página do cliente: "Novo para este cliente" logo abaixo do nome, em quadrados mais baixos */
 .hub-grade.compacta{gap:8px;margin-bottom:6px}
 .hub-grade.compacta .hub-tile{min-height:72px;padding:8px 4px;gap:4px;font-size:14px}
-/* Início: atalho para fotografar e clientes recentes */
-.ini-atalho{width:100%;margin:0 0 10px}
+/* Início: clientes recentes */
 .ini-recentes{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -18px 12px;padding:0 18px;align-items:center}
 .ini-recentes::-webkit-scrollbar{display:none}
 .ini-recentes p{flex:none;flex-basis:auto;margin:0 2px 0 0}
@@ -1418,7 +1417,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 .hub-card.alerta.okv b{color:var(--okv-tx)}
 .hub-card.alerta.crit b{color:var(--crit-tx)}
 .hub-card.alerta.warn b{color:var(--warn-tx)}
-@media (min-width:900px) and (hover:hover) and (pointer:fine){.ini-recentes{flex-wrap:wrap;margin:0 0 12px;padding:0}.ini-atalho{width:fit-content;padding:0 28px}}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){.ini-recentes{flex-wrap:wrap;margin:0 0 12px;padding:0}}
 /* ===== Agenda em calendário (pedido do Gustavo em 10/11/2026): o mês em cima; embaixo, os compromissos do dia tocado ===== */
 .ag-mes-cab{display:flex;align-items:center;gap:8px;margin:0 0 6px}
 .ag-mes-cab strong{flex:1;font-family:var(--titulo-fonte);font-size:22px;color:var(--tinta)}
@@ -14802,12 +14801,7 @@ function desenharInicio() {
       esq.appendChild(b);
     });
   }
-  // atalho para o trabalho mais comum do campo (eram 5 toques a partir do Início) e os clientes recentes (aprovado pelo Gustavo em 10/11/2026)
-  if (pode("visita")) {
-    const b = comIc(el("button", "btn prim ini-atalho"), "camera", "Fotografar visita"); b.type = "button";
-    b.onclick = () => abrirTrabalho("visita");
-    if (computador.matches) t.insertBefore(b, esq.parentNode); else esq.appendChild(b);   // no computador, acima das duas colunas
-  }
+  // clientes recentes (aprovado pelo Gustavo em 10/11/2026); o botão "Fotografar visita" saiu a pedido dele em 13/11/2026
   {
     const rec = lerLS("vpx_recentes", []).filter(c => clientes.includes(c)).slice(0, 8);
     if (rec.length) {
