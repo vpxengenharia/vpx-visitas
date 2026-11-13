@@ -146,7 +146,7 @@ button,input,label{font:inherit}
 @media (prefers-color-scheme:dark){.orc-c-num,.orc-resumo b{color:var(--laranja)}.orc-ac{color:var(--tinta)}}
 /* as colunas extras dependem da largura da área da tabela, não da janela (no computador o menu lateral ocupa espaço;
    tablet e celular deitado ficam com a tabela do celular) */
-#tela-orc .avcb-corpo,#tela-nf .avcb-corpo,#tela-avcb .avcb-corpo,#tela-pc .avcb-corpo{container-type:inline-size}
+#tela-orc .avcb-corpo,#tela-nf .avcb-corpo,#tela-avcb .avcb-corpo,#tela-pc .avcb-corpo,#tela-tr .avcb-corpo{container-type:inline-size}
 @container (min-width:600px){
   .orc-filtros{grid-template-columns:minmax(0,1fr) 210px 190px}
   .orc-filtros .avcb-busca{grid-column:auto}
@@ -333,6 +333,45 @@ button,input,label{font:inherit}
 @container (min-width:860px){
   .pc-lote-ac{width:auto}
   .pc-lote-ac .btn{flex:0 0 auto;min-height:44px;padding:0 18px}
+}
+/* Transações: receitas e despesas (13/11/2026). Mesma tabela dos pedidos; totais Pago / Pendente / Vencido em cartões */
+.tr-filtros{margin:12px 0 0}
+#tr-sit{margin-top:12px}
+.tr-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 10px}
+.tr-cards > .tr-card:nth-child(3){grid-column:1 / -1}   /* celular: dois em cima e o vencido na linha toda (os valores cabem numa linha) */
+.tr-card{display:flex;flex-direction:column;gap:2px;min-width:0;padding:10px 12px;border-radius:var(--r-l,14px);border:1px solid var(--linha-cartao,var(--linha));background:var(--papel);color:var(--tinta);text-align:left;font:inherit;cursor:pointer}
+.tr-card small{font-size:12.5px;font-weight:600;color:var(--suave)}
+.tr-card b{font-family:var(--titulo-fonte);font-size:17px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tr-card span{font-size:12px;color:var(--suave)}
+.tr-card.desp b{color:var(--crit-tx)}.tr-card.rec b{color:var(--ok-tx,#1E7B45)}.tr-card.warn b{color:var(--warn-tx)}.tr-card.crit{background:var(--crit-bg)}.tr-card.crit b{color:var(--crit-tx)}.tr-card.zero b{color:var(--suave)}
+.tr-tab .pc-c-sit{width:108px}
+.tr-tab .orc-c-valor{width:96px}
+.tr-tab .orc-cli{font-weight:600}
+.tr-v-desp{color:var(--crit-tx)}.tr-v-rec{color:var(--ok-tx,#1E7B45)}
+.tr-tab tr.tr-canc .orc-cli,.tr-tab tr.tr-canc .orc-c-valor{text-decoration:line-through;opacity:.6}
+.tr-so-pc{display:none}
+.tr-form [hidden]{display:none!important}
+.tr-par{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.tr-par > .campo{min-width:0}
+.tr-form textarea{width:100%;border-radius:var(--r-m,12px);border:1.5px solid var(--borda-campo,var(--linha));background:var(--papel);color:var(--tinta);padding:10px 14px;font:inherit;font-size:17px}
+.tr-rec-extra{margin-top:10px}
+.tr-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.tr-acoes .btn{flex:1 1 auto}
+@container (min-width:860px){
+  .tr-so-pc{display:table-cell}
+  .tr-sub-cel{display:none!important}
+  .tr-tab .tr-c-data{width:84px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tr-tab .tr-c-parc{width:150px}
+  .tr-tab .tr-c-cat{width:104px}
+  .tr-tab .tr-c-centro{width:96px;color:var(--suave);font-size:14px}
+  .tr-tab .orc-c-valor{width:108px}
+  .tr-tab .pc-c-sit{width:116px}
+  .tr-filtros{grid-template-columns:minmax(0,1.3fr) repeat(4,minmax(0,1fr))}
+  .tr-filtros .avcb-busca{grid-column:auto}
+  .tr-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tr-cards > .tr-card:nth-child(3){grid-column:auto}
+  .tr-card b{font-size:22px}
+  .tr-acoes .btn{flex:0 0 auto;padding:0 22px}
 }
 /* ficha do cliente: contatos (Ligar, WhatsApp, E-mail) e dados; no celular os botões ficam embaixo do contato */
 .ficha-contato{padding:12px;margin-bottom:10px;border:1.5px solid var(--linha);border-left:6px solid var(--laranja);border-radius:12px;background:var(--papel);line-height:1.35}
@@ -2116,6 +2155,32 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
     <datalist id="pc-materiais"></datalist>
   </div>
 </div>
+<!-- Transações: receitas e despesas (13/11/2026, no lugar do Fin365 aos poucos); aberta pelo Financeiro -->
+<div class="tela-avcb" id="tela-tr" hidden role="dialog" aria-label="Transações">
+  <div class="avcb-topo"><button class="avcb-voltar" id="tr-voltar">‹ Voltar</button><strong>Transações</strong></div>
+  <div class="avcb-corpo">
+    <div id="tr-lista-w">
+      <div class="abas pc-tipos" id="tr-tipos" role="tablist"><button role="tab" data-t="desp" aria-selected="true">Despesas</button><button role="tab" data-t="rec" aria-selected="false">Receitas</button></div>
+      <button class="btn prim" id="tr-novo" type="button">+ Nova despesa</button>
+      <div class="orc-filtros tr-filtros">
+        <input class="avcb-busca" id="tr-busca" type="search" placeholder="Buscar" aria-label="Buscar por descrição, parceiro, categoria, centro de custo, valor ou data" autocomplete="off">
+        <select id="tr-ano" aria-label="Ano"></select>
+        <select id="tr-mes" aria-label="Mês"></select>
+        <select id="tr-cat" aria-label="Categoria"></select>
+        <select id="tr-centro" aria-label="Centro de custo"></select>
+      </div>
+      <div class="chips avcb-filtro" id="tr-sit" role="group" aria-label="Situação"></div>
+      <div class="tr-cards" id="tr-cards"></div>
+      <p class="orc-resumo" id="tr-resumo"></p>
+      <div id="tr-lista"></div>
+      <button class="btn sec" id="tr-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+      <button class="laudo-link" id="tr-importar" type="button" hidden>Importar planilha do Fin365</button>
+      <p class="avcb-nota" id="tr-estado"></p>
+    </div>
+    <div id="tr-det" hidden></div>
+  </div>
+</div>
+
 
 <div class="tela-avcb com-nav" id="tela-its" hidden role="dialog" aria-label="ITs do CBM-BA">
   <div class="avcb-topo"><button class="avcb-voltar voltar-lista" id="its-voltar">‹ Voltar</button><strong>ITs do CBM-BA</strong></div>
@@ -11477,7 +11542,7 @@ function linha(ico, texto, sub, fn, qtd) {
   b.onclick = fn;
   return b;
 }
-const podeFin = () => pode("comp");                // Financeiro = comprovantes (as solicitações têm entrada própria desde 12/11/2026)
+const podeFin = () => pode("comp") || podeTrans();  // Financeiro = comprovantes e transações (as solicitações têm entrada própria desde 12/11/2026)
 const podeSol = () => Object.keys(TIPOS_PED).some(podeTipo);
 function atualizarNav() {
   const nav = $("nav");
@@ -11552,7 +11617,7 @@ function fecharTelasPorCima() {
   const havia = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-agenda");
   if (adm) adm.mudou = false;
   fecharAssinar(false); fecharNovoAvcb(false); fecharAdmin(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
-  fecharFicha(false); fecharTar(false); fecharFunil(false);
+  fecharFicha(false); fecharTar(false); fecharFunil(false); fecharTr(false);
   fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharNf(false); fecharOS(false); fecharAvcb(false);
   if (havia) { document.body.style.overflow = ""; history.replaceState(SECOES_SUB.includes(secao) && !(secao === "cliente" && cliDe === "avcb") && !(secao === "fin" && finDe === "fin") ? { sub: true, dup: true } : null, ""); }   // numa página interna o passo dela continua (dup: há outro igual embaixo)
   return true;
@@ -13469,7 +13534,8 @@ async function sincronizarCol(c, forcar) {
     for (const [b, v] of Object.entries(c.dados.baldes)) if (v !== antes[b]) novos[b] = v;   // gravado por este aparelho enquanto isso
     c.dados = { baldes: novos, lido: Date.now() };
     gravarLS(c.chave, c.dados);
-  } catch (e) { console.error(c.prefixo, e); }
+    c.erro = null;
+  } catch (e) { console.error(c.prefixo, e); c.erro = e; }
   finally { c.rodando = false; }
   if (mudou || primeira) c.aoMudar();
 }
@@ -14318,6 +14384,462 @@ function aoMudarFu() {
   if (conta && secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // número do funil no painel do computador
 }
 const colFu = colecao({ chave: "vpx_funil", pasta: CONFIG.pastaFunil, prefixo: "funil", n: 32, pode: () => pode("funil"), aoMudar: aoMudarFu });
+
+/* ---------- Transações: receitas e despesas (pedido do Gustavo em 13/11/2026: trazer para o app as funções do Fin365,
+   começando pelas Transações). Decisões dele: o app vai substituir o Fin365 aos poucos; o histórico vem da planilha
+   "Exportar Completo" do Fin365; só vê quem ele liberar (função "trans", podeTrans: liberação explícita). Na 1ª versão,
+   Receitas e Despesas (transferências e cartão de crédito ficam para depois).
+   Mesmo sistema de baldes das tarefas (colecao / gravarBalde / mudarReg), mas na pasta 02 - Financeiro › 04 - Transações
+   (baseTransacoes; fora de 02 - Clientes, que a equipe toda edita), em 32 arquivos transacoes-00.json … transacoes-31.json.
+   Registro: { id, tipo: "desp" | "rec", desc, valor (número), comp (competência), venc, pg (data do pagamento/recebimento),
+   st: "pend" | "pago" | "canc", cat, centro, parc (parceiro), conta, forma, obs, grupo + parcela ("2/12") nas parcelas e
+   repetições, fin365 (id na importação) }. Na lista, o mês de cada lançamento é o do pagamento (pago) ou o do vencimento
+   (pendente), como o "regime de caixa" do Fin365; as vencidas aparecem em "Vencidas" qualquer que seja o mês. */
+const TR_CATS = {                                   // as mesmas do Fin365 (Cadastros › Categorias, lidas em 13/11/2026)
+  desp: ["Material", "Mão de obra", "Imposto", "Empresa", "AVCB", "PSCIP", "Estudo de carga"],
+  rec: ["AVCB", "Estudo de carga", "CLCB", "Empresa"]
+};
+const TR_CONTAS = ["Banco Inter", "Caixa"];         // Fin365 › Cadastros › Bancos e Pagamentos
+const TR_FORMAS = ["PIX", "Boleto", "Transferência", "Cartão de crédito", "Cartão de débito", "Débito automático", "Dinheiro"];
+const TR_TIPO = {
+  desp: { nome: "Despesa", plural: "Despesas", pago: "Paga", pagas: "Pagas", pagar: "pagar", pagoTot: "Pago", novo: "+ Nova despesa", nova: "Nova despesa", dataPg: "Data do pagamento", parc: "Fornecedor / favorecido", marcar: "Marcar como paga" },
+  rec: { nome: "Receita", plural: "Receitas", pago: "Recebida", pagas: "Recebidas", pagar: "receber", pagoTot: "Recebido", novo: "+ Nova receita", nova: "Nova receita", dataPg: "Data do recebimento", parc: "Cliente / pagador", marcar: "Marcar como recebida" }
+};
+// pasta 02 - Financeiro › 04 - Transações: pelo caminho (dono do OneDrive), por "Compartilhados comigo" ou criada pelo administrador fixo
+async function baseTransacoes() {
+  try { return (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(CONFIG.financeiroCaminho + "/" + CONFIG.transacoesNome)}?$select=id`)).id; }
+  catch (e) { if (e.status !== 403 && e.status !== 404) throw e; }
+  try {
+    const r = await graph("/me/drive/sharedWithMe");
+    const id = r.value.find(i => i.name === CONFIG.transacoesNome && i.remoteItem?.parentReference?.driveId === CONFIG.driveId)?.remoteItem?.id;
+    if (id) return id;
+  } catch {}
+  if (ehAdminFixo()) {
+    const fin = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(CONFIG.financeiroCaminho)}?$select=id`)).id;
+    return (await garantirFilhas(fin, [CONFIG.transacoesNome])).id;
+  }
+  const e = new Error(`Sem acesso à pasta "${CONFIG.transacoesNome}" do OneDrive. Peça ao administrador para compartilhá-la com você.`); e.semAcesso = true; throw e;
+}
+function aoMudarTr() {
+  redesTr();
+  if (secao === "fin" && !$("tela-fin").hidden) desenharFin();
+}
+const colTr = colecao({ chave: "vpx_tr", prefixo: "transacoes", n: 32, base: baseTransacoes, pode: podeTrans, aoMudar: aoMudarTr });
+const redesTr = redesenhoSeguro("tela-tr", () => desenharTr());
+let trTela = null;                                  // { tipo, ano, mes, sit, cat, centro, ordem, aberto (id) | novo (rascunho), sel }
+const trs = () => Object.values(regsDe(colTr));
+const refTr = r => r.st === "pago" ? (r.pg || r.venc || r.comp || "") : (r.venc || r.comp || "");
+const vencidaTr = r => r.st === "pend" && !!r.venc && r.venc < dataISO();
+const stTrTxt = r => r.st === "pago" ? TR_TIPO[r.tipo].pago : r.st === "canc" ? "Cancelada" : vencidaTr(r) ? "Vencida" : "Pendente";
+const clsTr = r => r.st === "pago" ? "ok" : r.st === "canc" ? "pc-neu" : vencidaTr(r) ? "crit" : "warn";
+const centroDescTr = c => CONFIG.centrosCusto.find(([n]) => n === c)?.[1] || "";
+const centroTxtTr = c => c ? c + (centroDescTr(c) ? " · " + centroDescTr(c) : "") : "";
+const somaTr = l => l.reduce((s, r) => s + (+r.valor || 0), 0);
+const buscaTr = r => semAcento([r.desc, r.parc, r.cat, r.centro, centroDescTr(r.centro), r.conta, r.forma, r.obs, r.parcela, r.valor != null && moedaBR(r.valor),
+  r.venc && dataBRde(r.venc), r.pg && dataBRde(r.pg), r.comp && dataBRde(r.comp)].filter(Boolean).join(" "));
+const dataCurtaTr = iso => iso ? dataBRde(iso).replace(/\d{2}(\d{2})$/, "$1") : "—";
+function somarMeses(iso, k) {                       // mesmo dia k meses depois (31/01 + 1 mês = 28 ou 29/02)
+  if (!iso) return "";
+  const [a, m, d] = iso.split("-").map(Number), alvo = new Date(a, m - 1 + k, 1);
+  const ult = new Date(alvo.getFullYear(), alvo.getMonth() + 1, 0).getDate();
+  return dataISO(new Date(alvo.getFullYear(), alvo.getMonth(), Math.min(d, ult)));
+}
+function opcoesSel(sel, lista, valor) {             // lista: [[valor, texto]]; mantém o escolhido
+  sel.innerHTML = "";
+  for (const [v, t] of lista) { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); }
+  sel.value = lista.some(([v]) => v === valor) ? valor : (lista[0]?.[0] ?? "");
+}
+
+function abrirTransacoes(op = {}) {
+  if (!podeTrans()) return;
+  const d = new Date();
+  trTela = { tipo: op.tipo || trTela?.tipo || "desp", ano: String(d.getFullYear()), mes: pad(d.getMonth() + 1), sit: op.sit || "", cat: "", centro: "", ordem: { col: "data", desc: false }, sel: new Set() };
+  if (op.sit === "venc") trTela.ano = trTela.mes = "";
+  $("tr-busca").value = "";
+  delete rolLista["tela-tr"];
+  $("tela-tr").hidden = false;
+  $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  history.pushState({ tr: true }, "");
+  $("tr-importar").hidden = !ehAdmin();
+  desenharTr();
+  sincronizarCol(colTr, true);
+}
+function fecharTr(voltar = true) {
+  if ($("tela-tr").hidden) return;
+  $("tela-tr").hidden = true;
+  document.body.style.overflow = "";
+  if (trTela) { trTela.aberto = trTela.novo = null; }
+  if (voltar && history.state?.tr) history.back();
+}
+
+function desenharTr() {
+  if (!trTela || $("tela-tr").hidden) return;
+  const emForm = !!(trTela.aberto || trTela.novo);
+  $("tr-lista-w").hidden = emForm; $("tr-det").hidden = !emForm;
+  if (emForm) return;                               // o formulário é montado uma vez (abrirFormTr): uma sincronização não apaga o que está sendo digitado
+  const tp = trTela.tipo, T = TR_TIPO[tp];
+  $("tr-tipos").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === tp)));
+  $("tr-novo").textContent = T.novo;
+  const todos = trs().filter(r => r.tipo === tp);
+  // filtros com o que existe
+  const anos = [...new Set([String(new Date().getFullYear()), ...todos.map(r => refTr(r).slice(0, 4)).filter(Boolean)])].sort().reverse();
+  opcoesSel($("tr-ano"), [["", "Todos os anos"], ...anos.map(a => [a, a])], trTela.ano);
+  opcoesSel($("tr-mes"), [["", "Todos os meses"], ...MESES.map((m, i) => [pad(i + 1), m[0].toUpperCase() + m.slice(1)])], trTela.mes);
+  const cats = [...new Set([...TR_CATS[tp], ...todos.map(r => r.cat).filter(Boolean)])].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  opcoesSel($("tr-cat"), [["", "Todas as categorias"], ...cats.map(c => [c, c])], trTela.cat);
+  const centros = [...new Set(todos.map(r => r.centro).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  opcoesSel($("tr-centro"), [["", "Todos os centros"], ...centros.map(c => [c, centroTxtTr(c)])], trTela.centro);
+  trTela.ano = $("tr-ano").value; trTela.mes = $("tr-mes").value; trTela.cat = $("tr-cat").value; trTela.centro = $("tr-centro").value;
+  const q = semAcento($("tr-busca").value.trim());
+  const passaBase = r => (!trTela.cat || r.cat === trTela.cat) && (!trTela.centro || r.centro === trTela.centro) && (!q || buscaTr(r).includes(q));
+  const noPeriodo = r => { const d = refTr(r); return (!trTela.ano || d.startsWith(trTela.ano)) && (!trTela.mes || d.slice(5, 7) === trTela.mes); };
+  const passaSit = (r, s) => !s || (s === "venc" ? vencidaTr(r) : r.st === s);
+  const doPeriodo = todos.filter(r => passaBase(r) && noPeriodo(r));
+  const vencidas = todos.filter(r => passaBase(r) && vencidaTr(r));   // as vencidas de qualquer mês
+  // situação: Todas · Pendentes · Vencidas · Pagas/Recebidas · Canceladas, com a quantidade
+  const sits = [["", "Todas"], ["pend", "Pendentes"], ["venc", "Vencidas"], ["pago", T.pagas], ["canc", "Canceladas"]];
+  const cx = $("tr-sit"); cx.innerHTML = "";
+  for (const [s, rot] of sits) {
+    const n = s === "venc" ? vencidas.length : doPeriodo.filter(r => passaSit(r, s)).length;
+    const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("aria-pressed", String(s === trTela.sit));
+    b.onclick = () => { trTela.sit = s; desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
+    cx.appendChild(b);
+  }
+  mostrarChipMarcado(cx);
+  // totais do período (sem as canceladas) e o vencido de qualquer mês
+  const vivos = doPeriodo.filter(r => r.st !== "canc");
+  const cards = $("tr-cards"); cards.innerHTML = "";
+  const card = (rot, valor, cls, sub, fn) => {
+    const c = el("button", "tr-card " + cls); c.type = "button";
+    c.append(el("small", "", rot), el("b", "", "R$ " + moedaBR(valor)));
+    if (sub) c.appendChild(el("span", "", sub));
+    c.onclick = fn; cards.appendChild(c);
+  };
+  const pagos = vivos.filter(r => r.st === "pago"), pend = vivos.filter(r => r.st === "pend");
+  card(T.pagoTot, somaTr(pagos), tp === "rec" ? "rec" : "desp", `${pagos.length} lançamento${pagos.length === 1 ? "" : "s"}`, () => { trTela.sit = "pago"; desenharTr(); });
+  card("Pendente", somaTr(pend), "warn", `${pend.length} a ${T.pagar}`, () => { trTela.sit = "pend"; desenharTr(); });
+  card("Vencido", somaTr(vencidas), vencidas.length ? "crit" : "zero", vencidas.length ? `${vencidas.length} de qualquer mês` : "nada vencido", () => { trTela.sit = "venc"; desenharTr(); });
+  const vis = (trTela.sit === "venc" ? vencidas : doPeriodo.filter(r => passaSit(r, trTela.sit))).sort(compTr);
+  for (const id of [...trTela.sel]) if (!vis.some(r => r.id === id)) trTela.sel.delete(id);
+  const res = $("tr-resumo"); res.innerHTML = "";
+  if (vis.length) {
+    const tot = somaTr(vis.filter(r => r.st !== "canc"));
+    res.append(`${vis.length} lançamento${vis.length === 1 ? "" : "s"} · Total `, el("b", "", "R$ " + moedaBR(tot)));
+  }
+  const lista = $("tr-lista"); lista.innerHTML = "";
+  const erro = navigator.onLine && colTr.erro ? (colTr.erro.semAcesso ? colTr.erro.message : "Não foi possível atualizar as transações agora.") : "";
+  if (!vis.length) lista.appendChild(q ? vazio("lupa", "Nenhum lançamento com essa busca", "Confira o texto ou veja os outros filtros.")
+    : erro ? vazio("dinheiro", "Não foi possível ler as transações", erro)
+    : !todos.length ? vazio("dinheiro", colTr.dados.lido ? `Nenhuma ${T.nome.toLowerCase()} ainda` : "Carregando…", colTr.dados.lido ? `Toque em "${T.novo.slice(2)}" para lançar${ehAdmin() ? ", ou importe o histórico do Fin365 (no fim da tela)" : ""}.` : "")
+    : vazio("dinheiro", "Nenhum lançamento neste filtro", "Troque o mês, o ano ou a situação."));
+  else lista.appendChild(tabelaTr(vis));
+  $("tr-exportar").hidden = !vis.length;
+  trTela.vis = vis;
+  $("tr-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última cópia." : erro;
+}
+// ordem pelo título da coluna (de novo inverte; vazios no fim); padrão: data, a mais antiga primeiro (como o extrato)
+const COLS_TR = { data: refTr, desc: r => r.desc || null, parc: r => r.parc || null, cat: r => r.cat || null, centro: r => r.centro || null,
+  conta: r => r.conta || null, valor: r => +r.valor || 0, sit: r => ["venc", "pend", "pago", "canc"].indexOf(vencidaTr(r) ? "venc" : r.st) };
+function compTr(a, b) {
+  const f = COLS_TR[trTela.ordem.col] || COLS_TR.data, x = f(a), y = f(b);
+  if ((x == null || x === "") !== (y == null || y === "")) return x == null || x === "" ? 1 : -1;
+  let r = typeof x === "number" ? x - y : String(x ?? "").localeCompare(String(y ?? ""), "pt-BR", { numeric: true });
+  if (trTela.ordem.desc) r = -r;
+  return r || (a.desc || "").localeCompare(b.desc || "", "pt-BR");
+}
+function tabelaTr(vis) {
+  // celular: descrição, valor e situação (a data vai embaixo da situação); tela larga: também data, parceiro, categoria e centro de custo (a conta fica no lançamento e na planilha)
+  const cols = [["data", "Data", "tr-so-pc tr-c-data"], ["desc", "Descrição", "orc-c-cli"], ["parc", "Parceiro", "tr-so-pc tr-c-parc"], ["cat", "Categoria", "tr-so-pc tr-c-cat"],
+    ["centro", "Centro", "tr-so-pc tr-c-centro"], ["valor", "Valor (R$)", "orc-c-valor"], ["sit", "Situação", "pc-c-sit"]];
+  const tb = el("table", "orc-tab tr-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  for (const [k, rot, cls] of cols) {
+    const th = el("th", cls), b = el("button", "", rot), ativa = trTela.ordem.col === k;
+    th.scope = "col"; b.type = "button"; b.dataset.col = k; b.dataset.seta = ativa ? (trTela.ordem.desc ? " ↓" : " ↑") : "";
+    th.setAttribute("aria-sort", ativa ? (trTela.ordem.desc ? "descending" : "ascending") : "none");
+    b.onclick = () => { trTela.ordem = { col: k, desc: ativa ? !trTela.ordem.desc : k === "valor" }; desenharTr(); $("tr-lista").querySelector(`thead button[data-col="${k}"]`)?.focus(); };
+    th.appendChild(b); tr.appendChild(th);
+  }
+  cab.appendChild(tr);
+  vis.forEach(r => corpo.appendChild(linhaTr(r)));
+  tb.append(cab, corpo);
+  return tb;
+}
+function linhaTr(r) {
+  const tr = el("tr", r.st === "canc" ? "tr-canc" : ""); tr.tabIndex = 0;
+  const desc = el("td", "orc-c-cli"), tit = el("span", "orc-cli", r.desc || "—");
+  desc.appendChild(tit);
+  // celular: parceiro, categoria e centro de custo embaixo (na tela larga têm coluna)
+  desc.appendChild(el("small", "orc-sub tr-sub-cel", [r.parc, r.cat, r.centro].filter(Boolean).join(" · ")));
+  if (r.parcela) desc.appendChild(el("small", "orc-sub", "parcela " + r.parcela));
+  const sit = el("td", "pc-c-sit"), tag = el("span", "avcb-sit " + clsTr(r), stTrTxt(r));
+  sit.appendChild(tag);
+  if (r.st === "pago" && r.pg) sit.appendChild(el("small", "", "em " + dataCurtaTr(r.pg)));
+  else if (r.st === "pend" && r.venc) sit.appendChild(el("small", "", "vence " + dataCurtaTr(r.venc)));
+  const v = el("td", "orc-c-valor " + (r.tipo === "rec" ? "tr-v-rec" : "tr-v-desp"), r.valor != null ? moedaBR(+r.valor) : "—");
+  const cen = el("td", "tr-so-pc tr-c-centro", r.centro || "—"); if (centroDescTr(r.centro)) cen.title = centroTxtTr(r.centro);
+  tr.append(el("td", "tr-so-pc tr-c-data", dataCurtaTr(refTr(r))), desc, el("td", "tr-so-pc tr-c-parc", r.parc || "—"), el("td", "tr-so-pc tr-c-cat", r.cat || "—"), cen, v, sit);
+  const abrir = () => abrirFormTr(r.id);
+  tr.onclick = abrir;
+  tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrir(); };
+  return tr;
+}
+
+// formulário (novo ou editar): os mesmos campos do "Nova Despesa" do Fin365
+function abrirFormTr(id, base) {
+  guardarRol("tela-tr");
+  const r = id ? regsDe(colTr)[id] : null;
+  if (id && !r) { aviso("Lançamento não encontrado: a lista foi atualizada.", true); return; }
+  trTela.aberto = id || null;
+  trTela.novo = id ? null : (base || { tipo: trTela.tipo, comp: dataISO(), st: "pend", conta: TR_CONTAS[0] });
+  history.pushState({ tr: true, trSub: true }, "");
+  desenharTr();
+  montarFormTr(r ? JSON.parse(JSON.stringify(r)) : trTela.novo);
+  $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0;
+}
+function voltarListaTr() {
+  if (history.state?.trSub) history.back();        // o popstate volta para a lista
+  else { trTela.aberto = trTela.novo = null; desenharTr(); reporRol("tela-tr"); }
+}
+function montarFormTr(r) {
+  const det = $("tr-det"); det.innerHTML = "";
+  const T = TR_TIPO[r.tipo], novo = !r.id;
+  const voltar = el("button", "laudo-link", "‹ " + T.plural); voltar.type = "button"; voltar.onclick = voltarListaTr;
+  det.appendChild(voltar);
+  const h = el("h2", "secao", novo ? T.nova : T.nome);
+  det.appendChild(h);
+  if (!novo) det.appendChild(el("p", "avcb-aviso " + clsTr(r), stTrTxt(r) + (r.st === "pago" && r.pg ? ` em ${dataBRde(r.pg)}` : r.st === "pend" && r.venc ? ` · vence em ${dataBRde(r.venc)}` : "")));
+  const f = el("form", "tr-form"); f.noValidate = true;
+  const campo = (rot, el2, cls = "") => { const l = el("label", "campo " + cls); l.appendChild(el("span", "", rot)); l.appendChild(el2); return l; };
+  const inp = (tipo, valor, extra = {}) => { const i = document.createElement("input"); i.type = tipo; i.value = valor || ""; i.autocomplete = "off"; Object.assign(i, extra); if (tipo === "date") { i.min = "2000-01-01"; i.max = "2100-12-31"; } return i; };
+  const sel = (lista, valor, vazioTxt) => { const s = document.createElement("select"); opcoesSel(s, [...(vazioTxt ? [["", vazioTxt]] : []), ...lista.map(x => Array.isArray(x) ? x : [x, x])], valor || ""); return s; };
+  const par = (...cs) => { const d = el("div", "tr-par"); d.append(...cs); return d; };
+  const todos = trs();
+  const iDesc = inp("text", r.desc, { maxLength: 140, placeholder: r.tipo === "desp" ? "Ex.: Material hidrante - Costa España" : "Ex.: Contrato 1133 - parcela 2" });
+  const iValor = inp("text", r.valor != null && r.valor !== "" ? moedaBR(+r.valor) : "", { inputMode: "decimal", placeholder: "0,00", maxLength: 20 });
+  const iComp = inp("date", r.comp), iVenc = inp("date", r.venc);
+  const cats = [...new Set([...TR_CATS[r.tipo], ...todos.filter(x => x.tipo === r.tipo).map(x => x.cat).filter(Boolean), r.cat].filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const sCat = sel([...cats, [OUTRO, "Outra (digitar)"]], r.cat, "Escolha a categoria");
+  const iCatOutra = inp("text", "", { placeholder: "Nome da categoria", maxLength: 40 }); iCatOutra.hidden = true; iCatOutra.style.marginTop = "6px";
+  sCat.onchange = () => { iCatOutra.hidden = sCat.value !== OUTRO; if (!iCatOutra.hidden) iCatOutra.focus(); };
+  const centrosLista = [...CONFIG.centrosCusto.filter(([, d]) => d).sort((a, b) => a[0].localeCompare(b[0], "pt-BR", { numeric: true })).map(([n, d]) => [n, `${n} · ${d}`]),
+    ...CONFIG.centrosCusto.filter(([, d]) => !d).map(([n]) => [n, n])];
+  for (const c of new Set(todos.map(x => x.centro).filter(Boolean).concat(r.centro || []))) if (!centrosLista.some(([n]) => n === c)) centrosLista.push([c, c]);
+  const sCentro = sel([...centrosLista, [OUTRO, "Outro (digitar)"]], r.centro, "Sem centro de custo");
+  const iCentroOutro = inp("text", "", { placeholder: "Centro de custo (ex.: número do contrato)", maxLength: 40 }); iCentroOutro.hidden = true; iCentroOutro.style.marginTop = "6px";
+  sCentro.onchange = () => { iCentroOutro.hidden = sCentro.value !== OUTRO; if (!iCentroOutro.hidden) iCentroOutro.focus(); };
+  // parceiro: o que já foi usado nas transações e os favorecidos das solicitações de pagamento
+  const dl = document.createElement("datalist"); dl.id = "tr-parceiros";
+  [...new Set([...todos.map(x => x.parc), ...Object.values(pedidos).map(p => p.favorecido)].filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach(n => { const o = document.createElement("option"); o.value = n; dl.appendChild(o); });
+  const iParc = inp("text", r.parc, { maxLength: 100 }); iParc.setAttribute("list", "tr-parceiros");
+  const contas = [...new Set([...TR_CONTAS, ...todos.map(x => x.conta).filter(Boolean), r.conta].filter(Boolean))];
+  const sConta = sel(contas, r.conta || TR_CONTAS[0]);
+  const formas = [...new Set([...TR_FORMAS, r.forma].filter(Boolean))];
+  const sForma = sel(formas, r.forma, "Selecione");
+  const sSt = sel([["pend", "Pendente"], ["pago", T.pago], ["canc", "Cancelada"]], r.st || "pend");
+  const iPg = inp("date", r.pg || (r.st === "pago" ? "" : dataISO()));
+  const lPg = campo(T.dataPg + " *", iPg);
+  const pintarSt = () => { lPg.hidden = sSt.value !== "pago"; if (sSt.value === "pago" && !iPg.value) iPg.value = dataISO(); };
+  sSt.onchange = pintarSt;
+  const iObs = document.createElement("textarea"); iObs.value = r.obs || ""; iObs.rows = 3; iObs.maxLength = 1000;
+  f.append(campo("Descrição *", iDesc), par(campo("Valor (R$) *", iValor), campo("Competência *", iComp)), par(campo("Vencimento", iVenc), campo("Categoria *", sCat)));
+  f.lastChild.lastChild.appendChild(iCatOutra);
+  const lCentro = campo("Centro de custo", sCentro); lCentro.appendChild(iCentroOutro);
+  f.append(lCentro, campo(T.parc, iParc), dl, par(campo("Conta *", sConta), campo("Forma de pagamento", sForma)), par(campo("Situação *", sSt), lPg));
+  // parcelar ou repetir (só no lançamento novo): N lançamentos ligados, um por mês
+  let rec = { modo: "", n: 2, total: true };
+  if (novo) {
+    const w = el("div", "campo"); w.appendChild(el("span", "", "Recorrência"));
+    const ch = el("div", "chips");
+    const extra = el("div", "tr-rec-extra"); extra.hidden = true;
+    const iN = inp("number", "2", { min: 2, max: 60, inputMode: "numeric" });
+    const sTot = sel([["1", "o total (dividir entre as parcelas)"], ["0", "de cada parcela"]], "1");
+    const lTot = campo("O valor informado é", sTot);
+    const dica = el("p", "laudo-dica", "");
+    const pintar = () => {
+      ch.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === rec.modo)));
+      extra.hidden = !rec.modo; lTot.hidden = rec.modo !== "parc";
+      rec.n = Math.max(2, Math.min(60, parseInt(iN.value, 10) || 2)); rec.total = sTot.value === "1";
+      dica.textContent = rec.modo ? `Cria ${rec.n} lançamentos, um por mês, a partir do vencimento (ou da competência). Só o primeiro leva a situação escolhida; os outros ficam pendentes.` : "";
+    };
+    for (const [m, t] of [["", "Não recorrente"], ["parc", "Parcelar"], ["rep", "Repetir todo mês"]]) {
+      const b = el("button", "", t); b.type = "button"; b.dataset.m = m; b.onclick = () => { rec.modo = m; pintar(); }; ch.appendChild(b);
+    }
+    iN.oninput = sTot.onchange = pintar;
+    extra.append(par(campo("Quantas vezes", iN), lTot), dica);
+    w.append(ch, extra); f.appendChild(w);
+    pintar();
+  }
+  f.appendChild(campo("Observações", iObs));
+  pintarSt();
+  const ac = el("div", "pc-acoes tr-acoes");
+  const botao = (txt, cls, fn, tipo = "button") => { const b = el("button", "btn " + cls, txt); b.type = tipo; if (fn) b.onclick = fn; ac.appendChild(b); return b; };
+  const bSalvar = botao(novo ? "Salvar " + T.nome.toLowerCase() : "Salvar alterações", "prim", null, "submit");
+  if (!novo && r.st === "pend") botao(T.marcar, "sec", () => marcarPagoTr(r.id));
+  if (!novo) botao("Duplicar", "sec", () => {
+    const { id: _i, criado, criadoPor, atualizado, atualizadoPor, hist, grupo, parcela, fin365, ...copia } = r;
+    trTela.aberto = null; trTela.novo = { ...copia, st: "pend", pg: "" };   // o mesmo passo do histórico: o "voltar" leva à lista
+    montarFormTr(trTela.novo); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0;
+    aviso("Cópia pronta: confira e salve.");
+  });
+  if (!novo) botao("Excluir", "sec perigo", () => excluirTr(r.id));
+  f.appendChild(ac);
+  f.onsubmit = async e => {
+    e.preventDefault();
+    if (bSalvar.disabled) return;
+    const valor = lerValor(iValor.value), cat = sCat.value === OUTRO ? iCatOutra.value.trim() : sCat.value, centro = sCentro.value === OUTRO ? iCentroOutro.value.trim() : sCentro.value;
+    const falta = !iDesc.value.trim() ? [iDesc, "Escreva a descrição."] : !(valor > 0) ? [iValor, "Confira o valor."] : !iComp.value ? [iComp, "Escolha a data de competência."]
+      : !cat ? [sCat.value === OUTRO ? iCatOutra : sCat, "Escolha a categoria."] : !sConta.value ? [sConta, "Escolha a conta."]
+      : sSt.value === "pago" && !iPg.value ? [iPg, `Escolha a ${T.dataPg.toLowerCase()}.`] : null;
+    if (falta) { aviso(falta[1], true); falta[0].focus(); return; }
+    const dados = { tipo: r.tipo, desc: iDesc.value.trim(), valor: Math.round(valor * 100) / 100, comp: iComp.value, venc: iVenc.value, cat, centro, parc: iParc.value.trim(),
+      conta: sConta.value, forma: sForma.value, st: sSt.value, pg: sSt.value === "pago" ? iPg.value : "", obs: iObs.value.trim() };
+    bSalvar.disabled = true; bSalvar.textContent = "Salvando…";
+    const ok = novo ? await criarTr(dados, rec) : await mudarReg(colTr, r.id, x => { Object.assign(x, dados); }, "Editou");
+    bSalvar.disabled = false; bSalvar.textContent = novo ? "Salvar " + T.nome.toLowerCase() : "Salvar alterações";
+    if (!ok) return;
+    aviso(novo && rec.modo ? `${rec.n} lançamentos criados.` : novo ? `${T.nome} salva.` : "Alterações salvas.");
+    voltarListaTr();
+  };
+  det.appendChild(f);
+  if (!novo) {
+    const info = [r.criadoPor && `Lançada por ${r.criadoPor} em ${new Date(r.criado).toLocaleDateString("pt-BR")}`, r.fin365 && "Veio do Fin365",
+      r.atualizadoPor && r.atualizado !== r.criado && `Alterada por ${r.atualizadoPor} em ${new Date(r.atualizado).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}`].filter(Boolean);
+    if (info.length) det.appendChild(el("p", "avcb-nota", info.join(" · ")));
+  }
+  if (novo) setTimeout(() => iDesc.focus({ preventScroll: true }), 50);
+}
+// cria um lançamento ou, com recorrência, N lançamentos ligados pelo mesmo "grupo" (um por mês)
+async function criarTr(d, rec) {
+  if (!rec.modo) return !!(await criarReg(colTr, d));
+  const n = rec.n, grupo = novoIdReg(), base = d.venc || d.comp;
+  const cent = Math.round(d.valor * 100), cada = rec.modo === "parc" && rec.total ? Math.floor(cent / n) : cent;
+  let ok = true;
+  for (let i = 0; i < n && ok; i++) {
+    const v = rec.modo === "parc" && rec.total && i === n - 1 ? cent - cada * (n - 1) : cada;   // a última parcela leva os centavos que sobram
+    const x = { ...d, valor: v / 100, grupo, parcela: `${i + 1}/${n}`, comp: somarMeses(d.comp, i), venc: d.venc ? somarMeses(d.venc, i) : (i ? somarMeses(base, i) : d.venc) };
+    if (rec.modo === "parc") x.desc = `${d.desc} (${i + 1}/${n})`;
+    if (i) { x.st = "pend"; x.pg = ""; }
+    ok = !!(await criarReg(colTr, x));
+  }
+  return ok;
+}
+async function marcarPagoTr(id) {
+  const r = regsDe(colTr)[id]; if (!r) return;
+  const T = TR_TIPO[r.tipo];
+  const p = await perguntar({ titulo: `${T.marcar}?`, texto: `${r.desc} · R$ ${moedaBR(+r.valor)}`, campos: [{ id: "data", rotulo: T.dataPg, tipo: "data", valor: dataISO() }], sim: T.marcar, nao: "Cancelar" });
+  if (!p) return;
+  if (!p.campos.data) { aviso(`Escolha a ${T.dataPg.toLowerCase()}.`, true); return; }
+  if (await mudarReg(colTr, id, x => { x.st = "pago"; x.pg = p.campos.data; }, T.marcar.replace("Marcar como ", "Marcou como "))) {
+    aviso(`${T.nome} ${T.pago.toLowerCase()} em ${dataBRde(p.campos.data)}.`);
+    if (trTela?.aberto === id) voltarListaTr();
+  }
+}
+async function excluirTr(id) {
+  const r = regsDe(colTr)[id]; if (!r) return;
+  const T = TR_TIPO[r.tipo];
+  if (!await confirmarApagar(`Excluir esta ${T.nome.toLowerCase()}?`, `${r.desc} · R$ ${moedaBR(+r.valor)}${r.parcela ? ` (parcela ${r.parcela}: as outras parcelas continuam)` : ""}.`, "Sim, excluir", "Não, manter")) return;
+  if (await apagarReg(colTr, id)) { aviso(`${T.nome} excluída.`); voltarListaTr(); }
+}
+async function exportarTr() {
+  try {
+    if (!window.XLSX) await carregarScript(SHEETJS);
+    const T = TR_TIPO[trTela.tipo];
+    const linhas = [["Competência", "Vencimento", T.dataPg.replace("Data do ", "").replace(/^./, c => c.toUpperCase()), "Descrição", "Parceiro", "Categoria", "Centro de custo", "Conta", "Forma", "Valor (R$)", "Situação", "Parcela", "Observações"]];
+    for (const r of trTela.vis) linhas.push([r.comp ? dataBRde(r.comp) : "", r.venc ? dataBRde(r.venc) : "", r.pg ? dataBRde(r.pg) : "", r.desc, r.parc || "", r.cat || "", centroTxtTr(r.centro), r.conta || "", r.forma || "", +r.valor || 0, stTrTxt(r), r.parcela || "", r.obs || ""]);
+    linhas.push(["", "", "", "TOTAL (sem as canceladas)", "", "", "", "", "", somaTr(trTela.vis.filter(r => r.st !== "canc")), "", "", ""]);
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    for (let i = 1; i < linhas.length; i++) { const c = ws[XLSX.utils.encode_cell({ r: i, c: 9 })]; if (c && c.t === "n") c.z = "#,##0.00"; }
+    ws["!cols"] = [11, 11, 11, 44, 30, 16, 26, 14, 16, 14, 12, 9, 40].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, T.plural);
+    const nome = `${T.plural} - ${trTela.ano || "todos os anos"}${trTela.mes ? "-" + trTela.mes : ""} - ${dataISO()}`;
+    compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
+  } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+/* importar a planilha "Exportar Completo" do Fin365 (Receitas ou Despesas), só o administrador. As colunas são achadas
+   pelo título (Competência, Descrição, Parceiro, Categoria, Conta, Vencimento, Pagamento/Recebimento, Centro de custos,
+   Valor, Status, Observações…). Cada linha vira um lançamento com id tirado do conteúdo (fin365): importar a mesma planilha
+   de novo não duplica — atualiza. Grava direto nos 32 arquivos (um por vez). */
+const normTit = s => semAcento(String(s || "")).replace(/[^a-z0-9]+/g, " ").trim();
+function dataPlanilha(v) {
+  if (v == null || v === "" || v === "-") return "";
+  if (v instanceof Date && !isNaN(v)) return dataISO(v);
+  if (typeof v === "number" && v > 20000 && v < 80000) return dataISO(new Date(Math.round((v - 25569) * 864e5) + new Date().getTimezoneOffset() * 6e4));
+  const m = String(v).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (m) { const a = m[3].length === 2 ? "20" + m[3] : m[3]; return `${a}-${pad(+m[2])}-${pad(+m[1])}`; }
+  const iso = String(v).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return iso ? `${iso[1]}-${iso[2]}-${iso[3]}` : "";
+}
+function lerLinhasFin365(linhas, tipo) {
+  const iCab = linhas.findIndex(l => l.some(c => normTit(c) === "descricao"));
+  if (iCab < 0) throw new Error('não achei a coluna "Descrição" na planilha');
+  const cab = linhas[iCab].map(normTit);
+  const col = (...nomes) => cab.findIndex(c => nomes.some(n => c === n || c.startsWith(n)));
+  const C = { comp: col("competencia", "data competencia", "emissao"), desc: col("descricao"), parc: col("parceiro", "fornecedor", "cliente", "favorecido"), cat: col("categoria"),
+    conta: col("conta", "banco"), venc: col("vencimento", "data vencimento"), pg: col("pagamento", "recebimento", "data pagamento", "data recebimento", "data efetivacao", "efetivacao"),
+    centro: col("centro de custo", "centros de custo", "centro"), valor: col("valor"), st: col("status", "situacao"), obs: col("observac", "obs"), forma: col("forma de pagamento", "forma") };
+  if (C.valor < 0) throw new Error('não achei a coluna "Valor" na planilha');
+  const vistos = {}, out = [];
+  for (const l of linhas.slice(iCab + 1)) {
+    const g = k => C[k] >= 0 ? l[C[k]] : "";
+    const desc = String(g("desc") || "").trim();
+    let valor = g("valor"); valor = typeof valor === "number" ? Math.abs(valor) : lerValor(String(valor || "").replace(/R\$|\s|−|-/g, ""));
+    if (!desc || !(valor > 0)) continue;              // linha em branco ou subtítulo
+    if (/^(sub)?total\b/i.test(desc) && !g("comp") && !g("venc") && !g("pg")) continue;   // linha de total no fim da planilha
+    const st0 = normTit(g("st")), pg = dataPlanilha(g("pg"));
+    const st = /cancel/.test(st0) ? "canc" : /pago|receb|efetiv|parcial|quitad|baixad/.test(st0) ? "pago" : /pend|abert|venc|a pagar|a receber/.test(st0) ? "pend" : pg ? "pago" : "pend";
+    const limpo = x => { const t = String(x ?? "").trim(); return t === "-" ? "" : t; };
+    const r = { tipo, desc, valor: Math.round(valor * 100) / 100, comp: dataPlanilha(g("comp")) || dataPlanilha(g("venc")) || pg, venc: dataPlanilha(g("venc")), pg: st === "pago" ? (pg || dataPlanilha(g("venc"))) : "",
+      st, cat: limpo(g("cat")), centro: limpo(g("centro")), parc: limpo(g("parc")), conta: limpo(g("conta")), forma: limpo(g("forma")), obs: limpo(g("obs")) };
+    if (/parcial/.test(st0)) r.obs = [r.obs, "Pagamento parcial no Fin365"].filter(Boolean).join(" · ");
+    const chave = [tipo, r.comp, r.desc, r.valor, r.parc, r.venc, r.pg, r.centro].join("|");
+    vistos[chave] = (vistos[chave] || 0) + 1;       // linhas iguais (ex.: dois impostos de mesmo valor no mesmo dia) ganham ids diferentes
+    r.fin365 = "f" + hashId(chave + "#" + vistos[chave]).toString(36);
+    r.id = r.fin365;
+    out.push(r);
+  }
+  return out;
+}
+function importarFin365() {
+  if (!ehAdmin()) return;
+  if (!navigator.onLine) { aviso("Sem internet para importar.", true); return; }
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".xlsx,.xls,.csv";
+  inp.onchange = async () => {
+    const arq = inp.files[0]; if (!arq) return;
+    try {
+      if (!window.XLSX) await carregarScript(SHEETJS);
+      const wb = XLSX.read(await arq.arrayBuffer(), { type: "array", cellDates: true });
+      const linhas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: "" });
+      const n0 = semAcento(arq.name);
+      let tipo = /receit/.test(n0) ? "rec" : /despes/.test(n0) ? "desp" : null;
+      if (!tipo) {
+        const r = await perguntar({ titulo: "Esta planilha é de receitas ou de despesas?", texto: arq.name, sim: "Despesas", nao: "Receitas" });
+        tipo = r ? "desp" : "rec";
+      }
+      const regs = lerLinhasFin365(linhas, tipo), T = TR_TIPO[tipo];
+      if (!regs.length) { aviso("Nenhum lançamento encontrado na planilha.", true); return; }
+      const datas = regs.map(refTr).filter(Boolean).sort(), ja = regsDe(colTr), novos = regs.filter(r => !ja[r.id]).length;
+      const resumo = `${regs.length} ${T.plural.toLowerCase()} de ${dataBRde(datas[0])} a ${dataBRde(datas[datas.length - 1])}\nTotal R$ ${moedaBR(somaTr(regs.filter(r => r.st !== "canc")))}\n` +
+        `${novos} nova${novos === 1 ? "" : "s"}${regs.length - novos ? `, ${regs.length - novos} já importada${regs.length - novos === 1 ? "" : "s"} (atualizada${regs.length - novos === 1 ? "" : "s"})` : ""}.`;
+      if (!await perguntar({ titulo: `Importar ${T.plural.toLowerCase()} do Fin365?`, texto: resumo, sim: "Importar", nao: "Cancelar" })) return;
+      await comGravacao(async () => {
+        const agora = new Date().toISOString(), quem = nomeColaborador(), porBalde = {};
+        for (const r of regs) { Object.assign(r, { criado: agora, criadoPor: quem, atualizado: agora, atualizadoPor: quem }); (porBalde[baldeDe(colTr, r.id)] ||= []).push(r); }
+        let feitos = 0;
+        for (const [b, lista] of Object.entries(porBalde)) {
+          aviso(`Importando… ${Math.round(100 * feitos / regs.length)}%`);
+          await gravarBalde(colTr, +b, itens => { for (const r of lista) itens[r.id] = { ...(itens[r.id] || {}), ...r, criado: itens[r.id]?.criado || r.criado, criadoPor: itens[r.id]?.criadoPor || r.criadoPor }; });
+          feitos += lista.length;
+        }
+      });
+      aviso(`${regs.length} ${T.plural.toLowerCase()} importadas do Fin365.`);
+      if (trTela) { trTela.tipo = tipo; trTela.ano = trTela.mes = ""; trTela.sit = ""; }
+      aoMudarTr();
+    } catch (e) { console.error(e); aviso("Não foi possível importar: " + erroEmPortugues(e.message), true); }
+  };
+  inp.click();
+}
 let fuTela = null, fuVoltando = false;   // { grupo, etapa, pessoa, sit, valor, contato (filtros), opF, aberta, nova, direto, mais, ordem, limTab }
 const oportunidades = () => Object.values(regsDe(colFu));
 const etapaTxt = e => `${e} - ${NOME_ETAPA[e] || "?"}`;
@@ -15305,6 +15827,27 @@ function desenharFin() {
   // no computador o Financeiro está no menu lateral: só tem "voltar" quando veio do quadrado Comprovante (Registros)
   if (finDe === "reg" || !computador.matches) { const v = el("button", "hub-voltar", finDe === "reg" ? "‹ Registros" : "‹ Mais"); v.type = "button"; v.onclick = () => history.state?.sub ? voltarSub() : irPara(finDe === "fin" ? "mais" : finDe); t.appendChild(v); }
   t.appendChild(el("h1", "hub-tit", "Financeiro"));
+  // transações (receitas e despesas): o mês em números e o que venceu, com atalho para a tela (só quem pode)
+  if (podeTrans()) {
+    sincronizarCol(colTr);
+    const mes = dataISO().slice(0, 7), vivos = trs().filter(r => r.st !== "canc");
+    const doMes = tp => vivos.filter(r => r.tipo === tp && refTr(r).startsWith(mes)), nomeMes = MESES[+mes.slice(5) - 1];
+    const dM = doMes("desp"), rM = doMes("rec"), venc = vivos.filter(vencidaTr);
+    const g = el("div", "tr-cards tr-fin");
+    const card = (rot, valor, cls, sub, fn) => { const c = el("button", "tr-card " + cls); c.type = "button"; c.append(el("small", "", rot), el("b", "", "R$ " + moedaBR(valor)), el("span", "", sub)); c.onclick = fn; g.appendChild(c); };
+    card("Despesas de " + nomeMes, somaTr(dM), "desp", `a pagar R$ ${moedaBR(somaTr(dM.filter(r => r.st === "pend")))}`, () => abrirTransacoes({ tipo: "desp" }));
+    card("Receitas de " + nomeMes, somaTr(rM), "rec", `a receber R$ ${moedaBR(somaTr(rM.filter(r => r.st === "pend")))}`, () => abrirTransacoes({ tipo: "rec" }));
+    const vD = venc.filter(r => r.tipo === "desp");
+    const vR = venc.filter(r => r.tipo === "rec");   // o valor é o que falta pagar; as receitas atrasadas vão no texto
+    card("Vencido a pagar", somaTr(vD), vD.length ? "crit" : "zero", [vD.length ? `${vD.length} despesa${vD.length === 1 ? "" : "s"}` : "nada vencido", vR.length && `${vR.length} a receber (R$ ${moedaBR(somaTr(vR))})`].filter(Boolean).join(" · "),
+      () => abrirTransacoes({ tipo: vD.length || !vR.length ? "desp" : "rec", sit: "venc" }));
+    t.appendChild(el("p", "hub-rot", "Transações"));
+    t.appendChild(g);
+    const gt = el("div", "hub-grade"); gt.style.gridTemplateColumns = "1fr 1fr";
+    gt.append(tile("dinheiro", "Despesas", () => abrirTransacoes({ tipo: "desp" })), tile("dinheiro", "Receitas", () => abrirTransacoes({ tipo: "rec" })));
+    t.appendChild(gt);
+    if (pode("comp")) t.appendChild(el("p", "hub-rot", "Comprovantes"));
+  }
   if (pode("comp")) {
     const mes = dataISO().slice(0, 7), eu = semAcento(nomeColaborador());
     const cache = lerLS("vpx_comp_hist", null);
@@ -15349,7 +15892,7 @@ function desenharMais() {
   if (podeSol() || podeFin()) {                    // solicitações (com o número do que espera a pessoa) e o Financeiro (comprovantes)
     const f = el("div", "hub-lista");
     if (podeSol()) f.appendChild(linha("solicitacao", "Solicitações", resumoSolicitacoes(), abrirSolicitacoes, esperandoMim()));
-    if (podeFin()) f.appendChild(linha("dinheiro", "Financeiro", "Comprovantes de compras e reembolsos", () => irPara("fin")));
+    if (podeFin()) f.appendChild(linha("dinheiro", "Financeiro", podeTrans() ? (pode("comp") ? "Receitas, despesas e comprovantes" : "Receitas e despesas") : "Comprovantes de compras e reembolsos", () => irPara("fin")));
     t.appendChild(f);
   }
   // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também em Registros e no Início)
@@ -15728,6 +16271,11 @@ window.addEventListener("popstate", () => {
     if (!history.state?.tar) { fecharTar(false); return; }
     if ((tarTela?.aberta || tarTela?.nova) && !tarTela.direto && !history.state?.tarSub) { tarTela.aberta = tarTela.nova = null; desenharTar(); reporRol("tela-tar"); return; }
   }
+  if (!$("tela-tr").hidden) {                     // transações: "voltar" no lançamento volta para a lista; na lista, fecha
+    if (!history.state?.tr) { fecharTr(false); return; }
+    if ((trTela?.aberto || trTela?.novo) && !history.state?.trSub) { trTela.aberto = trTela.novo = null; desenharTr(); reporRol("tela-tr"); return; }
+    if (history.state?.trSub && !trTela?.aberto && !trTela?.novo) return;
+  }
   if (!$("tela-funil").hidden && $("tela-tar").hidden) {
     if (!history.state?.fu) { fecharFunil(false); return; }
     if ((fuTela?.aberta || fuTela?.nova) && !fuTela.direto && !history.state?.fuSub) { fuTela.aberta = fuTela.nova = null; desenharFunil(); reporRol("tela-funil"); return; }
@@ -15823,6 +16371,13 @@ $("mn-pc").onclick = abrirSolicitacoes;
 $("mn-admin").onclick = () => { fecharMenu(); abrirAdmin(); };
 $("mn-sair").onclick = () => { fecharMenu(); sairConta(); };
 $("pc-voltar").onclick = () => fecharPedidos();
+$("tr-voltar").onclick = () => { if (trTela?.aberto || trTela?.novo) voltarListaTr(); else fecharTr(); };
+$("tr-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { if (!trTela || trTela.tipo === b.dataset.t) return; trTela.tipo = b.dataset.t; trTela.cat = ""; trTela.centro = ""; desenharTr(); });
+$("tr-novo").onclick = () => abrirFormTr(null);
+$("tr-busca").oninput = () => { clearTimeout(desenharTr.t); desenharTr.t = setTimeout(desenharTr, 200); };
+for (const [id, k] of [["tr-ano", "ano"], ["tr-mes", "mes"], ["tr-cat", "cat"], ["tr-centro", "centro"]]) $(id).onchange = () => { if (!trTela) return; trTela[k] = $(id).value; if (trTela.sit === "venc" && (k === "ano" || k === "mes")) trTela.sit = ""; desenharTr(); };
+$("tr-exportar").onclick = exportarTr;
+$("tr-importar").onclick = importarFin365;
 $("pc-novo-btn").onclick = abrirNovoPC;
 $("pc-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { pcTipo = b.dataset.t; pcAberto = null; desenharPedidos(); });
 $("pc-exportar").onclick = exportarPedidos;
