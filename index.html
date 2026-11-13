@@ -685,7 +685,7 @@ body.soltando #tela-avcb:not([hidden])::before{content:"Solte o PDF ou a foto do
 .tar-ed-st{min-height:0;padding:3px 7px;margin:-4px -8px}   /* situação: mesmo quadradinho, sem mudar a altura da linha */
 /* nome da tarefa (computador): clique muda o nome; a tarefa abre clicando no resto da linha */
 .tar-tit-linha{position:relative;display:flex;align-items:center}
-.tar-ed-tit{flex:0 1 auto;min-width:0;max-width:none}   /* do tamanho do nome: o ícone dos comentários fica logo depois */
+.tar-ed-tit{flex:1 1 auto;min-width:0;max-width:none}
 .tar-ed-tit .orc-cli{width:100%}
 textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px -8px;padding:4px 8px;border:1px solid var(--laranja);border-radius:8px;background:var(--papel);font-family:inherit;font-size:inherit;font-weight:600;line-height:inherit}
 @media (hover:hover){.tar-ed:hover{border-color:var(--linha);background-color:var(--papel)}}
@@ -788,7 +788,10 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .tar-com p{margin:4px 0 0;max-width:none;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15.5px;line-height:1.4}
 .tar-com .tar-x{position:absolute;top:2px;right:2px;min-width:40px;min-height:40px;font-size:20px}
 /* comentários pela tabela (pedido do Gustavo em 13/11/2026): ícone ao lado do nome e janela com a lista e o campo para escrever */
-.tar-com-btn{position:relative;flex:none;align-self:flex-start;display:inline-flex;align-items:center;gap:3px;min-height:0;margin:-4px -4px -4px 6px;padding:4px 6px;border:1px solid transparent;border-radius:8px;background:none;color:var(--suave);font:inherit;font-size:13px;font-weight:700;line-height:1;cursor:pointer}
+.tar-tab .tar-c-com{width:44px;padding-left:0;padding-right:0;text-align:center;color:var(--suave)}
+.tar-tab th.tar-c-com .ic{width:17px;height:17px;opacity:.7;vertical-align:middle}
+@container (min-width:860px){.tar-tab .tar-c-com{width:52px}}
+.tar-com-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:34px;min-height:0;margin:-4px 0;padding:4px 5px;border:1px solid transparent;border-radius:8px;background:none;color:var(--suave);font:inherit;font-size:13px;font-weight:700;line-height:1;cursor:pointer}
 .tar-com-btn::after{content:"";position:absolute;inset:-7px -4px}   /* área de toque maior, invisível */
 .tar-com-btn .ic{width:19px;height:19px}
 .tar-com-btn:not(.tem) .ic{opacity:.5}
@@ -13902,6 +13905,10 @@ function tabelaTar(vis) {
   const tb = el("table", "orc-tab tar-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
   // título da coluna: abre o menu de ordenar e filtrar (setinha embaixo = tem menu; funil = filtro ligado nesta coluna)
   for (const [k, rot, cls] of cols) {
+    if (k === "st") {                                // coluna dos comentários (pedido do Gustavo em 13/11/2026: ícones alinhados numa coluna)
+      const thc = el("th", "tar-c-com"); thc.scope = "col"; thc.title = "Comentários"; thc.setAttribute("aria-label", "Comentários");
+      thc.appendChild(ic("comentario")); tr.appendChild(thc);
+    }
     const th = el("th", cls), b = el("button", "tar-th", rot), ativa = tarOrdem.col === k;
     th.scope = "col"; b.type = "button"; b.dataset.col = k; b.setAttribute("aria-haspopup", "menu");
     b.title = "Ordenar e filtrar";
@@ -13919,7 +13926,7 @@ function tabelaTar(vis) {
   }
   cab.appendChild(tr);
   vis.forEach(t => corpo.appendChild(linhaTar(t)));
-  if (!vis.length) { const v = el("tr", "tar-vazia"), td = el("td", "avcb-nota", "Nenhuma tarefa com esses filtros."); td.colSpan = 6; v.appendChild(td); corpo.appendChild(v); }
+  if (!vis.length) { const v = el("tr", "tar-vazia"), td = el("td", "avcb-nota", "Nenhuma tarefa com esses filtros."); td.colSpan = 7; v.appendChild(td); corpo.appendChild(v); }
   tb.append(cab, corpo);
   return tb;
 }
@@ -14031,14 +14038,14 @@ function linhaTar(t) {
   // no computador o nome muda com um clique (a tarefa abre clicando no resto da linha); no celular tocar no nome abre a tarefa
   const lt = el("div", "tar-tit-linha");
   lt.appendChild(ed && computador.matches ? tituloEdTar(t) : el("span", "orc-cli tar-tab-tit", t.titulo || "(sem título)"));
-  // comentários: ícone ao lado do nome (com o número, se houver) abre a janela com os comentários e o campo para escrever
+  // comentários: ícone na coluna logo depois do nome (com o número, se houver) abre a janela com os comentários e o campo para escrever
   const bc = el("button", "tar-com-btn" + (nc ? " tem" : "")); bc.type = "button";
   bc.title = nc ? `${nc} comentário${nc > 1 ? "s" : ""}` : "Comentar";
   bc.setAttribute("aria-label", nc ? `Ver os ${nc} comentário${nc > 1 ? "s" : ""}` : "Comentar a tarefa");
   bc.appendChild(ic("comentario"));
   if (nc) bc.appendChild(el("span", "", String(nc)));
   bc.onclick = e => { e.stopPropagation(); abrirComentariosTar(t.id); };
-  lt.appendChild(bc);
+  const ck = el("td", "tar-c-com"); ck.appendChild(bc);
   tit.appendChild(lt);
   const sub = el("small", "orc-sub orc-so-cel");
   if (ed) {
@@ -14071,7 +14078,7 @@ function linhaTar(t) {
   const cc = el("td", "tar-so-pc tar-c-cli");
   if (ed) cc.appendChild(botaoEdTar("", "Mudar o cliente", [t.cliente || el("span", "tar-ed-vazio", "—")], abrirCli));
   else cc.textContent = t.cliente || "—";
-  tr.append(tit, cs, cp, cz, cr, cc);
+  tr.append(tit, ck, cs, cp, cz, cr, cc);
   tr.onclick = () => abrirTarefa(t.id);
   tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrirTarefa(t.id); };
   return tr;
