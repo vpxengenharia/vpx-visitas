@@ -1898,6 +1898,11 @@ span.fu-orc-lin{cursor:default}
 .orc-ult-p b{color:var(--laranja-tx,#B66A00)}
 @media (prefers-color-scheme:dark){.orc-ult-p b{color:var(--laranja)}}
 @media (hover:hover){.orc-ult-b:hover{border-color:var(--borda-hover,var(--linha))}.orc-ult-p:hover{border-color:var(--laranja)}}
+/* menu: ícones sempre no tamanho certo (antes o de Solicitações virava uma bolinha com um submenu aberto: a barra de rolagem do Windows
+   tirava espaço e o ícone encolhia); o nome é que encurta; no computador, barra de rolagem fina e sempre reservada (nada muda de largura) */
+.nav button svg{flex:none}
+.nav-rot{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){body.logado .nav{scrollbar-width:thin;scrollbar-gutter:stable}}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -17135,6 +17140,8 @@ function abrirDoSubmenu(pai, [, , , fn, fundo]) {
   ir();
 }
 function montarSubmenusNav() {
+  // o nome de cada item numa caixa própria: sem espaço (barra de rolagem do Windows + número de pendências), encurta com "…" e o ícone não encolhe
+  $("nav").querySelectorAll("[data-s], [data-acao]").forEach(b => { if (b.closest(".nav-conta")) return; [...b.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim()).forEach(n => { const sp = el("span", "nav-rot", n.textContent.trim()); n.replaceWith(sp); }); });
   for (const [pai, itens] of Object.entries(SUBMENUS_NAV)) {
     const b = $("nav").querySelector(`[data-s="${pai}"],[data-acao="${pai}"]`); if (!b) continue;
     const w = el("div", "nav-item"); b.before(w); w.appendChild(b);
