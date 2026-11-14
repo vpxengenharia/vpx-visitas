@@ -1791,6 +1791,8 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 /* cliente arquivado: etiqueta cinza embaixo do nome (no celular e no computador) */
 .cl-arq{display:inline-block;margin-top:3px;padding:1px 8px;border-radius:99px;background:rgba(127,127,127,.14);color:var(--suave);font-size:12.5px;font-weight:700;letter-spacing:.02em}
 .cl-tab td.orc-c-cli .cl-arq + .orc-sub{display:block}
+.btn.cl-mover{width:100%}
+.cl-mover-nota{margin:6px 2px 0;font-size:13.5px;color:var(--suave);max-width:none}
 .avcb-aviso.cl-arq-aviso{background:rgba(127,127,127,.12);color:var(--tinta);border-color:transparent}
 #cl-fil-at{margin:-2px 0 10px}
 /* ===== Itens aprovados pelo Gustavo em 11/11/2026 (mudam decisões anteriores dele; ver CLAUDE.md) ===== */
@@ -3290,7 +3292,7 @@ const ehArquivado = c => clientesArq.includes(c) && !clientes.includes(c);
 const caminhoCli = c => ehArquivado(c) ? `${CONFIG.pastaArquivado}/${c}` : c;
 const subpastaDe = (caminho, cli) => { const ps = caminho.split("/"); const i = ps.indexOf(cli); return ps.slice(i >= 0 ? i + 1 : 1).join(" › "); };
 const todosClientes = () => [...clientes, ...clientesArq.filter(c => !clientes.includes(c))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-async function carregarClientes() {
+async function carregarClientes(quieto = false) {
   clientes = lerLS("vpx_clientes", []);
   clientesArq = lerLS("vpx_clientes_arq", []);
   if (!navigator.onLine) return;                   // sem internet: usa a última lista salva no celular
@@ -3319,10 +3321,30 @@ async function carregarClientes() {
         gravarLS("vpx_clientes_arq", clientesArq);
       } catch (e) { console.warn("arquivados", e); }
     } else { clientesArq = []; gravarLS("vpx_clientes_arq", clientesArq); }
+    carregarClientes.quando = Date.now();
   } catch (e) {
+    if (quieto) return;                            // releitura por trás (voltar ao app, conferir pasta movida): sem aviso
     if (e.status === 404 || e.status === 403) aviso(`Sem acesso à pasta "${CONFIG.pastaClientesNome}". Peça para ela ser compartilhada com você com permissão de edição.`, true);
     else aviso("Não foi possível atualizar a lista de clientes. Usando a última lista salva.", true);
   }
+}
+/* a pasta do cliente não foi achada onde a lista deste aparelho diz (outro aparelho arquivou ou desarquivou o cliente; a lista
+   só é lida ao abrir o app, ao voltar para ele e na escolha de cliente): confere a pasta e relê a lista. Devolve true quando o cliente
+   mudou de lugar (vale tentar de novo: caminhoCli já aponta para o lugar novo). Uma conferência por cliente por minuto. Sem isso,
+   uma leitura no lugar antigo parecia uma pasta vazia (e a pasta técnica podia gravar o "Não se aplica" vazio por cima). */
+const lugarCliConf = {};
+function clienteMudou(cli) {
+  const x = lugarCliConf[cli];
+  if (x && Date.now() - x.t < 60000) return x.p;
+  const p = (async () => {
+    try { await graph(`${BASE()}:/${encPath(caminhoCli(cli))}?$select=id`); return false; }   // a pasta está onde a lista diz: só faltava a subpasta
+    catch (e) { if (e.status !== 404) return false; }
+    const antes = caminhoCli(cli);
+    await carregarClientes(true);
+    return caminhoCli(cli) !== antes;
+  })();
+  lugarCliConf[cli] = { t: Date.now(), p };
+  return p;
 }
 
 function desenharLista() {
@@ -3339,8 +3361,11 @@ function desenharLista() {
   const grupo = t => { const li = document.createElement("li"); li.className = "grupo"; li.textContent = t; ul.appendChild(li); };
 
   const achados = clientes.filter(c => semAcento(c).includes(nq));
+  // arquivados: só aparecem buscando, num grupo à parte (e o "+ Criar cliente" não é oferecido com o nome de um deles:
+  // a pasta nova vazia esconderia a arquivada)
+  const arqAchados = q ? clientesArq.filter(c => !clientes.includes(c) && semAcento(c).includes(nq)) : [];
   const nome = limparNome(q);
-  if (nome && !escolhaSoLista && !clientes.some(c => semAcento(c) === semAcento(nome))) {
+  if (nome && !escolhaSoLista && !todosClientes().some(c => semAcento(c) === semAcento(nome))) {
     add(`+ Criar cliente "${nome}"`, "novo", () => criarCliente(nome));
   }
   if (!q) {
@@ -3348,7 +3373,8 @@ function desenharLista() {
     if (rec.length) { grupo("Recentes"); rec.forEach(c => add(c, "", () => escolher(c))); grupo("Todos"); }
   }
   achados.forEach(c => add(c, "", () => escolher(c)));
-  if (!achados.length && (!nome || escolhaSoLista)) {
+  if (arqAchados.length) { grupo("Arquivados"); arqAchados.forEach(c => add(c + " (arquivado)", "", () => escolher(c))); }
+  if (!achados.length && !arqAchados.length && (!nome || escolhaSoLista)) {
     const li = document.createElement("li"); li.className = "grupo";
     li.textContent = "Nenhum cliente encontrado."; ul.appendChild(li);
   }
@@ -3368,6 +3394,8 @@ function abrirDialogo(aoEscolher, soLista) {
 }
 
 async function criarCliente(nome) {
+  const arq = clientesArq.find(c => semAcento(c) === semAcento(nome));
+  if (arq) { aviso(`Já existe o cliente "${arq}" entre os arquivados. Escolha ele na lista (ou peça ao administrador para desarquivar).`, true); return; }
   try {
     await graph(`${BASE()}/children`, {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -7318,7 +7346,12 @@ async function listarPastaArq(id) {
 async function pastaRaizArq(cli) {
   const chave = "vpx_arq_raiz_" + cli;
   if (navigator.onLine && conta) {
-    try { const r = await graph(`${BASE()}:/${encPath(caminhoCli(cli))}`); gravarLS(chave, r.id); return r.id; }
+    try {
+      let r;
+      try { r = await graph(`${BASE()}:/${encPath(caminhoCli(cli))}`); }
+      catch (e) { if (e.status === 404 && await clienteMudou(cli)) r = await graph(`${BASE()}:/${encPath(caminhoCli(cli))}`); else throw e; }   // outro aparelho moveu a pasta
+      gravarLS(chave, r.id); return r.id;
+    }
     catch (e) { if (!(e instanceof TypeError)) throw e; }
   }
   const id = lerLS(chave, null);
@@ -7528,16 +7561,21 @@ function partesNome(nome, mod) {
   return { autor: "", data: (mod || "").slice(0, 10), resto: nome.replace(/\.[^.]+$/, "") };
 }
 
-async function listarPastaHist(cli, pasta) {
+async function listarPastaHist(cli, pasta, denovo = true) {
   try {
     const itens = [];
     let url = `${BASE()}:/${encPath(caminhoCli(cli) + "/" + pasta)}:/children?$top=999&$select=id,name,size,file,folder,lastModifiedDateTime,webUrl`;
     while (url) { const r = await graph(url); itens.push(...r.value); url = r["@odata.nextLink"]; }
     return { itens: itens.filter(i => i.file), pasta: null };
-  } catch (e) { if (e.status === 404) return { itens: [] }; throw e; }
+  } catch (e) {
+    if (e.status !== 404) throw e;
+    if (denovo && await clienteMudou(cli)) return listarPastaHist(cli, pasta, false);   // outro aparelho moveu a pasta do cliente
+    return { itens: [] };
+  }
 }
-async function idPastaHist(cli, pasta) {
-  try { return (await graph(`${BASE()}:/${encPath(caminhoCli(cli) + "/" + pasta)}?$select=id,name`)).id; } catch { return null; }
+async function idPastaHist(cli, pasta, denovo = true) {
+  try { return (await graph(`${BASE()}:/${encPath(caminhoCli(cli) + "/" + pasta)}?$select=id,name`)).id; }
+  catch (e) { return e.status === 404 && denovo && await clienteMudou(cli) ? idPastaHist(cli, pasta, false) : null; }
 }
 
 // junta os arquivos em eventos: fotos/vídeos do mesmo dia e da mesma pessoa viram uma "visita técnica"
@@ -12874,7 +12912,7 @@ async function atualizarOrc() {
   atualizarOrc.rodando = true;
   desenharOrc();
   try {
-    if (!clientes.length) await carregarClientes();
+    await carregarClientes(!!clientes.length);       // lista nova antes de ler as pastas: cliente arquivado ou desarquivado em outro aparelho é lido no lugar certo
     const [r] = await Promise.all([buscarOrcamentos((f, t) => { $("orc-estado").textContent = `Atualizando a lista… ${f} de ${t} clientes`; }), lerIndiceOrc()]);
     orc = r;
     const ids = new Set(orc.itens.map(o => o.id));
@@ -18356,6 +18394,66 @@ function desenharPaginaCliente() {
     const ops = oportunidades().filter(o => o.cliente === c).sort((a, b) => (b.atualizado || "").localeCompare(a.atualizado || ""));
     if (ops.length) { t.appendChild(el("p", "hub-rot", "Comercial")); ops.slice(0, 5).forEach(o => t.appendChild(cartaoFu(o, { etapa: true, abrir: () => abrirFunil({ aberta: o.id }) }))); }
   }
+  // arquivar / desarquivar (só o administrador): move a pasta do cliente no OneDrive
+  if (ehAdmin() && todosClientes().includes(c)) {
+    const arq = ehArquivado(c), b = comIc(el("button", "btn sec cl-mover"), "pasta", arq ? "Desarquivar cliente" : "Arquivar cliente"); b.type = "button";
+    b.onclick = () => moverCliente(c, !ehArquivado(c));   // o lado é decidido no toque (a lista pode ter mudado depois de desenhar a página)
+    t.append(el("p", "hub-rot", arq ? "Cliente arquivado" : "Arquivo"), b,
+      el("p", "cl-mover-nota", arq ? `A pasta volta de ${CONFIG.pastaArquivado} para ${CONFIG.pastaClientesNome.split(" › ").pop()} no OneDrive.` : `A pasta vai para ${CONFIG.pastaClientesNome.split(" › ").pop()} › ${CONFIG.pastaArquivado} no OneDrive. Nada é apagado.`));
+  }
+}
+/* arquivar / desarquivar cliente (pedido do Gustavo em 14/11/2026): move a pasta do cliente no OneDrive entre "02 - Clientes" e
+   "02 - Clientes › 01 - Arquivado" (PATCH parentReference; o id da pasta não muda, nada é apagado). Só o administrador. Pasta com o mesmo
+   nome no destino (409) = não move e avisa. Fichas, tarefas, OS, extintores e AVCB são ligados pelo nome e continuam. "Desfazer" no aviso. */
+// a página do cliente (mesmo escondida atrás da Agenda: aparece certa ao voltar) e a aba Clientes à vista
+function redesenharMovido(c) {
+  if (cliPagina === c) desenharPaginaCliente();
+  if (!$("tela-clientes").hidden) desenharClientesHub();
+}
+async function moverCliente(c, arquivar, semPerguntar = false) {
+  if (!ehAdmin() || moverCliente.rodando) return;
+  const verbo = arquivar ? "arquivar" : "desarquivar", raiz = CONFIG.pastaClientesNome.split(" › ").pop();
+  if (!navigator.onLine) { aviso(`Sem internet: para ${verbo} o cliente, conecte o aparelho.`, true); return; }
+  if (!semPerguntar) {
+    const ok = await perguntar({ titulo: `${arquivar ? "Arquivar" : "Desarquivar"} ${c}?`,
+      texto: arquivar ? `A pasta do cliente vai ser movida no OneDrive para ${raiz} › ${CONFIG.pastaArquivado}. Nada é apagado: arquivos, ficha, tarefas e OS continuam, e dá para desarquivar depois. Ele sai da lista de clientes dos formulários.`
+        : `A pasta do cliente volta de ${CONFIG.pastaArquivado} para ${raiz} no OneDrive e ele volta para a lista de clientes dos formulários.`,
+      sim: arquivar ? "Sim, arquivar" : "Sim, desarquivar" });
+    if (!ok) return;
+  }
+  moverCliente.rodando = true;
+  aviso(arquivar ? "Arquivando…" : "Desarquivando…", "espera");
+  try {
+    await comGravacao(async () => {
+      const de = arquivar ? c : `${CONFIG.pastaArquivado}/${c}`;
+      let item;
+      try { item = await graph(`${BASE()}:/${encPath(de)}?$select=id,name`); }
+      catch (e) {
+        if (e.status !== 404) throw e;
+        await carregarClientes(true);              // alguém já mudou (outro aparelho, OneDrive): a lista é atualizada e a tela redesenhada
+        redesenharMovido(c);
+        throw new Error(`a pasta de "${c}" não está mais em ${arquivar ? raiz : CONFIG.pastaArquivado}. A lista de clientes foi atualizada.`);
+      }
+      const destino = arquivar ? (await garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaArquivado])).id : CONFIG.pastaClientesId;
+      try {
+        await graph(`/drives/${CONFIG.driveId}/items/${item.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ parentReference: { id: destino } }) });
+      } catch (e) {
+        if (e.status === 409) throw new Error(`já existe uma pasta "${c}" em ${arquivar ? `${raiz} › ${CONFIG.pastaArquivado}` : raiz}. Junte as duas pastas no OneDrive e tente de novo.`);
+        throw e;
+      }
+    });
+  } catch (e) { aviso(`Não foi possível ${verbo}: ${e.message}`, true); return; }
+  finally { moverCliente.rodando = false; }
+  // listas do aparelho: o cliente troca de lista na hora (a próxima leitura do OneDrive confirma)
+  const ord = l => l.sort((a, b) => a.localeCompare(b, "pt-BR"));
+  if (arquivar) { clientes = clientes.filter(x => x !== c); clientesArq = ord([...clientesArq.filter(x => x !== c), c]); }
+  else { clientesArq = clientesArq.filter(x => x !== c); clientes = ord([...clientes.filter(x => x !== c), c]); }
+  gravarLS("vpx_clientes", clientes); gravarLS("vpx_clientes_arq", clientesArq);
+  // o que o aparelho guardou com os links antigos da pasta (o endereço web muda com a pasta): lido de novo da próxima vez
+  for (const k of ["vpx_hist_" + c, "vpx_pt_" + c]) try { localStorage.removeItem(k); } catch {}
+  if (orc) { orc.quando = 0; gravarLS("vpx_orc", orc); }
+  redesenharMovido(c);
+  aviso(`${c} ${arquivar ? "arquivado" : "desarquivado"}: a pasta foi movida no OneDrive.`, false, { rotulo: "Desfazer", fn: () => moverCliente(c, !arquivar, true) });
 }
 
 // Operacional (aba do meio da barra de baixo; era "Registros" até 13/11/2026, por dentro continua "reg"): no topo as tarefas dos clientes;
@@ -18923,7 +19021,7 @@ document.addEventListener("keydown", e => {
   if (computador.matches && document.body.classList.contains("logado") && !document.querySelector("dialog[open]") && !cam && $("visor-pdf").hidden && $("tela-assinar").hidden && !enviando) {
     if (ctrlK) {
       abrirDialogo(c => {
-        if (!clientes.includes(c)) { aviso("Escolha um cliente da lista.", true); return; }
+        if (!todosClientes().includes(c)) { aviso("Escolha um cliente da lista.", true); return; }
         if (!fecharTelasPorCima()) return;       // fecha o que estiver aberto por cima (pergunta antes se houver algo não salvo)
         // formulário de compromisso aberto: a Agenda tira o passo dele do histórico (history.go é assíncrono); só depois abre o cliente
         if (secao === "agenda" && agForm && history.state?.agform) { fecharAgenda(false); addEventListener("popstate", () => abrirCliente(c), { once: true }); }
@@ -19191,6 +19289,12 @@ $("adm-email").onkeydown = e => { if (e.key === "Enter") adicionarUsuarioAdmin()
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (carregarPermissoes.quando || 0) > 60000) carregarPermissoes(); });
 // ordens de serviço: novas OS da fila aparecem ao voltar para o app (no máximo 1 vez por minuto)
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (sincronizarOS.quando || 0) > 60000) sincronizarOS(); });
+// lista de clientes ao voltar para o app (no máximo 1 vez a cada 5 min): cliente arquivado ou desarquivado em outro aparelho troca de lista aqui
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || !conta || !navigator.onLine || Date.now() - (carregarClientes.quando || 0) < 5 * 60000) return;
+  carregarClientes.quando = Date.now();            // (uma tentativa por vez)
+  carregarClientes(true).then(() => { redesenharClientesQuieto(); if (secao === "cliente" && cliPagina && !$("tela-cliente").hidden && !document.querySelector("dialog[open]")) desenharPaginaCliente(); });
+});
 window.addEventListener("online", () => processarBaixasOS(false));
 window.addEventListener("online", () => enviarPerfilPend());
 $("hist-resumo").onclick = abrirHistorico;
