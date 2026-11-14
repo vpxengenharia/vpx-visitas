@@ -1984,6 +1984,37 @@ span.fu-orc-lin{cursor:default}
 @media (min-width:900px) and (hover:hover) and (pointer:fine){
   #os-corpo{display:block}
 }
+
+/* Validades: AVCB, extintores e mangueiras numa tabela só (pedido do Gustavo em 13/11/2026) */
+.avcb-tab thead .avcb-rot-l{display:none}
+.avcb-tab thead .avcb-rot-c,.avcb-tab thead .avcb-rot-l{width:auto;min-height:0;padding:0;line-height:inherit}
+.avcb-tab thead .avcb-rot-c{display:inline}
+.avcb-tab .avcb-c-sit{width:86px}
+.avcb-tab .avcb-c-eq{width:68px}
+.avcb-tab td.avcb-c-eq small{display:none}   /* celular: só o selo; o mês fica no detalhe */
+.avcb-tab th.avcb-c-sit,.avcb-tab th.avcb-c-eq{padding-left:4px;padding-right:4px}
+.avcb-tab td.avcb-c-sit,.avcb-tab td.avcb-c-eq{padding-left:6px;padding-right:4px}
+.avcb-tab thead th.avcb-c-sit button,.avcb-tab thead th.avcb-c-eq button{padding:0 4px}
+.avcb-tab .avcb-c-eq small,.avcb-tab .avcb-c-sit small{display:block;margin:2px 0 0;font-size:12px;color:var(--suave);white-space:normal;line-height:1.25}
+.avcb-tab .avcb-c-eq .avcb-sit,.avcb-tab .avcb-c-sit .avcb-sit{font-size:12px;padding:2px 7px}
+.avcb-sem{color:var(--suave);font-size:13px}
+.avcb-tab.sem-eq .avcb-c-eq{display:none!important}
+.avcb-tab .orc-c-data{display:none}
+.avcb-det dd{white-space:pre-line}
+@container (min-width:860px){
+  .avcb-tab thead .avcb-rot-l{display:inline}.avcb-tab thead .avcb-rot-c{display:none}
+  .avcb-tab td.avcb-c-eq small{display:block}
+  .avcb-tab th.avcb-c-sit,.avcb-tab th.avcb-c-eq,.avcb-tab td.avcb-c-sit,.avcb-tab td.avcb-c-eq{padding-left:10px;padding-right:10px}
+  .avcb-tab thead th.avcb-c-sit button,.avcb-tab thead th.avcb-c-eq button{padding:0 10px}
+  .avcb-tab .orc-c-data{display:table-cell;width:104px}
+  .avcb-tab .avcb-c-sit{width:132px}
+  .avcb-tab .avcb-c-eq{width:126px}
+  .avcb-tab .avcb-c-sit small{display:block;margin:2px 0 0}
+  .avcb-c-cnpj{display:none}
+}
+@container (min-width:1150px){
+  .avcb-c-cnpj{display:table-cell}
+}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2738,10 +2769,10 @@ span.fu-orc-lin{cursor:default}
   </div>
 </div>
 
-<div class="tela-avcb com-nav" id="tela-avcb" hidden role="dialog" aria-label="Validade AVCB/CLCB">
+<div class="tela-avcb com-nav" id="tela-avcb" hidden role="dialog" aria-label="Validades: AVCB, extintores e mangueiras">
   <div class="avcb-topo">
     <button class="avcb-voltar" id="avcb-voltar" aria-label="Voltar">‹ Voltar</button>
-    <strong>Validade AVCB/CLCB</strong>
+    <strong>Validades</strong>
   </div>
   <div class="avcb-corpo">
     <div class="avcb-acoes">
@@ -2788,7 +2819,9 @@ span.fu-orc-lin{cursor:default}
         <th class="orc-c-tipo" scope="col"><button type="button" data-col="tipo">Tipo</button></th>
         <th class="avcb-c-cnpj" scope="col"><span>CNPJ/CPF</span></th>
         <th class="orc-c-data" scope="col"><button type="button" data-col="venc">Validade</button></th>
-        <th class="avcb-c-sit" scope="col"><button type="button" data-col="sit">Situação</button></th>
+        <th class="avcb-c-sit" scope="col"><button type="button" data-col="sit"><span class="avcb-rot-l">AVCB/CLCB</span><span class="avcb-rot-c">AVCB</span></button></th>
+        <th class="avcb-c-eq avcb-c-ext" scope="col"><button type="button" data-col="ext"><span class="avcb-rot-l">Extintores</span><span class="avcb-rot-c">Extint.</span></button></th>
+        <th class="avcb-c-eq avcb-c-mang" scope="col"><button type="button" data-col="mang"><span class="avcb-rot-l">Mangueiras</span><span class="avcb-rot-c">Mang.</span></button></th>
         <th class="orc-c-acao" scope="col"><span>Documento</span></th>
       </tr></thead>
       <tbody id="avcb-corpo"></tbody>
@@ -7823,6 +7856,7 @@ async function sincronizarEq() {
   finally { sincronizarEq.rodando = false; }
   if (eq && !eq.editando) desenharEq();
   if (!$("tela-eqv").hidden) desenharEqv();
+  if (!$("tela-avcb").hidden) desenharAvcb();
   if (secao === "inicio" && !$("tela-inicio").hidden) redesenharInicio();
 }
 // grava a lista do cliente (precisa de internet); 412 = outra pessoa mudou antes: recarrega e pede para refazer
@@ -7848,7 +7882,7 @@ function abrirEq(cli) {
   if (!cli) return;
   eq = { cliente: cli, editando: null };
   $("eq-titulo").textContent = cli;
-  $("tela-eq").style.zIndex = $("tela-eqv").hidden ? "" : "35";   // aberta pela lista de vencimentos (mesmo z-index e depois dela no HTML): fica por cima dela
+  $("tela-eq").style.zIndex = $("tela-eqv").hidden && $("tela-avcb").hidden ? "" : "35";   // aberta pela tabela de validades: por cima dela   // aberta pela lista de vencimentos (mesmo z-index e depois dela no HTML): fica por cima dela
   $("tela-eq").hidden = false;
   document.body.style.overflow = "hidden";
   history.pushState({ eq: true }, "");
@@ -7859,9 +7893,10 @@ function fecharEq(voltar = true) {
   if ($("tela-eq").hidden) return;
   $("tela-eq").hidden = true;
   eq = null;
-  document.body.style.overflow = $("tela-eqv").hidden ? "" : "hidden";
+  document.body.style.overflow = $("tela-eqv").hidden && $("tela-avcb").hidden ? "" : "hidden";
   if (voltar && history.state?.eq) history.back();
   if (!$("tela-eqv").hidden) desenharEqv();
+  if (!$("tela-avcb").hidden) desenharAvcb();
 }
 function desenharEq() {
   if (!eq) return;
@@ -10641,14 +10676,51 @@ function avcbDoCliente(nome, todos) {                // todos: a lista já monta
 /* tabela como planilha (pedido do Gustavo em 07/11/2026, igual à das notas fiscais): estabelecimento, tipo, CNPJ,
    validade, situação e documento; busca, filtros de situação e de cliente/prospecção, ordem pela coluna e planilha.
    Tocar na linha abre o detalhe embaixo dela (endereço com mapa, CNPJ, quem registrou, foto/PDF, página do cliente). */
-let avcbOrdem = { col: "venc", desc: false }, avcbAberto = null, avcbVisiveis = [];
+let avcbOrdem = { col: "urg", desc: false }, avcbAberto = null, avcbVisiveis = [], avcbSoEq = false;   // avcbSoEq: só extintores e mangueiras (aberta pelo número deles no Início)
 const chaveAvcb = v => semAcento(v.cliente) + "|" + v.tipo;
-const COLS_AVCB = { cli: x => x.v.cliente, tipo: x => x.v.tipo, venc: x => x.s.dias, sit: x => x.s.dias };
+/* Validades unificadas (pedido do Gustavo em 13/11/2026: "colocar a validade dos extintores e das mangueiras na mesma aba que a validade do AVCB…
+   Unificar"). Decisões dele: uma tela só (a de vencimentos de extintores e mangueiras saiu dos menus), cliente com extintores/mangueiras e sem AVCB
+   também entra, e os filtros de situação olham os três juntos. Cada linha: { v, s (AVCB ou null), cli (pasta do cliente), ext, mang, cls, urg }. */
+const diasYM = ym => { const [a, m] = ym.split("-").map(Number); return Math.ceil((new Date(a, m, 0, 23, 59) - Date.now()) / 86400000); };   // até o fim do mês
+function resumoEq(cli, t) {                        // pior situação dos grupos do tipo e o vencimento que manda nela
+  const vs = (eqDados[cli]?.[t] || []).flatMap(g => vencGrupo(t, g));
+  if (!vs.length) return null;
+  const sit = piorSit(vs), alvo = vs.filter(v => v.sit === sit).sort((a, b) => a.vence.localeCompare(b.vence))[0];
+  return { sit, vence: alvo.vence, dias: diasYM(alvo.vence) };
+}
+function linhasValidades() {
+  const lista = listaAvcb(), comEq = pode("equip"), comAvcb = pode("avcb");
+  const linhas = lista.map(v => ({ v, s: situacaoAvcb(v), cli: null }));
+  if (comEq) {                                     // extintores e mangueiras: na linha do AVCB do cliente (o mesmo casamento da página do cliente) ou numa linha própria
+    const porChave = new Map(linhas.map(x => [chaveAvcb(x.v), x]));
+    const pares = Object.keys(eqDados).filter(c => gruposDe(eqDados[c]).length).map(c => ({ c, a: avcbDoCliente(c, lista) }));
+    const exato = p => p.a && semAcento(p.a.pasta || p.a.cliente) === semAcento(p.c);
+    pares.sort((p, q) => exato(q) - exato(p) || p.c.localeCompare(q.c, "pt-BR"));   // nome igual ao do AVCB primeiro ("Jardim Europa" antes de "Jardim")
+    for (const { c, a } of pares) {
+      const x = a && porChave.get(chaveAvcb(a));
+      if (x && !x.cli) x.cli = c;
+      else if (x) linhas.push({ v: { ...a, cliente: c, pasta: c, reg: a.reg }, s: situacaoAvcb(a), cli: c });   // outro cliente com o mesmo AVCB (a página dele mostra esse AVCB)
+      else linhas.push({ v: { cliente: c, pasta: c, tipo: "", vencimento: "", categoria: "cliente", semAvcb: true }, s: null, cli: c });
+    }
+  }
+  if (!comAvcb) for (let i = linhas.length - 1; i >= 0; i--) if (!linhas[i].cli) linhas.splice(i, 1);   // sem a função avcb: só os clientes com extintores e mangueiras
+  for (const x of linhas) {
+    x.ext = x.cli ? resumoEq(x.cli, "ext") : null;
+    x.mang = x.cli ? resumoEq(x.cli, "mang") : null;
+    const cs = [x.s?.cls, x.ext?.sit, x.mang?.sit];
+    x.cls = cs.includes("crit") ? "crit" : cs.includes("warn") ? "warn" : "ok";
+    x.urg = Math.min(...[x.s?.dias, x.ext?.dias, x.mang?.dias].filter(d => d != null));
+  }
+  return linhas;
+}
+const COLS_AVCB = { cli: x => x.v.cliente, tipo: x => x.v.tipo || null, venc: x => x.s ? x.s.dias : null, sit: x => x.s ? x.s.dias : null,
+  ext: x => x.ext ? x.ext.dias : null, mang: x => x.mang ? x.mang.dias : null, urg: x => x.urg };
 function compAvcb(a, b) {
-  const f = COLS_AVCB[avcbOrdem.col], x = f(a), y = f(b);
-  let r = typeof x === "number" ? x - y : String(x).localeCompare(String(y), "pt-BR");
+  const f = COLS_AVCB[avcbOrdem.col] || COLS_AVCB.urg, x = f(a), y = f(b);
+  if ((x == null) !== (y == null)) return x == null ? 1 : -1;   // sem a informação: no fim
+  let r = x == null ? 0 : typeof x === "number" ? x - y : String(x).localeCompare(String(y), "pt-BR");
   if (avcbOrdem.desc) r = -r;
-  return r || a.s.dias - b.s.dias || a.v.cliente.localeCompare(b.v.cliente, "pt-BR");
+  return r || a.urg - b.urg || a.v.cliente.localeCompare(b.v.cliente, "pt-BR");
 }
 // situação em poucas palavras para a coluna: "Vencido" / "há 1.085 dias"; "A vencer" / "em 45 dias"; "Em dia" / "faltam 210 dias"
 function sitCurtaAvcb(s) {
@@ -10668,23 +10740,31 @@ function pastaDoAvcb(v) {
   return achado && chaveAvcb(achado) === chaveAvcb(v) ? pasta : null;
 }
 const buscaAvcb = (x, q) => semAcento([x.v.cliente, x.v.tipo, x.v.endereco, x.v.cnpj, digitos(x.v.cnpj), x.v.reg?.razao, x.v.reg?.numero, x.v.reg?.obs,
-  dataBRde(x.v.vencimento), x.v.categoria === "prospeccao" && "prospeccao"].filter(Boolean).join(" ")).includes(q);
+  x.v.vencimento && dataBRde(x.v.vencimento), x.v.categoria === "prospeccao" && "prospeccao"].filter(Boolean).join(" ")).includes(q);
 function desenharAvcb() {
   const q = semAcento($("avcb-busca").value.trim()), sit = $("avcb-sit").value;
-  const daCat = listaAvcb().filter(v => filtroAvcb === "todos" || v.categoria === filtroAvcb).map(v => ({ v, s: situacaoAvcb(v) }));
+  $("tela-avcb").querySelector(".avcb-tab").classList.toggle("sem-eq", !pode("equip"));   // sem a função de extintores: só o AVCB
+  let daCat = linhasValidades().filter(x => filtroAvcb === "todos" || x.v.categoria === filtroAvcb);
+  if (avcbSoEq) daCat = daCat.filter(x => x.ext || x.mang).map(x => ({ ...x, cls: [x.ext?.sit, x.mang?.sit].includes("crit") ? "crit" : [x.ext?.sit, x.mang?.sit].includes("warn") ? "warn" : "ok" }));
   const daBusca = q ? daCat.filter(x => buscaAvcb(x, q)) : daCat;
   // resumo: quantos em cada situação (no que a busca deixou); tocar num número filtra por ela (de novo, tira o filtro)
   const res = $("avcb-resumo");
   res.innerHTML = "";
   res.appendChild(el("span", "", `${daBusca.length}${q ? " de " + daCat.length : ""} estabelecimento${(q ? daCat.length : daBusca.length) === 1 ? "" : "s"}:`));
-  [["crit", "vencido", "vencidos"], ["warn", "vence em até 3 meses", "vencem em até 3 meses"], ["ok", "em dia", "em dia"]].forEach(([cls, um, varios]) => {
-    const n = daBusca.filter(x => x.s.cls === cls).length;
+  const pe = pode("equip");
+  [["crit", pe ? "com algo vencido" : "vencido", pe ? "com algo vencido" : "vencidos"], ["warn", pe ? "com algo a vencer" : "vence em até 3 meses", pe ? "com algo a vencer" : "vencem em até 3 meses"], ["ok", pe ? "tudo em dia" : "em dia", pe ? "tudo em dia" : "em dia"]].forEach(([cls, um, varios]) => {
+    const n = daBusca.filter(x => x.cls === cls).length;
     const b = el("button", "avcb-qt " + cls, `${n} ${n === 1 ? um : varios}`); b.type = "button";
     b.setAttribute("aria-pressed", String(sit === cls));
     b.onclick = () => { $("avcb-sit").value = sit === cls ? "" : cls; desenharAvcb(); $("avcb-resumo").querySelector(".avcb-qt." + cls)?.focus(); };
     res.appendChild(b);
   });
-  avcbVisiveis = daBusca.filter(x => !sit || x.s.cls === sit).sort(compAvcb);
+  if (avcbSoEq) {                                  // etiqueta "Só extintores e mangueiras ×": tocar volta a mostrar o AVCB também
+    const b = el("button", "tar-fil-chip", "Só extintores e mangueiras"); b.type = "button"; b.title = "Mostrar também o AVCB";
+    b.appendChild(el("span", "tar-fil-x", "×")); b.onclick = () => { avcbSoEq = false; desenharAvcb(); };
+    res.appendChild(b);
+  }
+  avcbVisiveis = daBusca.filter(x => !sit || x.cls === sit).sort(compAvcb);
   $("tela-avcb").querySelectorAll("thead button").forEach(b => {
     const ativa = b.dataset.col === avcbOrdem.col;
     b.dataset.seta = ativa ? (avcbOrdem.desc ? " ↓" : " ↑") : "";
@@ -10698,14 +10778,22 @@ function desenharAvcb() {
     if (avcbAberto === chaveAvcb(x.v)) corpo.appendChild(detalheAvcb(x, zebra));
   });
   $("avcb-vazio").hidden = !!avcbVisiveis.length;
-  $("avcb-vazio").textContent = daCat.length ? "Nenhum estabelecimento com esses filtros." : "Nenhum AVCB ou CLCB na lista.";
+  $("avcb-vazio").textContent = daCat.length ? "Nenhum estabelecimento com esses filtros." : "Nenhum AVCB, CLCB, extintor ou mangueira na lista.";
   $("avcb-exportar").hidden = !avcbVisiveis.length;
   const n = Object.keys(regsAvcb).length;
   $("avcb-nota").textContent = `Lista do painel "Validade AVCB/CLCB" copiada em ${CONFIG.validadeAvcbData}` +
     (n ? ` + ${n} AVCB${n > 1 ? "s" : ""} registrado${n > 1 ? "s" : ""} pela equipe (foto ou PDF).` : ".") +
     ` Os arquivos ficam em ${CONFIG.pastaClientesNome} › ${CONFIG.pastaAvcb}.`;
 }
-function linhaAvcb({ v, s }, zebra) {
+// extintores ou mangueiras na linha: selo (Vencido / A vencer / Em dia) e o mês que manda nele
+function celEqAvcb(r, cls) {
+  const td = el("td", "avcb-c-eq " + cls);
+  if (!r) { td.appendChild(el("span", "avcb-sem", "—")); return td; }
+  td.append(el("span", "avcb-sit " + r.sit, r.sit === "crit" ? "Vencido" : r.sit === "warn" ? "A vencer" : "Em dia"), el("small", "", `${r.sit === "crit" ? "venceu" : "vence"} ${ymBR(r.vence)}`));
+  return td;
+}
+function linhaAvcb(x, zebra) {
+  const { v, s } = x;
   const k = chaveAvcb(v), aberto = avcbAberto === k;
   const tr = el("tr", [zebra && "zebra", aberto && "avcb-aberta"].filter(Boolean).join(" ")); tr.dataset.k = k;
   const cli = el("td", "orc-c-cli");
@@ -10715,12 +10803,13 @@ function linhaAvcb({ v, s }, zebra) {
   if (aberto) nome.setAttribute("aria-controls", "avcb-det");
   cli.appendChild(nome);
   const extra = [v.categoria === "prospeccao" && "Prospecção", v.reg?.pendente && "⏳ aguardando envio"].filter(Boolean);
-  cli.appendChild(el("small", "orc-sub orc-so-cel", [v.tipo, ...extra].join(" · ")));   // no celular o tipo vai embaixo do nome
+  cli.appendChild(el("small", "orc-sub orc-so-cel", [v.semAvcb ? "Sem AVCB registrado" : `${v.tipo} até ${dataBRde(v.vencimento)}`, ...extra].join(" · ")));   // no celular o tipo e a validade vão embaixo do nome
   if (extra.length) cli.appendChild(el("small", "orc-sub avcb-so-pc", extra.join(" · ")));
-  const data = el("td", "orc-c-data"), d = dataBRde(v.vencimento);
+  const data = el("td", "orc-c-data"), d = v.semAvcb ? "—" : dataBRde(v.vencimento);
   data.append(el("span", "orc-data-l", d), el("span", "orc-data-c", d.replace(/\d{2}(\d{2})$/, "$1")));
-  const [rot, quando] = sitCurtaAvcb(s), sit = el("td", "avcb-c-sit");
-  sit.append(el("span", "avcb-sit " + s.cls, rot), el("small", "", quando));
+  const sit = el("td", "avcb-c-sit");
+  if (s) { const [rot, quando] = sitCurtaAvcb(s); sit.append(el("span", "avcb-sit " + s.cls, rot), el("small", "", quando)); }
+  else sit.appendChild(el("span", "avcb-sem", "Sem AVCB"));
   const doc = el("td", "orc-c-acao");
   if (v.reg?.pendente) doc.textContent = "⏳ na fila";
   else if (v.reg?.foto) {
@@ -10729,7 +10818,7 @@ function linhaAvcb({ v, s }, zebra) {
     a.onclick = e => e.stopPropagation();
     doc.appendChild(a);
   } else doc.textContent = "—";
-  tr.append(cli, el("td", "orc-c-tipo", v.tipo), el("td", "avcb-c-cnpj", v.cnpj || "—"), data, sit, doc);
+  tr.append(cli, el("td", "orc-c-tipo", v.tipo || "—"), el("td", "avcb-c-cnpj", v.cnpj || "—"), data, sit, celEqAvcb(x.ext, "avcb-c-ext"), celEqAvcb(x.mang, "avcb-c-mang"), doc);
   const alternar = () => {
     avcbAberto = aberto ? null : k;
     desenharAvcb();
@@ -10746,13 +10835,19 @@ function linhaAvcb({ v, s }, zebra) {
   return tr;
 }
 // detalhe embaixo da linha: o que não cabe na tabela e botões grandes (documento, mapa e página do cliente)
-function detalheAvcb({ v, s }, zebra) {
+function detalheAvcb(x, zebra) {
+  const { v, s } = x;
   // ocupa só as colunas que aparecem (no celular 3, no computador 6): a mais desalinharia a tabela
   const cols = [...$("tela-avcb").querySelectorAll("thead th")].filter(th => getComputedStyle(th).display !== "none").length || 3;
   const tr = el("tr", "avcb-det" + (zebra ? " zebra" : "")), td = el("td"); td.colSpan = cols; td.id = "avcb-det";
   const dl = el("dl");
   const par = (k, val) => { if (val) dl.append(el("dt", "", k), el("dd", "", val)); };
-  par("Situação", s.texto);
+  par(v.semAvcb ? "AVCB/CLCB" : "Situação", s ? s.texto : "Sem AVCB ou CLCB registrado");
+  // extintores e mangueiras do cliente: cada controle com o vencimento (uma linha por controle)
+  for (const [t, rot] of [["ext", "Extintores"], ["mang", "Mangueiras"]]) {
+    const ls = (eqDados[x.cli]?.[t] || []).flatMap(g => vencGrupo(t, g).map(vv => ({ g, ...vv }))).sort((a, b) => a.vence.localeCompare(b.vence));
+    if (x.cli && ls.length) par(rot, ls.map(l => `${l.sit === "crit" ? "⚠ " : l.sit === "warn" ? "⏳ " : ""}${descGrupo(t, l.g)}${l.g.local ? " (" + l.g.local + ")" : ""}: ${l.rot.toLowerCase()} ${l.sit === "crit" ? "venceu" : "vence"} em ${ymBR(l.vence)}`).join("\n"));
+  }
   par("Endereço", v.endereco);
   par("CNPJ/CPF", v.cnpj);
   if (v.reg?.razao && semAcento(v.reg.razao) !== semAcento(v.cliente)) par("Razão social", v.reg.razao);
@@ -10767,7 +10862,15 @@ function detalheAvcb({ v, s }, zebra) {
   const link = (ico, txt, href) => { const a = comIc(el("a", "btn sec avcb-ir"), ico, txt); a.href = href; a.target = "_blank"; a.rel = "noopener"; ac.appendChild(a); };
   if (v.reg?.foto && !v.reg.pendente) link(v.reg.pdf ? "doc" : "imagem", v.reg.pdf ? "Ver o PDF" : "Ver a foto", v.reg.foto);
   if (v.endereco) link("pin", "Abrir no mapa", "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(v.endereco));
-  const pasta = pastaDoAvcb(v);
+  if (x.cli && (x.ext || x.mang)) {                // extintores e mangueiras: o controle do cliente (marcar recarga feita, editar grupos) e o aviso
+    const b = comIc(el("button", "btn sec avcb-ir"), "extintor", "Extintores e mangueiras do cliente"); b.type = "button";
+    b.onclick = () => abrirEq(x.cli); ac.appendChild(b);
+    if ([x.s?.cls, x.ext?.sit, x.mang?.sit].some(c => c === "crit" || c === "warn")) {
+      const a2 = comIc(el("button", "btn sec avcb-ir"), "megafone", "Avisar cliente"); a2.type = "button";
+      a2.onclick = () => avisarCliente(x.cli); ac.appendChild(a2);
+    }
+  }
+  const pasta = x.cli && clientes.includes(x.cli) ? x.cli : pastaDoAvcb(v);
   if (pasta) {                                     // página do cliente: contatos, arquivos, avisar o cliente…
     const b = comIc(el("button", "btn sec avcb-ir"), "predio", `Abrir a página de ${pasta}`); b.type = "button";
     b.onclick = () => irClienteDoAvcb(pasta);
@@ -10806,14 +10909,24 @@ async function exportarAvcb() {
   try {
     if (!window.XLSX) await carregarScript(SHEETJS);
     const SIT = { crit: "Vencido", warn: "Vence em até 3 meses", ok: "Em dia" };
-    const linhas = [["Estabelecimento", "Tipo", "Categoria", "Validade", "Situação", "Dias para vencer", "CNPJ/CPF", "Endereço", "Razão social", "Número", "Observação", "Registrado por", "Registrado em", "Documento"]];
-    avcbVisiveis.forEach(({ v, s }) => linhas.push([v.cliente, v.tipo, v.categoria === "prospeccao" ? "Prospecção" : "Cliente", dataBRde(v.vencimento), SIT[s.cls], s.dias,
+    const SIT_EQ = { crit: "Vencido", warn: "Vence em até 60 dias", ok: "Em dia" };
+    const linhas = [["Estabelecimento", "Tipo", "Categoria", "Validade", "Situação", "Dias para vencer", "Extintores", "Extintores: vence (mês/ano)", "Mangueiras", "Mangueiras: vence (mês/ano)", "CNPJ/CPF", "Endereço", "Razão social", "Número", "Observação", "Registrado por", "Registrado em", "Documento"]];
+    avcbVisiveis.forEach(({ v, s, ext, mang }) => linhas.push([v.cliente, v.tipo || "", v.categoria === "prospeccao" ? "Prospecção" : "Cliente", v.semAvcb ? "" : dataBRde(v.vencimento), s ? SIT[s.cls] : "Sem AVCB registrado", s ? s.dias : "",
+      ext ? SIT_EQ[ext.sit] : "", ext ? ymBR(ext.vence) : "", mang ? SIT_EQ[mang.sit] : "", mang ? ymBR(mang.vence) : "",
       v.cnpj || "", v.endereco || "", v.reg?.razao || "", v.reg?.numero || "", v.reg?.obs || "", v.reg?.fotografadoPor || "",
       v.reg?.fotografadoEm ? dataBRde(dataISO(new Date(v.reg.fotografadoEm))) : "", v.reg?.foto || ""]));
     const ws = XLSX.utils.aoa_to_sheet(linhas);
-    ws["!cols"] = [30, 7, 12, 11, 20, 10, 20, 44, 34, 12, 30, 20, 13, 40].map(w => ({ wch: w }));
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Validade AVCB e CLCB");
-    const nome = `Validade AVCB e CLCB - ${dataISO()}`;
+    ws["!cols"] = [30, 7, 12, 11, 20, 10, 20, 14, 20, 14, 20, 44, 34, 12, 30, 20, 13, 40].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Validades");
+    const clisEq = avcbVisiveis.map(x => x.cli).filter(Boolean);
+    if (clisEq.length) {                           // cada controle de extintor e mangueira dos clientes da tabela
+      const det = [["Cliente", "Equipamento", "Grupo", "Local", "Controle", "Último (mês/ano)", "Vence (mês/ano)", "Situação"]];
+      linhasEq(clisEq).sort((a, b) => a.cli.localeCompare(b.cli, "pt-BR") || a.vence.localeCompare(b.vence))
+        .forEach(l => det.push([l.cli, l.t === "ext" ? "Extintor" : "Mangueira", descGrupo(l.t, l.g), l.g.local || "", l.rot, ymBR(l.ultima), ymBR(l.vence), SIT_EQ[l.sit]]));
+      const ws2 = XLSX.utils.aoa_to_sheet(det); ws2["!cols"] = [28, 12, 34, 26, 20, 14, 14, 20].map(w => ({ wch: w }));
+      XLSX.utils.book_append_sheet(wb, ws2, "Extintores e mangueiras");
+    }
+    const nome = `Validades - AVCB, extintores e mangueiras - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
@@ -10823,8 +10936,10 @@ async function exportarAvcb() {
 function atualizarBadgeAvcb() {
   $("avcb-qtd").hidden = true;
 }
-function abrirAvcb() {
-  $("avcb-busca").value = ""; $("avcb-sit").value = ""; $("avcb-cat").value = filtroAvcb;
+function abrirAvcb(op) {                           // op.sit: abre já filtrado (crit / warn); op.eq: só extintores e mangueiras — o número deles no Início
+  avcbSoEq = !!(op && op.eq === true);
+  if (avcbSoEq) filtroAvcb = "todos";
+  $("avcb-busca").value = ""; $("avcb-sit").value = op && ["crit", "warn", "ok"].includes(op.sit) ? op.sit : ""; $("avcb-cat").value = filtroAvcb;
   avcbAberto = null;
   avcbDe = TELA_SECAO[secao] ? secao : "inicio";   // a seção que fica embaixo (para voltar da página do cliente)
   desenharAvcb();
@@ -10833,6 +10948,7 @@ function abrirAvcb() {
   document.body.style.overflow = "hidden";
   history.pushState({ avcb: true }, "");           // o "voltar" do Android fecha a tela
   sincronizarAvcb();
+  sincronizarEq();                                 // extintores e mangueiras (só com a função equip)
 }
 function fecharAvcb(voltar = true) {
   if ($("tela-avcb").hidden) return;
@@ -16942,7 +17058,7 @@ function desenharInicio() {
     }
     if (pode("equip") && Object.keys(eqDados).length) {
       const sits = Object.keys(eqDados).map(sitCliente).filter(Boolean), venc = sits.filter(x => x === "crit").length, logo = sits.filter(x => x === "warn").length;
-      kpi("extintor", "Extintores e mang.", venc, logo ? `${logo} a vencer em 60 dias` : venc ? `cliente${s(venc)} com item vencido` : "", venc ? "crit" : logo ? "warn" : "zero", () => { eqvFiltro = venc ? "crit" : logo ? "warn" : "todos"; abrirEqv(); });
+      kpi("extintor", "Extintores e mang.", venc, logo ? `${logo} a vencer em 60 dias` : venc ? `cliente${s(venc)} com item vencido` : "", venc ? "crit" : logo ? "warn" : "zero", () => abrirAvcb({ sit: venc ? "crit" : logo ? "warn" : "", eq: true }));
     }
     if (pode("funil")) {
       const etsNeg = GRUPOS_FU.find(g => g[0] === "neg")[2];   // as mesmas etapas do grupo "Em negociação" da tela do Funil (o número é igual ao de lá)
@@ -17051,7 +17167,7 @@ function desenharInicio() {
     const b = el("button", "hub-card alerta " + (venc ? "crit" : logo ? "warn" : "okv")); b.type = "button";
     b.appendChild(el("b", "", venc || logo ? [venc && `${venc} cliente${venc > 1 ? "s" : ""} com extintor ou mangueira vencido`, logo && `${logo} com vencimento em 60 dias`].filter(Boolean).join(" · ") : "Extintores e mangueiras dos clientes em dia"));
     b.appendChild(el("small", "", "Extintores e mangueiras"));
-    b.onclick = () => { eqvFiltro = venc ? "crit" : logo ? "warn" : "todos"; abrirEqv(); };
+    b.onclick = () => abrirAvcb({ sit: venc ? "crit" : logo ? "warn" : "", eq: true });
     if (!pc) esq.appendChild(b);
   }
 }
@@ -17340,8 +17456,7 @@ function desenharReg() {
   grupo("Filas de trabalho");
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
   grupo("Novo registro");
-  if (pode("avcb")) g.appendChild(tile("escudo", "Validade AVCB / CLCB", abrirAvcb));   // saiu do Mais (pedido do Gustavo em 19/10/2026)
-  if (pode("equip")) g.appendChild(tile("extintor", "Extintores e mangueiras", abrirEqv));   // vencimentos de todos os clientes; saiu do Mais (pedido do Gustavo em 19/10/2026)
+  if (pode("avcb") || pode("equip")) g.appendChild(tile("escudo", "AVCB, extintores e mangueiras", () => abrirAvcb()));   // validades numa tela só (pedido do Gustavo em 13/11/2026)
   // Orçamentos: saíram daqui e foram para o Comercial (pedido do Gustavo em 13/11/2026); na página do cliente continuam
   // Notas fiscais: saíram daqui e foram para o Financeiro (pedido do Gustavo em 13/11/2026); na página do cliente continuam
   grupo("Consultas e controles");
@@ -17683,8 +17798,7 @@ const SUBMENUS_NAV = {
     [null, "Novo registro"],                       // títulos de grupo (pedido do Gustavo em 13/11/2026, item 3 da análise do menu)
     ...MODOS_APP.filter(([m]) => m !== "comp").map(([m, , nome]) => ["m-" + m, nome, () => pode(m), () => abrirModulo(m)]),
     [null, "Controles"],
-    ["avcb", "Validade AVCB / CLCB", () => pode("avcb"), () => abrirAvcb(), "reg"],
-    ["eqv", "Extintores e mangueiras", () => pode("equip"), () => abrirEqv(), "reg"]
+    ["avcb", "AVCB, extintores e mangueiras", () => pode("avcb") || pode("equip"), () => abrirAvcb(), "reg"]   // uma tela só (pedido do Gustavo em 13/11/2026)
   ],
   funil: [
     ["vendas", "Vendas", () => true, () => abrirFunil()],   // os grupos (Em negociação, Prospecção, Encerradas, Todas) ficam na própria tela (pedido do Gustavo em 13/11/2026)
@@ -17900,7 +18014,7 @@ document.addEventListener("keydown", e => {
 const podeSoltar = () => secao === "trabalho" && !$("tela-app").hidden && !document.body.classList.contains("modo-laudo") && !enviando
   && !cam && !$("dlg").open && $("visor-pdf").hidden && ![...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden);
 // e o PDF ou a foto do AVCB na tela Validade AVCB/CLCB (o mesmo que os botões PDF e Galeria)
-const podeSoltarAvcb = () => pode("avcbFoto") && $("visor-pdf").hidden && !$("dlg").open
+const podeSoltarAvcb = () => pode("avcbFoto") && $("visor-pdf").hidden && !$("dlg").open && $("tela-eq").hidden   // extintores do cliente por cima da tabela (z-index 35): não é AVCB
   && [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).at(-1)?.id === "tela-avcb";
 // e o PDF da nota fiscal (e do boleto) na tela "Nova nota fiscal"
 const podeSoltarNf = () => !!nfTela?.nova && !nfTela.nova.salvando && !nfTela.nova.lendo && $("visor-pdf").hidden && !$("dlg").open
@@ -18042,6 +18156,7 @@ window.addEventListener("popstate", () => {
   }
   // "voltar" na página do cliente aberta pela tabela de validade AVCB: volta para a tabela como estava
   if (history.state?.avcbVolta && cliDe === "avcb" && secao === "cliente" && ![...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden)) { reabrirAvcb(); return; }
+  if (history.state?.avcb && !$("tela-eq").hidden) { fecharEq(false); return; }   // voltou dos extintores de um cliente (abertos pela tabela de validades) para a tabela
   if (history.state?.avcbNovo && !$("tela-avcb-novo").hidden) return;   // voltou do visualizador (documento ampliado) para o "Novo AVCB"
   if (!$("tela-avcb-novo").hidden || history.state?.avcb) { fecharNovoAvcb(false); return; }   // voltou do "Novo AVCB" para a lista
   if (!$("tela-nf").hidden && (nfTela?.det || nfTela?.nova) && !history.state?.nfSub) { nfTela = {}; desenharNf(true); reporRol("tela-nf"); return; }   // "voltar" numa nota fiscal: volta para a lista
