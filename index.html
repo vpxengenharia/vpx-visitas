@@ -2015,6 +2015,43 @@ span.fu-orc-lin{cursor:default}
 @container (min-width:1150px){
   .avcb-c-cnpj{display:table-cell}
 }
+
+/* exportar planilha e PDF lado a lado (13/11/2026) */
+.exp-bot{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px}
+.exp-bot .btn{width:100%;margin:0!important}
+.exp-bot[hidden]{display:none!important}
+.exp-bot .btn{font-size:15.5px;padding:0 10px;white-space:nowrap;gap:8px}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  .exp-bot{grid-template-columns:repeat(auto-fill,minmax(220px,280px))}
+}
+
+/* exportar PDF: clientes */
+/* Clientes: planilha e PDF lado a lado; no computador, dois botões de 280 px como os outros de exportar
+   (a regra antiga "#cl-exportar{width:fit-content!important;min-width:280px}" do computador não vale dentro do .exp-bot) */
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  #cl-exp{grid-template-columns:repeat(2,minmax(0,280px))}
+  .exp-bot #cl-exportar{width:100%!important;min-width:0;padding:0 16px}
+}
+
+/* exportar PDF: orc */
+#orc-exp .btn{width:100%!important;min-width:0}   /* no computador a regra das larguras (#orc-exportar com fit-content e 280 px, !important) venceria o .exp-bot .btn */
+
+/* exportar PDF: nf */
+/* notas fiscais: no computador a regra antiga (#nf-exportar com width:fit-content!important e min-width:280px) deixaria o botão da planilha estreito dentro da dupla */
+#nf-exp #nf-exportar{width:100%!important;min-width:0}
+
+/* exportar PDF: comphist */
+/* histórico de comprovantes: a regra do computador "#ch-exportar{width:fit-content!important;min-width:280px}" não vale dentro da dupla de botões */
+.exp-bot #ch-exportar{width:100%!important;min-width:0}
+
+/* exportar PDF: eqv */
+/* Extintores e mangueiras: dentro da dupla de botões, a planilha ocupa a sua metade (a regra do computador dá width:fit-content!important a #eqv-exportar) */
+.exp-bot #eqv-exportar{width:100%!important;min-width:0}
+
+/* exportar PDF: avcb */
+/* exportar PDF: avcb */
+/* Validades: a regra do computador "#avcb-exportar{width:fit-content!important;min-width:280px}" não vale dentro da dupla de botões */
+.exp-bot #avcb-exportar{width:100%!important;min-width:0}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2302,7 +2339,7 @@ span.fu-orc-lin{cursor:default}
       <tbody id="cl-corpo"></tbody>
     </table>
     <p class="avcb-nota" id="cl-vazio" hidden></p>
-    <button class="btn sec" id="cl-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+    <div class="exp-bot" id="cl-exp"><button class="btn sec" id="cl-exportar" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="cl-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
     <button class="laudo-link" id="cl-exp-contatos" type="button" hidden>Exportar todos os contatos (Excel)</button>
   </section>
   <section id="tela-cliente" class="hub" hidden></section>
@@ -2438,7 +2475,7 @@ span.fu-orc-lin{cursor:default}
     <div id="pc-lote" hidden role="region" aria-label="Solicitações marcadas"></div>
     <div id="pc-detalhe" hidden></div>
     <div id="pc-novo" hidden></div>
-    <button class="laudo-link" id="pc-exportar" hidden>Exportar planilha desta aba (Excel)</button>
+    <div class="exp-bot" id="pc-exp" hidden><button class="btn sec" id="pc-exportar" type="button" hidden title="Planilha com todas as solicitações desta aba"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="pc-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
     <datalist id="pc-materiais"></datalist>
   </div>
 </div>
@@ -2460,7 +2497,7 @@ span.fu-orc-lin{cursor:default}
       <div class="tr-cards" id="tr-cards"></div>
       <p class="orc-resumo" id="tr-resumo"></p>
       <div id="tr-lista"></div>
-      <button class="btn sec" id="tr-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+      <div class="exp-bot" id="tr-exp"><button class="btn sec" id="tr-exportar" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="tr-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
       <button class="laudo-link" id="tr-importar" type="button" hidden>Importar planilha do Fin365</button>
       <p class="avcb-nota" id="tr-estado"></p>
     </div>
@@ -2479,7 +2516,7 @@ span.fu-orc-lin{cursor:default}
       <p class="orc-resumo" id="cp-resumo"></p>
       <div id="cp-lista"></div>
       <div id="cp-lote" hidden role="region" aria-label="Contas marcadas"></div>
-      <button class="btn sec" id="cp-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+      <div class="exp-bot" id="cp-exp"><button class="btn sec" id="cp-exportar" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="cp-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
       <p class="avcb-nota" id="cp-estado"></p>
     </div>
     <div id="fx-w" hidden></div><!-- fluxo de caixa (13/11/2026) -->
@@ -2535,7 +2572,7 @@ span.fu-orc-lin{cursor:default}
     </div>
     <p class="avcb-nota" id="eqv-estado" style="margin-top:0"></p>
     <div id="eqv-lista"></div>
-    <button class="btn sec" id="eqv-exportar" type="button" style="width:100%;margin-top:12px">⬇ Exportar planilha (Excel)</button>
+    <div class="exp-bot" id="eqv-exp"><button class="btn sec" id="eqv-exportar" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="eqv-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
   </div>
 </div>
 
@@ -2564,7 +2601,7 @@ span.fu-orc-lin{cursor:default}
       <tbody id="orc-corpo"></tbody>
     </table>
     <p class="avcb-nota" id="orc-vazio" hidden></p>
-    <button class="btn sec" id="orc-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+    <div class="exp-bot" id="orc-exp"><button class="btn sec" id="orc-exportar" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="orc-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
     <button class="laudo-link" id="orc-atualizar">Atualizar lista</button>
     <p class="avcb-nota" id="orc-nota"></p>
   </div>
@@ -2604,7 +2641,7 @@ span.fu-orc-lin{cursor:default}
         <tbody id="nf-corpo"></tbody>
       </table>
       <p class="avcb-nota" id="nf-vazio" hidden></p>
-      <button class="btn sec" id="nf-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+      <div class="exp-bot" id="nf-exp"><button class="btn sec" id="nf-exportar" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="nf-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
       <button class="laudo-link" id="nf-atualizar">Atualizar lista</button>
       <p class="avcb-nota" id="nf-nota"></p>
     </div>
@@ -2724,7 +2761,7 @@ span.fu-orc-lin{cursor:default}
     <div class="ch-resumo" id="ch-resumo"></div>
     <p class="avcb-nota" id="ch-estado" style="margin-top:0"></p>
     <div id="ch-lista"></div>
-    <button class="btn sec" id="ch-exportar" type="button" style="width:100%;margin-top:12px">⬇ Exportar planilha (Excel)</button>
+    <div class="exp-bot" id="ch-exp"><button class="btn sec" id="ch-exportar" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="ch-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
     <button class="laudo-link" id="ch-atualizar">Atualizar</button>
   </div>
 </div>
@@ -2827,7 +2864,7 @@ span.fu-orc-lin{cursor:default}
       <tbody id="avcb-corpo"></tbody>
     </table>
     <p class="avcb-nota" id="avcb-vazio" hidden></p>
-    <button class="btn sec" id="avcb-exportar" type="button" style="width:100%;margin-top:12px">Exportar planilha (Excel)</button>
+    <div class="exp-bot" id="avcb-exp"><button class="btn sec" id="avcb-exportar" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-planilha"/></svg>Exportar planilha</button><button class="btn sec" id="avcb-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
     <p class="avcb-nota" id="avcb-nota"></p>
   </div>
 </div>
@@ -7697,6 +7734,7 @@ function enviosComp(arqs) {
 function abrirCompHist() {
   ch = { envios: [], filtro: "todos", mes: dataISO().slice(0, 7), pessoa: "" };
   $("ch-titulo").textContent = ehAdmin() ? "Comprovantes enviados" : "Meus comprovantes";
+  $("ch-exp").hidden = true;                      // só aparece depois que a lista é desenhada com itens
   $("ch-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === "todos")));
   $("tela-ch").hidden = false;
   document.body.style.overflow = "hidden";
@@ -7745,7 +7783,7 @@ function desenharCompHist() {
   if (ch.filtro === "todos") res.appendChild(el("span", "", `Compras R$ ${moedaBR(soma("compra"))} · Reembolsos R$ ${moedaBR(soma("reembolso"))}`));
   if (semValor) res.appendChild(el("span", "", ` · ${semValor} sem valor (enviados antes do campo valor)`));
   lista.innerHTML = "";
-  $("ch-exportar").hidden = !envs.length;
+  $("ch-exp").hidden = !envs.length;
   if (!envs.length) { lista.appendChild(el("p", "avcb-nota", "Nenhum comprovante neste filtro.")); return; }
   let dia = "";
   for (const e of envs) {
@@ -7793,6 +7831,35 @@ async function exportarCompHist() {
     compartilharArquivo(arquivo, nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+// relatório em PDF do que está filtrado no histórico de comprovantes (a mesma lista e a mesma ordem da tela: mais novos primeiro)
+function defPdfCompHist() {
+  const envs = compFiltrados(), adm = ehAdmin();
+  const soma = t => envs.filter(e => !t || e.t === t).reduce((s, e) => s + (e.valor || 0), 0);
+  const semValor = envs.filter(e => e.valor == null).length;
+  const mesTxt = ch.mes ? `${MESES[+ch.mes.slice(5, 7) - 1]} de ${ch.mes.slice(0, 4)}`.replace(/^./, c => c.toUpperCase()) : "Todos os meses";
+  const filtros = [];
+  if (ch.filtro !== "todos") filtros.push("Tipo: " + (ch.filtro === "compra" ? "Compras" : "Reembolsos"));
+  if (ch.mes) filtros.push("Mês: " + mesTxt);
+  if (adm && ch.pessoa) filtros.push("Colaborador: " + ch.pessoa);
+  if (filtros.length) filtros.push(`${envs.length} de ${ch.envios.length} comprovante${ch.envios.length === 1 ? "" : "s"}`);
+  const resumo = [["Comprovantes", String(envs.length)], ["Total", R$(soma())]];
+  if (ch.filtro === "todos") resumo.push(["Compras", R$(soma("compra"))], ["Reembolsos", R$(soma("reembolso"))]);
+  if (semValor) resumo.push(["Sem valor", String(semValor), "warn"]);
+  const colunas = [{ t: "Data", w: 1.1 }, ...(adm ? [{ t: "Colaborador", w: 1.8 }] : []), { t: "Tipo", w: 2.6 }, { t: "Descrição", w: 3.5 },
+    { t: "Centro de custo", w: 1.3 }, { t: "Valor", w: 1.4, al: "r" }, { t: "Arquivos", w: 0.9, al: "c" }];
+  const linhas = envs.map(e => [e.data ? dataBRde(e.data) : "-", ...(adm ? [e.autor || "-"] : []), e.t === "compra" ? "Compra" + (e.forma ? ` (${e.forma})` : "") : "Reembolso",
+    e.desc || "(sem descrição)", e.centro || "-", e.valor != null ? R$(e.valor) : { t: "sem valor", cor: "apag" }, String(e.arqs.length)]);
+  const quem = adm ? ch.pessoa || "equipe" : nomeColaborador();
+  return {
+    titulo: adm ? "Comprovantes enviados" : "Meus comprovantes",
+    sub: `${mesTxt} - ${adm ? ch.pessoa || "toda a equipe" : nomeColaborador()}`,
+    filtros, resumo, colunas, linhas,
+    total: envs.length ? ["", ...(adm ? [""] : []), "", "", "TOTAL", R$(soma()), ""] : null,
+    nota: semValor ? `${semValor} comprovante${semValor === 1 ? "" : "s"} sem valor (enviados antes do campo valor) não entram no total.` : "",
+    nome: `Comprovantes - ${quem} - ${ch.mes || "todos os meses"}`
+  };
+}
+const pdfCompHist = () => { if (ch) relatorioPDF(defPdfCompHist()); };
 function fecharCompHist(voltar = true) {
   if ($("tela-ch").hidden) return;
   $("tela-ch").hidden = true;
@@ -8031,9 +8098,10 @@ function fecharEqv(voltar = true) {
 function desenharEqv() {
   $("eqv-filtro").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === eqvFiltro)));
   const lista = $("eqv-lista"); lista.innerHTML = "";
-  const linhas = linhasEq().filter(l => eqvFiltro === "todos" || l.sit === eqvFiltro).sort((a, b) => a.vence.localeCompare(b.vence));
+  const linhas = linhasEqv();
   $("eqv-estado").textContent = Object.keys(eqDados).length ? "" : "Nenhum cliente com extintores ou mangueiras cadastrados ainda. Cadastre pela página de cada cliente.";
-  $("eqv-exportar").hidden = !Object.keys(eqDados).length;
+  $("eqv-exp").hidden = !Object.keys(eqDados).length;   // a planilha leva todos os itens dos clientes (como antes)
+  $("eqv-pdf").hidden = !linhas.length;                 // o PDF leva só o que o filtro mostra: sem linhas, sem botão
   if (!linhas.length) { if (Object.keys(eqDados).length) lista.appendChild(el("p", "avcb-nota", eqvFiltro === "crit" ? "Nenhum item vencido." : "Nada neste filtro.")); return; }
   const porCli = new Map();
   linhas.forEach(l => { if (!porCli.has(l.cli)) porCli.set(l.cli, []); porCli.get(l.cli).push(l); });
@@ -8064,6 +8132,32 @@ async function exportarEq(clis) {
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+
+// relatório em PDF da lista de vencimentos (pedido do Gustavo em 13/11/2026): as mesmas linhas da tela, na mesma ordem
+// (agrupadas por cliente, cada um na posição do vencimento mais antigo; dentro do cliente, por vencimento)
+function linhasEqv() {
+  return linhasEq().filter(l => eqvFiltro === "todos" || l.sit === eqvFiltro).sort((a, b) => a.vence.localeCompare(b.vence));
+}
+function defPdfEqv() {
+  const linhas = linhasEqv(), total = linhasEq().length, porCli = new Map();
+  linhas.forEach(l => { if (!porCli.has(l.cli)) porCli.set(l.cli, []); porCli.get(l.cli).push(l); });
+  const nomeSit = { crit: "Vencido", warn: "Vence em até 60 dias", ok: "Em dia" };
+  const rotFiltro = { crit: "Vencidos", warn: "Vencem em 60 dias" }[eqvFiltro];
+  const conta = s => linhas.filter(l => l.sit === s).length;
+  const unid = t => [...new Set(linhas.filter(l => l.t === t).map(l => l.g))].reduce((s, g) => s + (+g.qtd || 0), 0);   // um extintor pode ter 2 linhas (recarga e hidrostático): soma cada grupo uma vez
+  const resumo = [["Itens", String(linhas.length)], ["Clientes", String(porCli.size)], ["Extintores (unid.)", String(unid("ext"))], ["Mangueiras (unid.)", String(unid("mang"))]];
+  if (eqvFiltro === "todos") { const nc = conta("crit"), nw = conta("warn"); resumo.push(["Vencidos", String(nc), nc ? "crit" : ""], ["Vencem em 60 dias", String(nw), nw ? "warn" : ""], ["Em dia", String(conta("ok")), "ok"]); }
+  return {
+    titulo: "Extintores e mangueiras", sub: "Vencimentos de todos os clientes", nome: "Extintores e mangueiras - vencimentos",
+    filtros: rotFiltro ? [`Situação: ${rotFiltro}`, `${linhas.length} de ${total} itens`] : [],
+    resumo,
+    colunas: [{ t: "Cliente", w: 2.4 }, { t: "Equipamento", w: 1.1 }, { t: "Grupo", w: 2.6 }, { t: "Local", w: 2 }, { t: "Controle", w: 1.5 }, { t: "Último (mês/ano)", w: 1.1, al: "c" }, { t: "Vence (mês/ano)", w: 1.1, al: "c" }, { t: "Situação", w: 1.6 }],
+    linhas: [...porCli].flatMap(([cli, ls]) => ls.map((l, i) => [{ t: cli, neg: i === 0 }, l.t === "ext" ? "Extintor" : "Mangueira", descGrupo(l.t, l.g), l.g.local || "", l.rot, ymBR(l.ultima),
+      { t: ymBR(l.vence), cor: l.sit, neg: l.sit === "crit" }, { t: nomeSit[l.sit], cor: l.sit }])),
+    nota: "Prazos: recarga do extintor a cada 12 meses e teste hidrostático a cada 5 anos; teste/manutenção da mangueira a cada 12 meses. Cada item vale até o último dia do mês do vencimento."
+  };
+}
+function pdfEqv() { return relatorioPDF(defPdfEqv()); }
 
 /* ---------- aviso ao cliente: mensagem pronta e PDF da situação (AVCB, extintores e mangueiras) ----------
    Pedido do Gustavo em 17/10/2026: cada vencimento vira um aviso com um toque. A mensagem lista só o que está
@@ -8184,6 +8278,129 @@ async function pdfSituacao(cli) {
     abrirVisor(arq, "Situação do cliente", textoAviso(cli));
   } catch (e) { console.error(e); aviso("Não foi possível gerar o PDF: " + e.message, true); }
 }
+
+/* ---------- relatório em PDF de uma lista filtrada (pedido do Gustavo em 13/11/2026: "exportar em PDF as coisas que eu filtrar") ----------
+   Cada tela com filtros monta uma definição e chama relatorioPDF(def); o PDF sai só com as linhas que estão na tela, com os filtros
+   escolhidos escritos no alto, os números do resumo e a tabela (cabeçalho repetido em cada página). Abre no visualizador (Compartilhar).
+   def = { titulo, sub (linha embaixo do título, opcional), filtros: [texto], resumo: [[rótulo, valor, cor?]], colunas: [{ t, w (peso), al: "r"|"c" }],
+           linhas: [[célula]] ou [{ c: [célula], neg, cor, fundo, nivel }], total: [célula] (linha final em negrito), nota (texto no fim), nome (do arquivo),
+           paisagem (true/false; sem dizer, paisagem com mais de 6 colunas) }
+   célula = texto | número | { t, cor: "crit"|"warn"|"ok"|"azul"|"apag", neg: true, risc: true }   (número sem formato sai como está) */
+const PDF_WIN = new Set([..."€‚ƒ„…†‡ˆ‰Š‹ŒŽ•˜™š›œžŸ"]);
+const pdfLimpo = s => pdfTx(s == null ? "" : s).replace(/[−–—]/g, "-").replace(/[“”«»]/g, '"').replace(/[‘’]/g, "'").replace(/≥/g, ">=").replace(/≤/g, "<=")
+  .replace(/Ω/g, " ohms").replace(/→/g, ">").replace(/←/g, "<").replace(/[   ]/g, " ").replace(/\r/g, "")
+  .replace(/[^\n\x20-\xff]/gu, c => PDF_WIN.has(c) ? c : "").replace(/[ \t]{2,}/g, " ");
+async function gerarRelatorioPDF(R) {
+  const jsPDF = window.jspdf?.jsPDF;
+  if (!jsPDF) throw new Error("a ferramenta de PDF não carregou (abra o app uma vez com internet)");
+  const cols = R.colunas, paisagem = R.paisagem ?? cols.length > 6;
+  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: paisagem ? "landscape" : "portrait" });
+  const W = paisagem ? 297 : 210, H = paisagem ? 210 : 297, M = 12, L = W - 2 * M, FIM = H - 14;
+  const AZUL = [28, 60, 97], LARANJA = [235, 157, 43], CINZA = [91, 107, 128], TINTA = [19, 37, 59], LINHA = [215, 222, 230];
+  const COR = { crit: [178, 34, 34], warn: [176, 110, 0], ok: [31, 122, 69], azul: AZUL, apag: [140, 150, 162] };
+  // larguras: pesos proporcionais à largura útil
+  const soma = cols.reduce((s, c) => s + (c.w || 1), 0), X = [M];
+  cols.forEach(c => X.push(X[X.length - 1] + L * (c.w || 1) / soma));
+  const celTxt = v => v == null || v === false ? "" : typeof v === "object" ? pdfLimpo(v.t ?? "") : pdfLimpo(v);
+  let y = M;
+  // cabeçalho da 1ª página: logo, título, quem gerou, data e hora
+  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 30, 17, "logo", "FAST"); } catch {}
+  doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(...AZUL);
+  doc.text(doc.splitTextToSize(pdfLimpo(R.titulo), L - 40), W - M, y + 6, { align: "right" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...CINZA);
+  const agora = new Date(), quando = `${dataBRde(dataISO())} às ${agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+  if (R.sub) doc.text(pdfLimpo(R.sub), W - M, y + 12, { align: "right" });
+  doc.text(pdfLimpo(`Emitido em ${quando} por ${nomeColaborador()}`), W - M, y + (R.sub ? 17 : 12), { align: "right" });
+  y += 21; doc.setDrawColor(...LARANJA); doc.setLineWidth(0.9); doc.line(M, y, W - M, y); y += 6;
+  // filtros escolhidos na tela
+  const filtros = (R.filtros || []).filter(Boolean);
+  doc.setFontSize(9);
+  const ft = doc.splitTextToSize(pdfLimpo(filtros.length ? "Filtros: " + filtros.join("  |  ") : "Sem filtros: todos os itens da lista."), L - 6);
+  doc.setFillColor(242, 245, 249); doc.roundedRect(M, y - 4, L, ft.length * 4.2 + 3.6, 1.5, 1.5, "F");
+  doc.setTextColor(...TINTA); doc.text(ft, M + 3, y); y += ft.length * 4.2 + 4;
+  // números do resumo, em caixinhas
+  const res = (R.resumo || []).filter(r => r && r[1] != null && r[1] !== "");
+  if (res.length) {
+    const n = Math.min(res.length, paisagem ? 6 : 4), lw = (L - (n - 1) * 3) / n;
+    for (let i = 0; i < res.length; i += n) {
+      res.slice(i, i + n).forEach(([rot, val, cor], j) => {
+        const x = M + j * (lw + 3);
+        doc.setDrawColor(...LINHA); doc.setLineWidth(0.3); doc.roundedRect(x, y, lw, 13, 1.5, 1.5, "S");
+        doc.setFont("helvetica", "normal"); doc.setFontSize(7.8); doc.setTextColor(...CINZA); doc.text(doc.splitTextToSize(pdfLimpo(rot), lw - 4)[0], x + 2.5, y + 4.6);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...(COR[cor] || TINTA)); doc.text(doc.splitTextToSize(pdfLimpo(val), lw - 4)[0], x + 2.5, y + 10.4);
+      });
+      y += 16;
+    }
+    y += 1;
+  }
+  // tabela
+  const FS = cols.length > 9 ? 7.4 : cols.length > 6 ? 8 : 8.6, LH = FS * 0.43;
+  const cabTab = () => {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(FS);
+    const ls = cols.map((c, i) => doc.splitTextToSize(pdfLimpo(c.t), X[i + 1] - X[i] - 3.6));
+    const h = Math.max(...ls.map(l => l.length)) * LH + 3;
+    doc.setFillColor(...AZUL); doc.rect(M, y, L, h, "F"); doc.setTextColor(255, 255, 255);
+    ls.forEach((l, i) => { const c = cols[i], xt = c.al === "r" ? X[i + 1] - 1.8 : c.al === "c" ? (X[i] + X[i + 1]) / 2 : X[i] + 1.8; doc.text(l, xt, y + 1.5 + LH * 0.8, { align: c.al === "r" ? "right" : c.al === "c" ? "center" : "left" }); });
+    y += h;
+  };
+  const linhaTab = (l, k, total) => {
+    const o = Array.isArray(l) ? { c: l } : l, neg = total || o.neg;
+    const ls = o.c.map((v, i) => { doc.setFont("helvetica", neg || v?.neg ? "bold" : "normal"); doc.setFontSize(FS); return doc.splitTextToSize(celTxt(v), X[i + 1] - X[i] - 3.6 - (i === 0 && o.nivel ? o.nivel * 3 : 0)); });
+    const h = Math.max(1, ...ls.map(x => x.length)) * LH + 2.6;
+    if (y + h > FIM) { doc.addPage(); y = M; cabTab(); }
+    if (total) { doc.setFillColor(232, 237, 244); doc.rect(M, y, L, h, "F"); }
+    else if (o.fundo) { doc.setFillColor(...o.fundo); doc.rect(M, y, L, h, "F"); }
+    else if (k % 2) { doc.setFillColor(248, 249, 251); doc.rect(M, y, L, h, "F"); }
+    ls.forEach((t, i) => {
+      const v = o.c[i], c = cols[i], cor = COR[v?.cor] || COR[o.cor] || TINTA;
+      doc.setFont("helvetica", neg || v?.neg ? "bold" : "normal"); doc.setFontSize(FS); doc.setTextColor(...cor);
+      const xt = c.al === "r" ? X[i + 1] - 1.8 : c.al === "c" ? (X[i] + X[i + 1]) / 2 : X[i] + 1.8 + (i === 0 && o.nivel ? o.nivel * 3 : 0);
+      doc.text(t, xt, y + 1.3 + LH * 0.8, { align: c.al === "r" ? "right" : c.al === "c" ? "center" : "left" });
+      if (v?.risc) t.forEach((ln, j) => { const w = Math.min(doc.getTextWidth(ln), X[i + 1] - X[i] - 3.6), x0 = c.al === "r" ? xt - w : c.al === "c" ? xt - w / 2 : xt, yy = y + 1.3 + LH * 0.5 + j * doc.getLineHeight() / doc.internal.scaleFactor; doc.setDrawColor(...cor); doc.setLineWidth(0.25); doc.line(x0, yy, x0 + w, yy); });
+    });
+    doc.setDrawColor(...LINHA); doc.setLineWidth(0.2); doc.line(M, y + h, W - M, y + h);
+    y += h;
+  };
+  if (y + 20 > FIM) { doc.addPage(); y = M; }
+  cabTab();
+  if (!R.linhas.length) { doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...CINZA); doc.text("Nenhum item com esses filtros.", M + 2, y + 6); y += 10; }
+  R.linhas.forEach((l, k) => linhaTab(l, k));
+  if (R.total) linhaTab(R.total, 0, true);
+  if (R.nota) {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+    const nt = doc.splitTextToSize(pdfLimpo(R.nota), L);
+    if (y + nt.length * 4 + 6 > FIM) { doc.addPage(); y = M; }
+    doc.setTextColor(...CINZA); doc.text(nt, M, y + 6);
+  }
+  // rodapé: o que é, quando e a página
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p); doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...CINZA);
+    doc.text(pdfLimpo(`VPX Engenharia  -  ${R.titulo}  -  emitido em ${quando}`), M, H - 7);
+    doc.text(`página ${p} de ${total}`, W - M, H - 7, { align: "right" });
+  }
+  return doc.output("blob");
+}
+// gera e abre no visualizador (de lá, Compartilhar manda o PDF)
+async function relatorioPDF(R) {
+  if (relatorioPDF.rodando) return;
+  relatorioPDF.rodando = true;
+  aviso("Gerando o PDF…");
+  try {
+    const blob = await gerarRelatorioPDF(R);
+    const arq = new File([blob], `${limparNome(R.nome || R.titulo)} - ${dataISO()}.pdf`, { type: "application/pdf" });
+    abrirVisor(arq, R.titulo, `${R.titulo} - VPX Engenharia`);
+  } catch (e) { console.error(e); aviso("Não foi possível gerar o PDF: " + e.message, true); }
+  finally { relatorioPDF.rodando = false; }
+}
+// a dupla de botões "Exportar planilha" / "Exportar PDF" das listas montadas pelo script
+function botoesExportar(fnPlanilha, fnPdf) {
+  const w = el("div", "exp-bot");
+  if (fnPlanilha) { const b = comIc(el("button", "btn sec"), "planilha", "Exportar planilha"); b.type = "button"; b.onclick = fnPlanilha; w.appendChild(b); }
+  const p = comIc(el("button", "btn sec"), "doc", "Exportar PDF"); p.type = "button"; p.onclick = fnPdf; w.appendChild(p);
+  return w;
+}
+const R$ = v => v == null || v === "" || isNaN(v) ? "" : "R$ " + moedaBR(+v);
 
 /* ---------- ordens de serviço (fila de serviços fechados com o cliente) ----------
    Pedido do Gustavo em 17/10/2026. O escritório (função osCriar) cria a OS; ela entra na fila; o técnico pega,
@@ -8383,7 +8600,7 @@ function cartaoOS(o, onclick) {
   b.appendChild(l1);
   b.appendChild(el("b", "", o.cliente));
   { const s = el("small", "os-tipo"); s.append(ic(TIPOS_OS[o.tipo]?.ico || "chave", "in"), descTipoOS(o)); b.appendChild(s); }
-  const quem = o.status === "andamento" ? `Com ${o.tecnico?.nome || "-"}` : o.status === "aberta" ? (o.para ? `Para ${o.para.nome}` : "Para qualquer técnico") : o.status === "concluida" ? `Concluída por ${o.concluida?.por?.nome || "-"} em ${o.concluida?.em ? dataBRde(o.concluida.em.slice(0, 10)) : "-"}` : "";
+  const quem = o.status === "andamento" ? `Com ${o.tecnico?.nome || "-"}` : o.status === "aberta" ? (o.para ? `Para ${o.para.nome}` : "Para qualquer técnico") : o.status === "concluida" ? `Concluída por ${o.concluida?.por?.nome || "-"} em ${o.concluida?.em ? dataBRde(dataISO(new Date(o.concluida.em))) : "-"}` : "";
   b.appendChild(el("small", "", [quem, o.prevista && `Prevista ${dataBRde(o.prevista)}${atrasadaOS(o) ? " (atrasada)" : ""}`].filter(Boolean).join(" · ")));
   b.onclick = onclick || (() => { guardarRol("tela-os"); osTela.aberta = o.numero; desenharOS(); $("os-corpo").scrollTop = 0; });
   return b;
@@ -8402,7 +8619,7 @@ function desenharOS() {
   const contar = f => listaOS().filter(filtroOS(f)).length;
   filtros.forEach(([f, rot]) => { const b = el("button", "", f === "concluidas" ? rot : `${rot} (${contar(f)})`); b.type = "button"; b.setAttribute("aria-pressed", String(osTela.filtro === f)); b.onclick = () => { osTela.filtro = f; desenharOS(); }; ch.appendChild(b); });
   c.appendChild(ch);
-  const lista = listaOS().filter(filtroOS(osTela.filtro)).sort(osTela.filtro === "concluidas" ? (a, b) => (b.concluida?.em || b.criadoEm || "").localeCompare(a.concluida?.em || a.criadoEm || "") : ordemOS);
+  const lista = listaTelaOS();
   const pend = lerLS("vpx_os_baixas", []).length;
   if (pend) c.appendChild(el("p", "ld-aviso", `⏳ ${pend} baixa${pend > 1 ? "s" : ""} aguardando internet para ser enviada${pend > 1 ? "s" : ""}.`));
   if (!lista.length) c.appendChild(vazio("os", { fila: "Nenhuma OS na fila", minhas: "Nenhuma OS com você agora", andamento: "Nenhuma OS em andamento", concluidas: "Nenhuma OS concluída ainda" }[osTela.filtro], osTela.filtro === "minhas" && listaOS().some(naFilaOS) ? "Veja em Fila as que esperam um técnico." : ""));
@@ -8410,13 +8627,47 @@ function desenharOS() {
     const atr = lista.filter(atrasadaOS).length, urg = lista.filter(o => o.prioridade === "urgente" && (o.status === "aberta" || o.status === "andamento")).length;
     c.appendChild(el("p", "orc-resumo os-resumo", `${lista.length} ${lista.length === 1 ? "ordem" : "ordens"} de serviço` + (urg ? ` · ${urg} urgente${urg === 1 ? "" : "s"}` : "") + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : "") + (osTela.filtro === "concluidas" && lista.length > 60 ? " (as 60 mais recentes)" : "")));
     c.appendChild(tabelaOS(lista.slice(0, osTela.filtro === "concluidas" ? 60 : 500)));
+    c.appendChild(botoesExportar(null, pdfOS));
   }
   if (!navigator.onLine) c.appendChild(el("p", "avcb-nota", "Sem internet: mostrando a última lista guardada."));
 }
+// a lista que a tabela das OS mostra (mesmo filtro e mesma ordem), usada pela tela e pelo PDF
+function listaTelaOS(f = osTela.filtro) {
+  return listaOS().filter(filtroOS(f)).sort(f === "concluidas" ? (a, b) => (b.concluida?.em || b.criadoEm || "").localeCompare(a.concluida?.em || a.criadoEm || "") : ordemOS);
+}
+// relatório em PDF da lista que está na tela (as mesmas linhas da tabela; concluídas: as 60 mais recentes, como na tela)
+const ROT_FILTRO_OS = { fila: "Fila", minhas: "Minhas", andamento: "Em andamento", concluidas: "Concluídas" };
+const COR_ST_OS = { aberta: "warn", andamento: "azul", concluida: "ok", cancelada: "apag" };
+function defPdfOS() {
+  const f = osTela?.filtro || "fila", rot = ROT_FILTRO_OS[f] || f;
+  const todas = listaTelaOS(f), lista = todas.slice(0, f === "concluidas" ? 60 : 500), corte = todas.length > lista.length;
+  const desc = { fila: pode("osCriar") ? "Fila (todas as abertas)" : `Fila (abertas para ${nomeColaborador()} ou para qualquer técnico)`,
+    minhas: `Minhas (com ${nomeColaborador()})`, andamento: "Em andamento", concluidas: "Concluídas (concluídas e canceladas)" }[f] || rot;
+  const atr = todas.filter(atrasadaOS).length, urg = todas.filter(o => o.prioridade === "urgente" && (o.status === "aberta" || o.status === "andamento")).length;
+  return {
+    titulo: "Ordens de serviço", sub: "Lista: " + rot, nome: "Ordens de serviço - " + rot,
+    filtros: [desc, `${todas.length} de ${listaOS().length} ordens de serviço` + (corte ? ` (no relatório, as ${lista.length} mais recentes)` : "")],
+    resumo: [["Ordens de serviço", String(todas.length)], ["Urgentes", String(urg), urg ? "crit" : ""], ["Atrasadas", String(atr), atr ? "crit" : ""]],
+    colunas: [{ t: "Nº", w: 1.1 }, { t: "Cliente", w: 3 }, { t: "Tipo", w: 2.5 }, { t: "Situação", w: 1.8 }, { t: "Responsável", w: 2.6 }, { t: "Prevista", w: 1.5 }],
+    linhas: lista.map(o => {
+      const ativa = o.status === "aberta" || o.status === "andamento", urgente = o.prioridade === "urgente" && ativa, atrasada = atrasadaOS(o);
+      return [
+        { t: o.numero, neg: true },
+        { t: o.cliente || "(sem cliente)", cor: ativa ? "" : "apag" },
+        descTipoOS(o),
+        { t: (ST_OS[o.status] || o.status) + (urgente ? " - Urgente" : ""), cor: urgente ? "crit" : COR_ST_OS[o.status] || "" },
+        (o.status === "concluida" ? quemOS(o).replace(/^Concluída por /, "") : o.status === "cancelada" && o.cancelamento?.por ? "Cancelada por " + (o.cancelamento.por.nome || o.cancelamento.por) : quemOS(o)) || "-",
+        o.prevista ? (atrasada ? { t: dataBRde(o.prevista) + " (atrasada)", cor: "crit", neg: true } : dataBRde(o.prevista)) : "-"
+      ];
+    }),
+    nota: corte ? `Como na tela, o relatório mostra só as ${lista.length} mais recentes das ${todas.length} ordens concluídas ou canceladas.` : ""
+  };
+}
+const pdfOS = () => relatorioPDF(defPdfOS());
 /* lista das OS como planilha (pedido do Gustavo em 13/11/2026: "como lista, não como esses quadradinhos"; como as tabelas de Tarefas e Solicitações).
    Celular: Cliente (nº, tipo e quem embaixo) · Situação · Prevista; tela larga: também Tipo e Responsável. Os cartões (cartaoOS) continuam no Início e na página do cliente. */
 const quemOS = o => o.status === "andamento" ? `Com ${o.tecnico?.nome || "-"}` : o.status === "aberta" ? (o.para ? `Para ${o.para.nome}` : "Qualquer técnico")
-  : o.status === "concluida" ? `Concluída por ${o.concluida?.por?.nome || "-"}${o.concluida?.em ? " em " + dataBRde(o.concluida.em.slice(0, 10)) : ""}` : "";
+  : o.status === "concluida" ? `Concluída por ${o.concluida?.por?.nome || "-"}${o.concluida?.em ? " em " + dataBRde(dataISO(new Date(o.concluida.em))) : ""}` : "";
 function tabelaOS(lista) {
   const tb = el("table", "orc-tab os-tab"), cab = el("thead"), hr = el("tr"), corpo = el("tbody");
   [["Cliente", "orc-c-cli"], ["Tipo", "tar-so-pc os-c-tipo"], ["Situação", "os-c-st"], ["Responsável", "tar-so-pc os-c-quem"], ["Prevista", "os-c-prev"]]
@@ -9598,6 +9849,7 @@ const verboEsperando = tp => { const nPag = tp ? 0 : esperandoMim("pag") + esper
 const txtEsperando = (n, tp) => ehAdmin() ? `${n} aguardando sua aprovação` : `${n} aprovada${n > 1 ? "s" : ""} para ${verboEsperando(tp)}`;
 let pedidos = lerLS("vpx_pc", {});                 // id → { ...json, etag, itemId, pdfWeb, anexosWeb }
 let pcTipo = "compra", pcFiltro = "abertos", pcNovo = null, pcAberto = null;
+let pcVis = [], pcVisInfo = {};                  // o que a tabela mostra agora (mesma lista e ordem), para o "Exportar PDF"
 const pcExcluindo = new Set();                    // ids dos pedidos sendo excluídos agora: o detalhe fica sem os botões de ação
 const pcExcluidos = new Set();                    // pedidos excluídos neste aparelho: uma sincronização que já tinha listado a pasta não os recoloca
 
@@ -9953,7 +10205,7 @@ async function executarLotePC(a) {
 function desenharPedidos() {
   const lista = $("pc-lista"), det = $("pc-detalhe");
   $("pc-novo").hidden = true;
-  if (pcAberto && pedidos[pcAberto]) { lista.hidden = true; $("pc-topo-lista").hidden = true; det.hidden = false; desenharDetalhePC(pedidos[pcAberto]); return; }
+  if (pcAberto && pedidos[pcAberto]) { lista.hidden = true; $("pc-topo-lista").hidden = true; $("pc-exp").hidden = true; det.hidden = false; desenharDetalhePC(pedidos[pcAberto]); return; }
   pcAberto = null; lista.hidden = false; $("pc-topo-lista").hidden = false; det.hidden = true;
   // abas Compra / Pagamento (só aparecem se a pessoa tiver as duas)
   const abas = $("pc-tipos"), tipos = Object.keys(TIPOS_PED).filter(podeTipo);
@@ -9987,6 +10239,7 @@ function desenharPedidos() {
   }
   const [, rotFiltro, stsFiltro] = filtros.find(x => x[0] === pcFiltro);
   const vis = todos.filter(p => passa(p, stsFiltro)).sort(compPC);
+  pcVis = vis; pcVisInfo = { busca: $("pc-busca").value.trim(), rotFiltro, daAba: daAba.length, deFiltro: daAba.filter(p => passa(p, stsFiltro)).length };
   lista.innerHTML = "";
   // marcados: só os que estão na tela e ainda têm o que fazer em grupo (trocar de aba, filtro ou busca desmarca os que saíram — nada é feito sem estar à vista)
   const marcaveis = new Set(vis.filter(p => acoesLotePC(p).length).map(p => p.id));
@@ -10006,6 +10259,8 @@ function desenharPedidos() {
     : vazio(TIPOS_PED[pcTipo].ico, pcFiltro === "todos" ? "Nenhuma solicitação ainda" : pcFiltro === "abertos" ? "Nenhuma solicitação em aberto" : `Nenhuma solicitação em "${rotFiltro}"`,
         pcFiltro === "todos" ? "" : pcFiltro === "abertos" ? "Em Todas aparecem as já resolvidas." : todos.length ? "Veja os outros filtros ou Todas." : ""));
   else lista.appendChild(tabelaPC(vis, marcaveis.size > 0));
+  // embaixo da lista: PDF do que está na tela (todos, só com linhas) e planilha da aba inteira (só o administrador)
+  $("pc-pdf").hidden = !vis.length; $("pc-exportar").hidden = !ehAdmin(); $("pc-exp").hidden = $("pc-pdf").hidden && $("pc-exportar").hidden;
   pintarLotePC();
   $("pc-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última consulta." : (sincronizarPedidos.erros || []).join(" ");
 }
@@ -10232,7 +10487,7 @@ function abrirNovoPC() {
     ? { tipo: "pag", centro: "", centroDesc: "", favorecido: "", docFav: "", valor: "", vencimento: "", forma: "Boleto", linha: "", pix: "", banco: "", agencia: "", contaBanco: "", urgencia: "Normal", descricao: "" }
     : { tipo: "compra", centro: "", centroDesc: "", urgencia: "Normal", entrega: "Na obra", precisaAte: "", obs: "", itens: [] });
   pcNovo.anexos = [];                              // anexos ficam só na memória até enviar
-  $("pc-novo").hidden = false; $("pc-lista").hidden = true; $("pc-topo-lista").hidden = true; $("pc-detalhe").hidden = true;
+  $("pc-novo").hidden = false; $("pc-lista").hidden = true; $("pc-topo-lista").hidden = true; $("pc-detalhe").hidden = true; $("pc-exp").hidden = true;
   desenharNovoPC();
 }
 function fecharNovoPC() { $("pc-novo").hidden = true; pcNovo = null; desenharPedidos(); }
@@ -10608,6 +10863,52 @@ async function exportarPedidos() {
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
 
+// relatório em PDF da lista (pedido do Gustavo em 13/11/2026: "exportar em PDF as coisas que eu filtrar"): as mesmas linhas da tabela, na mesma ordem
+// (pcVis, guardada em desenharPedidos), com a etapa, a busca e a ordem escritas no alto; colunas da tela larga + o número da solicitação
+const ROT_COL_PC = (k, t) => ({ nome: t === "reemb" ? "Gasto" : t === "pag" ? "Favorecido" : "Itens", centro: "Centro de custo", sol: "Solicitante", data: "Data",
+  prazo: t === "reemb" ? "Data do gasto" : t === "pag" ? "Vencimento" : "Precisa até", valor: "Valor", sit: "Situação" })[k] || k;
+const COR_PC_PDF = { warn: "warn", ok: "ok", crit: "crit", "pc-and": "azul" };
+function defPdfPC() {
+  const t = pcTipo, pag = ehPagT(t), reemb = t === "reemb", vis = pcVis, inf = pcVisInfo;
+  const fora = p => ["recusado", "cancelado"].includes(p.status);
+  const plural = n => `${n} solicitaç${n === 1 ? "ão" : "ões"}`;
+  const filtros = [];
+  if (pcFiltro !== "todos") filtros.push(`Situação: ${inf.rotFiltro}`);
+  if (inf.busca) filtros.push(`Busca: "${inf.busca}"`);
+  if (pcOrdem.col !== "data" || !pcOrdem.desc) {
+    const k = pcOrdem.col, d = pcOrdem.desc;
+    const sentido = k === "data" ? (d ? "mais novas primeiro" : "mais antigas primeiro") : k === "prazo" ? (d ? "mais tarde primeiro" : "mais cedo primeiro")
+      : k === "valor" ? (d ? "maior primeiro" : "menor primeiro") : k === "sit" ? (d ? "etapas ao contrário" : "na ordem das etapas") : (d ? "Z a A" : "A a Z");
+    filtros.push(`Ordem: ${ROT_COL_PC(k, t)} (${sentido})`);
+  }
+  if (pcFiltro !== "todos" || inf.busca) filtros.push(`${vis.length} de ${plural(inf.daAba)} da aba ${TIPOS_PED[t].aba}`);
+  // resumo e total como na tela: recusadas e canceladas não somam
+  const vals = pag ? vis.filter(p => !fora(p)).map(valorPC).filter(v => v != null) : [];
+  const soma = vals.reduce((s, v) => s + v, 0), nFora = vis.filter(fora).length;
+  const resumo = [["Solicitações", inf.busca ? `${vis.length} de ${inf.deFiltro}` : String(vis.length)]];
+  if (vals.length) { resumo.push(["Total", R$(soma)]); if (nFora) resumo.push(["Recusadas ou canceladas (fora do total)", String(nFora)]); }
+  const urg = vis.filter(p => p.urgencia === "Urgente").length;
+  const colunas = [{ t: "Nº", w: pag ? 1.9 : 1.7 }, { t: ROT_COL_PC("nome", t), w: pag ? 2.8 : 3.4 }, { t: "Centro de custo", w: 2.4 }, { t: "Solicitante", w: 1.8 }, { t: "Feita em", w: 1, al: "c" },
+    { t: ROT_COL_PC("prazo", t), w: 1.1, al: "c" }, ...(pag ? [{ t: "Valor (R$)", w: 1.3, al: "r" }] : []), { t: "Situação", w: 1.4 }];
+  const linhas = vis.map(p => {
+    const n = p.itens?.length || 0, prazo = COLS_PC.prazo(p), v = valorPC(p);
+    const nome = (p.urgencia === "Urgente" ? "URGENTE - " : "") + nomePC(p) + (!pag && n > 1 ? ` (+${n - 1})` : "");
+    const sit = p.pendente ? "Na fila (no celular)" : (ST_PC_CURTO[p.status] || p.status) + (pag && p.status === "pago" && p.pagamento?.data ? " em " + dataBRde(p.pagamento.data) : "");
+    return [p.numero || "-", nome, centroPC(p), p.solicitante?.nome || "-", p.criadoEm ? new Date(p.criadoEm).toLocaleDateString("pt-BR") : "-", prazo ? dataBRde(prazo) : "-",
+      ...(pag ? [{ t: v != null ? moedaBR(v) : p.valor || "-", cor: fora(p) ? "apag" : undefined }] : []),
+      { t: sit, cor: p.pendente ? undefined : COR_PC_PDF[CLS_PC_TAB[p.status]] }];
+  });
+  const vazios = colunas.length - 3;
+  return {
+    titulo: reemb ? "Solicitações de reembolso" : pag ? "Solicitações de pagamento" : "Solicitações de compra",
+    sub: ehAdmin() || resolveTipo(t) ? "Solicitações de toda a equipe" : `Só as solicitações de ${nomeColaborador()}`,
+    filtros, resumo, colunas, linhas,
+    total: vals.length ? ["", nFora ? "Total (sem as recusadas e canceladas)" : "Total", ...Array(vazios - 1).fill(""), moedaBR(soma), ""] : null,
+    nota: urg ? `${urg} marcada${urg > 1 ? "s" : ""} como urgente${urg > 1 ? "s" : ""}.` : ""
+  };
+}
+const pdfPC = () => relatorioPDF(defPdfPC());
+
 /* menu ☰ do topo: ITs, pedidos, administração e conta (não cabem mais botões no topo) */
 function abrirMenu() {
   $("mn-its").hidden = $("btn-its").hidden;
@@ -10779,7 +11080,7 @@ function desenharAvcb() {
   });
   $("avcb-vazio").hidden = !!avcbVisiveis.length;
   $("avcb-vazio").textContent = daCat.length ? "Nenhum estabelecimento com esses filtros." : "Nenhum AVCB, CLCB, extintor ou mangueira na lista.";
-  $("avcb-exportar").hidden = !avcbVisiveis.length;
+  $("avcb-exp").hidden = !avcbVisiveis.length;   // planilha e PDF: só com linhas na tabela
   const n = Object.keys(regsAvcb).length;
   $("avcb-nota").textContent = `Lista do painel "Validade AVCB/CLCB" copiada em ${CONFIG.validadeAvcbData}` +
     (n ? ` + ${n} AVCB${n > 1 ? "s" : ""} registrado${n > 1 ? "s" : ""} pela equipe (foto ou PDF).` : ".") +
@@ -10930,6 +11231,48 @@ async function exportarAvcb() {
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+
+// relatório em PDF da tabela de Validades (pedido do Gustavo em 13/11/2026: "exportar em PDF as coisas que eu filtrar"): as mesmas
+// linhas da tela (avcbVisiveis, já filtradas e na ordem escolhida); extintores e mangueiras só para quem tem a função (como as colunas
+// da tela); o link do documento não serve no papel, então no lugar dele vai o endereço
+const ORDEM_AVCB_PDF = { cli: ["Estabelecimento", "A a Z", "Z a A"], tipo: ["Tipo", "A a Z", "Z a A"], venc: ["Validade", "vencidos primeiro", "validade mais longa primeiro"],
+  sit: ["AVCB/CLCB", "vencidos primeiro", "em dia primeiro"], ext: ["Extintores", "vencidos primeiro", "em dia primeiro"], mang: ["Mangueiras", "vencidos primeiro", "em dia primeiro"] };
+function defPdfAvcb() {
+  const pe = pode("equip"), lista = avcbVisiveis, q = $("avcb-busca").value.trim(), sit = $("avcb-sit").value;
+  const opcao = id => $(id).selectedOptions[0]?.text || $(id).value;
+  const filtros = [];
+  if (q) filtros.push(`Busca: "${q}"`);
+  if (sit) filtros.push("Situação: " + opcao("avcb-sit"));
+  if (filtroAvcb !== "todos") filtros.push("Categoria: " + (filtroAvcb === "prospeccao" ? "Prospecção" : "Clientes"));
+  if (avcbSoEq) filtros.push("Só extintores e mangueiras");
+  const total = linhasValidades().length;
+  if (filtros.length) filtros.push(`${lista.length} de ${total} estabelecimento${total === 1 ? "" : "s"}`);
+  const o = ORDEM_AVCB_PDF[avcbOrdem.col];
+  if (o) filtros.push(`Ordem: ${o[0]} (${o[avcbOrdem.desc ? 2 : 1]})`);
+  // resumo: os mesmos números da tela (situação juntando AVCB, extintores e mangueiras), contados sobre as linhas do relatório
+  const n = cls => lista.filter(x => x.cls === cls).length, nc = n("crit"), nw = n("warn"), nk = n("ok");
+  const resumo = [["Estabelecimentos", filtros.length && lista.length !== total ? `${lista.length} de ${total}` : String(lista.length)],
+    [pe ? "Com algo vencido" : "Vencidos", String(nc), nc ? "crit" : null],
+    [pe ? "Com algo a vencer" : "Vencem em até 3 meses", String(nw), nw ? "warn" : null],
+    [pe ? "Tudo em dia" : "Em dia", String(nk), nk ? "ok" : null]];
+  const colunas = [{ t: "Estabelecimento", w: 2.6 }, { t: "Tipo", w: 0.7 }, { t: "CNPJ/CPF", w: 1.6 }, { t: "Validade", w: 1 }, { t: "AVCB/CLCB", w: 1.3 }];
+  if (pe) colunas.push({ t: "Extintores", w: 1.3 }, { t: "Mangueiras", w: 1.3 });
+  colunas.push({ t: "Endereço", w: 2.6 });
+  const celEq = r => r ? { t: `${r.sit === "crit" ? "Vencido" : r.sit === "warn" ? "A vencer" : "Em dia"}\n${r.sit === "crit" ? "venceu" : "vence"} ${ymBR(r.vence)}`, cor: r.sit } : { t: "-", cor: "apag" };
+  const linhas = lista.map(({ v, s, ext, mang }) => {
+    const extra = [v.categoria === "prospeccao" && "Prospecção", v.reg?.pendente && "aguardando envio"].filter(Boolean).join(" · ");
+    const l = [extra ? `${v.cliente}\n${extra}` : v.cliente, v.tipo || "-", v.cnpj || "-", v.semAvcb ? "-" : dataBRde(v.vencimento),
+      s ? { t: sitCurtaAvcb(s).join("\n"), cor: s.cls } : { t: "Sem AVCB", cor: "apag" }];
+    if (pe) l.push(celEq(ext), celEq(mang));
+    l.push(v.endereco || "-");
+    return l;
+  });
+  return { titulo: "Validades", sub: !pode("avcb") ? "Extintores e mangueiras" : pe ? "AVCB/CLCB, extintores e mangueiras" : "AVCB/CLCB",
+    filtros, resumo, colunas, linhas, nome: pe ? "Validades - AVCB, extintores e mangueiras" : "Validades - AVCB e CLCB", paisagem: true,
+    nota: "AVCB/CLCB a vencer: vence em até 3 meses." + (pe ? " Extintores e mangueiras a vencer: vencem em até 60 dias; o mês mostrado é o do vencimento que define a situação." : "") +
+      ` Lista do painel "Validade AVCB/CLCB" copiada em ${CONFIG.validadeAvcbData}, mais os registrados pela equipe.` };
+}
+const pdfAvcb = () => relatorioPDF(defPdfAvcb());
 
 // contador no botão AVCB: clientes vencidos + vencendo em até 3 meses (prospecção não conta)
 // o número vermelho no botão AVCB foi retirado a pedido do Gustavo (13/10/2026); a contagem continua dentro da tela AVCB
@@ -12611,7 +12954,7 @@ function desenharOrc() {
   $("orc-corpo").replaceChildren(...orcVisiveis.map(linhaOrc));
   $("orc-vazio").hidden = !orc || !!n;
   $("orc-vazio").textContent = todos.length ? "Nenhum orçamento com esses filtros." : "Nenhum orçamento nas pastas dos clientes.";
-  $("orc-exportar").hidden = !n;
+  $("orc-exp").hidden = !n;
   $("orc-nota").textContent = `A lista mostra os arquivos "VPX ENGENHARIA-ORÇ-…" das pastas ${CONFIG.pastaOrcamento} de cada cliente (as pastas "Arquivo Morto" ficam de fora). Número, data e valor são lidos de dentro de cada PDF; sem isso, vale o nome e a data do arquivo.`;
 }
 function linhaOrc(o) {
@@ -12691,6 +13034,43 @@ async function exportarOrc() {
     const nome = `Orçamentos - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
+}
+
+// relatório em PDF da lista como está na tela: as mesmas linhas, na mesma ordem, com os filtros escritos no alto (pedido do Gustavo em 13/11/2026)
+const ORDEM_ORC_TXT = { num: ["Nº", "maior primeiro", "menor primeiro"], cli: ["Cliente", "Z a A", "A a Z"], tipo: ["Tipo", "Z a A", "A a Z"], valor: ["Valor", "maior primeiro", "menor primeiro"], data: ["Data", "mais recente primeiro", "mais antiga primeiro"] };
+function defPdfOrcamentos() {
+  const todos = orc?.itens || [], lista = orcVisiveis, n = lista.length;
+  const q = $("orc-busca").value.trim(), per = $("orc-periodo"), tp = $("orc-tipo").value;
+  const filtros = [];
+  if (q) filtros.push(`Busca: "${q}"`);
+  if (per.value) filtros.push("Período: " + (per.selectedOptions[0]?.text || per.value));
+  if (tp) filtros.push("Tipo: " + tp);
+  if (orcOrdem.col !== "data" || !orcOrdem.desc) { const o = ORDEM_ORC_TXT[orcOrdem.col]; if (o) filtros.push(`Ordem: ${o[0]} (${orcOrdem.desc ? o[1] : o[2]})`); }
+  if (n !== todos.length) filtros.push(`${n} de ${todos.length} orçamentos`);
+  const comValor = lista.filter(o => valorOrc(o) != null), sem = n - comValor.length, soma = comValor.reduce((s, o) => s + valorOrc(o), 0);
+  const resumo = [["Orçamentos", n !== todos.length ? `${n} de ${todos.length}` : String(n)]];
+  if (comValor.length) resumo.push(["Total", R$(soma)]);
+  if (sem) resumo.push(["Sem valor", String(sem)]);
+  // nome no arquivo diferente da pasta (a mesma comparação da tabela, em linhaOrc)
+  const outroNome = o => { const a = semAcento(o.desc || "").replace(/[^a-z0-9]/g, ""), c = semAcento(o.cli || "").replace(/[^a-z0-9]/g, ""), k = Math.min(4, a.length, c.length); return a && a.slice(0, k) !== c.slice(0, k) ? tit(o.desc) : ""; };
+  const linhas = lista.map(o => {
+    const d = dataOrc(o), v = valorOrc(o), num = numOrc(o), outro = outroNome(o);
+    return [num === "Sem número" ? { t: num, cor: "apag" } : num,
+      [o.cli, outro && "Nome no arquivo: " + outro, o.soPlan && "Só a planilha (sem PDF)"].filter(Boolean).join("\n"),
+      [o.tipo, o.rev && "Rev. " + o.rev].filter(Boolean).join(" · "),
+      d ? dataBRde(d) : "-",
+      v != null ? moedaBR(v) : { t: "-", cor: "apag" }];
+  });
+  return {
+    titulo: "Orçamentos", nome: "Orçamentos", filtros, resumo,
+    colunas: [{ t: "Nº", w: 1.1 }, { t: "Cliente", w: 3.2 }, { t: "Tipo", w: 1.5 }, { t: "Data", w: 1.1, al: "c" }, { t: "Valor (R$)", w: 1.4, al: "r" }],
+    linhas, total: comValor.length ? ["", "TOTAL", "", "", moedaBR(soma)] : null,
+    nota: sem ? `${sem} orçamento${sem > 1 ? "s" : ""} sem valor (o PDF ainda não foi lido ou só há a planilha): não ${sem > 1 ? "entram" : "entra"} no total.` : ""
+  };
+}
+function pdfOrcamentos() {
+  clearTimeout(desenharOrc.t); desenharOrc();       // a busca espera 200 ms para redesenhar: o PDF sai com o que está escrito agora
+  return relatorioPDF(defPdfOrcamentos());
 }
 
 /* ---------- ficha do cliente: dados e contatos (pedido do Gustavo em 06/11/2026) ----------
@@ -13642,7 +14022,7 @@ function desenharNf(forcar) {
   $("nf-corpo").replaceChildren(...nfVisiveis.map(linhaNf));
   $("nf-vazio").hidden = !nf || !!n;
   $("nf-vazio").textContent = todos.length ? "Nenhuma nota com esses filtros." : "Nenhuma nota fiscal na pasta.";
-  $("nf-exportar").hidden = !n;
+  $("nf-exp").hidden = !n;
   $("nf-nota").textContent = `A lista mostra as notas das pastas "${CONFIG.notasPastas.nac}" e "${CONFIG.notasPastas.mun}" (${CONFIG.notasNome}) e liga cada uma aos boletos com o número dela (pasta "${CONFIG.notasPastas.boletos}"). Data, valor e cliente são lidos de dentro de cada PDF; o cliente é a pasta com o nome mais parecido com o da nota.`;
 }
 function linhaNf(x) {
@@ -13827,6 +14207,35 @@ async function exportarNf() {
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+
+// relatório em PDF com as notas que estão na tela agora: a mesma lista (nfVisiveis), com os filtros e a ordem escolhidos (13/11/2026)
+function defPdfNotas() {
+  const todos = prepararNf().info.size, n = nfVisiveis.length, q = $("nf-busca").value.trim(), per = $("nf-periodo"), st = $("nf-sit");
+  const ORD = { num: ["Nº", "maior primeiro", "menor primeiro"], cli: ["Cliente", "Z a A", "A a Z"], orc: ["Orçamento", "maior primeiro", "menor primeiro"],
+    valor: ["Valor", "maior primeiro", "menor primeiro"], data: ["Emissão", "mais recentes primeiro", "mais antigas primeiro"] }[nfOrdem.col];
+  const filtros = [q && `Busca: "${q}"`, per.value && "Período: " + per.selectedOptions[0].text, st.value && "Situação: " + st.selectedOptions[0].text,
+    ORD && !(nfOrdem.col === "data" && nfOrdem.desc) && `Ordem: ${ORD[0]} (${ORD[nfOrdem.desc ? 1 : 2]})`].filter(Boolean);
+  if (q || per.value || st.value) filtros.push(`${n} de ${todos} nota${todos === 1 ? "" : "s"}`);
+  // resumo e total como na tela: as canceladas aparecem, mas não somam
+  const validas = nfVisiveis.filter(x => !x.canc), comValor = validas.filter(x => x.valor != null);
+  const sem = validas.length - comValor.length, canc = n - validas.length, soma = comValor.reduce((s, x) => s + x.valor, 0);
+  const linhas = nfVisiveis.map(x => {
+    const extra = [x.parcela && "Parcela " + x.parcela, x.boletos.length && (x.boletos.length > 1 ? x.boletos.length + " boletos" : "Boleto"), x.iss && "ISS retido", x.canc && "Cancelada"].filter(Boolean).join(" · ");
+    return { cor: x.canc ? "apag" : "", c: [x.nac ? `${x.num}\nnacional` : String(x.num), x.data ? dataBRde(x.data) : "-", x.cliTxt + (extra ? "\n" + extra : ""),
+      x.cnpj ? formatarDoc(x.cnpj) : "", x.orc ? String(x.orc) : "-", x.valor != null ? { t: moedaBR(x.valor), risc: x.canc } : "-"] };
+  });
+  return {
+    titulo: "Notas fiscais", sub: per.value ? per.selectedOptions[0].text : "", filtros,
+    resumo: [["Notas", n !== todos ? `${n} de ${todos}` : String(n)], comValor.length && ["Total (sem as canceladas)", R$(soma)],
+      sem && ["Sem valor lido", String(sem), "warn"], canc && [`Cancelada${canc > 1 ? "s" : ""} (fora do total)`, String(canc)]],
+    colunas: [{ t: "Nº", w: 0.8 }, { t: "Emissão", w: 1.1 }, { t: "Cliente", w: 3.4 }, { t: "CNPJ/CPF", w: 1.8 }, { t: "Orçamento", w: 1 }, { t: "Valor (R$)", w: 1.3, al: "r" }],
+    linhas, total: comValor.length ? ["", "", "TOTAL (sem as canceladas)", "", "", moedaBR(soma)] : null,
+    nota: [canc && "As notas canceladas aparecem na lista, mas não entram no total.", sem && "'-' no valor ou na emissão: dado ainda não lido do PDF da nota."].filter(Boolean).join(" "),
+    nome: "Notas fiscais"
+  };
+}
+// redesenha antes (busca digitada há menos de 200 ms ainda não tinha filtrado) e abre o PDF no visualizador
+function pdfNotas() { clearTimeout(desenharNf.t); desenharNf(); relatorioPDF(defPdfNotas()); }
 
 // nota nova: escolher o PDF, o app lê, a pessoa confere, junta o boleto e salva na pasta (direto no OneDrive, com internet)
 const nomeArqNf = (num, orcN, cli, nac = true) => limparNome(nac ? `NF ${pad3(num)}${orcN ? " - C" + orcN : cli ? " - " + cli : ""}` : `VPX ENGENHARIA - NF${num}${cli ? " - " + cli : ""}`) + ".pdf";
@@ -14576,17 +14985,17 @@ function desenharTar() {
     tarTela.opF[k] = ps.map(([v, txt, cls]) => [v, txt, cls, conta(k, v)]).filter(([v, , , n]) => n || v === atual);
     if (atual && !ps.some(([v]) => v === atual)) tarTela[k] = "";   // opção que não existe mais (cliente, pessoa)
   }
-  const lista = base.filter(t => passaTar(t));
+  const lista = base.filter(t => passaTar(t)); tarTela.vis = tarTela.visCli = tarTela.visGrupos = null; tarTela.todasPdf = todas;   // para o PDF: refeitos ao desenhar a lista
   const alvo = $("tar-lista"); alvo.innerHTML = "";
   if (!colTar.dados.lido && !Object.keys(colTar.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as tarefas…" : "Sem internet e sem tarefas guardadas neste aparelho."));
-  else if (op && !proj && tarTela.filtro === "clientes") listaClientesOp(base, alvo, !!q);
+  else if (op && !proj && tarTela.filtro === "clientes") { listaClientesOp(base, alvo, !!q); if (tarTela.visCli?.length) alvo.appendChild(botoesExportar(null, pdfOpClientes)); }
   else if (op && proj && !todas.length) {           // cliente ainda sem tarefas no Operacional (aberto pela página do cliente)
     alvo.appendChild(el("p", "avcb-nota", "Este cliente ainda não tem tarefas no Operacional."));
     if (tudo) { const b = comIc(el("button", "btn prim"), "operacional", "Criar as tarefas do modelo"); b.type = "button"; b.onclick = () => criarDoModeloOp(proj); alvo.appendChild(b); }
   }
   else if (!lista.length && !filtrosTarAtivos()) alvo.appendChild(el("p", "avcb-nota", q ? "Nenhuma tarefa encontrada." :tarTela.filtro === "atrasadas" ? "Nenhuma tarefa atrasada." : tarTela.filtro === "minhas" ? "Nenhuma tarefa com você." + (tudo && !op ? " Toque em + Nova para criar uma." : "") : "Nenhuma tarefa ainda. Toque em + Nova para criar uma."));
-  else if (op && proj) listaProjOp(lista, alvo);
-  else listaTar(lista, alvo);
+  else if (op && proj) { listaProjOp(lista, alvo); if (tarTela.visGrupos?.some(g => g.vis.length)) alvo.appendChild(botoesExportar(null, pdfOpProj)); }
+  else { listaTar(lista, alvo); if (tarTela.vis?.length) alvo.appendChild(botoesExportar(null, pdfTar)); }
   $("tar-nota").textContent = navigator.onLine ? "" : "Sem internet: mostrando as últimas tarefas guardadas. Para mudar, conecte o aparelho.";
 }
 /* lista de tarefas como planilha (pedido do Gustavo em 12/11/2026, igual às tabelas de pedidos, notas fiscais e AVCB; no lugar dos cartões agrupados).
@@ -14620,7 +15029,7 @@ function listaTar(lista, alvo) {
   const abertas = lista.filter(abertaTar), feitas = lista.filter(t => !abertaTar(t));
   const soFeitas = tarTela.st === "feito";           // filtro Situação = Feito: mostra as concluídas direto
   const vis = [...abertas, ...(tarTela.verFeitas || soFeitas ? feitas.sort((a, b) => (b.feitoEm || b.atualizado || "").localeCompare(a.feitoEm || a.atualizado || "")).slice(0, 150) : [])].sort(compTar);
-  const atr = abertas.filter(atrasadaTar).length;
+  const atr = abertas.filter(atrasadaTar).length; tarTela.vis = vis; tarTela.visInfo = { abertas: abertas.length, feitas: feitas.length, atr, soFeitas };
   const res = el("p", "orc-resumo tar-resumo", soFeitas ? `${feitas.length} tarefa${feitas.length === 1 ? "" : "s"} concluída${feitas.length === 1 ? "" : "s"}` + (feitas.length > 150 ? " (as 150 mais recentes)" : "")
     : `${abertas.length} tarefa${abertas.length === 1 ? "" : "s"} aberta${abertas.length === 1 ? "" : "s"}` + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : ""));
   alvo.appendChild(res);
@@ -14652,7 +15061,7 @@ function listaClientesOp(lista, alvo, buscando) {
   if (!linhas.length) { alvo.appendChild(el("p", "avcb-nota", buscando ? "Nenhum cliente ou tarefa encontrado." : "Nenhum cliente no Operacional ainda." + (pode("tarefas") ? " Toque em + Cliente para começar um." : ""))); return; }
   const nAb = and.reduce((s, l) => s + l.ab, 0), nAtr = and.reduce((s, l) => s + l.atr, 0);
   alvo.appendChild(el("p", "orc-resumo tar-resumo", `${and.length} cliente${and.length === 1 ? "" : "s"} em andamento · ${nAb} tarefa${nAb === 1 ? "" : "s"} aberta${nAb === 1 ? "" : "s"}` + (nAtr ? ` · ${nAtr} atrasada${nAtr === 1 ? "" : "s"}` : "")));
-  const vis = [...and, ...(tarTela.verFeitas || !and.length ? fim : [])];
+  const vis = [...and, ...(tarTela.verFeitas || !and.length ? fim : [])]; tarTela.visCli = vis; tarTela.visCliInfo = { and: and.length, fim: fim.length, nAb, nAtr };
   const tb = el("table", "orc-tab tar-tab op-cli-tab"), cab = el("thead"), hr = el("tr"), corpo = el("tbody");
   [["Cliente", "orc-c-cli"], ["Andamento", "op-c-and"], ["Atrasadas", "tar-so-pc op-c-atr"], ["Próximo prazo", "tar-so-pc tar-c-prazo"]].forEach(([r, cls]) => { const th = el("th", cls, r); th.scope = "col"; hr.appendChild(th); });
   cab.appendChild(hr);
@@ -14679,7 +15088,7 @@ function listaClientesOp(lista, alvo, buscando) {
 // Operacional, dentro de um cliente: as tarefas por grupo (Administrativo, Materiais, Serviços), na ordem do quadro
 function listaProjOp(lista, alvo) {
   const todas = tarefasOp().filter(t => t.cliente === tarTela.proj && veTar(t));
-  const nF = todas.filter(t => !abertaTar(t)).length, atr = todas.filter(atrasadaTar).length;
+  const nF = todas.filter(t => !abertaTar(t)).length, atr = todas.filter(atrasadaTar).length; tarTela.visGrupos = []; tarTela.projInfo = { total: todas.length, nF, atr };
   const res = el("div", "op-resumo");
   res.append(barraOp(nF, todas.length), el("span", "orc-resumo tar-resumo", `${todas.length - nF} aberta${todas.length - nF === 1 ? "" : "s"}` + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : "")));
   alvo.appendChild(res);
@@ -14695,7 +15104,7 @@ function listaProjOp(lista, alvo) {
   for (const g of GRUPOS_OP) {
     const doG = lista.filter(t => grupoOp(t) === g);
     if (!doG.length) continue;
-    const ab = doG.filter(abertaTar).length, vis = doG.filter(mostra).sort(compTar);
+    const ab = doG.filter(abertaTar).length, vis = doG.filter(mostra).sort(compTar); tarTela.visGrupos.push({ g, vis, ab, total: doG.length });
     const cab = el("div", "op-grupo g-" + GRUPOS_OP.indexOf(g));
     cab.append(el("h2", "", g), el("small", "", ab ? `${doG.length - ab} de ${doG.length} feitas` : `${doG.length} de ${doG.length} feitas`));
     if (pode("tarefas")) { const n = el("button", "laudo-link", "+ Tarefa"); n.type = "button"; n.title = "Nova tarefa em " + g; n.onclick = () => novaTarefa({ grupo: g }); cab.appendChild(n); }
@@ -14709,6 +15118,109 @@ function listaProjOp(lista, alvo) {
   b.onclick = () => { tarTela.verFeitas = !tarTela.verFeitas; desenharTar(); };
   alvo.appendChild(b);
 }
+/* relatório em PDF do que a lista está mostrando (pedido do Gustavo em 13/11/2026: "exportar em PDF as coisas que eu filtrar"):
+   Tarefas (também "Minhas"/"Atrasadas" do Operacional), a lista dos clientes do Operacional e as tarefas de um cliente por grupo.
+   Usam as mesmas linhas da tabela (tarTela.vis / visCli / visGrupos, guardadas ao desenhar) e escrevem os filtros escolhidos. */
+const COR_ST_TAR = { andamento: "warn", parado: "crit", feito: "ok" };
+const COR_PRI_TAR = { critica: "crit", alta: "warn" };
+const ROT_COL_TAR = { tit: "Tarefa", st: "Situação", pri: "Prioridade", prazo: "Prazo", resp: "Responsáveis", cli: "Cliente" };
+const chipPdfTar = () => !$("tar-filtro").hidden && { minhas: "Minhas tarefas", atrasadas: "Atrasadas" }[tarTela.filtro] || "";
+const temFiltroPdfTar = () => !!(chipPdfTar() || $("tar-busca").value.trim() || filtrosTarAtivos());
+// textos dos filtros ligados: chip, busca, filtros dos títulos das colunas, ordem (fora a padrão) e "com as concluídas"
+function filtrosPdfTar(feitas) {
+  const f = [], chip = chipPdfTar(), q = $("tar-busca").value.trim();
+  if (chip) f.push(chip);
+  if (q) f.push(`Busca: "${q}"`);
+  for (const k of Object.keys(FILTRO_TAR)) if (tarTela[k]) f.push(`${ROT_FILTRO_TAR[k]}: ${(tarTela.opF?.[k] || []).find(([v]) => v === tarTela[k])?.[1] || tarTela[k]}`);
+  if (tarOrdem.col !== (tarTela.op ? "ordem" : "pri") || tarOrdem.desc) {
+    const sentido = ((ORDENAR_TAR[tarOrdem.col] || [])[tarOrdem.desc ? 1 : 0] || "").replace("A → Z", "de A a Z").replace("Z → A", "de Z a A");
+    const rot = ROT_COL_TAR[tarOrdem.col] || tarOrdem.col;   // "Prazo mais próximo primeiro" já diz a coluna
+    f.push("Ordem: " + (tarOrdem.col === "ordem" ? "ordem do processo" : semAcento(sentido).startsWith(semAcento(rot)) ? sentido : `${rot} (${sentido})`));
+  }
+  if (tarTela.verFeitas && feitas && tarTela.st !== "feito") f.push("Com as concluídas");
+  else if (!tarTela.verFeitas && feitas && tarTela.st !== "feito") f.push("Só as abertas (concluídas escondidas)");
+  return f;
+}
+// uma tarefa no PDF: Tarefa · Situação · Prioridade · Prazo · Responsáveis · [Cliente] · Subtarefas (concluída: apagada e riscada, como na tela)
+function linhaPdfTar(t, comCli) {
+  const ab = abertaTar(t), st = ST_TAR[t.status] ? t.status : "nao", ns = (t.sub || []).length, atr = atrasadaTar(t), hj = hojeTar(t);
+  const c = [{ t: t.titulo || "(sem título)", risc: !ab }, { t: ST_TAR[st], cor: COR_ST_TAR[st] },
+    PRI[t.prioridade] ? { t: PRI[t.prioridade], cor: ab ? COR_PRI_TAR[t.prioridade] : "" } : "—",
+    t.prazo ? { t: dataBRde(t.prazo) + (atr ? " (atrasada)" : hj ? " (hoje)" : ""), cor: atr ? "crit" : hj ? "warn" : "" } : "—",
+    (t.resp || []).map(p => nomePessoa(p)).join(", ") || "—"];
+  if (comCli) c.push(t.cliente || "—");
+  c.push(ns ? `${t.sub.filter(s => s.f).length}/${ns}` : "—");
+  return ab ? c : { c, cor: "apag" };
+}
+// Tarefas (e "Minhas"/"Atrasadas" do Operacional): a tabela de listaTar
+function defPdfTar() {
+  const vis = tarTela?.vis || [], i = tarTela?.visInfo || {}, todas = tarTela?.todasPdf || [], op = !!tarTela?.op;
+  const filtros = filtrosPdfTar(i.feitas);
+  if (temFiltroPdfTar()) {
+    const ab = todas.filter(abertaTar).length, fe = todas.length - ab;
+    filtros.push(`${vis.length} de ${ab + (tarTela.verFeitas || i.soFeitas ? Math.min(fe, 150) : 0)} tarefas`);
+  }
+  const resumo = i.soFeitas ? [["Concluídas", String(i.feitas || 0)]]
+    : [["Abertas", String(i.abertas || 0)], ["Atrasadas", String(i.atr || 0), i.atr ? "crit" : ""], ...(tarTela.verFeitas && i.feitas ? [["Concluídas", String(i.feitas)]] : [])];
+  return {
+    titulo: op ? "Operacional" : "Tarefas", sub: op ? "Tarefas dos clientes" : "", nome: op ? "Operacional - tarefas" : "Tarefas",
+    filtros, resumo,
+    colunas: [{ t: "Tarefa", w: 3.2 }, { t: "Situação", w: 1.3 }, { t: "Prioridade", w: 1.1 }, { t: "Prazo", w: 1.4 }, { t: "Responsáveis", w: 2 }, { t: "Cliente", w: 1.8 }, { t: "Subtarefas", w: 1, al: "c" }],
+    linhas: vis.map(t => linhaPdfTar(t, true)),
+    nota: (i.soFeitas || tarTela?.verFeitas) && i.feitas > 150 ? "Concluídas: só as 150 mais recentes, como na tela." : ""
+  };
+}
+function pdfTar() { return relatorioPDF(defPdfTar()); }
+// Operacional, lista dos clientes (chip "Clientes"): só a busca vale aqui (os filtros das colunas são da tabela das tarefas)
+function defPdfOpClientes() {
+  const vis = tarTela?.visCli || [], i = tarTela?.visCliInfo || {}, q = $("tar-busca").value.trim(), filtros = [];
+  if (q) {
+    filtros.push(`Busca: "${q}"`);
+    const por = new Map();                            // quantos clientes a lista teria sem a busca (mesma regra dos concluídos)
+    (tarTela.todasPdf || []).forEach(t => { const c = t.cliente || "(sem cliente)"; por.set(c, !!por.get(c) || abertaTar(t)); });
+    const nAnd = [...por.values()].filter(Boolean).length;
+    filtros.push(`${vis.length} de ${nAnd + (tarTela.verFeitas || !i.and ? por.size - nAnd : 0)} clientes`);
+  }
+  if (tarTela.verFeitas && i.fim && i.and) filtros.push("Com os clientes concluídos");
+  const pct = (f, n) => (n ? Math.round(f / n * 100) : 0) + "%", hoje = dataISO();
+  const s = vis.reduce((a, l) => ({ ab: a.ab + l.ab, n: a.n + l.n, atr: a.atr + l.atr }), { ab: 0, n: 0, atr: 0 });
+  return {
+    titulo: "Operacional", sub: "Andamento dos clientes", nome: "Operacional - andamento dos clientes",
+    filtros,
+    resumo: [["Clientes em andamento", String(i.and || 0)], ["Tarefas abertas", String(i.nAb || 0)], ["Atrasadas", String(i.nAtr || 0), i.nAtr ? "crit" : ""],
+      ...(vis.length > (i.and || 0) ? [["Clientes concluídos", String(vis.length - (i.and || 0)), "ok"]] : [])],
+    colunas: [{ t: "Cliente", w: 3 }, { t: "Abertas", w: 1, al: "c" }, { t: "Feitas", w: 1.2, al: "c" }, { t: "Andamento", w: 1.1, al: "c" }, { t: "Atrasadas", w: 1, al: "c" }, { t: "Próximo prazo", w: 1.3, al: "c" }],
+    linhas: vis.map(l => {
+      const c = [{ t: l.c, neg: true }, l.ab ? String(l.ab) : { t: "Concluído", cor: "ok" }, `${l.n - l.ab} de ${l.n}`, pct(l.n - l.ab, l.n),
+        l.atr ? { t: String(l.atr), cor: "crit" } : "—", l.prazo ? { t: dataBRde(l.prazo), cor: l.prazo < hoje ? "crit" : l.prazo === hoje ? "warn" : "" } : "—"];
+      return l.ab ? c : { c, cor: "apag" };
+    }),
+    total: vis.length > 1 ? ["Total", String(s.ab), `${s.n - s.ab} de ${s.n}`, pct(s.n - s.ab, s.n), String(s.atr), ""] : null
+  };
+}
+function pdfOpClientes() { return relatorioPDF(defPdfOpClientes()); }
+// Operacional, dentro de um cliente: as tarefas por grupo (uma linha de título para cada grupo, como na tela)
+function defPdfOpProj() {
+  const gs = tarTela?.visGrupos || [], p = tarTela?.projInfo || { total: 0, nF: 0, atr: 0 };
+  const filtros = filtrosPdfTar(p.nF), nVis = gs.reduce((s, g) => s + g.vis.length, 0), filtrado = temFiltroPdfTar();
+  const abVis = gs.reduce((s, g) => s + g.vis.filter(abertaTar).length, 0), atrVis = gs.reduce((s, g) => s + g.vis.filter(atrasadaTar).length, 0);
+  if (temFiltroPdfTar()) filtros.push(`${nVis} de ${p.total - p.nF + (tarTela.verFeitas || tarTela.st === "feito" ? p.nF : 0)} tarefas`);
+  const linhas = [];
+  for (const g of gs) {
+    linhas.push({ c: [{ t: `${g.g}  -  ${g.total - g.ab} de ${g.total} feitas`, neg: true }, "", "", "", "", ""], fundo: [232, 237, 244] });
+    if (g.vis.length) g.vis.forEach(t => linhas.push(linhaPdfTar(t, false)));
+    else linhas.push({ c: ["Tudo feito neste grupo.", "", "", "", "", ""], cor: "ok" });
+  }
+  return {
+    titulo: "Operacional", sub: "Cliente: " + (tarTela?.proj || ""), nome: "Operacional - " + (tarTela?.proj || "cliente"),
+    filtros,
+    resumo: [[filtrado ? "Cliente: feitas" : "Feitas", `${p.nF} de ${p.total}`, p.total && p.nF === p.total ? "ok" : ""], [filtrado ? "Cliente: abertas" : "Abertas", String(p.total - p.nF)], [filtrado ? "Cliente: atrasadas" : "Atrasadas", String(p.atr), p.atr ? "crit" : ""],
+      ...(filtrado ? [["Nesta lista: abertas", String(abVis)], ["Nesta lista: atrasadas", String(atrVis), atrVis ? "crit" : ""]] : [])],
+    colunas: [{ t: "Tarefa", w: 3.3 }, { t: "Situação", w: 1.5 }, { t: "Prioridade", w: 1.1 }, { t: "Prazo", w: 1.4 }, { t: "Responsáveis", w: 2 }, { t: "Subtarefas", w: 1.25, al: "c" }],
+    linhas
+  };
+}
+function pdfOpProj() { return relatorioPDF(defPdfOpProj()); }
 function tabelaTar(vis) {
   const cols = [["tit", "Tarefa", "orc-c-cli"], ["st", "Situação", "tar-c-st"], ["pri", "Prioridade", "tar-so-pc tar-c-pri"],
     ["prazo", "Prazo", "tar-c-prazo"], ["resp", "Responsáveis", "tar-so-pc tar-c-resp"], ["cli", "Cliente", "tar-so-pc tar-c-cli"]];
@@ -15315,8 +15827,8 @@ function desenharTr() {
     : !todos.length ? vazio("dinheiro", colTr.dados.lido ? `Nenhuma ${T.nome.toLowerCase()} ainda` : "Carregando…", colTr.dados.lido ? `Toque em "${T.novo.slice(2)}" para lançar${ehAdmin() ? ", ou importe o histórico do Fin365 (no fim da tela)" : ""}.` : "")
     : vazio("dinheiro", "Nenhum lançamento neste filtro", "Troque o mês, o ano ou a situação."));
   else lista.appendChild(tabelaTr(vis));
-  $("tr-exportar").hidden = !vis.length;
-  trTela.vis = vis;
+  $("tr-exp").hidden = !vis.length;
+  trTela.vis = vis; trTela.totais = { pagos, pend, vencidas };   // os cartões do período, para o PDF
   $("tr-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última cópia." : erro;
 }
 // ordem pelo título da coluna (de novo inverte; vazios no fim); padrão: data, a mais antiga primeiro (como o extrato)
@@ -15538,6 +16050,44 @@ async function exportarTr() {
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+// relatório em PDF da lista de transações como está na tela (as mesmas linhas, na mesma ordem: trTela.vis)
+const ORDEM_TR_PDF = { data: ["Data", "mais antiga primeiro", "mais recente primeiro"], desc: ["Descrição", "A a Z", "Z a A"], parc: ["Parceiro", "A a Z", "Z a A"],
+  cat: ["Categoria", "A a Z", "Z a A"], centro: ["Centro", "crescente", "decrescente"], conta: ["Conta", "A a Z", "Z a A"], valor: ["Valor", "menor primeiro", "maior primeiro"],
+  sit: ["Situação", "vencidas primeiro", "canceladas primeiro"] };
+const COR_TR = { ok: "ok", "pc-neu": "apag", crit: "crit", warn: "warn" };
+function periodoTr() {                              // o período escolhido em Ano/Mês, por extenso
+  const S = trTela, m = S.mes ? MESES[+S.mes - 1] : "";
+  return S.ano && m ? `${m} de ${S.ano}` : S.ano ? `ano de ${S.ano}` : m ? `${m} (todos os anos)` : "todos os períodos";
+}
+function defPdfTr() {
+  const S = trTela, T = TR_TIPO[S.tipo], vis = S.vis || [], venc = S.sit === "venc", q = $("tr-busca").value.trim();
+  const sitTxt = { pend: "Pendentes", pago: T.pagas, canc: "Canceladas" }[S.sit];
+  const filtros = [];
+  if (q) filtros.push(`Busca: "${q}"`);
+  if (venc) filtros.push("Situação: Vencidas (de qualquer mês)");                 // com "Vencidas" a tela ignora o ano e o mês
+  else { if (S.ano || S.mes) filtros.push("Período: " + periodoTr()); if (sitTxt) filtros.push("Situação: " + sitTxt); }
+  if (S.cat) filtros.push("Categoria: " + S.cat);
+  if (S.centro) filtros.push("Centro de custo: " + centroTxtTr(S.centro));
+  const ligado = filtros.length > 0, o = S.ordem || {}, od = ORDEM_TR_PDF[o.col];
+  if (od && (o.col !== "data" || o.desc)) filtros.push(`Ordem: ${od[0]} (${o.desc ? od[2] : od[1]})`);
+  if (ligado) filtros.push(`${vis.length} de ${trs().filter(r => r.tipo === S.tipo).length} ${T.plural.toLowerCase()}`);
+  // resumo: o mesmo da tela (lista sem as canceladas) e os cartões do período (guardados em trTela.totais pelo desenharTr)
+  const tot = somaTr(vis.filter(r => r.st !== "canc")), t = S.totais || {};
+  const resumo = [["Lançamentos", String(vis.length)], venc ? ["Total vencido", R$(tot), tot ? "crit" : ""] : ["Total (sem as canceladas)", R$(tot)]];
+  if (!venc && t.pagos) resumo.push([`${T.pagoTot} no período`, R$(somaTr(t.pagos))], ["Pendente no período", R$(somaTr(t.pend))],
+    ["Vencido (qualquer mês)", R$(somaTr(t.vencidas)), t.vencidas.length ? "crit" : ""]);
+  const colunas = [{ t: "Data", w: 1.15 }, { t: "Descrição", w: 3 }, { t: "Parceiro", w: 2.1 }, { t: "Categoria", w: 1.4 }, { t: "Centro de custo", w: 2.1 },
+    { t: "Valor (R$)", w: 1.4, al: "r" }, { t: "Situação", w: 1.7 }];
+  const linhas = vis.map(r => {
+    const canc = r.st === "canc", d = refTr(r);
+    const sit = stTrTxt(r) + (r.st === "pago" && r.pg ? " em " + dataCurtaTr(r.pg) : r.st === "pend" && r.venc ? (vencidaTr(r) ? " - venceu " : " - vence ") + dataCurtaTr(r.venc) : "");
+    return { c: [d ? dataBRde(d) : "-", { t: (r.desc || "-") + (r.parcela ? ` (parcela ${r.parcela})` : ""), risc: canc }, r.parc || "-", r.cat || "-", centroTxtTr(r.centro) || "-",
+      { t: r.valor != null ? moedaBR(+r.valor) : "-", risc: canc }, { t: sit, cor: COR_TR[clsTr(r)] }], cor: canc ? "apag" : undefined };
+  });
+  return { titulo: T.plural, sub: venc ? "Transações vencidas, de qualquer mês" : "Transações - " + periodoTr(), filtros, resumo, colunas, linhas,
+    total: vis.length ? ["", "TOTAL (sem as canceladas)", "", "", "", moedaBR(tot), ""] : null, nome: `${T.plural} - ${venc ? "vencidas" : periodoTr()}` };
+}
+function pdfTr() { clearTimeout(desenharTr.t); desenharTr(); relatorioPDF(defPdfTr()); }   // a busca redesenha 200 ms depois: põe a tela em dia antes
 /* Fluxo de caixa (pedido do Gustavo em 13/11/2026: "agora vamos implementar o fluxo de caixa", como no Fin365, Mensal e Diário).
    Modo da tela das Transações (trTela.modo = "fluxo"). Regime de caixa: o realizado entra na data do pagamento/recebimento
    (pg); o previsto (pendente) na data de vencimento (vencCp) — o que já venceu e não foi pago entra hoje (é dinheiro que
@@ -15647,9 +16197,7 @@ function desenharFluxoMensal(w, movs) {
   corpo.appendChild(tot);
   tb.append(cab, corpo);
   w.appendChild(tb);
-  const ex = el("button", "btn sec", "Exportar planilha (Excel)"); ex.type = "button"; ex.style.cssText = "width:100%;margin-top:12px";
-  ex.onclick = () => exportarFluxo(meses);
-  w.appendChild(ex);
+  w.appendChild(botoesExportar(() => exportarFluxo(meses), pdfFluxoMensal));
 }
 // gráfico em SVG (sem biblioteca): barras de entradas e saídas por mês e a linha do saldo
 function graficoFluxo(meses) {
@@ -15723,6 +16271,7 @@ function desenharFluxoDiario(w, movs) {
     }
     w.appendChild(g);
   }
+  w.appendChild(botoesExportar(null, pdfFluxoDiario));
 }
 async function exportarFluxo(meses) {
   try {
@@ -15739,6 +16288,61 @@ async function exportarFluxo(meses) {
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+// relatório em PDF do fluxo de caixa (pedido do Gustavo em 13/11/2026): o mesmo que a tela mostra, com os filtros de conta e centro
+function defPdfFluxoMensal() {
+  const F = trTela.fx, meses = mesesFluxo(movFluxo(), F.ano), ult = meses[11], mesHoje = dataISO().slice(0, 7);
+  const rs = v => (v < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(v)), soma = k => meses.reduce((s, m) => s + m[k], 0);
+  const entAno = soma("ent"), saiAno = soma("sai");
+  const linhas = meses.map(m => {
+    const fut = m.futuro, n = (v, cor) => ({ t: v ? moedaSinal(v) : "—", cor: fut ? undefined : v < 0 ? "crit" : v ? cor : undefined });
+    const luc = m.lucro == null ? "—" : (Math.round(m.lucro * 10) / 10).toLocaleString("pt-BR") + "%";
+    return { c: [MESES[m.i - 1][0].toUpperCase() + MESES[m.i - 1].slice(1) + (m.ym === mesHoje ? " (atual)" : ""), n(m.saldoIni), n(m.ent, "ok"), n(m.sai, "crit"), { ...n(m.saldoFim), neg: true },
+      { t: luc, cor: !fut && m.lucro < 0 ? "crit" : undefined }, n(m.pe, "ok"), n(m.ps, "crit"), n(m.saldoPrev)],
+      cor: fut ? "apag" : undefined, fundo: m.ym === mesHoje ? [253, 243, 229] : undefined };
+  });
+  const tc = (v, cor) => ({ t: v ? moedaSinal(v) : "—", cor: v < 0 ? "crit" : v ? cor : undefined });
+  return {
+    titulo: "Fluxo de caixa", sub: "Mensal - ano de " + F.ano,
+    filtros: [F.conta && "Conta: " + F.conta, F.centro && "Centro de custo: " + centroTxtTr(F.centro)].filter(Boolean),
+    resumo: [["Entradas do ano", rs(entAno), "ok"], ["Saídas do ano", rs(saiAno), "crit"],
+      ["Saldo final (pago e recebido)", rs(ult.saldoFim), ult.saldoFim < 0 ? "crit" : "azul"], ["Saldo previsto (até dezembro)", rs(ult.saldoPrev), ult.saldoPrev < 0 ? "crit" : "azul"]],
+    colunas: [{ t: "Mês", w: 1.35 }, { t: "Saldo inicial", w: 1.2, al: "r" }, { t: "Entradas", w: 1.2, al: "r" }, { t: "Saídas", w: 1.2, al: "r" }, { t: "Saldo final", w: 1.2, al: "r" },
+      { t: "Lucratividade", w: 0.95, al: "r" }, { t: "Entradas previstas", w: 1.2, al: "r" }, { t: "Saídas previstas", w: 1.2, al: "r" }, { t: "Saldo previsto", w: 1.2, al: "r" }],
+    linhas,
+    total: ["Total", "—", tc(entAno, "ok"), tc(saiAno, "crit"), tc(ult.saldoFim), "—", tc(soma("pe"), "ok"), tc(soma("ps"), "crit"), tc(ult.saldoPrev)],
+    nota: "Regime de caixa: o que foi pago ou recebido entra na data do pagamento; o que está pendente (previsto), no vencimento (o que já venceu entra hoje). Saldo inicial das contas: R$ 0,00 em 01/01/2026. Lucratividade = (entradas - saídas) / saídas. Meses que ainda não chegaram em cinza.",
+    nome: `Fluxo de caixa ${F.ano}${F.conta ? " - " + F.conta : ""}${F.centro ? " - " + F.centro : ""}`
+  };
+}
+const pdfFluxoMensal = () => relatorioPDF(defPdfFluxoMensal());
+function defPdfFluxoDiario() {
+  const F = trTela.fx, ym = `${F.ano}-${F.mes}`, hoje = dataISO(), movs = movFluxo();
+  const ini = somaV(movs.filter(m => m.data < ym + "-01")), doMes = movs.filter(m => m.data.startsWith(ym));
+  const ent = somaV(doMes.filter(m => m.v > 0)), sai = -somaV(doMes.filter(m => m.v < 0)), fim = Math.round((ini + ent - sai) * 100) / 100;
+  const rs = v => (v < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(v));
+  const mesTxt = MESES[+F.mes - 1].replace(/^./, c => c.toUpperCase()) + " de " + F.ano;
+  const linhas = []; let saldo = ini;
+  for (const d of [...new Set(doMes.map(m => m.data))].sort()) {
+    const l = doMes.filter(m => m.data === d).sort((a, b) => (b.real - a.real) || (b.v - a.v));
+    const sub = somaV(l), dt = new Date(d + "T12:00:00"); saldo = Math.round((saldo + sub) * 100) / 100;
+    linhas.push({ c: [dataBRde(d).slice(0, 5), `${dt.getDate()} de ${MESES[dt.getMonth()]}${d === hoje ? " (hoje)" : ""}`, "", "Subtotal",
+      { t: (sub > 0 ? "+ " : "") + moedaSinal(sub), cor: sub < 0 ? "crit" : sub > 0 ? "ok" : undefined }, { t: moedaSinal(saldo), cor: saldo < 0 ? "crit" : undefined }], neg: true, fundo: [236, 241, 247] });
+    for (const m of l) linhas.push(["", m.r.desc || "—", [m.r.cat, m.r.parc, m.r.centro].filter(Boolean).join(" · "),
+      m.real ? { t: m.r.tipo === "rec" ? "Recebida" : "Paga", cor: "ok" } : m.atrasada ? { t: "Vencida em " + dataBRde(vencCp(m.r)), cor: "crit" } : { t: "Pendente", cor: "warn" },
+      { t: (m.v > 0 ? "+ " : "− ") + moedaBR(Math.abs(m.v)), cor: m.v > 0 ? "ok" : "crit" }, ""]);
+  }
+  return {
+    titulo: "Fluxo de caixa", sub: "Diário - " + mesTxt,
+    filtros: [F.conta && "Conta: " + F.conta, F.centro && "Centro de custo: " + centroTxtTr(F.centro)].filter(Boolean),
+    resumo: [["Saldo no início do mês", rs(ini), ini < 0 ? "crit" : "azul"], ["Entradas", rs(ent), "ok"], ["Saídas", rs(sai), "crit"],
+      [ym < hoje.slice(0, 7) ? "Saldo no fim do mês" : "Saldo previsto no fim do mês", rs(fim), fim < 0 ? "crit" : "azul"]],
+    colunas: [{ t: "Dia", w: 0.7 }, { t: "Descrição", w: 2.5 }, { t: "Categoria · parceiro · centro", w: 2.3 }, { t: "Situação", w: 1.25 }, { t: "Valor (R$)", w: 1.3, al: "r" }, { t: "Saldo (R$)", w: 1.3, al: "r" }],
+    linhas,
+    nota: "Regime de caixa: o que foi pago ou recebido entra na data do pagamento; o que está pendente, no vencimento (o que já venceu e ainda não foi pago aparece hoje). Saldo inicial das contas: R$ 0,00 em 01/01/2026.",
+    nome: `Fluxo de caixa ${mesTxt}${F.conta ? " - " + F.conta : ""}${F.centro ? " - " + F.centro : ""}`
+  };
+}
+const pdfFluxoDiario = () => relatorioPDF(defPdfFluxoDiario());
 /* DRE — Demonstração do Resultado (pedido do Gustavo em 13/11/2026: "agora vamos implementar o DRE", como o DRE do Fin365).
    Modo da tela das Transações (trTela.modo = "dre"). Como no Fin365: só o que já foi pago ou recebido, no mês da
    COMPETÊNCIA (comp); canceladas e pendentes ficam de fora. Cada categoria pertence a um grupo (DRE_GRUPOS, o cadastro
@@ -15843,8 +16447,7 @@ function desenharDrePeriodo(w) {
   const cab = el("thead"), h = el("tr");
   for (const [t, c] of [["Demonstração do resultado", ""], ["Valor", "fx-n"], ["% receita", "fx-n dre-pct"]]) { const th = el("th", c); th.scope = "col"; th.appendChild(el("span", "", t)); h.appendChild(th); }
   cab.appendChild(h); tb.append(cab, corpo); w.appendChild(tb);
-  const ex = el("button", "btn sec", "Exportar planilha (Excel)"); ex.type = "button"; ex.style.cssText = "width:100%;margin-top:12px";
-  ex.onclick = () => exportarDre([[txt, s]]); w.appendChild(ex);
+  w.appendChild(botoesExportar(() => exportarDre([[txt, s]]), pdfDrePeriodo));
 }
 function desenharDreAnual(w) {
   const D = trTela.dre, a = +D.ano, meses = [];
@@ -15869,9 +16472,7 @@ function desenharDreAnual(w) {
   for (let m = 1; m <= 12; m++) { const v = Math.round(saldoAte(dataISO(new Date(a, m, 0))) * 100) / 100; tr.appendChild(el("td", "fx-n" + (v < 0 ? " fx-neg" : ""), fmt(v))); }
   tr.appendChild(el("td", "fx-n dre-total", "—")); corpo.appendChild(tr);
   tb.append(cab, corpo); box.appendChild(tb); w.appendChild(box);
-  const ex = el("button", "btn sec", "Exportar planilha (Excel)"); ex.type = "button"; ex.style.cssText = "width:100%;margin-top:12px";
-  ex.onclick = () => exportarDre(meses.map((s, i) => [nomesM[i], s]).concat([["Total " + a, ano]]), true);
-  w.appendChild(ex);
+  w.appendChild(botoesExportar(() => exportarDre(meses.map((s, i) => [nomesM[i], s]).concat([["Total " + a, ano]]), true), pdfDreAnual));
 }
 async function exportarDre(colunas, anual) {          // colunas: [[título, soma]]
   try {
@@ -15896,6 +16497,67 @@ async function exportarDre(colunas, anual) {          // colunas: [[título, som
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+// relatório em PDF do DRE (pedido do Gustavo em 13/11/2026): o mesmo que a tela mostra (Período: as categorias só dos grupos abertos)
+function defPdfDrePeriodo() {
+  const D = trTela.dre, [de, ate, txt] = periodoDre(), s = somarDre(de, ate), rb = s.tot.rec, res = Math.round((rb - s.tot.desp) * 100) / 100;
+  const rs = v => (v < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(v)), linhas = [];
+  let fechados = 0;
+  const tot = (rot, v, pct, fundo) => linhas.push({ c: [rot, { t: rs(v), cor: v < 0 ? "crit" : undefined }, pct], neg: true, fundo });
+  const grupos = tp => {
+    for (const g of ordemGruposDre(tp)) {
+      const G = s[tp][g]; if (!G && (g === DRE_OUTRAS || g === DRE_SEMCAT || g === DRE_CARTAO)) continue;
+      const v = G?.total || 0, cats = Object.entries(G?.cats || {}).sort((a, b) => b[1] - a[1]), aberto = D.abertos.has(tp + ":" + g);
+      linhas.push({ c: [g, v ? "R$ " + moedaBR(v) : "—", v ? pctDre(v, rb) : "—"], nivel: 1 });
+      if (cats.length && !aberto) fechados++;
+      if (aberto) for (const [c, cv] of cats) linhas.push({ c: [c, "R$ " + moedaBR(cv), pctDre(cv, rb)], nivel: 2, cor: "apag" });
+    }
+  };
+  tot("Receitas brutas", rb, rb ? "100%" : "—", [235, 246, 239]);
+  grupos("rec");
+  tot("(−) Despesas totais", s.tot.desp, pctDre(s.tot.desp, rb), [251, 237, 237]);
+  grupos("desp");
+  tot("(=) Resultado líquido", res, pctDre(res, rb), [234, 236, 240]);
+  return {
+    titulo: "DRE (resultado)", sub: `${txt} - ${dataBRde(de)} a ${dataBRde(ate)}`,
+    filtros: D.centro ? ["Centro de custo: " + centroTxtTr(D.centro)] : [],
+    resumo: [["Receitas brutas", rs(rb)], ["Despesas totais", rs(s.tot.desp)], ["Resultado líquido", rs(res) + (rb ? " (" + pctDre(res, rb) + ")" : ""), res < 0 ? "crit" : "azul"]],
+    colunas: [{ t: "Demonstração do resultado", w: 4 }, { t: "Valor", w: 1.6, al: "r" }, { t: "% da receita", w: 1.1, al: "r" }],
+    linhas,
+    nota: "Como no Fin365: só o que já foi pago ou recebido, no mês da competência. As faturas do cartão de crédito vieram do Fin365 sem categoria e aparecem numa linha própria." + (fechados ? " As categorias aparecem só nos grupos abertos na tela (toque no grupo para abrir)." : ""),
+    nome: `DRE ${txt}${D.centro ? " - " + D.centro : ""}`
+  };
+}
+const pdfDrePeriodo = () => relatorioPDF(defPdfDrePeriodo());
+function defPdfDreAnual() {
+  const D = trTela.dre, a = +D.ano, meses = [];
+  for (let m = 1; m <= 12; m++) meses.push(somarDre(`${a}-${pad(m)}-01`, dataISO(new Date(a, m, 0))));
+  const ano = somarDre(`${a}-01-01`, `${a}-12-31`), linhas = [];
+  const nomesM = MESES.map(m => m.slice(0, 3).replace(/^./, c => c.toUpperCase()));
+  const fmt = (v, neg) => { v = Math.round(v * 100) / 100; return { t: v ? (v < 0 ? "-" : "") + moedaBR(Math.abs(v)) : "—", cor: v < 0 ? "crit" : undefined, neg }; };
+  const linha = (rot, f, extra) => linhas.push({ c: [rot, ...meses.map(m => fmt(f(m))), fmt(f(ano), true)], ...extra });
+  const usados = tp => ordemGruposDre(tp).filter(g => DRE_GRUPOS[tp].some(x => x[0] === g) || ano[tp][g]);
+  for (const g of usados("rec")) linha("(+) " + g, m => m.rec[g]?.total || 0);
+  linha("(=) Receita bruta", m => m.tot.rec, { neg: true, fundo: [235, 246, 239] });
+  for (const g of usados("desp")) linha("(−) " + g, m => m.desp[g]?.total || 0);
+  linha("(=) Total despesas", m => m.tot.desp, { neg: true, fundo: [251, 237, 237] });
+  linha("(=) Resultado líquido", m => m.tot.rec - m.tot.desp, { neg: true, fundo: [234, 236, 240] });
+  // posição em caixa no fim de cada mês (a mesma conta da tela)
+  const pagos = trs().filter(r => r.st === "pago" && r.pg && (!D.centro || r.centro === D.centro));
+  const saldoAte = d => pagos.filter(r => r.pg <= d).reduce((s, r) => s + (r.tipo === "rec" ? 1 : -1) * (+r.valor || 0), 0);
+  linhas.push({ c: ["Saldo em caixa no fim do mês", ...meses.map((_, i) => fmt(saldoAte(dataISO(new Date(a, i + 1, 0))))), "—"], cor: "apag" });
+  const rs = v => (v < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(v)), res = Math.round((ano.tot.rec - ano.tot.desp) * 100) / 100;
+  return {
+    titulo: "DRE (resultado)", sub: `Anual - ${a}, mês a mês (valores em R$)`,
+    filtros: D.centro ? ["Centro de custo: " + centroTxtTr(D.centro)] : [],
+    resumo: [["Receita bruta em " + a, rs(ano.tot.rec)], ["Total de despesas em " + a, rs(ano.tot.desp)],
+      ["Resultado líquido em " + a, rs(res) + (ano.tot.rec ? " (" + pctDre(res, ano.tot.rec) + ")" : ""), res < 0 ? "crit" : "azul"]],
+    colunas: [{ t: "Conta", w: 2.3 }, ...nomesM.map(t => ({ t, w: 1, al: "r" })), { t: "Total", w: 1.35, al: "r" }],
+    linhas,
+    nota: "Como no Fin365: só o que já foi pago ou recebido, no mês da competência. Saldo em caixa: tudo o que já foi recebido menos o que já foi pago até o fim de cada mês (saldo inicial R$ 0,00 em 01/01/2026).",
+    nome: `DRE ${a}${D.centro ? " - " + D.centro : ""}`
+  };
+}
+const pdfDreAnual = () => relatorioPDF(defPdfDreAnual());
 /* Cadastros do Financeiro: centros de custo e parceiros comerciais (pedido do Gustavo em 13/11/2026: "a aba Cadastro, onde eu
    possa cadastrar os centros de custos, dar nome a eles, para ser usado ao longo de todo o sistema; também parceiros comerciais",
    como em Fin365 › Cadastros). Decisões dele: centro = código, descrição, CLIENTE LIGADO e ativo/inativo; parceiro = os campos
@@ -15971,11 +16633,12 @@ function desenharCad() {
   w.appendChild(cx);
   const vis = base.filter(r => C.st === "todos" || (C.st === "ativos") === (r.ativo !== false))
     .sort(centros ? ((a, b) => String(a.codigo).localeCompare(String(b.codigo), "pt-BR", { numeric: true })) : ((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")));
+  C.vis = vis; C.total = regs.length;              // o PDF (defPdfCad) usa exatamente as linhas da tabela
   w.appendChild(el("p", "orc-resumo", vis.length ? `${vis.length} ${centros ? "centro" + (vis.length === 1 ? "" : "s") + " de custo" : "parceiro" + (vis.length === 1 ? "" : "s")}` : ""));
   const col = centros ? colCc : colPa;
   if (!vis.length) w.appendChild(vazio(centros ? "predio" : "contatos", q ? "Nada com essa busca" : !col.dados.lido ? "Carregando…" : col.erro ? "Não foi possível ler o cadastro" : centros ? "Nenhum centro de custo" : "Nenhum parceiro",
     col.erro ? (col.erro.semAcesso ? col.erro.message : "Confira a internet e abra de novo.") : q ? "Confira o texto ou troque o filtro." : ""));
-  else w.appendChild(centros ? tabelaCentros(vis) : tabelaParceiros(vis));
+  else { w.appendChild(centros ? tabelaCentros(vis) : tabelaParceiros(vis)); w.appendChild(botoesExportar(null, pdfCad)); }
   const nota = el("p", "avcb-nota", centros ? "Os centros ativos aparecem para escolher no comprovante, nas solicitações e nas transações. Inativo continua nos lançamentos antigos, mas não aparece para escolher."
     : "Ao escolher um parceiro na solicitação de pagamento, o app preenche CPF/CNPJ e os dados para pagar (PIX ou banco). Inativo não aparece para escolher.");
   w.appendChild(nota);
@@ -16016,6 +16679,30 @@ function tabelaParceiros(vis) {
   }
   return tb;
 }
+// relatório em PDF do cadastro aberto (centros de custo ou parceiros) com as mesmas linhas da tabela (C.vis, guardada em desenharCad)
+function defPdfCad() {
+  const C = trTela.cad, centros = C.aba === "centros", vis = C.vis || [];
+  const ST = { ativos: "Ativos", inativos: "Inativos", todos: "Todos" }, busca = (C.busca || "").trim(), filtros = [];
+  if (busca) filtros.push(`Busca: "${busca}"`);
+  if (!centros && C.tipo) filtros.push("Tipo: " + C.tipo);
+  if (C.st !== "todos") filtros.push("Situação: " + ST[C.st]);
+  if (filtros.length) filtros.push(`${vis.length} de ${C.total ?? vis.length}`);
+  const nAt = vis.filter(r => r.ativo !== false).length;
+  const sit = r => r.ativo === false ? { t: "Inativo", cor: "apag" } : { t: "Ativo", cor: "ok" };
+  const resumo = [[centros ? "Centros de custo" : "Parceiros", String(vis.length)]];
+  if (C.st === "todos") resumo.push(["Ativos", String(nAt), "ok"], ["Inativos", String(vis.length - nAt)]);
+  if (centros) {
+    const uso = vis.map(r => usoCentro(r.codigo));
+    resumo.push(["Lançamentos", String(uso.reduce((s, n) => s + n, 0))]);
+    return { titulo: "Centros de custo", sub: "Cadastros do Financeiro", nome: "Centros de custo", filtros, resumo,
+      colunas: [{ t: "Código", w: 1.1 }, { t: "Descrição", w: 3.3 }, { t: "Cliente", w: 2.8 }, { t: "Lançamentos", w: 1.5, al: "r" }, { t: "Situação", w: 1 }],
+      linhas: vis.map((r, i) => [r.codigo || "", r.desc || "—", r.cliente || "—", uso[i] ? String(uso[i]) : "—", sit(r)]) };
+  }
+  return { titulo: "Parceiros comerciais", sub: "Cadastros do Financeiro", nome: "Parceiros comerciais", filtros, resumo, paisagem: true,
+    colunas: [{ t: "Nome", w: 3.2 }, { t: "Tipo", w: 1.2 }, { t: "CPF/CNPJ", w: 1.8 }, { t: "Telefone", w: 1.5 }, { t: "Dados para pagar", w: 2.6 }, { t: "Situação", w: 1 }],
+    linhas: vis.map(r => [r.fantasia && semAcento(r.fantasia) !== semAcento(r.nome) ? `${r.nome || "—"}\n${r.fantasia}` : r.nome || "—", r.tipo || "—", r.doc ? docBR(r.doc) : "—", r.tel || "—", pagarPar(r) || "—", sit(r)]) };
+}
+const pdfCad = () => relatorioPDF(defPdfCad());
 function abrirFormCad(r) {
   const C = trTela.cad;
   C.edit = r ? JSON.parse(JSON.stringify(r)) : (C.aba === "centros" ? { ativo: true, codigo: "", desc: "", cliente: "" } : { ativo: true, nome: "", tipo: "Fornecedor", aparece: "desp", pessoa: "PJ" });
@@ -16204,8 +16891,8 @@ function desenharContas() {
   if (!vis.length) lista.appendChild(q ? vazio("lupa", "Nenhuma conta com essa busca", "Confira o texto ou veja os outros filtros.")
     : vazio("dinheiro", S.cpVenc === "venc" ? "Nada vencido" : "Nenhuma conta pendente neste período", "Troque o período (ex.: Todas as datas) ou o vencimento."));
   else lista.appendChild(tabelaCp(vis));
-  $("cp-exportar").hidden = !vis.length;
-  S.cpVis = vis;
+  $("cp-exp").hidden = !vis.length;
+  S.cpVis = vis; S.cpBase = base;              // base = antes do filtro de vencimento (os cartões Total pendente / Vencido / A vencer), para o PDF
   pintarLoteCp();
   $("cp-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última cópia." : colTr.erro ? (colTr.erro.semAcesso ? colTr.erro.message : "Não foi possível atualizar agora.") : "";
 }
@@ -16302,6 +16989,43 @@ async function exportarContas() {
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+// relatório em PDF das contas como estão na tela (as mesmas linhas, na mesma ordem: trTela.cpVis)
+function defPdfContas() {
+  const S = trTela, vis = S.cpVis || [], todas = S.cpTipo === "todas", hoje = dataISO(), q = $("cp-busca").value.trim();
+  const titulo = todas ? "Contas a pagar e receber" : S.cpTipo === "receber" ? "Contas a receber" : "Contas a pagar";
+  const txt = (lista, v) => lista.find(([k]) => k === v)?.[1] || "";
+  const [de, ate] = janelaCp(S.cpPer), filtros = [];
+  if (q) filtros.push(`Busca: "${q}"`);
+  if (S.cpPer !== "todos") filtros.push(`Período: ${txt(CP_PERIODOS, S.cpPer)} (${de ? `de ${dataBRde(de)} a ${dataBRde(ate)}` : `até ${dataBRde(ate)}, com as vencidas de antes`})`);
+  if (S.cpVenc) filtros.push("Vencimento: " + txt(CP_VENC, S.cpVenc));
+  if (S.cpParc) filtros.push("Parceiro: " + S.cpParc);
+  if (S.cpCat) filtros.push("Categoria: " + S.cpCat);
+  if (filtros.length) filtros.push(`${vis.length} de ${trs().filter(r => r.st === "pend" && (todas || r.tipo === (S.cpTipo === "pagar" ? "desp" : "rec"))).length} contas pendentes`);
+  // resumo: os mesmos cartões da tela (em "Todas" sobre a lista; senão sobre a lista antes do filtro de vencimento, guardada em trTela.cpBase)
+  const qt = l => `${l.length} conta${l.length === 1 ? "" : "s"}`;
+  let resumo;
+  if (todas) {
+    const rec = vis.filter(r => r.tipo === "rec"), desp = vis.filter(r => r.tipo === "desp"), saldo = somaTr(rec) - somaTr(desp);
+    resumo = [["Contas", String(vis.length)], [`A receber (${qt(rec)})`, R$(somaTr(rec)), "ok"], [`A pagar (${qt(desp)})`, R$(somaTr(desp)), "crit"],
+      ["Saldo previsto", (saldo < 0 ? "- " : "") + R$(Math.abs(saldo)), saldo < 0 ? "crit" : "ok"]];
+  } else {
+    const base = S.cpBase || vis, venc = base.filter(r => vencCp(r) < hoje), aVencer = base.filter(r => vencCp(r) >= hoje);
+    resumo = [["Contas na lista", String(vis.length)], ["Total da lista", R$(somaTr(vis))], [`Total pendente (${qt(base)})`, R$(somaTr(base))],
+      [`Vencido (${qt(venc)})`, R$(somaTr(venc)), venc.length ? "crit" : ""], [`A vencer (${qt(aVencer)})`, R$(somaTr(aVencer)), "warn"]];
+  }
+  const colunas = [...(todas ? [{ t: "Tipo", w: 1.1 }] : []), { t: "Vencimento", w: 1.2 }, { t: "Prazo", w: 1.6 }, { t: "Descrição", w: 3 }, { t: "Parceiro", w: 2.1 },
+    { t: "Categoria", w: 1.3 }, { t: "Centro de custo", w: 2.1 }, { t: "Valor (R$)", w: 1.4, al: "r" }];
+  const linhas = vis.map(r => {
+    const v = vencCp(r);
+    return [...(todas ? [{ t: r.tipo === "rec" ? "A receber" : "A pagar", cor: r.tipo === "rec" ? "ok" : "crit" }] : []), v ? dataBRde(v) : "-",
+      { t: v ? prazoCp(r) : "-", cor: v && v < hoje ? "crit" : undefined }, (r.desc || "-") + (r.parcela ? ` (parcela ${r.parcela})` : ""),
+      r.parc || "-", r.cat || "-", centroTxtTr(r.centro) || "-", moedaBR(+r.valor || 0)];
+  });
+  return { titulo, sub: "Lançamentos pendentes, por vencimento", filtros, resumo, colunas, linhas,
+    total: !todas && vis.length ? ["", "", "TOTAL", "", "", "", moedaBR(somaTr(vis))] : null,
+    nota: todas && vis.length ? 'Em "Todas" a lista junta contas a pagar e a receber: os totais estão no alto (A receber, A pagar e Saldo previsto).' : "", nome: titulo };
+}
+function pdfContas() { clearTimeout(desenharTr.t); desenharTr(); relatorioPDF(defPdfContas()); }   // a busca redesenha 200 ms depois: põe a tela em dia antes
 /* importar a planilha "Exportar Completo" do Fin365 (Receitas ou Despesas), só o administrador. As colunas são achadas
    pelo título (Competência, Descrição, Parceiro, Categoria, Conta, Vencimento, Pagamento/Recebimento, Centro de custos,
    Valor, Status, Observações…). Cada linha vira um lançamento com id tirado do conteúdo (fin365): importar a mesma planilha
@@ -16621,7 +17345,7 @@ function desenharFunil() {
     const mes = dataISO().slice(0, 7), fe = todas.filter(o => o.etapa === "08" && (o.fechadoEm || "").startsWith(mes)), sf = fe.reduce((s, o) => s + valorFu(o), 0);
     if (fe.length) res.append(` · fechadas em ${MESES[+mes.slice(5) - 1]}: `, el("b", "", `${fe.length}${sf ? " (" + reais(sf) + ")" : ""}`));
   }
-  const alvo = $("fu-lista"); alvo.innerHTML = "";
+  const alvo = $("fu-lista"); alvo.innerHTML = ""; fuTela.vis = [];   // lista do PDF (tabelaFu grava a de agora)
   if (!colFu.dados.lido && !Object.keys(colFu.dados.baldes).length) alvo.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando as oportunidades…" : "Sem internet e sem as oportunidades guardadas neste aparelho."));
   else if (!lista.length && q && !filtrosFuAtivos()) alvo.appendChild(el("p", "avcb-nota", "Nada encontrado."));
   else {
@@ -16805,13 +17529,53 @@ function tabelaFu(lista) {
   th.appendChild(tr); tb.appendChild(th);
   const corpo = el("tbody"), f = COLS_FU[fuTela.ordem.col] || COLS_FU.etapa, s = fuTela.ordem.desc ? -1 : 1;
   const ord = lista.slice().sort((a, b) => { const x = f(a), y = f(b); if (x == null || y == null) return (x == null) - (y == null) || ordemFu(a, b); return (x < y ? -1 : x > y ? 1 : 0) * s || ordemFu(a, b); });
+  fuTela.vis = ord;                                 // a lista inteira filtrada e na ordem da tabela, para o "Exportar PDF"
   ord.slice(0, fuTela.limTab).forEach(o => corpo.appendChild(linhaFu(o)));
   if (!ord.length && filtrosFuAtivos()) { const v = el("tr", "fu-vazia"), td = el("td", "avcb-nota", "Nenhuma oportunidade com esses filtros."); td.colSpan = 8; v.appendChild(td); corpo.appendChild(v); }
   tb.appendChild(corpo); w.appendChild(tb);
   if (!ord.length && !filtrosFuAtivos()) w.appendChild(el("p", "avcb-nota", "Nenhuma oportunidade aqui."));
   if (ord.length > fuTela.limTab) { const m = el("button", "btn sec fu-mais-tab", `Mostrar mais (${ord.length - fuTela.limTab})`); m.type = "button"; m.onclick = () => { fuTela.limTab += 300; desenharFunil(); }; w.appendChild(m); }
+  if (ord.length) w.appendChild(botoesExportar(null, pdfFu));
   return w;
 }
+// relatório em PDF da lista do Comercial (pedido do Gustavo em 13/11/2026: "exportar em PDF as coisas que eu filtrar"):
+// as oportunidades que passam no grupo, na busca e nos filtros das colunas, na ordem da tabela (fuTela.vis, gravada em tabelaFu)
+function defPdfFu() {
+  const lista = fuTela?.vis || [], todas = oportunidades();
+  const g = GRUPOS_FU.find(x => x[0] === fuTela?.grupo) || GRUPOS_FU[0], doGrupo = todas.filter(o => g[2].includes(o.etapa));
+  const q = $("fu-busca").value.trim(), filtros = [];
+  if (q) filtros.push(`Busca: "${q}"`);
+  for (const k of Object.keys(FILTRO_FU)) if (fuTela?.[k]) filtros.push(`${ROT_FILTRO_FU[k]}: ${(fuTela.opF?.[k] || []).find(([v]) => v === fuTela[k])?.[1] || fuTela[k]}`);
+  if (filtros.length) filtros.push(`${lista.length} de ${doGrupo.length} oportunidades`);
+  if (g[0] !== "todas") filtros.unshift(`Grupo: ${g[1]}`, ...(filtros.length ? [] : [`${lista.length} de ${todas.length} oportunidades`]));
+  const ord = fuTela?.ordem || { col: "etapa", desc: false };
+  if (ord.col !== "etapa" || ord.desc) {
+    const nomes = { nome: "Nome", etapa: "Etapa", resp: "Responsável", sit: "Situação", valor: "Valor", orc: "Orçamento", data: "Último contato" };
+    const rot = (ORDENAR_FU[ord.col] || []).find(([, d]) => d === ord.desc)?.[0] || "";
+    filtros.push(`Ordem: ${nomes[ord.col] || ord.col}${rot ? " (" + rot.replace(" → ", " a ") + ")" : ""}`);
+  }
+  const soma = lista.reduce((s, o) => s + valorFu(o), 0), frios = lista.filter(o => frioFu(o) === "crit").length;
+  const resumo = [["Oportunidades", String(lista.length)]];
+  if (soma) resumo.push(["Valor estimado", reais(soma)]);
+  if (fuTela?.grupo === "neg" && (!fuTela.etapa || fuTela.etapa === "08")) {
+    const mes = dataISO().slice(0, 7), fe = todas.filter(o => o.etapa === "08" && (o.fechadoEm || "").startsWith(mes)), sf = fe.reduce((s, o) => s + valorFu(o), 0);
+    if (fe.length) resumo.push([`Fechadas em ${MESES[+mes.slice(5) - 1]}${q || filtrosFuAtivos() ? " (todo o grupo)" : ""}`, `${fe.length}${sf ? " (" + reais(sf) + ")" : ""}`, "ok"]);
+  }
+  if (frios) resumo.push(["Mais de 15 dias sem contato", String(frios), "crit"]);
+  const apag = { t: "-", cor: "apag" };
+  const linhas = lista.map(o => {
+    const sit = o.situacao || "A definir", resp = (o.resp || []).map(nomePessoa).join(", "), frio = frioFu(o), x = o.orc ? orcDoNumero(o.orc, o.cliente) : null;
+    return [{ t: o.nome || "(sem nome)", neg: true }, etapaTxt(o.etapa), resp || apag, sit === "A definir" ? { t: sit, cor: "apag" } : sit,
+      o.valor ? moedaBR(o.valor) : apag, o.orc ? (x ? numOrc(x) : String(o.orc)) : apag,
+      o.ultimoContato ? { t: dataBRde(o.ultimoContato), cor: frio } : { t: "-", cor: frio || "apag" }];
+  });
+  const lim = fuTela?.limTab || 150, nota = ["Último contato em vermelho: mais de 15 dias sem contato; em laranja: de 8 a 15 dias (etapas de Primeiro contato a Fechar contrato)."];
+  if (lista.length > lim) nota.unshift(`A tela mostra as primeiras ${lim} oportunidades ("Mostrar mais"); este PDF traz todas as ${lista.length}.`);
+  return { titulo: "Comercial", sub: "Oportunidades - " + g[1], filtros, resumo,
+    colunas: [{ t: "Nome", w: 3 }, { t: "Etapa", w: 1.8 }, { t: "Responsável", w: 1.9 }, { t: "Situação", w: 1.5 }, { t: "Valor (R$)", w: 1.15, al: "r" }, { t: "Orçamento", w: 0.95, al: "c" }, { t: "Último contato", w: 1.05, al: "c" }],
+    linhas, total: soma ? [`Total (${lista.length})`, "", "", "", moedaBR(soma), "", ""] : null, nota: nota.join(" "), nome: "Comercial - " + g[1] };
+}
+const pdfFu = () => relatorioPDF(defPdfFu());
 function detalheFu(o) {
   const w = el("div", "tar-det");
   if (!o) { w.appendChild(el("p", "avcb-nota", "Oportunidade não encontrada: pode ter sido apagada por outra pessoa.")); return w; }
@@ -17274,7 +18038,7 @@ function desenharClientesHub() {
   $("cl-vazio").textContent = !clientes.length ? (navigator.onLine ? "Carregando os clientes…" : "Sem internet e sem lista de clientes guardada.")
     : q && !daBusca.length ? "Nenhum cliente encontrado. Para cadastrar um cliente novo, comece um registro no Operacional e, ao escolher o cliente, digite o nome dele."
     : "Nenhum cliente com esses filtros.";
-  $("cl-exportar").hidden = !clVisiveis.length;
+  $("cl-exp").hidden = !clVisiveis.length;        // planilha e PDF: só com linhas na tabela
   $("cl-exp-contatos").hidden = !(temFicha && Object.keys(fichas).length);   // uma linha por contato, de todos os clientes
   ajustarCabCl();
   if (temFicha) sincronizarFichas();               // a busca também procura nas fichas (e a tabela mostra o contato principal)
@@ -17367,6 +18131,45 @@ async function exportarClientes() {
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
+// relatório em PDF da tabela de Clientes (pedido do Gustavo em 13/11/2026): as mesmas linhas da tela (clVisiveis, já filtradas
+// e na ordem escolhida), com os filtros ligados escritos no alto; as colunas de extintores e de contato só para quem as vê na tela
+const ORDEM_CL_PDF = { cli: ["Cliente", "A a Z", "Z a A"], avcb: ["AVCB/CLCB", "vencidos primeiro", "validade mais longa primeiro"],
+  ext: ["Extintores e mangueiras", "vencidos primeiro", "em dia primeiro"], cont: ["Contato principal", "A a Z", "Z a A"] };
+function defPdfClientes() {
+  const temEq = pode("equip"), temFicha = pode("ficha"), lista = clVisiveis, q = $("cl-busca").value.trim();
+  const opcao = id => $(id).selectedOptions[0]?.text || $(id).value;
+  const filtros = [];
+  if (q) filtros.push(`Busca: "${q}"`);
+  if ($("cl-avcb").value) filtros.push("AVCB: " + opcao("cl-avcb"));
+  if (temEq && $("cl-ext").value) filtros.push("Extintores e mangueiras: " + opcao("cl-ext"));
+  if (temFicha && $("cl-pf").value) filtros.push("O que o cliente tem: " + opcao("cl-pf"));
+  if (filtros.length) filtros.push(`${lista.length} de ${clientes.length} cliente${clientes.length === 1 ? "" : "s"}`);
+  const o = ORDEM_CL_PDF[clOrdem.col];
+  if (o && (clOrdem.col !== "cli" || clOrdem.desc)) filtros.push(`Ordem: ${o[0]} (${o[clOrdem.desc ? 2 : 1]})`);
+  // resumo: contado sobre as linhas do relatório (caixas com zero não aparecem, como os números da tela)
+  const conta = f => lista.filter(f).length;
+  const resumo = [["Clientes", lista.length !== clientes.length ? `${lista.length} de ${clientes.length}` : String(lista.length)]];
+  const caixa = (rot, n, cor) => { if (n) resumo.push([rot, String(n), cor]); };
+  caixa("AVCB vencidos", conta(x => x.s?.cls === "crit"), "crit");
+  caixa("AVCB a vencer", conta(x => x.s?.cls === "warn"), "warn");
+  caixa("AVCB em dia", conta(x => x.s?.cls === "ok"), "ok");
+  caixa("Sem AVCB na lista", conta(x => !x.s));
+  if (temEq) { caixa("Ext./mang. vencidos", conta(x => x.ext === "crit"), "crit"); caixa("Ext./mang. a vencer", conta(x => x.ext === "warn"), "warn"); }
+  const colunas = [{ t: "Cliente", w: 2.8 }, { t: "CNPJ/CPF", w: 1.7 }, { t: "AVCB/CLCB (validade)", w: 1.5 }, { t: "Situação do AVCB", w: 1.5 }];
+  if (temEq) colunas.push({ t: "Extintores e mangueiras", w: 1.3 });
+  if (temFicha) colunas.push({ t: "Contato principal", w: 2.6 });
+  const linhas = lista.map(x => {
+    const ct = x.contato, tel = ct && [ct.tel, ct.tel2].find(t => t && telDig(t).length >= 10);
+    const l = [x.c, x.doc || "-", x.av ? `${x.av.tipo} ${dataBRde(x.av.vencimento)}` : "-",
+      x.s ? { t: sitCurtaAvcb(x.s).join("\n"), cor: x.s.cls } : { t: "Sem AVCB na lista", cor: "apag" }];
+    if (temEq) l.push(x.ext ? { t: SIT_EXT[x.ext], cor: x.ext } : { t: "-", cor: "apag" });
+    if (temFicha) l.push(ct ? [ct.nome || ct.funcao, [ct.nome && ct.funcao, tel && telBR(tel)].filter(Boolean).join(" · ")].filter(Boolean).join("\n") : "-");
+    return l;
+  });
+  return { titulo: "Clientes", filtros, resumo, colunas, linhas, nome: "Clientes", paisagem: colunas.length >= 5,
+    nota: "AVCB/CLCB a vencer: vence em até 3 meses." + (temEq ? " Extintores e mangueiras a vencer: vencem em até 60 dias." : "") };
+}
+const pdfClientes = () => relatorioPDF(defPdfClientes());
 function abrirCliente(c, de = null) {
   cliPagina = c; cliDe = de;
   if (clientes.includes(c)) gravarLS("vpx_recentes", [c, ...lerLS("vpx_recentes", []).filter(x => x !== c)].slice(0, 8));
@@ -18100,6 +18903,7 @@ $("cl-tab").querySelectorAll("thead button").forEach(b => b.onclick = () => {
   desenharClientesHub();
 });
 $("cl-exportar").onclick = exportarClientes;
+$("cl-pdf").onclick = () => { clearTimeout(desenharClientesHub.t); desenharClientesHub(); pdfClientes(); };   // redesenha antes: a busca digitada há menos de 200 ms ainda não tinha entrado na lista
 $("cl-exp-contatos").onclick = exportarFichas;
 new ResizeObserver(ajustarCabCl).observe(document.querySelector("#tela-clientes .cl-cab"));
 $("topo-fila").onclick = () => aviso(!$("fila").hidden && $("fila").textContent ? $("fila").textContent : navigator.onLine ? "Itens aguardando envio." : "Sem internet: o app mostra o que está guardado no aparelho e envia sozinho o que faltar quando o sinal voltar.", "espera");
@@ -18141,6 +18945,7 @@ $("btn-comphist").onclick = abrirCompHist;
 $("ch-voltar").onclick = () => fecharCompHist();
 $("ch-atualizar").onclick = () => recarregarCompHist(true);
 $("ch-exportar").onclick = exportarCompHist;
+$("ch-pdf").onclick = pdfCompHist;
 $("ch-mes").onchange = () => { ch.mes = $("ch-mes").value; desenharCompHist(); };
 $("ch-pessoa").onchange = () => { ch.pessoa = $("ch-pessoa").value; desenharCompHist(); };
 $("ch-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { ch.filtro = b.dataset.f; $("ch-filtro").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); desenharCompHist(); });
@@ -18229,6 +19034,7 @@ $("tela-orc").querySelectorAll("thead button").forEach(b => b.onclick = () => {
 $("orc-ler").onclick = () => lerPdfsOrc(true);
 $("orc-atualizar").onclick = atualizarOrc;
 $("orc-exportar").onclick = exportarOrc;
+$("orc-pdf").onclick = pdfOrcamentos;
 // notas fiscais: "‹ Voltar" de uma nota (ou da nota nova) volta para a lista; da lista, fecha
 $("nf-voltar").onclick = () => { if (nfTela?.det || nfTela?.nova) fecharSubNf(); else fecharNf(); };
 $("nf-busca").oninput = () => { clearTimeout(desenharNf.t); desenharNf.t = setTimeout(desenharNf, 200); };
@@ -18241,6 +19047,7 @@ $("tela-nf").querySelectorAll("thead button").forEach(b => b.onclick = () => {
 $("nf-ler").onclick = () => lerPdfsNf(true);
 $("nf-atualizar").onclick = atualizarNf;
 $("nf-exportar").onclick = exportarNf;
+$("nf-pdf").onclick = pdfNotas;
 $("nf-nova").onclick = abrirNovaNf;
 $("nf-in-pdf").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (f) escolherPdfNf(f); };
 $("nf-in-bol").onchange = e => { const fs = [...e.target.files]; e.target.value = ""; if (fs.length) adicionarBoletosNf(fs); };
@@ -18249,6 +19056,7 @@ $("env-nao").onclick = () => $("dlg-enviar").close();
 $("ficha-voltar").onclick = () => { if (fichaTela?.editando) sairEdicaoFicha(true); else fecharFicha(); };
 $("btn-ficha").onclick = () => abrirFicha(cliente);
 $("eqv-exportar").onclick = () => exportarEq(Object.keys(eqDados));
+$("eqv-pdf").onclick = pdfEqv;
 $("eqv-filtro").querySelectorAll("button").forEach(b => b.onclick = () => { eqvFiltro = b.dataset.f; desenharEqv(); });
 $("btn-arq").onclick = abrirArquivos;
 $("arq-voltar").onclick = voltarArq;
@@ -18286,16 +19094,17 @@ $("tr-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { if (!t
 $("tr-novo").onclick = () => abrirFormTr(null);
 $("tr-busca").oninput = () => { clearTimeout(desenharTr.t); desenharTr.t = setTimeout(desenharTr, 200); };
 for (const [id, k] of [["tr-ano", "ano"], ["tr-mes", "mes"], ["tr-cat", "cat"], ["tr-centro", "centro"]]) $(id).onchange = () => { if (!trTela) return; trTela[k] = $(id).value; if (trTela.sit === "venc" && (k === "ano" || k === "mes")) trTela.sit = ""; desenharTr(); };
-$("tr-exportar").onclick = exportarTr;
+$("tr-exportar").onclick = exportarTr; $("tr-pdf").onclick = pdfTr;
 $("tr-importar").onclick = importarFin365;
 $("cp-busca").oninput = () => { clearTimeout(desenharTr.t); desenharTr.t = setTimeout(desenharTr, 200); };
 for (const [id, k] of [["cp-periodo", "cpPer"], ["cp-venc", "cpVenc"], ["cp-parc", "cpParc"], ["cp-cat", "cpCat"]]) $(id).onchange = () => { if (!trTela) return; trTela[k] = $(id).value; desenharTr(); };
 $("cp-novo-pagar").onclick = () => { trTela.tipo = "desp"; abrirFormTr(null); };
 $("cp-novo-receber").onclick = () => { trTela.tipo = "rec"; abrirFormTr(null); };
-$("cp-exportar").onclick = exportarContas;
+$("cp-exportar").onclick = exportarContas; $("cp-pdf").onclick = pdfContas;
 $("pc-novo-btn").onclick = abrirNovoPC;
 $("pc-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { pcTipo = b.dataset.t; pcAberto = null; desenharPedidos(); });
 $("pc-exportar").onclick = exportarPedidos;
+$("pc-pdf").onclick = pdfPC;
 $("pc-busca").oninput = () => desenharPedidos();
 $("pc-filtro").onclick = e => { const b = e.target.closest("button[data-f]"); if (!b) return; pcFiltro = b.dataset.f; desenharPedidos(); $("tela-pc").querySelector(".avcb-corpo").scrollTop = 0; };   // os botões são montados em desenharPedidos
 $("pc-materiais").append(...MATERIAIS.map(([d]) => { const o = document.createElement("option"); o.value = d; return o; }));
@@ -18336,6 +19145,7 @@ $("tela-avcb").querySelectorAll("thead button").forEach(b => b.onclick = () => {
   desenharAvcb();
 });
 $("avcb-exportar").onclick = exportarAvcb;
+$("avcb-pdf").onclick = () => { clearTimeout(desenharAvcb.t); desenharAvcb(); pdfAvcb(); };   // redesenha antes: a busca digitada há menos de 150 ms ainda não tinha entrado na lista
 // a tela mudou de largura (celular girado, janela do computador): o detalhe aberto acompanha o número de colunas
 window.addEventListener("resize", () => { if (avcbAberto && !$("tela-avcb").hidden) { clearTimeout(desenharAvcb.r); desenharAvcb.r = setTimeout(desenharAvcb, 200); } });
 $("in-avcb-cam").onchange = aoEscolherAvcb;
