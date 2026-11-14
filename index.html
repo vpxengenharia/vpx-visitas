@@ -18306,7 +18306,7 @@ function desenharReg() {
   const grupo = titulo => { if (g.children.length) { g.classList.add("compacta"); t.appendChild(el("p", "hub-rot", titulo)); t.appendChild(g); } g = el("div", "hub-grade"); };   // quadrados mais baixos: os três grupos cabem numa tela
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   if (podeVerTarefas()) g.appendChild(tile("tarefas", "Tarefas", () => abrirTar()));             // como no monday (pedido do Gustavo em 07/11/2026)
-  if (pode("funil")) g.appendChild(tile("funil", "Comercial", () => abrirFunil()));
+  // Comercial: saiu daqui (pedido do Gustavo em 14/11/2026); no celular fica no Mais, no computador no menu lateral
   if (podeSol()) g.appendChild(tile("solicitacao", "Solicitações", abrirSolicitacoes));   // compra e pagamento (saíram do Financeiro em 12/11/2026)
   grupo("Filas de trabalho");
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
