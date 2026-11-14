@@ -435,18 +435,20 @@ button,input,label{font:inherit}
 .dre-anual tr{cursor:default}
 @media (prefers-color-scheme:dark){.dre-tab tr.dre-res td,.dre-anual tr.dre-res td{background:rgba(255,255,255,.08)}}
 /* cadastros: centros de custo e parceiros (13/11/2026) */
-.cad-filtros{margin:12px 0 0}
+.cad-filtros{margin:12px 0 0;grid-template-columns:minmax(0,1fr)}   /* só a busca: o tipo dos parceiros foi para o título da coluna (14/11/2026) */
+.cad-filtros .avcb-busca{grid-column:1 / -1}
 .cad-st{margin-top:12px}
-.cad-tab .cad-c-cod{width:96px;font-weight:700;font-variant-numeric:tabular-nums}
-.cad-tab .cad-c-st{width:92px}
+.cad-tab .cad-c-cod{width:104px;font-weight:700;font-variant-numeric:tabular-nums}
+.cad-tab .cad-c-st{width:108px}   /* cabe o título com o funil e a setinha do menu */
+.cad-tab tr.cad-vazia{cursor:default}
+.cad-tab .cad-vazia td{padding:18px 10px;text-align:center}
+#cad-w .tar-fil-at{margin:8px 0 10px}   /* etiquetas dos filtros ligados, entre o resumo e a tabela */
 .cad-cli{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
 .cad-cli .btn{width:auto;min-height:44px;padding:0 16px}
 .cad-form .chips button[disabled]{opacity:.7}
 @container (min-width:860px){
-  .cad-tab .cad-c-cli{width:220px}.cad-tab .cad-c-n{width:110px;text-align:right}
+  .cad-tab .cad-c-cli{width:220px}.cad-tab .cad-c-n{width:150px;text-align:right}.cad-tab .cad-c-st{width:120px}
   .cad-tab .cad-c-tipo{width:110px}.cad-tab .cad-c-doc{width:170px;font-variant-numeric:tabular-nums}.cad-tab .cad-c-tel{width:140px}.cad-tab .cad-c-pag{width:200px;color:var(--suave);font-size:14px}
-  .cad-filtros{grid-template-columns:minmax(0,1fr) 220px}
-  .cad-filtros .avcb-busca{grid-column:auto}
 }
 /* contas a pagar e receber */
 #cp-tipo{margin-bottom:12px}
@@ -467,7 +469,7 @@ button,input,label{font:inherit}
   .tr-tab .tr-c-centro{width:96px;color:var(--suave);font-size:14px}
   .tr-tab .orc-c-valor{width:108px}
   .tr-tab .pc-c-sit{width:116px}
-  .tr-filtros{grid-template-columns:minmax(0,1.3fr) repeat(4,minmax(0,1fr))}
+  .tr-filtros{grid-template-columns:minmax(0,1fr)}   /* só a busca: os filtros estão no título das colunas */
   .tr-filtros .avcb-busca{grid-column:auto}
   .tr-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
   .tr-cards > .tr-card:nth-child(3){grid-column:auto}
@@ -2057,6 +2059,44 @@ span.fu-orc-lin{cursor:default}
 /* exportar PDF: avcb */
 /* Validades: a regra do computador "#avcb-exportar{width:fit-content!important;min-width:280px}" não vale dentro da dupla de botões */
 .exp-bot #avcb-exportar{width:100%!important;min-width:0}
+
+/* filtros e ordem no título das colunas, versão única (Financeiro e Notas fiscais, 14/11/2026): mesmo visual das Tarefas */
+.fc-tab thead button.tar-th{display:inline-flex;align-items:center;white-space:nowrap;max-width:100%}
+.fc-tab thead .tar-th-fil{display:inline-block}
+.fc-tab thead th.fc-dir button.tar-th{justify-content:flex-end;margin-left:auto}
+.fc-tab thead th.fc-dir{text-align:right}
+
+/* exportar PDF: trcp */
+/* Transações e Contas a pagar e receber: filtros no título das colunas (14/11/2026) — colunas um pouco mais largas para caber o título com a setinha, a seta da ordem e o funil */
+.fc-tab tr.fc-vazia{cursor:default}
+.fc-tab tr.fc-vazia td{padding:18px 10px;text-align:center}
+.fc-tab.tr-tab:not(.cp-tab) .pc-c-sit{width:118px}
+.fc-tab.tr-tab .orc-c-valor{width:104px}
+@container (min-width:860px){
+  .fc-tab.tr-tab .tr-c-data{width:108px}
+  .fc-tab.cp-tab .tr-c-data{width:140px}
+  .fc-tab.tr-tab .tr-c-cat{width:122px}
+  .fc-tab.tr-tab .tr-c-centro{width:108px}
+  .fc-tab.tr-tab .orc-c-valor{width:116px}
+  .fc-tab.tr-tab:not(.cp-tab) .pc-c-sit{width:128px}
+}
+#tr-lista .tar-fil-at,#cp-lista .tar-fil-at{margin:0 0 10px}
+
+/* exportar PDF: nf */
+/* Notas fiscais: filtros e ordem no título das colunas (14/11/2026); só a busca em cima, as etiquetas dos filtros logo acima da tabela */
+#tela-nf .nf-filtros{grid-template-columns:minmax(0,1fr)}
+#tela-nf .nf-filtros .avcb-busca{grid-column:1 / -1}
+#nf-fil-at .tar-fil-at{margin:10px 0 0}
+.nf-tab tbody tr.nf-vazia{cursor:default;background:none}
+.nf-tab tbody tr.nf-vazia td{padding:18px 10px;text-align:center;color:var(--suave);font-size:14.5px}
+@container (max-width:859px){
+  /* celular: colunas estreitas; com a seta da ordem ou o funil, a setinha do menu sai (não cabe) */
+  .nf-tab thead button.tar-th{padding:0 4px}
+  .nf-tab thead :is(.tar-th-seta,.tar-th-fil:not([style*="none"])) ~ .tar-th-menu{display:none}
+  .nf-tab thead .tar-th-seta:has(~ .tar-th-fil:not([style*="none"])){display:none}
+  .nf-tab .orc-c-data{width:74px}
+}
+@container (min-width:860px){.nf-tab .orc-c-tipo{width:138px}}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2472,11 +2512,7 @@ span.fu-orc-lin{cursor:default}
       <button class="btn prim" id="tr-novo" type="button">+ Nova despesa</button>
       <div class="orc-filtros tr-filtros">
         <input class="avcb-busca" id="tr-busca" type="search" placeholder="Buscar" aria-label="Buscar por descrição, parceiro, categoria, centro de custo, valor ou data" autocomplete="off">
-        <select id="tr-ano" aria-label="Ano"></select>
-        <select id="tr-mes" aria-label="Mês"></select>
-        <select id="tr-cat" aria-label="Categoria"></select>
-        <select id="tr-centro" aria-label="Centro de custo"></select>
-      </div>
+      </div><!-- ano, mês, parceiro, categoria, centro e situação: no título das colunas da tabela (14/11/2026) -->
       <div class="chips avcb-filtro" id="tr-sit" role="group" aria-label="Situação"></div>
       <div class="tr-cards" id="tr-cards"></div>
       <p class="orc-resumo" id="tr-resumo"></p>
@@ -2491,11 +2527,7 @@ span.fu-orc-lin{cursor:default}
       <div class="cp-novos"><button class="btn prim" id="cp-novo-pagar" type="button">+ Conta a pagar</button><button class="btn prim" id="cp-novo-receber" type="button">+ Conta a receber</button></div>
       <div class="orc-filtros tr-filtros cp-filtros">
         <input class="avcb-busca" id="cp-busca" type="search" placeholder="Buscar" aria-label="Buscar por descrição, parceiro, categoria, centro de custo, valor ou data" autocomplete="off">
-        <select id="cp-periodo" aria-label="Período"></select>
-        <select id="cp-venc" aria-label="Vencimento"></select>
-        <select id="cp-parc" aria-label="Parceiro"></select>
-        <select id="cp-cat" aria-label="Categoria"></select>
-      </div>
+      </div><!-- período, vencimento, parceiro, categoria e centro: no título das colunas da tabela (14/11/2026) -->
       <div class="tr-cards" id="cp-cards"></div>
       <p class="orc-resumo" id="cp-resumo"></p>
       <div id="cp-lista"></div>
@@ -2597,31 +2629,15 @@ span.fu-orc-lin{cursor:default}
   <div class="avcb-corpo">
     <div id="nf-lista-tela">
       <button class="btn prim" id="nf-nova" type="button">+ Nova nota fiscal</button>
-      <div class="orc-filtros">
+      <div class="orc-filtros nf-filtros">
         <input class="avcb-busca" id="nf-busca" type="search" placeholder="Buscar número, cliente ou valor" aria-label="Buscar por número, cliente, CNPJ ou valor" autocomplete="off">
-        <select id="nf-periodo" aria-label="Período"><option value="">Todos os períodos</option></select>
-        <select id="nf-sit" aria-label="Situação">
-          <option value="">Todas as notas</option>
-          <option value="validas">Sem as canceladas</option>
-          <option value="canc">Canceladas</option>
-          <option value="iss">ISS retido</option>
-          <option value="bol">Com boleto</option>
-          <option value="nac">Nacionais (NFS-e)</option>
-          <option value="mun">Antigas (Nota Salvador)</option>
-        </select>
       </div>
       <p class="orc-resumo" id="nf-resumo"></p>
       <p class="avcb-nota" id="nf-estado"></p>
       <button class="btn sec" id="nf-ler" type="button" hidden></button>
-      <table class="orc-tab nf-tab">
-        <thead><tr>
-          <th class="orc-c-num" scope="col"><button type="button" data-col="num">Nº</button></th>
-          <th class="orc-c-cli" scope="col"><button type="button" data-col="cli">Cliente</button></th>
-          <th class="orc-c-tipo" scope="col"><button type="button" data-col="orc">Orçamento</button></th>
-          <th class="orc-c-valor" scope="col"><button type="button" data-col="valor">Valor (R$)</button></th>
-          <th class="orc-c-data" scope="col"><button type="button" data-col="data">Emissão</button></th>
-          <th class="orc-c-acao" scope="col"><span>Envio</span></th>
-        </tr></thead>
+      <div id="nf-fil-at"></div>
+      <table class="orc-tab nf-tab fc-tab">
+        <thead id="nf-cab"></thead>
         <tbody id="nf-corpo"></tbody>
       </table>
       <p class="avcb-nota" id="nf-vazio" hidden></p>
@@ -13666,7 +13682,8 @@ async function exportarFichas() {
    (vpx_nf_pdf) e em "VPX Visitas - Configuração/notas-fiscais.json" (o administrador grava, junto com as correções
    feitas à mão; os outros aparelhos não precisam ler de novo). Função "nf" (fora do perfil padrão). */
 let nf = lerLS("vpx_nf", null), nfPdf = lerLS("vpx_nf_pdf", {}), nfCorr = lerLS("vpx_nf_corr", {});
-let nfVisiveis = [], nfLeitura = null, nfOrdem = { col: "data", desc: true };
+let nfVisiveis = [], nfLeitura = null;
+const nfSt = { f: {}, ordem: { col: "data", desc: true } };   // filtros e ordem escolhidos no título das colunas (FC_NF)
 let nfTela = null;                                 // {} = lista; { det: id } = uma nota; { nova: {...} } = cadastrar nota nova
 const pad3 = n => String(n).padStart(3, "0");
 
@@ -13973,7 +13990,7 @@ function abrirNotas(busca = "") {
   if (!pode("nf")) return;
   nfTela = {};
   $("nf-busca").value = busca;
-  $("nf-periodo").value = ""; $("nf-sit").value = "";
+  limparFC(FC_NF);                                 // cada abertura começa sem filtros (a ordem escolhida continua)
   $("tela-nf").hidden = false;
   $("tela-nf").querySelector(".avcb-corpo").scrollTop = 0; delete rolLista["tela-nf"];
   document.body.style.overflow = "hidden";
@@ -14011,29 +14028,41 @@ async function atualizarNf() {
   lerPdfsNf();
 }
 
-// filtro de período com o que existe na lista (ano ou mês da emissão)
-function filtrosNf(todos) {
-  const meses = [...new Set(todos.map(x => (x.data || "").slice(0, 7)).filter(Boolean))].sort().reverse();
-  if (meses.join() === filtrosNf.chave) return;
-  filtrosNf.chave = meses.join();
-  const sel = $("nf-periodo"), v = sel.value;
-  sel.innerHTML = "";
-  sel.appendChild(new Option("Todos os períodos", ""));
-  const nomeMes = m => { const n = MESES[+m.slice(5) - 1]; return `${n[0].toUpperCase() + n.slice(1)} de ${m.slice(0, 4)}`; };
-  for (const [rot, itens] of [["Ano", [...new Set(meses.map(m => m.slice(0, 4)))].map(a => [a, "Ano de " + a])], ["Mês", meses.map(m => [m, nomeMes(m)])]]) {
-    if (!itens.length) continue;
-    const g = document.createElement("optgroup"); g.label = rot;
-    itens.forEach(([val, txt]) => g.appendChild(new Option(txt, val)));
-    sel.appendChild(g);
-  }
-  sel.value = [...sel.options].some(o => o.value === v) ? v : "";
-}
+// filtros e ordem no título das colunas (pedido do Gustavo em 14/11/2026: "como nas Tarefas"), pelo núcleo filtrarFC/cabecalhoFC;
+// no lugar dos campos Período e Situação. No celular (Orçamento e Envio escondidos) o título Nº filtra também o orçamento.
+const nomeMesNf = m => { const n = MESES[+m.slice(5) - 1]; return `${n[0].toUpperCase() + n.slice(1)} de ${m.slice(0, 4)}`; };
+const FC_NF = {
+  id: "nf", st: nfSt, principal: "num", redesenhar: () => desenharNf(),
+  filtros: {
+    tipo: { rot: "Tipo", todos: "Todos", ok: (x, v) => v === "nac" ? !!x.nac : !x.nac, ops: () => [["nac", "Nacional (NFS-e)"], ["mun", "Nota Salvador (antiga)"]] },
+    bol: { rot: "Boleto", todos: "Todas", ok: (x, v) => v === "com" ? x.boletos.length > 0 : !x.boletos.length, ops: () => [["com", "Com boleto"], ["sem", "Sem boleto"]] },
+    cli: { rot: "Cliente", todos: "Todos", ok: (x, v) => x.cliTxt === v,
+      ops: l => [...new Set(l.map(x => x.cliTxt).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR")).map(c => [c, c]) },
+    orc: { rot: "Orçamento", todos: "Todas", ok: (x, v) => v === "com" ? !!x.orc : !x.orc, ops: () => [["com", "Com orçamento"], ["sem", "Sem orçamento"]] },
+    sit: { rot: "Situação", todos: "Todas as notas", ok: (x, v) => v === "validas" ? !x.canc : v === "canc" ? !!x.canc : !!x.iss,
+      ops: () => [["validas", "Emitidas (sem as canceladas)"], ["canc", "Canceladas"], ["iss", "ISS retido"]] },
+    per: { rot: "Período", todos: "Todos os períodos", ok: (x, v) => (x.data || "").startsWith(v),   // "2026" (ano) ou "2026-11" (mês)
+      ops: l => {
+        // os meses de todas as notas (não só das achadas pela busca): o nome do período escolhido continua na etiqueta
+        const meses = [...new Set((FC_NF.todas || l).map(x => (x.data || "").slice(0, 7)).filter(Boolean))].sort().reverse();
+        return [...[...new Set(meses.map(m => m.slice(0, 4)))].map(a => [a, "Ano de " + a]), ...meses.map(m => [m, nomeMesNf(m)])];
+      } }
+  },
+  colunas: [
+    { col: "num", rot: "Nº", cls: "orc-c-num", filtros: ["tipo"], ordenar: [["Maior número primeiro", true], ["Menor número primeiro", false]] },
+    { col: "cli", rot: "Cliente", cls: "orc-c-cli", filtros: ["bol", "cli"], ordenar: [["A → Z", false], ["Z → A", true]] },
+    { col: "orc", rot: "Orçamento", cls: "orc-c-tipo", filtros: ["orc"], ordenar: [["Maior número primeiro", true], ["Menor número primeiro", false]] },
+    { col: "valor", rot: "Valor (R$)", cls: "orc-c-valor", al: "r", filtros: ["sit"], ordenar: [["Maior valor primeiro", true], ["Menor valor primeiro", false]] },
+    { col: "data", rot: "Emissão", cls: "orc-c-data", filtros: ["per"], ordenar: [["Mais recente primeiro", true], ["Mais antiga primeiro", false]] },
+    { col: "envio", rot: "Envio", cls: "orc-c-acao" }
+  ]
+};
 const COLS_NF = { num: x => x.num, cli: x => x.cliTxt, orc: x => x.orc || null, valor: x => x.valor, data: x => x.data || null };
 function compNf(a, b) {
-  const f = COLS_NF[nfOrdem.col], x = f(a), y = f(b);
+  const o = nfSt.ordem, f = COLS_NF[o.col] || COLS_NF.data, x = f(a), y = f(b);
   if ((x == null) !== (y == null)) return x == null ? 1 : -1;
   let r = x == null ? 0 : typeof x === "number" ? x - y : String(x).localeCompare(String(y), "pt-BR");
-  if (nfOrdem.desc) r = -r;
+  if (o.desc) r = -r;
   return r || (b.data || "").localeCompare(a.data || "") || b.num - a.num;
 }
 // forcar: desenha mesmo com um formulário aberto (as atualizações por trás não apagam o que está sendo digitado)
@@ -14051,13 +14080,11 @@ function desenharNf(forcar) {
   }
   $("nf-titulo").textContent = "Notas fiscais";
   const todos = [...prep.info.values()];
-  filtrosNf(todos);
-  const q = semAcento($("nf-busca").value.trim()), per = $("nf-periodo").value, st = $("nf-sit").value;
-  nfVisiveis = todos.filter(x => {
-    if (per && !(x.data || "").startsWith(per)) return false;   // "2026" (ano) ou "2026-11" (mês)
-    if ((st === "validas" && x.canc) || (st === "canc" && !x.canc) || (st === "iss" && !x.iss) || (st === "bol" && !x.boletos.length) || (st === "nac" && !x.nac) || (st === "mun" && x.nac)) return false;
+  const q = semAcento($("nf-busca").value.trim());
+  FC_NF.todas = todos;
+  nfVisiveis = filtrarFC(FC_NF, todos.filter(x => {
     return !q || semAcento([x.num, pad3(x.num), x.cliTxt, x.tomador, x.cnpj, x.cnpj && formatarDoc(x.cnpj), x.orc, x.n.nome, x.data && dataBRde(x.data), x.valor != null && moedaBR(x.valor), x.parcela && "parcela " + x.parcela].filter(Boolean).join(" ")).includes(q);
-  }).sort(compNf);
+  })).sort(compNf);
   // resumo: quantas e o total do que está na tela (as canceladas não somam)
   const n = nfVisiveis.length, validas = nfVisiveis.filter(x => !x.canc), comValor = validas.filter(x => x.valor != null);
   const sem = validas.length - comValor.length, canc = n - validas.length, res = $("nf-resumo");
@@ -14077,13 +14104,17 @@ function desenharNf(forcar) {
   const faltam = nf && !L && !atualizarNf.rodando ? nf.itens.filter(x => !pdfNf(x) && !(x.size > 15e6)) : [], antigas = faltam.filter(x => !x.nac).length;
   $("nf-ler").hidden = !faltam.length || !navigator.onLine;
   $("nf-ler").textContent = `Ler os dados de ${faltam.length} nota${faltam.length === 1 ? "" : "s"}` + (antigas ? " (as antigas levam alguns segundos cada; melhor no Wi-Fi)" : "");
-  $("tela-nf").querySelectorAll("thead button").forEach(b => {
-    const ativa = b.dataset.col === nfOrdem.col;
-    b.dataset.seta = ativa ? (nfOrdem.desc ? " ↓" : " ↑") : "";
-    b.closest("th").setAttribute("aria-sort", ativa ? (nfOrdem.desc ? "descending" : "ascending") : "none");
-  });
+  const cab = $("nf-cab"), chave = JSON.stringify([nfSt.f, nfSt.ordem]);
+  if (cab.dataset.k !== chave || !cab.firstChild) { cab.replaceChildren(cabecalhoFC(FC_NF)); cab.dataset.k = chave; }
+  const at = etiquetasFC(FC_NF), filtrando = !!at;
+  $("nf-fil-at").replaceChildren(...(at ? [at] : []));
   $("nf-corpo").replaceChildren(...nfVisiveis.map(linhaNf));
-  $("nf-vazio").hidden = !nf || !!n;
+  if (!n && filtrando && todos.length) {           // vazia por filtro: a tabela fica (o título da coluna tira o filtro)
+    const tr = el("tr", "nf-vazia"), td = el("td", "", "Nenhuma nota com esses filtros.");
+    td.colSpan = [...cab.querySelectorAll("th")].filter(th => getComputedStyle(th).display !== "none").length || 1;
+    tr.appendChild(td); $("nf-corpo").appendChild(tr);
+  }
+  $("nf-vazio").hidden = !nf || !!n || (filtrando && !!todos.length);
   $("nf-vazio").textContent = todos.length ? "Nenhuma nota com esses filtros." : "Nenhuma nota fiscal na pasta.";
   $("nf-exp").hidden = !n;
   $("nf-nota").textContent = `A lista mostra as notas das pastas "${CONFIG.notasPastas.nac}" e "${CONFIG.notasPastas.mun}" (${CONFIG.notasNome}) e liga cada uma aos boletos com o número dela (pasta "${CONFIG.notasPastas.boletos}"). Data, valor e cliente são lidos de dentro de cada PDF; o cliente é a pasta com o nome mais parecido com o da nota.`;
@@ -14273,12 +14304,11 @@ async function exportarNf() {
 
 // relatório em PDF com as notas que estão na tela agora: a mesma lista (nfVisiveis), com os filtros e a ordem escolhidos (13/11/2026)
 function defPdfNotas() {
-  const todos = prepararNf().info.size, n = nfVisiveis.length, q = $("nf-busca").value.trim(), per = $("nf-periodo"), st = $("nf-sit");
+  const todos = prepararNf().info.size, n = nfVisiveis.length, q = $("nf-busca").value.trim(), fil = textosFiltrosFC(FC_NF), o = nfSt.ordem;
   const ORD = { num: ["Nº", "maior primeiro", "menor primeiro"], cli: ["Cliente", "Z a A", "A a Z"], orc: ["Orçamento", "maior primeiro", "menor primeiro"],
-    valor: ["Valor", "maior primeiro", "menor primeiro"], data: ["Emissão", "mais recentes primeiro", "mais antigas primeiro"] }[nfOrdem.col];
-  const filtros = [q && `Busca: "${q}"`, per.value && "Período: " + per.selectedOptions[0].text, st.value && "Situação: " + st.selectedOptions[0].text,
-    ORD && !(nfOrdem.col === "data" && nfOrdem.desc) && `Ordem: ${ORD[0]} (${ORD[nfOrdem.desc ? 1 : 2]})`].filter(Boolean);
-  if (q || per.value || st.value) filtros.push(`${n} de ${todos} nota${todos === 1 ? "" : "s"}`);
+    valor: ["Valor", "maior primeiro", "menor primeiro"], data: ["Emissão", "mais recentes primeiro", "mais antigas primeiro"] }[o.col];
+  const filtros = [q && `Busca: "${q}"`, ...fil, ORD && !(o.col === "data" && o.desc) && `Ordem: ${ORD[0]} (${ORD[o.desc ? 1 : 2]})`].filter(Boolean);
+  if (q || fil.length) filtros.push(`${n} de ${todos} nota${todos === 1 ? "" : "s"}`);
   // resumo e total como na tela: as canceladas aparecem, mas não somam
   const validas = nfVisiveis.filter(x => !x.canc), comValor = validas.filter(x => x.valor != null);
   const sem = validas.length - comValor.length, canc = n - validas.length, soma = comValor.reduce((s, x) => s + x.valor, 0);
@@ -14288,7 +14318,7 @@ function defPdfNotas() {
       x.cnpj ? formatarDoc(x.cnpj) : "", x.orc ? String(x.orc) : "-", x.valor != null ? { t: moedaBR(x.valor), risc: x.canc } : "-"] };
   });
   return {
-    titulo: "Notas fiscais", sub: per.value ? per.selectedOptions[0].text : "", filtros,
+    titulo: "Notas fiscais", sub: nfSt.f.per ? fcTexto(FC_NF, "per") : "", filtros,
     resumo: [["Notas", n !== todos ? `${n} de ${todos}` : String(n)], comValor.length && ["Total (sem as canceladas)", R$(soma)],
       sem && ["Sem valor lido", String(sem), "warn"], canc && [`Cancelada${canc > 1 ? "s" : ""} (fora do total)`, String(canc)]],
     colunas: [{ t: "Nº", w: 0.8 }, { t: "Emissão", w: 1.1 }, { t: "Cliente", w: 3.4 }, { t: "CNPJ/CPF", w: 1.8 }, { t: "Orçamento", w: 1 }, { t: "Valor (R$)", w: 1.3, al: "r" }],
@@ -14663,6 +14693,111 @@ function menuOpcoes(alvo, opcoes, atual, aoEscolher) {
   m.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
   m.style.top = (r.bottom + 4 + h > innerHeight - 8 ? Math.max(8, r.top - h - 4) : r.bottom + 4) + "px";
   (m.querySelector(".atual") || m.querySelector("button"))?.focus({ preventScroll: true });
+}
+/* ---------- filtros e ordem no título das colunas, versão única (pedido do Gustavo em 14/11/2026: "em Financeiro e Notas fiscais
+   aplicar os filtros como em Tarefas") ----------
+   O mesmo jeito de Tarefas, Comercial e Clientes (que têm cópias próprias): o título de cada coluna abre o #menu-op com
+   "Ordenar" e "Filtrar: …" (cada opção com a quantidade que a lista teria); setinha embaixo = tem menu, ↑/↓ = ordem, funil laranja =
+   filtro ligado; em cima da tabela, os filtros ligados em etiquetas "Categoria: Empresa ×" e "Limpar filtros" com 2 ou mais.
+   Na tela estreita, o título da coluna principal (fc.principal) filtra também as colunas que estão escondidas.
+   fc = { st: estado da tela (filtros em st.f = { chave: valor }, ordem em st.ordem = { col, desc }, opções com a quantidade em st.opF),
+          filtros: { chave: { rot: "Categoria", todos: "Todas", ok: (item, valor) => bool, ops: itens => [[valor, texto]],
+                              solta: valor => [chaves] (opcional: escolher esse valor desliga esses filtros — ex.: Situação "Vencidas", de qualquer mês,
+                              desliga Ano e Mês; a quantidade da opção já conta sem eles; escolher por fora do menu: escolherFC) } },
+          colunas: [{ col, rot, cls, filtros: [chaves], ordenar: [[rótulo, desc], …] (sem ordenar: só filtra), al: "r" }],
+          principal: col, redesenhar: () => … }
+   Uso: const vis = filtrarFC(fc, base) (aplica os filtros e prepara st.opF); thead com cabecalhoFC(fc); etiquetasFC(fc) em cima;
+   textosFiltrosFC(fc) para o PDF; limparFC(fc). Ordenar fica com a tela (st.ordem.col / st.ordem.desc). */
+function filtrarFC(fc, base) {
+  const st = fc.st, f = st.f || (st.f = {});
+  const ks = Object.keys(fc.filtros).filter(k => f[k] != null && f[k] !== "");
+  const passa = (x, fora, solta = []) => ks.every(k => k === fora || solta.includes(k) || fc.filtros[k].ok(x, f[k]));
+  st.opF = {};
+  for (const [k, F] of Object.entries(fc.filtros)) {
+    const sem = base.filter(x => passa(x, k));            // a lista com os outros filtros: a quantidade de cada opção
+    st.opF[k] = (F.ops(base) || []).map(([v, txt, cls]) => {
+      const so = F.solta?.(v) || [];                     // opção que desliga outros filtros: conta sem eles
+      return [v, txt, cls || "", (so.length ? base.filter(x => passa(x, k, so)) : sem).filter(x => F.ok(x, v)).length];
+    }).filter(([v, , , n]) => n || String(v) === String(f[k] ?? ""));
+  }
+  return base.filter(x => passa(x));
+}
+const fcLigados = fc => Object.keys(fc.filtros).filter(k => fc.st.f?.[k] != null && fc.st.f[k] !== "");
+const fcTexto = (fc, k) => (fc.st.opF?.[k] || []).find(([v]) => String(v) === String(fc.st.f[k]))?.[1] || String(fc.st.f[k]);
+function limparFC(fc, k) { if (k) fc.st.f[k] = ""; else for (const x of Object.keys(fc.filtros)) fc.st.f[x] = ""; }
+function escolherFC(fc, k, v) { fc.st.f[k] = v; for (const j of (v && fc.filtros[k].solta?.(v)) || []) fc.st.f[j] = ""; }   // também pelos chips e cartões da tela
+const textosFiltrosFC = fc => fcLigados(fc).map(k => `${fc.filtros[k].rot}: ${fcTexto(fc, k)}`);
+function etiquetasFC(fc) {
+  const at = fcLigados(fc);
+  if (!at.length) return null;
+  const w = el("div", "tar-fil-at");
+  for (const k of at) {
+    const txt = fcTexto(fc, k), b = el("button", "tar-fil-chip", `${fc.filtros[k].rot}: ${txt}`); b.type = "button";
+    b.title = "Tirar este filtro"; b.setAttribute("aria-label", `Tirar o filtro ${fc.filtros[k].rot}: ${txt}`);
+    b.appendChild(el("span", "tar-fil-x", "×"));
+    b.onclick = () => { limparFC(fc, k); fc.redesenhar(); };
+    w.appendChild(b);
+  }
+  if (at.length > 1) { const b = el("button", "tar-limpar", "Limpar filtros"); b.type = "button"; b.onclick = () => { limparFC(fc); fc.redesenhar(); }; w.appendChild(b); }
+  return w;
+}
+// os filtros que o título da coluna mostra: os dela e, na coluna principal, os das colunas escondidas (tela estreita)
+function filtrosDaColunaFC(fc, c, tr) {
+  const ks = [...(c.filtros || [])];
+  if (c.col === fc.principal && tr) for (const o of fc.colunas) {
+    const th = tr.querySelector(`th[data-fc="${o.col}"]`);
+    if (o !== c && th && getComputedStyle(th).display === "none") ks.push(...(o.filtros || []));
+  }
+  return ks;
+}
+function menuFC(fc, b, c) {
+  const st = fc.st, ops = [], atual = [];
+  if (c.ordenar?.length) {
+    ops.push([null, "Ordenar", "menu-tit"]);
+    c.ordenar.forEach(([rot, desc], i) => { ops.push(["o:" + i, rot]); if (st.ordem?.col === c.col && !!st.ordem.desc === !!desc) atual.push("o:" + i); });
+  }
+  for (const k of filtrosDaColunaFC(fc, c, b.closest("tr"))) {
+    const F = fc.filtros[k];
+    ops.push([null, "Filtrar: " + (/^.[A-Z]/.test(F.rot) ? F.rot : F.rot.charAt(0).toLowerCase() + F.rot.slice(1)), "menu-tit"], ["f:" + k + ":", F.todos || "Todos"]);
+    for (const [v, txt, cls, n] of st.opF?.[k] || []) ops.push(["f:" + k + ":" + v, `${txt} (${n})`, cls]);
+    atual.push("f:" + k + ":" + (st.f[k] ?? ""));
+  }
+  if (!ops.length) return;
+  menuOpcoes(b, ops, atual, v => {
+    if (v.startsWith("o:")) st.ordem = { col: c.col, desc: !!c.ordenar[+v.slice(2)][1] };
+    else { const [, k, ...resto] = v.split(":"); escolherFC(fc, k, resto.join(":")); }
+    fc.redesenhar();
+    document.querySelector(`th[data-fc="${c.col}"] button.tar-th[data-fc-tab="${fc.id || ""}"]`)?.focus({ preventScroll: true });
+  });
+}
+// a linha do cabeçalho: um botão por coluna (as colunas sem ordem nem filtro ficam com o título simples)
+function cabecalhoFC(fc) {
+  const tr = el("tr"), st = fc.st, lig = new Set(fcLigados(fc)), funis = [];
+  for (const c of fc.colunas) {
+    const th = el("th", (c.cls || "") + (c.al === "r" ? " fc-dir" : "")); th.scope = "col"; th.dataset.fc = c.col;
+    if (!c.ordenar?.length && !c.filtros?.length && c.col !== fc.principal) { th.appendChild(el("span", "fc-rot", c.rot)); tr.appendChild(th); continue; }
+    const b = el("button", "tar-th", c.rot), ativa = st.ordem?.col === c.col;
+    b.type = "button"; b.dataset.fcTab = fc.id || ""; b.setAttribute("aria-haspopup", "menu"); b.title = c.ordenar?.length ? "Ordenar e filtrar" : "Filtrar";
+    th.setAttribute("aria-sort", ativa ? (st.ordem.desc ? "descending" : "ascending") : "none");
+    if (ativa) b.appendChild(el("span", "tar-th-seta", st.ordem.desc ? " ↓" : " ↑"));
+    if ((c.filtros || []).some(k => lig.has(k))) b.appendChild(ic("funil", "tar-th-fil"));
+    if (c.col === fc.principal) { const fi = ic("funil", "tar-th-fil fc-escondidas"); fi.style.display = "none"; b.appendChild(fi); funis.push(fi); }
+    b.appendChild(el("span", "tar-th-menu"));
+    b.onclick = () => menuFC(fc, b, c);
+    th.appendChild(b); tr.appendChild(th);
+  }
+  // funil da coluna principal: só quando há filtro ligado numa coluna que a tela estreita escondeu (refeito quando a largura muda)
+  if (funis.length) {
+    const pintar = () => {
+      if (!tr.isConnected) { if (tr._viu) ro.disconnect(); return; }
+      tr._viu = true;
+      const esc = fc.colunas.filter(o => o.col !== fc.principal && getComputedStyle(tr.querySelector(`th[data-fc="${o.col}"]`)).display === "none");
+      funis[0].style.display = esc.some(o => (o.filtros || []).some(k => lig.has(k))) ? "" : "none";
+    };
+    const ro = new ResizeObserver(pintar); ro.observe(tr);
+    queueMicrotask(pintar);                        // logo depois de quem chamou pôr o cabeçalho na tabela (sem esperar o 1º quadro)
+  }
+  return tr;
 }
 // equipe: quem usa o app (pasta de usuários) com o nome da administração; para escolher os responsáveis
 function pessoasEquipe() {
@@ -15773,7 +15908,7 @@ async function lancarReembolsosPagos() {
 }
 const colTr = colecao({ chave: "vpx_tr", prefixo: "transacoes", n: 32, base: baseTransacoes, pode: podeTrans, aoMudar: aoMudarTr });
 const redesTr = redesenhoSeguro("tela-tr", () => desenharTr());
-let trTela = null;                                  // { tipo, ano, mes, sit, cat, centro, ordem, aberto (id) | novo (rascunho), sel }
+let trTela = null;                                  // { tipo, f: { ano, mes, parc, cat, centro, sit } (filtros, fcTr), opF, ordem, cp: { f, opF, ordem } (contas, fcCp), aberto (id) | novo (rascunho), sel }
 const trs = () => Object.values(regsDe(colTr));
 const refTr = r => r.st === "pago" ? (r.pg || r.venc || r.comp || "") : (r.venc || r.comp || "");
 const vencidaTr = r => r.st === "pend" && !!r.venc && r.venc < dataISO();
@@ -15800,9 +15935,11 @@ function opcoesSel(sel, lista, valor) {             // lista: [[valor, texto]]; 
 function abrirTransacoes(op = {}) {
   if (!podeTrans()) return;
   const d = new Date();
-  trTela = { modo: op.modo || "", cpTipo: op.cpTipo || "pagar", cpPer: op.cpVenc === "venc" ? "todos" : "ate-mes", cpVenc: op.cpVenc || "", cpParc: "", cpCat: "", cpSel: new Set(),
-    tipo: op.tipo || trTela?.tipo || "desp", ano: String(d.getFullYear()), mes: pad(d.getMonth() + 1), sit: op.sit || "", cat: "", centro: "", ordem: { col: "data", desc: false }, sel: new Set() };
-  if (op.sit === "venc") trTela.ano = trTela.mes = "";
+  // filtros (no título das colunas): as transações abrem no mês atual; as contas, "até o fim deste mês" (pelo cartão "Vencido a pagar": todas as datas, só as vencidas)
+  trTela = { modo: op.modo || "", cpTipo: op.cpTipo || "pagar", cpSel: new Set(),
+    cp: { f: { per: op.cpVenc === "venc" ? "" : "ate-mes", venc: op.cpVenc || "", parc: "", cat: "", centro: "" }, ordem: { col: "venc", desc: false } },
+    tipo: op.tipo || trTela?.tipo || "desp", f: { ano: String(d.getFullYear()), mes: pad(d.getMonth() + 1), sit: op.sit || "", parc: "", cat: "", centro: "" }, ordem: { col: "data", desc: false }, sel: new Set() };
+  if (op.sit === "venc") trTela.f.ano = trTela.f.mes = "";
   $("tr-busca").value = "";
   delete rolLista["tela-tr"];
   $("tela-tr").hidden = false;
@@ -15838,28 +15975,20 @@ function desenharTr() {
   $("tr-tipos").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === tp)));
   $("tr-novo").textContent = T.novo;
   const todos = trs().filter(r => r.tipo === tp);
-  // filtros com o que existe
-  const anos = [...new Set([String(new Date().getFullYear()), ...todos.map(r => refTr(r).slice(0, 4)).filter(Boolean)])].sort().reverse();
-  opcoesSel($("tr-ano"), [["", "Todos os anos"], ...anos.map(a => [a, a])], trTela.ano);
-  opcoesSel($("tr-mes"), [["", "Todos os meses"], ...MESES.map((m, i) => [pad(i + 1), m[0].toUpperCase() + m.slice(1)])], trTela.mes);
-  const cats = [...new Set([...TR_CATS[tp], ...todos.map(r => r.cat).filter(Boolean)])].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  opcoesSel($("tr-cat"), [["", "Todas as categorias"], ...cats.map(c => [c, c])], trTela.cat);
-  const centros = [...new Set(todos.map(r => r.centro).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
-  opcoesSel($("tr-centro"), [["", "Todos os centros"], ...centros.map(c => [c, centroTxtTr(c)])], trTela.centro);
-  trTela.ano = $("tr-ano").value; trTela.mes = $("tr-mes").value; trTela.cat = $("tr-cat").value; trTela.centro = $("tr-centro").value;
-  const q = semAcento($("tr-busca").value.trim());
-  const passaBase = r => (!trTela.cat || r.cat === trTela.cat) && (!trTela.centro || r.centro === trTela.centro) && (!q || buscaTr(r).includes(q));
-  const noPeriodo = r => { const d = refTr(r); return (!trTela.ano || d.startsWith(trTela.ano)) && (!trTela.mes || d.slice(5, 7) === trTela.mes); };
-  const passaSit = (r, s) => !s || (s === "venc" ? vencidaTr(r) : r.st === s);
-  const doPeriodo = todos.filter(r => passaBase(r) && noPeriodo(r));
-  const vencidas = todos.filter(r => passaBase(r) && vencidaTr(r));   // as vencidas de qualquer mês
-  // situação: Todas · Pendentes · Vencidas · Pagas/Recebidas · Canceladas, com a quantidade
-  const sits = [["", "Todas"], ["pend", "Pendentes"], ["venc", "Vencidas"], ["pago", T.pagas], ["canc", "Canceladas"]];
+  // filtros no título das colunas (fcTr); a busca vem antes deles
+  const q = semAcento($("tr-busca").value.trim()), f = trTela.f;
+  const base = q ? todos.filter(r => buscaTr(r).includes(q)) : todos;
+  const vis = filtrarFC(fcTr, base).sort(compTr);
+  const semF = (...fora) => base.filter(r => Object.keys(fcTr.filtros).every(k => fora.includes(k) || !f[k] || fcTr.filtros[k].ok(r, f[k])));
+  const doPeriodo = semF("sit");                       // com os filtros, menos a situação: os cartões Pago e Pendente e as quantidades dos chips
+  const vencidas = semF("sit", "ano", "mes").filter(vencidaTr);   // as vencidas de qualquer mês
+  // situação: Todas · Pendentes · Vencidas · Pagas/Recebidas · Canceladas, com a quantidade (o mesmo filtro do título "Situação")
+  const sits = [["", "Todas"], ...fcTr.filtros.sit.ops()];
   const cx = $("tr-sit"); cx.innerHTML = "";
   for (const [s, rot] of sits) {
-    const n = s === "venc" ? vencidas.length : doPeriodo.filter(r => passaSit(r, s)).length;
-    const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("aria-pressed", String(s === trTela.sit));
-    b.onclick = () => { trTela.sit = s; desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
+    const n = !s ? doPeriodo.length : s === "venc" ? vencidas.length : doPeriodo.filter(r => fcTr.filtros.sit.ok(r, s)).length;
+    const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("aria-pressed", String(s === (f.sit || "")));
+    b.onclick = () => { escolherFC(fcTr, "sit", s); desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
     cx.appendChild(b);
   }
   mostrarChipMarcado(cx);
@@ -15873,10 +16002,9 @@ function desenharTr() {
     c.onclick = fn; cards.appendChild(c);
   };
   const pagos = vivos.filter(r => r.st === "pago"), pend = vivos.filter(r => r.st === "pend");
-  card(T.pagoTot, somaTr(pagos), tp === "rec" ? "rec" : "desp", `${pagos.length} lançamento${pagos.length === 1 ? "" : "s"}`, () => { trTela.sit = "pago"; desenharTr(); });
-  card("Pendente", somaTr(pend), "warn", `${pend.length} a ${T.pagar}`, () => { trTela.sit = "pend"; desenharTr(); });
-  card("Vencido", somaTr(vencidas), vencidas.length ? "crit" : "zero", vencidas.length ? `${vencidas.length} de qualquer mês` : "nada vencido", () => { trTela.sit = "venc"; desenharTr(); });
-  const vis = (trTela.sit === "venc" ? vencidas : doPeriodo.filter(r => passaSit(r, trTela.sit))).sort(compTr);
+  card(T.pagoTot, somaTr(pagos), tp === "rec" ? "rec" : "desp", `${pagos.length} lançamento${pagos.length === 1 ? "" : "s"}`, () => { escolherFC(fcTr, "sit", "pago"); desenharTr(); });
+  card("Pendente", somaTr(pend), "warn", `${pend.length} a ${T.pagar}`, () => { escolherFC(fcTr, "sit", "pend"); desenharTr(); });
+  card("Vencido", somaTr(vencidas), vencidas.length ? "crit" : "zero", vencidas.length ? `${vencidas.length} de qualquer mês` : "nada vencido", () => { escolherFC(fcTr, "sit", "venc"); desenharTr(); });
   for (const id of [...trTela.sel]) if (!vis.some(r => r.id === id)) trTela.sel.delete(id);
   const res = $("tr-resumo"); res.innerHTML = "";
   if (vis.length) {
@@ -15885,16 +16013,56 @@ function desenharTr() {
   }
   const lista = $("tr-lista"); lista.innerHTML = "";
   const erro = navigator.onLine && colTr.erro ? (colTr.erro.semAcesso ? colTr.erro.message : "Não foi possível atualizar as transações agora.") : "";
-  if (!vis.length) lista.appendChild(q ? vazio("lupa", "Nenhum lançamento com essa busca", "Confira o texto ou veja os outros filtros.")
-    : erro ? vazio("dinheiro", "Não foi possível ler as transações", erro)
-    : !todos.length ? vazio("dinheiro", colTr.dados.lido ? `Nenhuma ${T.nome.toLowerCase()} ainda` : "Carregando…", colTr.dados.lido ? `Toque em "${T.novo.slice(2)}" para lançar${ehAdmin() ? ", ou importe o histórico do Fin365 (no fim da tela)" : ""}.` : "")
-    : vazio("dinheiro", "Nenhum lançamento neste filtro", "Troque o mês, o ano ou a situação."));
-  else lista.appendChild(tabelaTr(vis));
+  // com filtro e nada achado, a tabela continua (o título das colunas e as etiquetas tiram o filtro)
+  if (!todos.length) lista.appendChild(erro ? vazio("dinheiro", "Não foi possível ler as transações", erro)
+    : vazio("dinheiro", colTr.dados.lido ? `Nenhuma ${T.nome.toLowerCase()} ainda` : "Carregando…", colTr.dados.lido ? `Toque em "${T.novo.slice(2)}" para lançar${ehAdmin() ? ", ou importe o histórico do Fin365 (no fim da tela)" : ""}.` : ""));
+  else if (!vis.length && !fcLigados(fcTr).length) lista.appendChild(vazio("lupa", "Nenhum lançamento com essa busca", "Confira o texto."));
+  else {
+    const et = etiquetasFC(fcTr); if (et) lista.appendChild(et);
+    lista.appendChild(tabelaTr(vis, q));
+    const tdv = lista.querySelector(".fc-vazia td");   // a linha "nenhum… com esses filtros" ocupa só as colunas à vista
+    if (tdv) tdv.colSpan = [...lista.querySelectorAll("thead th")].filter(t => getComputedStyle(t).display !== "none").length || 3;
+  }
   $("tr-exp").hidden = !vis.length;
   trTela.vis = vis; trTela.totais = { pagos, pend, vencidas };   // os cartões do período, para o PDF
   $("tr-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última cópia." : erro;
 }
-// ordem pelo título da coluna (de novo inverte; vazios no fim); padrão: data, a mais antiga primeiro (como o extrato)
+/* filtros e ordem no título das colunas (pedido do Gustavo em 14/11/2026: "em Financeiro e Notas fiscais aplicar os filtros como em Tarefas"),
+   pelo núcleo único (filtrarFC / cabecalhoFC / etiquetasFC). Transações: Data (ano e mês; a tela abre no mês atual), Parceiro, Categoria,
+   Centro de custo e Situação (o mesmo estado dos chips #tr-sit; "Vencidas" vale para qualquer mês: desliga o ano e o mês).
+   Contas a pagar e receber (fcCp): Vencimento (período — padrão "até o fim deste mês" — e vencidas / vencem hoje / a vencer), Parceiro,
+   Categoria e Centro. Na tela estreita, o título Descrição filtra também as colunas escondidas. */
+const SEM_FC = "~sem";                              // valor da opção "(sem …)" (o vazio quer dizer "todos")
+const AZ_FC = [["A → Z", false], ["Z → A", true]];
+const filtroCampoFC = (rot, todos, campo, semTxt, txt = v => v) => ({ rot, todos, ok: (r, v) => v === SEM_FC ? !campo(r) : campo(r) === v,
+  ops: l => [...[...new Set(l.map(campo).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true })).map(v => [v, txt(v)]),
+    ...(l.some(r => !campo(r)) ? [[SEM_FC, semTxt]] : [])] });
+const COLS_FIN_FC = [                               // Parceiro, Categoria e Centro: iguais nas duas tabelas
+  { col: "parc", rot: "Parceiro", cls: "tr-so-pc tr-c-parc", filtros: ["parc"], ordenar: AZ_FC },
+  { col: "cat", rot: "Categoria", cls: "tr-so-pc tr-c-cat", filtros: ["cat"], ordenar: AZ_FC },
+  { col: "centro", rot: "Centro", cls: "tr-so-pc tr-c-centro", filtros: ["centro"], ordenar: [["Menor código primeiro", false], ["Maior código primeiro", true]] }];
+const FILTROS_FIN_FC = () => ({ parc: filtroCampoFC("Parceiro", "Todos", r => r.parc, "(sem parceiro)"), cat: filtroCampoFC("Categoria", "Todas", r => r.cat, "(sem categoria)"),
+  centro: filtroCampoFC("Centro de custo", "Todos", r => r.centro, "(sem centro de custo)", centroTxtTr) });
+const COL_VALOR_FC = { col: "valor", rot: "Valor (R$)", cls: "orc-c-valor", al: "r", ordenar: [["Maior valor primeiro", true], ["Menor valor primeiro", false]] };
+const fcTr = {
+  id: "tr", get st() { return trTela; }, principal: "desc", redesenhar: () => desenharTr(),
+  filtros: {
+    ano: { rot: "Ano", todos: "Todos os anos", ok: (r, v) => refTr(r).startsWith(v),
+      ops: l => [...new Set([String(new Date().getFullYear()), ...l.map(r => refTr(r).slice(0, 4)).filter(Boolean)])].sort().reverse().map(a => [a, a]) },
+    mes: { rot: "Mês", todos: "Todos os meses", ok: (r, v) => refTr(r).slice(5, 7) === v, ops: () => MESES.map((m, i) => [pad(i + 1), m[0].toUpperCase() + m.slice(1)]) },
+    ...FILTROS_FIN_FC(),
+    sit: { rot: "Situação", todos: "Todas", ok: (r, v) => v === "venc" ? vencidaTr(r) : r.st === v,
+      ops: () => [["pend", "Pendentes"], ["venc", "Vencidas"], ["pago", TR_TIPO[trTela.tipo].pagas], ["canc", "Canceladas"]],
+      solta: v => v === "venc" ? ["ano", "mes"] : [] }
+  },
+  colunas: [
+    { col: "data", rot: "Data", cls: "tr-so-pc tr-c-data", filtros: ["ano", "mes"], ordenar: [["Mais antiga primeiro", false], ["Mais recente primeiro", true]] },
+    { col: "desc", rot: "Descrição", cls: "orc-c-cli", ordenar: AZ_FC },
+    ...COLS_FIN_FC, COL_VALOR_FC,
+    { col: "sit", rot: "Situação", cls: "pc-c-sit", filtros: ["sit"], ordenar: [["Vencidas primeiro", false], ["Canceladas primeiro", true]] }
+  ]
+};
+// ordem (pelo menu do título da coluna; vazios no fim); padrão: data, a mais antiga primeiro (como o extrato)
 const COLS_TR = { data: refTr, desc: r => r.desc || null, parc: r => r.parc || null, cat: r => r.cat || null, centro: r => r.centro || null,
   conta: r => r.conta || null, valor: r => +r.valor || 0, sit: r => ["venc", "pend", "pago", "canc"].indexOf(vencidaTr(r) ? "venc" : r.st) };
 function compTr(a, b) {
@@ -15904,20 +16072,12 @@ function compTr(a, b) {
   if (trTela.ordem.desc) r = -r;
   return r || (a.desc || "").localeCompare(b.desc || "", "pt-BR");
 }
-function tabelaTr(vis) {
+function tabelaTr(vis, q) {
   // celular: descrição, valor e situação (a data vai embaixo da situação); tela larga: também data, parceiro, categoria e centro de custo (a conta fica no lançamento e na planilha)
-  const cols = [["data", "Data", "tr-so-pc tr-c-data"], ["desc", "Descrição", "orc-c-cli"], ["parc", "Parceiro", "tr-so-pc tr-c-parc"], ["cat", "Categoria", "tr-so-pc tr-c-cat"],
-    ["centro", "Centro", "tr-so-pc tr-c-centro"], ["valor", "Valor (R$)", "orc-c-valor"], ["sit", "Situação", "pc-c-sit"]];
-  const tb = el("table", "orc-tab tr-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
-  for (const [k, rot, cls] of cols) {
-    const th = el("th", cls), b = el("button", "", rot), ativa = trTela.ordem.col === k;
-    th.scope = "col"; b.type = "button"; b.dataset.col = k; b.dataset.seta = ativa ? (trTela.ordem.desc ? " ↓" : " ↑") : "";
-    th.setAttribute("aria-sort", ativa ? (trTela.ordem.desc ? "descending" : "ascending") : "none");
-    b.onclick = () => { trTela.ordem = { col: k, desc: ativa ? !trTela.ordem.desc : k === "valor" }; desenharTr(); $("tr-lista").querySelector(`thead button[data-col="${k}"]`)?.focus(); };
-    th.appendChild(b); tr.appendChild(th);
-  }
-  cab.appendChild(tr);
+  const tb = el("table", "orc-tab tr-tab fc-tab"), cab = el("thead"), corpo = el("tbody");
+  cab.appendChild(cabecalhoFC(fcTr));
   vis.forEach(r => corpo.appendChild(linhaTr(r)));
+  if (!vis.length) { const v = el("tr", "fc-vazia"), td = el("td", "avcb-nota", q ? "Nenhum lançamento com essa busca e esses filtros." : "Nenhum lançamento com esses filtros."); td.colSpan = 7; v.appendChild(td); corpo.appendChild(v); }
   tb.append(cab, corpo);
   return tb;
 }
@@ -16109,7 +16269,7 @@ async function exportarTr() {
     for (let i = 1; i < linhas.length; i++) { const c = ws[XLSX.utils.encode_cell({ r: i, c: 9 })]; if (c && c.t === "n") c.z = "#,##0.00"; }
     ws["!cols"] = [11, 11, 11, 44, 30, 16, 26, 14, 16, 14, 12, 9, 40].map(w => ({ wch: w }));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, T.plural);
-    const nome = `${T.plural} - ${trTela.ano || "todos os anos"}${trTela.mes ? "-" + trTela.mes : ""} - ${dataISO()}`;
+    const nome = `${T.plural} - ${trTela.f.ano || "todos os anos"}${trTela.f.mes ? "-" + trTela.f.mes : ""} - ${dataISO()}`;
     compartilharArquivo(new File([XLSX.write(wb, { bookType: "xlsx", type: "array" })], nome + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nome, `${nome} - VPX`);
   } catch (e) { aviso("Não foi possível gerar a planilha: " + e.message, true); }
 }
@@ -16119,18 +16279,14 @@ const ORDEM_TR_PDF = { data: ["Data", "mais antiga primeiro", "mais recente prim
   sit: ["Situação", "vencidas primeiro", "canceladas primeiro"] };
 const COR_TR = { ok: "ok", "pc-neu": "apag", crit: "crit", warn: "warn" };
 function periodoTr() {                              // o período escolhido em Ano/Mês, por extenso
-  const S = trTela, m = S.mes ? MESES[+S.mes - 1] : "";
+  const S = trTela.f, m = S.mes ? MESES[+S.mes - 1] : "";
   return S.ano && m ? `${m} de ${S.ano}` : S.ano ? `ano de ${S.ano}` : m ? `${m} (todos os anos)` : "todos os períodos";
 }
 function defPdfTr() {
-  const S = trTela, T = TR_TIPO[S.tipo], vis = S.vis || [], venc = S.sit === "venc", q = $("tr-busca").value.trim();
-  const sitTxt = { pend: "Pendentes", pago: T.pagas, canc: "Canceladas" }[S.sit];
+  const S = trTela, T = TR_TIPO[S.tipo], vis = S.vis || [], venc = S.f.sit === "venc", q = $("tr-busca").value.trim();
   const filtros = [];
   if (q) filtros.push(`Busca: "${q}"`);
-  if (venc) filtros.push("Situação: Vencidas (de qualquer mês)");                 // com "Vencidas" a tela ignora o ano e o mês
-  else { if (S.ano || S.mes) filtros.push("Período: " + periodoTr()); if (sitTxt) filtros.push("Situação: " + sitTxt); }
-  if (S.cat) filtros.push("Categoria: " + S.cat);
-  if (S.centro) filtros.push("Centro de custo: " + centroTxtTr(S.centro));
+  filtros.push(...textosFiltrosFC(fcTr));             // os filtros do título das colunas, como nas etiquetas da tela ("Ano: 2026", "Situação: Vencidas"…)
   const ligado = filtros.length > 0, o = S.ordem || {}, od = ORDEM_TR_PDF[o.col];
   if (od && (o.col !== "data" || o.desc)) filtros.push(`Ordem: ${od[0]} (${o.desc ? od[2] : od[1]})`);
   if (ligado) filtros.push(`${vis.length} de ${trs().filter(r => r.tipo === S.tipo).length} ${T.plural.toLowerCase()}`);
@@ -16147,7 +16303,7 @@ function defPdfTr() {
     return { c: [d ? dataBRde(d) : "-", { t: (r.desc || "-") + (r.parcela ? ` (parcela ${r.parcela})` : ""), risc: canc }, r.parc || "-", r.cat || "-", centroTxtTr(r.centro) || "-",
       { t: r.valor != null ? moedaBR(+r.valor) : "-", risc: canc }, { t: sit, cor: COR_TR[clsTr(r)] }], cor: canc ? "apag" : undefined };
   });
-  return { titulo: T.plural, sub: venc ? "Transações vencidas, de qualquer mês" : "Transações - " + periodoTr(), filtros, resumo, colunas, linhas,
+  return { titulo: T.plural, sub: venc ? (S.f.ano || S.f.mes ? "Transações vencidas - " + periodoTr() : "Transações vencidas, de qualquer mês") : "Transações - " + periodoTr(), filtros, resumo, colunas, linhas,
     total: vis.length ? ["", "TOTAL (sem as canceladas)", "", "", "", moedaBR(tot), ""] : null, nome: `${T.plural} - ${venc ? "vencidas" : periodoTr()}` };
 }
 function pdfTr() { clearTimeout(desenharTr.t); desenharTr(); relatorioPDF(defPdfTr()); }   // a busca redesenha 200 ms depois: põe a tela em dia antes
@@ -16659,7 +16815,8 @@ const usoParceiro = p => trs().filter(r => r.parc && semAcento(r.parc) === semAc
 function abrirCadastros(op = {}) {
   abrirTransacoes({ modo: "cad" });
   if (!trTela) return;
-  trTela.cad = { aba: op.aba || "centros", st: "ativos", tipo: "", edit: null };
+  trTela.cad = { aba: op.aba || "centros", edit: null,     // filtros e ordem no título das colunas (fcCad): um estado por aba
+    fc: { centros: { f: { sit: "ativos" }, ordem: { col: "cod", desc: false } }, parceiros: { f: { sit: "ativos" }, ordem: { col: "nome", desc: false } } } };
   sincronizarCol(colCc, true); sincronizarCol(colPa, true);
   desenharTr();
 }
@@ -16671,7 +16828,7 @@ function desenharCad() {
   const ab = el("div", "abas pc-tipos"); ab.setAttribute("role", "tablist");
   for (const [k, rot, n] of [["centros", "Centros de custo", centrosCad().filter(x => x.ativo !== false).length], ["parceiros", "Parceiros", parceiros().filter(x => x.ativo !== false).length]]) {
     const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(C.aba === k));
-    b.onclick = () => { if (C.aba === k) return; C.aba = k; C.tipo = ""; $("cad-busca") && ($("cad-busca").value = ""); desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
+    b.onclick = () => { if (C.aba === k) return; C.aba = k; C.busca = ""; desenharTr(); $("tela-tr").querySelector(".avcb-corpo").scrollTop = 0; };
     ab.appendChild(b);
   }
   w.appendChild(ab);
@@ -16682,26 +16839,37 @@ function desenharCad() {
   busca.setAttribute("aria-label", centros ? "Buscar por código, descrição ou cliente" : "Buscar por nome, fantasia, CPF/CNPJ, telefone, e-mail ou cidade");
   busca.value = C.busca || ""; busca.oninput = () => { C.busca = busca.value; clearTimeout(desenharCad.t); desenharCad.t = setTimeout(() => desenharTr(), 200); };
   filtros.appendChild(busca);
-  if (!centros) { const s = document.createElement("select"); s.setAttribute("aria-label", "Tipo"); opcoesSel(s, [["", "Todos os tipos"], ...TIPOS_PAR.map(t => [t, t])], C.tipo); s.onchange = () => { C.tipo = s.value; desenharTr(); }; filtros.appendChild(s); }
   w.appendChild(filtros);
-  const cx = el("div", "chips avcb-filtro cad-st");
   const regs = centros ? centrosCad() : parceiros(), q = semAcento((C.busca || "").trim());
   const passaQ = r => !q || semAcento(centros ? [r.codigo, r.desc, r.cliente].join(" ") : [r.nome, r.fantasia, r.tipo, r.doc, digitos(r.doc), r.tel, digitos(r.tel), r.email, r.cidade, r.bairro, r.pix, r.obs].filter(Boolean).join(" ")).includes(q);
-  const base = regs.filter(r => passaQ(r) && (centros || !C.tipo || r.tipo === C.tipo));
+  const base = regs.filter(passaQ);
+  // filtros e ordem no título das colunas (pedido do Gustavo em 14/11/2026, como nas Tarefas; núcleo filtrarFC/cabecalhoFC):
+  // a Situação é o mesmo filtro dos chips Ativos / Inativos / Todos (st.f.sit = "ativos", "inativos" ou "" = todos)
+  const usoMap = new Map();
+  if (centros) for (const t of trs()) if (t.centro) usoMap.set(t.centro, (usoMap.get(t.centro) || 0) + 1);
+  const uso = r => usoMap.get(r.codigo) || 0, fc = fcCad(C, uso), S = fc.st;
+  const vis = ordenarCad(C, filtrarFC(fc, base), uso);
+  const cx = el("div", "chips avcb-filtro cad-st"), nSit = k => (S.opF.sit || []).find(o => o[0] === k)?.[3] || 0;   // contam com os outros filtros ligados
   for (const [k, rot] of [["ativos", "Ativos"], ["inativos", "Inativos"], ["todos", "Todos"]]) {
-    const n = base.filter(r => k === "todos" || (k === "ativos") === (r.ativo !== false)).length;
-    const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("aria-pressed", String(C.st === k)); b.onclick = () => { C.st = k; desenharTr(); };
+    const n = k === "todos" ? nSit("ativos") + nSit("inativos") : nSit(k);
+    const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("aria-pressed", String((S.f.sit || "todos") === k)); b.onclick = () => { S.f.sit = k === "todos" ? "" : k; desenharTr(); };
     cx.appendChild(b);
   }
   w.appendChild(cx);
-  const vis = base.filter(r => C.st === "todos" || (C.st === "ativos") === (r.ativo !== false))
-    .sort(centros ? ((a, b) => String(a.codigo).localeCompare(String(b.codigo), "pt-BR", { numeric: true })) : ((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR")));
-  C.vis = vis; C.total = regs.length;              // o PDF (defPdfCad) usa exatamente as linhas da tabela
+  C.vis = vis; C.total = regs.length; C.fcAtual = fc;   // o PDF (defPdfCad) usa exatamente as linhas e os filtros da tabela
   w.appendChild(el("p", "orc-resumo", vis.length ? `${vis.length} ${centros ? "centro" + (vis.length === 1 ? "" : "s") + " de custo" : "parceiro" + (vis.length === 1 ? "" : "s")}` : ""));
   const col = centros ? colCc : colPa;
-  if (!vis.length) w.appendChild(vazio(centros ? "predio" : "contatos", q ? "Nada com essa busca" : !col.dados.lido ? "Carregando…" : col.erro ? "Não foi possível ler o cadastro" : centros ? "Nenhum centro de custo" : "Nenhum parceiro",
+  if (!base.length) w.appendChild(vazio(centros ? "predio" : "contatos", q ? "Nada com essa busca" : !col.dados.lido ? "Carregando…" : col.erro ? "Não foi possível ler o cadastro" : centros ? "Nenhum centro de custo" : "Nenhum parceiro",
     col.erro ? (col.erro.semAcesso ? col.erro.message : "Confira a internet e abra de novo.") : q ? "Confira o texto ou troque o filtro." : ""));
-  else { w.appendChild(centros ? tabelaCentros(vis) : tabelaParceiros(vis)); w.appendChild(botoesExportar(null, pdfCad)); }
+  else {
+    // etiquetas dos filtros ligados ("Tipo: Fornecedor ×"); a Situação fica de fora, porque os chips já mostram (e "Limpar filtros" não mexe neles)
+    const et = etiquetasFC({ ...fc, filtros: Object.fromEntries(Object.entries(fc.filtros).filter(([k]) => k !== "sit")) });
+    if (et) w.appendChild(et);
+    w.appendChild(centros ? tabelaCentros(vis, fc, uso) : tabelaParceiros(vis, fc));
+    const tdv = w.querySelector(".cad-vazia td");   // "nenhum com esses filtros": a tabela continua (o título das colunas tira o filtro); só as colunas à vista
+    if (tdv) tdv.colSpan = [...w.querySelectorAll("thead th")].filter(t => getComputedStyle(t).display !== "none").length || 1;
+    if (vis.length) w.appendChild(botoesExportar(null, pdfCad));
+  }
   const nota = el("p", "avcb-nota", centros ? "Os centros ativos aparecem para escolher no comprovante, nas solicitações e nas transações. Inativo continua nos lançamentos antigos, mas não aparece para escolher."
     : "Ao escolher um parceiro na solicitação de pagamento, o app preenche CPF/CNPJ e os dados para pagar (PIX ou banco). Inativo não aparece para escolher.");
   w.appendChild(nota);
@@ -16709,26 +16877,80 @@ function desenharCad() {
   $("tela-tr").querySelector(".avcb-corpo").scrollTop = rol;
   if (foco === "cad-busca") { busca.focus(); busca.setSelectionRange(busca.value.length, busca.value.length); }
 }
-function cabTab(cols) {                           // cabeçalho simples (sem ordenar): [[texto, classe]]
-  const tb = el("table", "orc-tab cad-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
-  for (const [t, c] of cols) { const th = el("th", c); th.scope = "col"; th.appendChild(el("span", "", t)); tr.appendChild(th); }
-  cab.appendChild(tr); tb.append(cab, corpo); return [tb, corpo];
+/* filtros e ordem no título das colunas dos Cadastros (pedido do Gustavo em 14/11/2026: "em Financeiro… aplicar os filtros como em
+   Tarefas"): a definição para o núcleo filtrarFC / cabecalhoFC / etiquetasFC. Centros: Código (principal: na tela estreita filtra também
+   Cliente e Lançamentos), Descrição, Cliente, Lançamentos, Situação; Parceiros: Nome (principal), Tipo (no lugar do campo de escolha
+   que ficava em cima), CPF/CNPJ, Telefone, Dados para pagar, Situação. A Situação é o filtro dos chips Ativos / Inativos / Todos. */
+const SIT_CAD = { rot: "Situação", todos: "Todos", ok: (r, v) => (v === "ativos") === (r.ativo !== false), ops: () => [["ativos", "Ativos"], ["inativos", "Inativos"]] };
+const comSemCad = (rot, txt, tem) => ({ rot, todos: "Todos", ok: (r, v) => (v === "com") === !!tem(r), ops: () => [["com", "Com " + txt], ["sem", "Sem " + txt]] });
+const AZ_CAD = [["A → Z", false], ["Z → A", true]];
+const listaCad = (itens, campo, ordem) => [...new Set(itens.map(r => r[campo]).filter(Boolean))].sort(ordem || ((a, b) => a.localeCompare(b, "pt-BR")));
+function fcCad(C, uso) {
+  const st = C.fc[C.aba], redesenhar = () => desenharTr();
+  if (C.aba === "centros") return { id: "cad", st, redesenhar, principal: "cod",
+    filtros: {
+      cli: { rot: "Cliente", todos: "Todos", ok: (r, v) => v === "__sem" ? !r.cliente : r.cliente === v, ops: itens => [["__sem", "Sem cliente"], ...listaCad(itens, "cliente").map(c => [c, c])] },
+      lanc: comSemCad("Lançamentos", "lançamentos", uso),
+      sit: SIT_CAD },
+    colunas: [
+      { col: "cod", rot: "Código", cls: "cad-c-cod", ordenar: [["Menor código primeiro", false], ["Maior código primeiro", true]] },
+      { col: "desc", rot: "Descrição", cls: "orc-c-cli", ordenar: AZ_CAD },
+      { col: "cli", rot: "Cliente", cls: "tr-so-pc cad-c-cli", filtros: ["cli"], ordenar: AZ_CAD },
+      { col: "n", rot: "Lançamentos", cls: "tr-so-pc cad-c-n", al: "r", filtros: ["lanc"], ordenar: [["Mais lançamentos primeiro", true], ["Menos lançamentos primeiro", false]] },
+      { col: "st", rot: "Situação", cls: "cad-c-st", filtros: ["sit"] }] };
+  const ixTipo = t => { const i = TIPOS_PAR.indexOf(t); return i < 0 ? 99 : i; };
+  const banco = r => !!(r.banco || r.conta);
+  return { id: "cad", st, redesenhar, principal: "nome",
+    filtros: {
+      tipo: { rot: "Tipo", todos: "Todos", ok: (r, v) => v === "__sem" ? !r.tipo : r.tipo === v,
+        ops: itens => [...listaCad(itens, "tipo", (a, b) => ixTipo(a) - ixTipo(b) || a.localeCompare(b, "pt-BR")).map(t => [t, t]), ["__sem", "Sem tipo"]] },
+      doc: comSemCad("CPF/CNPJ", "CPF/CNPJ", r => String(r.doc || "").trim()),
+      tel: comSemCad("Telefone", "telefone", r => String(r.tel || "").trim()),
+      pag: { rot: "Dados para pagar", todos: "Todos", ok: (r, v) => v === "pix" ? !!r.pix : v === "banco" ? banco(r) : !r.pix && !banco(r),
+        ops: () => [["pix", "Com PIX"], ["banco", "Com banco"], ["sem", "Sem dados"]] },
+      sit: SIT_CAD },
+    colunas: [
+      { col: "nome", rot: "Nome", cls: "orc-c-cli", ordenar: AZ_CAD },
+      { col: "tipo", rot: "Tipo", cls: "tr-so-pc cad-c-tipo", filtros: ["tipo"], ordenar: AZ_CAD },
+      { col: "doc", rot: "CPF/CNPJ", cls: "tr-so-pc cad-c-doc", filtros: ["doc"] },
+      { col: "tel", rot: "Telefone", cls: "tr-so-pc cad-c-tel", filtros: ["tel"] },
+      { col: "pag", rot: "Dados para pagar", cls: "tr-so-pc cad-c-pag", filtros: ["pag"] },
+      { col: "st", rot: "Situação", cls: "cad-c-st", filtros: ["sit"] }] };
 }
+// a ordem escolhida no menu do título (st.ordem; padrão: código / nome, como antes); vazios sempre no fim; empate pelo código ou nome
+function ordenarCad(C, vis, uso) {
+  const o = C.fc[C.aba].ordem || {}, centros = C.aba === "centros", txt = (a, b) => String(a).localeCompare(String(b), "pt-BR", { numeric: true });
+  const chave = { cod: r => r.codigo, desc: r => r.desc, cli: r => r.cliente, n: uso, nome: r => r.nome, tipo: r => r.tipo }[o.col] || (centros ? (r => r.codigo) : (r => r.nome));
+  const empate = centros ? ((a, b) => txt(a.codigo || "", b.codigo || "")) : ((a, b) => txt(a.nome || "", b.nome || ""));
+  const s = o.desc ? -1 : 1;
+  return vis.sort((a, b) => {
+    const x = chave(a), y = chave(b);
+    if (typeof x === "number") return s * (x - y) || empate(a, b);
+    if (!x !== !y) return !x ? 1 : -1;
+    return (x ? s * txt(x, y) : 0) || empate(a, b);
+  });
+}
+function tabCad(fc) {                             // tabela com o cabeçalho do núcleo (título = menu Ordenar / Filtrar)
+  const tb = el("table", "orc-tab cad-tab fc-tab"), cab = el("thead"), corpo = el("tbody");
+  cab.appendChild(cabecalhoFC(fc)); tb.append(cab, corpo); return [tb, corpo];
+}
+const vaziaCad = txt => { const v = el("tr", "cad-vazia"); v.appendChild(el("td", "avcb-nota", txt)); return v; };   // colSpan acertado em desenharCad
 const etiquetaAtivo = r => el("span", "avcb-sit " + (r.ativo === false ? "pc-neu" : "ok"), r.ativo === false ? "Inativo" : "Ativo");
-function tabelaCentros(vis) {
-  const [tb, corpo] = cabTab([["Código", "cad-c-cod"], ["Descrição", "orc-c-cli"], ["Cliente", "tr-so-pc cad-c-cli"], ["Lançamentos", "tr-so-pc cad-c-n"], ["Situação", "cad-c-st"]]);
+function tabelaCentros(vis, fc, uso) {
+  const [tb, corpo] = tabCad(fc);
   for (const r of vis) {
     const tr = el("tr"); tr.tabIndex = 0;
     const d = el("td", "orc-c-cli"); d.appendChild(el("span", "orc-cli", r.desc || "—")); if (r.cliente) d.appendChild(el("small", "orc-sub tr-sub-cel", r.cliente));
     const st = el("td", "cad-c-st"); st.appendChild(etiquetaAtivo(r));
-    tr.append(el("td", "cad-c-cod", r.codigo), d, el("td", "tr-so-pc cad-c-cli", r.cliente || "—"), el("td", "tr-so-pc cad-c-n", String(usoCentro(r.codigo) || "—")), st);
+    tr.append(el("td", "cad-c-cod", r.codigo), d, el("td", "tr-so-pc cad-c-cli", r.cliente || "—"), el("td", "tr-so-pc cad-c-n", String(uso(r) || "—")), st);
     tr.onclick = () => abrirFormCad(r); tr.onkeydown = e => { if (e.key === "Enter") abrirFormCad(r); };
     corpo.appendChild(tr);
   }
+  if (!vis.length) corpo.appendChild(vaziaCad("Nenhum centro de custo com esses filtros."));
   return tb;
 }
-function tabelaParceiros(vis) {
-  const [tb, corpo] = cabTab([["Nome", "orc-c-cli"], ["Tipo", "tr-so-pc cad-c-tipo"], ["CPF/CNPJ", "tr-so-pc cad-c-doc"], ["Telefone", "tr-so-pc cad-c-tel"], ["Dados para pagar", "tr-so-pc cad-c-pag"], ["Situação", "cad-c-st"]]);
+function tabelaParceiros(vis, fc) {
+  const [tb, corpo] = tabCad(fc);
   for (const r of vis) {
     const tr = el("tr"); tr.tabIndex = 0;
     const d = el("td", "orc-c-cli"); d.appendChild(el("span", "orc-cli", r.nome || "—"));
@@ -16740,20 +16962,20 @@ function tabelaParceiros(vis) {
     tr.onclick = () => abrirFormCad(r); tr.onkeydown = e => { if (e.key === "Enter") abrirFormCad(r); };
     corpo.appendChild(tr);
   }
+  if (!vis.length) corpo.appendChild(vaziaCad("Nenhum parceiro com esses filtros."));
   return tb;
 }
 // relatório em PDF do cadastro aberto (centros de custo ou parceiros) com as mesmas linhas da tabela (C.vis, guardada em desenharCad)
 function defPdfCad() {
-  const C = trTela.cad, centros = C.aba === "centros", vis = C.vis || [];
-  const ST = { ativos: "Ativos", inativos: "Inativos", todos: "Todos" }, busca = (C.busca || "").trim(), filtros = [];
+  const C = trTela.cad, centros = C.aba === "centros", vis = C.vis || [], S = C.fc[C.aba];
+  const busca = (C.busca || "").trim(), filtros = [];
   if (busca) filtros.push(`Busca: "${busca}"`);
-  if (!centros && C.tipo) filtros.push("Tipo: " + C.tipo);
-  if (C.st !== "todos") filtros.push("Situação: " + ST[C.st]);
+  if (C.fcAtual) filtros.push(...textosFiltrosFC(C.fcAtual));   // os do título das colunas e a Situação dos chips (se não for Todos)
   if (filtros.length) filtros.push(`${vis.length} de ${C.total ?? vis.length}`);
   const nAt = vis.filter(r => r.ativo !== false).length;
   const sit = r => r.ativo === false ? { t: "Inativo", cor: "apag" } : { t: "Ativo", cor: "ok" };
   const resumo = [[centros ? "Centros de custo" : "Parceiros", String(vis.length)]];
-  if (C.st === "todos") resumo.push(["Ativos", String(nAt), "ok"], ["Inativos", String(vis.length - nAt)]);
+  if (!S.f.sit) resumo.push(["Ativos", String(nAt), "ok"], ["Inativos", String(vis.length - nAt)]);
   if (centros) {
     const uso = vis.map(r => usoCentro(r.codigo));
     resumo.push(["Lançamentos", String(uso.reduce((s, n) => s + n, 0))]);
@@ -16906,31 +17128,49 @@ function janelaCp(per) {                            // [de, até] em AAAA-MM-DD 
   return per === "ate-mes" ? ["", fimMes] : per === "ate-7" ? ["", mais(7)] : per === "ate-30" ? ["", mais(30)] : per === "mes" ? [iniMes, fimMes]
     : per === "prox" ? [dataISO(new Date(d.getFullYear(), d.getMonth() + 1, 1)), dataISO(new Date(d.getFullYear(), d.getMonth() + 2, 0))] : ["", ""];
 }
+// filtros e ordem no título das colunas das contas (o mesmo núcleo das transações; ver fcTr)
+const fcCp = {
+  id: "cp", get st() { return trTela.cp; }, principal: "desc", redesenhar: () => desenharTr(),
+  filtros: {
+    per: { rot: "Período", todos: "Todas as datas", ok: (r, v) => { const [de, ate] = janelaCp(v), x = vencCp(r); return (!de || x >= de) && (!ate || x <= ate); },
+      ops: () => CP_PERIODOS.filter(([k]) => k !== "todos") },
+    venc: { rot: "Vencimento", todos: "Todas", ok: (r, v) => { const x = vencCp(r), h = dataISO(); return v === "venc" ? x < h : v === "hoje" ? x === h : x >= h; },
+      ops: () => CP_VENC.filter(([k]) => k) },
+    ...FILTROS_FIN_FC()
+  },
+  colunas: [
+    { col: "venc", rot: "Vencimento", cls: "tr-so-pc tr-c-data", filtros: ["per", "venc"], ordenar: [["Mais antiga primeiro", false], ["Mais distante primeiro", true]] },
+    { col: "desc", rot: "Descrição", cls: "orc-c-cli", ordenar: AZ_FC },
+    ...COLS_FIN_FC, COL_VALOR_FC
+  ]
+};
+const COLS_CP = { venc: vencCp, desc: r => r.desc || null, parc: r => r.parc || null, cat: r => r.cat || null, centro: r => r.centro || null, valor: r => +r.valor || 0 };
+function compCp(a, b) {                             // padrão: vencimento, a mais antiga primeiro
+  const o = trTela.cp.ordem, f = COLS_CP[o.col] || COLS_CP.venc, x = f(a), y = f(b);
+  if ((x == null || x === "") !== (y == null || y === "")) return x == null || x === "" ? 1 : -1;
+  let r = typeof x === "number" ? x - y : String(x ?? "").localeCompare(String(y ?? ""), "pt-BR", { numeric: true });
+  if (o.desc) r = -r;
+  return r || vencCp(a).localeCompare(vencCp(b)) || (a.desc || "").localeCompare(b.desc || "", "pt-BR");
+}
 function desenharContas() {
-  const S = trTela, hoje = dataISO();
+  const S = trTela, C = S.cp, hoje = dataISO();
   // A pagar / A receber / Todas
   const cx = $("cp-tipo"); cx.innerHTML = "";
   const pend = trs().filter(r => r.st === "pend");
   for (const [k, rot] of CP_TIPOS) {
     const n = pend.filter(r => k === "todas" || r.tipo === (k === "pagar" ? "desp" : "rec")).length;
     const b = el("button", "", `${rot} (${n})`); b.type = "button"; b.setAttribute("aria-pressed", String(k === S.cpTipo));
-    b.onclick = () => { S.cpTipo = k; S.cpParc = ""; S.cpCat = ""; desenharTr(); };
+    b.onclick = () => { S.cpTipo = k; C.f.parc = C.f.cat = C.f.centro = ""; desenharTr(); };
     cx.appendChild(b);
   }
   const doTipo = pend.filter(r => S.cpTipo === "todas" || r.tipo === (S.cpTipo === "pagar" ? "desp" : "rec"));
-  opcoesSel($("cp-periodo"), CP_PERIODOS, S.cpPer);
-  opcoesSel($("cp-venc"), CP_VENC, S.cpVenc);
-  const parcs = [...new Set(doTipo.map(r => r.parc).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  opcoesSel($("cp-parc"), [["", "Todos os parceiros"], ...parcs.map(p => [p, p])], S.cpParc);
-  const cats = [...new Set(doTipo.map(r => r.cat).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  opcoesSel($("cp-cat"), [["", "Todas as categorias"], ...cats.map(c => [c, c])], S.cpCat);
-  S.cpParc = $("cp-parc").value; S.cpCat = $("cp-cat").value;
   $("cp-novo-pagar").hidden = S.cpTipo === "receber"; $("cp-novo-receber").hidden = S.cpTipo === "pagar";
   $("cp-novo-pagar").textContent = S.cpTipo === "todas" ? "+ A pagar" : "+ Conta a pagar"; $("cp-novo-receber").textContent = S.cpTipo === "todas" ? "+ A receber" : "+ Conta a receber";
-  const [de, ate] = janelaCp(S.cpPer), q = semAcento($("cp-busca").value.trim());
-  const base = doTipo.filter(r => { const v = vencCp(r); return (!de || v >= de) && (!ate || v <= ate) && (!S.cpParc || r.parc === S.cpParc) && (!S.cpCat || r.cat === S.cpCat) && (!q || buscaTr(r).includes(q)); });
-  const passaV = r => { const v = vencCp(r); return !S.cpVenc || (S.cpVenc === "venc" ? v < hoje : S.cpVenc === "hoje" ? v === hoje : v >= hoje); };
-  const vis = base.filter(passaV).sort((a, b) => vencCp(a).localeCompare(vencCp(b)) || (a.desc || "").localeCompare(b.desc || "", "pt-BR"));
+  const q = semAcento($("cp-busca").value.trim());
+  const daBusca = q ? doTipo.filter(r => buscaTr(r).includes(q)) : doTipo;
+  const vis = filtrarFC(fcCp, daBusca).sort(compCp);
+  // base = com os filtros, menos o de vencimento: os cartões Total pendente / Vencido / A vencer
+  const base = daBusca.filter(r => Object.keys(fcCp.filtros).every(k => k === "venc" || !C.f[k] || fcCp.filtros[k].ok(r, C.f[k])));
   for (const id of [...S.cpSel]) if (!vis.some(r => r.id === id)) S.cpSel.delete(id);
   // cartões
   const cards = $("cp-cards"); cards.innerHTML = "";
@@ -16944,33 +17184,37 @@ function desenharContas() {
     cards.lastChild.querySelector("b").textContent = (saldo < 0 ? "− R$ " : "R$ ") + moedaBR(Math.abs(saldo));
   } else {
     const venc = base.filter(r => vencCp(r) < hoje), aVencer = base.filter(r => vencCp(r) >= hoje);
-    card("Total pendente", somaTr(base), S.cpTipo === "pagar" ? "desp" : "rec", qt(base), () => { S.cpVenc = ""; desenharTr(); });
-    card("Vencido", somaTr(venc), venc.length ? "crit" : "zero", venc.length ? qt(venc) : "nada vencido", () => { S.cpVenc = "venc"; desenharTr(); });
-    card("A vencer", somaTr(aVencer), "warn", qt(aVencer), () => { S.cpVenc = "avencer"; desenharTr(); });
+    card("Total pendente", somaTr(base), S.cpTipo === "pagar" ? "desp" : "rec", qt(base), () => { C.f.venc = ""; desenharTr(); });
+    card("Vencido", somaTr(venc), venc.length ? "crit" : "zero", venc.length ? qt(venc) : "nada vencido", () => { C.f.venc = "venc"; desenharTr(); });
+    card("A vencer", somaTr(aVencer), "warn", qt(aVencer), () => { C.f.venc = "avencer"; desenharTr(); });
   }
   const res = $("cp-resumo"); res.innerHTML = "";
   if (vis.length) { res.append(`${vis.length} conta${vis.length === 1 ? "" : "s"}`); if (S.cpTipo !== "todas") res.append(" · Total ", el("b", "", "R$ " + moedaBR(somaTr(vis)))); }   // em "Todas" a soma misturaria pagar e receber
   const lista = $("cp-lista"); lista.innerHTML = "";
-  if (!vis.length) lista.appendChild(q ? vazio("lupa", "Nenhuma conta com essa busca", "Confira o texto ou veja os outros filtros.")
-    : vazio("dinheiro", S.cpVenc === "venc" ? "Nada vencido" : "Nenhuma conta pendente neste período", "Troque o período (ex.: Todas as datas) ou o vencimento."));
-  else lista.appendChild(tabelaCp(vis));
+  // com filtro e nada achado, a tabela continua (o título das colunas e as etiquetas tiram o filtro)
+  if (!doTipo.length) lista.appendChild(vazio("dinheiro", colTr.dados.lido ? "Nenhuma conta pendente" : "Carregando…", colTr.dados.lido ? "Não há lançamentos pendentes." : ""));
+  else if (!vis.length && !fcLigados(fcCp).length) lista.appendChild(vazio("lupa", "Nenhuma conta com essa busca", "Confira o texto."));
+  else {
+    const et = etiquetasFC(fcCp); if (et) lista.appendChild(et);
+    lista.appendChild(tabelaCp(vis, q));
+    const tdv = lista.querySelector(".fc-vazia td");
+    if (tdv) tdv.colSpan = [...lista.querySelectorAll("thead th")].filter(t => getComputedStyle(t).display !== "none").length || 3;
+  }
   $("cp-exp").hidden = !vis.length;
   S.cpVis = vis; S.cpBase = base;              // base = antes do filtro de vencimento (os cartões Total pendente / Vencido / A vencer), para o PDF
   pintarLoteCp();
   $("cp-estado").textContent = !navigator.onLine ? "Sem internet: mostrando a última cópia." : colTr.erro ? (colTr.erro.semAcesso ? colTr.erro.message : "Não foi possível atualizar agora.") : "";
 }
-function tabelaCp(vis) {
+function tabelaCp(vis, q) {
   const todas = trTela.cpTipo === "todas";
-  const tb = el("table", "orc-tab tr-tab cp-tab"), cab = el("thead"), tr = el("tr"), corpo = el("tbody");
+  const tb = el("table", "orc-tab tr-tab cp-tab fc-tab"), cab = el("thead"), tr = cabecalhoFC(fcCp), corpo = el("tbody");
   { const th = el("th", "pc-c-sel"), lb = el("label", "pc-sel"), cb = document.createElement("input");
     th.scope = "col"; cb.type = "checkbox"; cb.id = "cp-sel-todos"; cb.setAttribute("aria-label", "Marcar todas as contas da lista");
     cb.onchange = () => { vis.forEach(r => cb.checked ? trTela.cpSel.add(r.id) : trTela.cpSel.delete(r.id)); pintarLoteCp(); };
-    lb.appendChild(cb); th.appendChild(lb); tr.appendChild(th); }
-  for (const [rot, cls] of [["Vencimento", "tr-so-pc tr-c-data"], ["Descrição", "orc-c-cli"], ["Parceiro", "tr-so-pc tr-c-parc"], ["Categoria", "tr-so-pc tr-c-cat"],
-    ["Centro", "tr-so-pc tr-c-centro"], ["Valor (R$)", "orc-c-valor"], ["", "tr-so-pc cp-c-acao"]]) {
-    const th = el("th", cls); th.scope = "col"; th.appendChild(el("span", "", rot)); tr.appendChild(th);
-  }
+    lb.appendChild(cb); th.appendChild(lb); tr.prepend(th); }
+  { const th = el("th", "tr-so-pc cp-c-acao"); th.scope = "col"; th.appendChild(el("span", "", "")); tr.appendChild(th); }   // coluna do "Efetivar"
   cab.appendChild(tr);
+  if (!vis.length) { const v = el("tr", "fc-vazia"), td = el("td", "avcb-nota", q ? "Nenhuma conta com essa busca e esses filtros." : "Nenhuma conta com esses filtros."); td.colSpan = 8; v.appendChild(td); corpo.appendChild(v); }
   for (const r of vis) {
     const venc = vencCp(r), atraso = venc < dataISO(), linha = el("tr", atraso ? "cp-atraso" : ""); linha.tabIndex = 0;
     const tdSel = el("td", "pc-c-sel"), lb = el("label", "pc-sel"), cb = document.createElement("input");
@@ -17056,14 +17300,16 @@ async function exportarContas() {
 function defPdfContas() {
   const S = trTela, vis = S.cpVis || [], todas = S.cpTipo === "todas", hoje = dataISO(), q = $("cp-busca").value.trim();
   const titulo = todas ? "Contas a pagar e receber" : S.cpTipo === "receber" ? "Contas a receber" : "Contas a pagar";
-  const txt = (lista, v) => lista.find(([k]) => k === v)?.[1] || "";
-  const [de, ate] = janelaCp(S.cpPer), filtros = [];
+  const [de, ate] = janelaCp(S.cp.f.per), filtros = [];
   if (q) filtros.push(`Busca: "${q}"`);
-  if (S.cpPer !== "todos") filtros.push(`Período: ${txt(CP_PERIODOS, S.cpPer)} (${de ? `de ${dataBRde(de)} a ${dataBRde(ate)}` : `até ${dataBRde(ate)}, com as vencidas de antes`})`);
-  if (S.cpVenc) filtros.push("Vencimento: " + txt(CP_VENC, S.cpVenc));
-  if (S.cpParc) filtros.push("Parceiro: " + S.cpParc);
-  if (S.cpCat) filtros.push("Categoria: " + S.cpCat);
-  if (filtros.length) filtros.push(`${vis.length} de ${trs().filter(r => r.st === "pend" && (todas || r.tipo === (S.cpTipo === "pagar" ? "desp" : "rec"))).length} contas pendentes`);
+  // os filtros do título das colunas, como nas etiquetas da tela; o período com as datas
+  for (const t of textosFiltrosFC(fcCp)) filtros.push(t.startsWith("Período: ") && ate ? `${t} (${de ? `de ${dataBRde(de)} a ${dataBRde(ate)}` : `até ${dataBRde(ate)}, com as vencidas de antes`})` : t);
+  const ligado = filtros.length > 0, o = S.cp.ordem;
+  if (o.col !== "venc" || o.desc) {
+    const c = fcCp.colunas.find(x => x.col === o.col), rot = c?.ordenar?.find(([, d]) => !!d === !!o.desc)?.[0];
+    if (rot) filtros.push(`Ordem: ${c.rot.replace(" (R$)", "")} (${rot.replace(/^[A-ZÀ-Ú](?=[a-zà-ú])/, l => l.toLowerCase())})`);
+  }
+  if (ligado) filtros.push(`${vis.length} de ${trs().filter(r => r.st === "pend" && (todas || r.tipo === (S.cpTipo === "pagar" ? "desp" : "rec"))).length} contas pendentes`);
   // resumo: os mesmos cartões da tela (em "Todas" sobre a lista; senão sobre a lista antes do filtro de vencimento, guardada em trTela.cpBase)
   const qt = l => `${l.length} conta${l.length === 1 ? "" : "s"}`;
   let resumo;
@@ -17180,7 +17426,7 @@ function importarFin365() {
         }
       });
       aviso(`${regs.length} lançamento${regs.length === 1 ? "" : "s"} importado${regs.length === 1 ? "" : "s"} do Fin365.`);
-      if (trTela) { trTela.tipo = tipo; trTela.ano = trTela.mes = ""; trTela.sit = ""; }
+      if (trTela) { trTela.tipo = tipo; trTela.f.ano = trTela.f.mes = trTela.f.sit = ""; }
       aoMudarTr();
     } catch (e) { console.error(e); aviso("Não foi possível importar: " + erroEmPortugues(e.message), true); }
   };
@@ -19255,12 +19501,6 @@ $("orc-pdf").onclick = pdfOrcamentos;
 // notas fiscais: "‹ Voltar" de uma nota (ou da nota nova) volta para a lista; da lista, fecha
 $("nf-voltar").onclick = () => { if (nfTela?.det || nfTela?.nova) fecharSubNf(); else fecharNf(); };
 $("nf-busca").oninput = () => { clearTimeout(desenharNf.t); desenharNf.t = setTimeout(desenharNf, 200); };
-$("nf-periodo").onchange = $("nf-sit").onchange = () => desenharNf();
-$("tela-nf").querySelectorAll("thead button").forEach(b => b.onclick = () => {
-  const c = b.dataset.col;
-  nfOrdem = nfOrdem.col === c ? { col: c, desc: !nfOrdem.desc } : { col: c, desc: c === "num" || c === "valor" || c === "data" };
-  desenharNf();
-});
 $("nf-ler").onclick = () => lerPdfsNf(true);
 $("nf-atualizar").onclick = atualizarNf;
 $("nf-exportar").onclick = exportarNf;
@@ -19313,14 +19553,12 @@ $("mn-admin").onclick = () => { fecharMenu(); abrirAdmin(); };
 $("mn-sair").onclick = () => { fecharMenu(); sairConta(); };
 $("pc-voltar").onclick = () => fecharPedidos();
 $("tr-voltar").onclick = () => { if (trTela?.aberto || trTela?.novo) voltarListaTr(); else fecharTr(); };
-$("tr-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { if (!trTela || trTela.tipo === b.dataset.t) return; trTela.tipo = b.dataset.t; trTela.cat = ""; trTela.centro = ""; desenharTr(); });
+$("tr-tipos").querySelectorAll("button").forEach(b => b.onclick = () => { if (!trTela || trTela.tipo === b.dataset.t) return; trTela.tipo = b.dataset.t; trTela.f.parc = trTela.f.cat = trTela.f.centro = ""; desenharTr(); });
 $("tr-novo").onclick = () => abrirFormTr(null);
 $("tr-busca").oninput = () => { clearTimeout(desenharTr.t); desenharTr.t = setTimeout(desenharTr, 200); };
-for (const [id, k] of [["tr-ano", "ano"], ["tr-mes", "mes"], ["tr-cat", "cat"], ["tr-centro", "centro"]]) $(id).onchange = () => { if (!trTela) return; trTela[k] = $(id).value; if (trTela.sit === "venc" && (k === "ano" || k === "mes")) trTela.sit = ""; desenharTr(); };
 $("tr-exportar").onclick = exportarTr; $("tr-pdf").onclick = pdfTr;
 $("tr-importar").onclick = importarFin365;
 $("cp-busca").oninput = () => { clearTimeout(desenharTr.t); desenharTr.t = setTimeout(desenharTr, 200); };
-for (const [id, k] of [["cp-periodo", "cpPer"], ["cp-venc", "cpVenc"], ["cp-parc", "cpParc"], ["cp-cat", "cpCat"]]) $(id).onchange = () => { if (!trTela) return; trTela[k] = $(id).value; desenharTr(); };
 $("cp-novo-pagar").onclick = () => { trTela.tipo = "desp"; abrirFormTr(null); };
 $("cp-novo-receber").onclick = () => { trTela.tipo = "rec"; abrirFormTr(null); };
 $("cp-exportar").onclick = exportarContas; $("cp-pdf").onclick = pdfContas;
