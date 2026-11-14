@@ -15123,8 +15123,9 @@ const atrasadaTar = t => abertaTar(t) && !!t.prazo && t.prazo < dataISO();
 const hojeTar = t => abertaTar(t) && t.prazo === dataISO();
 const ordemTar = (a, b) => atrasadaTar(b) - atrasadaTar(a) || (a.prazo || "9").localeCompare(b.prazo || "9") || (RANK_PRI[a.prioridade] ?? 9) - (RANK_PRI[b.prioridade] ?? 9) || (a.criado || "").localeCompare(b.criado || "");
 const alertaTar = () => tarefas().filter(t => minhaTar(t) && (atrasadaTar(t) || hojeTar(t))).length;   // número no menu lateral
-const podeVerTarefas = () => !!conta && (pode("tarefas") || tarefas().some(t => minhaTar(t) && abertaTar(t)));
-const filtroTar = f => f === "minhas" ? minhaTar : f === "atrasadas" ? atrasadaTar : () => true;
+const podeVerTarefas = () => !!conta && (pode("tarefas") || tarefas().some(t => (minhaTar(t) || mencionadoTar(t)) && abertaTar(t)));
+// "Minhas": para quem não tem a função tarefas (só vê as suas), entram também as tarefas em que foi mencionado(a) num comentário
+const filtroTar = f => f === "minhas" ? (pode("tarefas") ? minhaTar : t => minhaTar(t) || mencionadoTar(t)) : f === "atrasadas" ? atrasadaTar : () => true;
 // filtros da lista (tarTela.st / pri / prazo / pessoa / cli; "-" = sem prioridade, sem prazo, sem responsável, sem cliente)
 const PRAZO_TAR = { atrasada: "Atrasadas", hoje: "Para hoje", semana: "Próximos 7 dias", "-": "Sem prazo" };
 const FILTRO_TAR = {
@@ -15805,12 +15806,12 @@ function conversa(op) {
     bt.appendChild(ic("enviar"));
     const ajustar = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 140) + "px"; manterFimChat(lista, op.chave); };   // cresce até ~5 linhas (a lista fica mais baixa: quem estava no fim continua no fim)
     ta.addEventListener("input", ajustar);
-    const men = ligarMencoes(ta, nc, ajustar);       // @ abre a lista de pessoas (pedido do Gustavo em 14/11/2026)
+    const men = ligarMencoes(ta, nc, ajustar, op.campo.funcao);       // @ abre a lista de pessoas (pedido do Gustavo em 14/11/2026)
     bt.onclick = () => {
       const v = ta.value.trim(); if (!v) { ta.focus(); return; }
       men.fechar();
       ta.value = ""; ajustar(); chatFim = op.chave;
-      op.campo.aoEnviar(v, mencoesDoTexto(v));
+      op.campo.aoEnviar(v, mencoesDoTexto(v).filter(m => !op.campo.funcao || podeOutro(m.email, op.campo.funcao)));
     };
     ta.addEventListener("keydown", e => {
       if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
@@ -15857,7 +15858,7 @@ function mencoesDoTexto(v) {
   let resto = v;
   for (const p of ps) {
     const re = new RegExp("@" + p.nome.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\p{L}\\p{N}])", "iu");
-    if (re.test(resto) && !vistos.has(p.email)) { vistos.add(p.email); r.push({ email: p.email, nome: p.nome }); resto = resto.replace(re, " "); }
+    if (re.test(resto) && !vistos.has(p.email)) { vistos.add(p.email); r.push({ email: p.email, nome: p.nome }); resto = resto.replace(new RegExp(re.source, "giu"), " "); }
   }
   return r;
 }
@@ -15878,11 +15879,20 @@ function textoComMencoes(t, men) {
   if (i < t.length) p.append(t.slice(i));
   return p;
 }
-function ligarMencoes(ta, caixaPai, ajustar) {
+// a outra pessoa tem a função f? (pelas permissões lidas; sem o arquivo lido, não dá para saber: sim)
+function podeOutro(email, f) {
+  if (!perm) return true;
+  const e = (email || "").toLowerCase(), u = perm.usuarios?.[e];
+  if (CONFIG.admins.includes(e) || u?.admin) return true;
+  if (perm.recusados?.includes(e)) return false;
+  return (u?.funcoes || padraoDe(perm) || TODAS_FUNCOES).includes(f);
+}
+function ligarMencoes(ta, caixaPai, ajustar, funcao) {
   const lista = el("div", "chat-men"); lista.setAttribute("role", "listbox"); lista.setAttribute("aria-label", "Pessoas para mencionar"); lista.hidden = true;
   lista.id = "chat-men-" + Math.random().toString(36).slice(2, 8);
   ta.setAttribute("aria-autocomplete", "list"); ta.setAttribute("aria-controls", lista.id);
   caixaPai.appendChild(lista);
+  lista.addEventListener("mousedown", e => e.preventDefault());   // barra de rolagem da lista: o campo continua com o foco
   let pick = null;                                  // { ini, q, itens, sel }
   const fechar = () => { pick = null; lista.hidden = true; ta.setAttribute("aria-expanded", "false"); ta.removeAttribute("aria-activedescendant"); };
   const token = () => {
@@ -15905,9 +15915,9 @@ function ligarMencoes(ta, caixaPai, ajustar) {
     lista.children[pick.sel]?.scrollIntoView({ block: "nearest" });
   };
   const abrir = () => {
-    const tk = token(); if (!tk) return fechar();
+    const tk = document.activeElement === ta ? token() : null; if (!tk) return fechar();   // campo sem foco (redesenho): sem lista
     const q = semAc(tk.q);
-    const itens = pessoasEquipe().filter(p => p.email !== emailDe())
+    const itens = pessoasEquipe().filter(p => p.email !== emailDe() && (!funcao || podeOutro(p.email, funcao)))
       .filter(p => !q || semAc(p.nome).split(/\s+/).some(w => w.startsWith(q)) || semAc(p.nome).startsWith(q) || p.email.startsWith(q)).slice(0, 8);
     if (!itens.length) return fechar();
     const sel = pick && pick.ini === tk.ini ? Math.min(pick.sel, itens.length - 1) : 0;
@@ -15923,21 +15933,25 @@ function ligarMencoes(ta, caixaPai, ajustar) {
   };
   ta.addEventListener("input", abrir);
   ta.addEventListener("click", abrir);
+  ta.addEventListener("keyup", e => { if (["ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"].includes(e.key) || (e.shiftKey && e.key.startsWith("Arrow"))) abrir(); });   // cursor andou: confere de novo
   ta.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== ta) fechar(); }, 150));
   ta.addEventListener("keydown", e => {             // registrado antes do "Enter envia": com a lista aberta, as teclas são dela
     if (!pick) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); e.stopImmediatePropagation(); pick.sel = (pick.sel + (e.key === "ArrowDown" ? 1 : pick.itens.length - 1)) % pick.itens.length; pintar(); }
-    else if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") { e.preventDefault(); e.stopImmediatePropagation(); escolher(pick.sel); }
+    else if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") {
+      const tk = token(); if (!tk || tk.ini !== pick.ini) { fechar(); return; }   // o cursor saiu da palavra do @: a tecla faz o que faria
+      e.preventDefault(); e.stopImmediatePropagation(); escolher(pick.sel);
+    }
     else if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation(); fechar(); }   // fecha só a lista (não a janela nem a tela)
   });
   return { fechar };
 }
 // menções à pessoa que está no app, ainda não vistas (Início); só as dos últimos 60 dias
-const LIDAS_MEN = "vpx_men_lidas";
+const lidasMen = () => "vpx_men_lidas_" + emailDe();   // por pessoa: no mesmo aparelho, o que uma conta viu não some para a outra
 const chaveMen = (tipo, reg, c) => tipo + ":" + reg.id + ":" + (c.id || c.em);
 function mencoesParaMim() {
   if (!conta) return [];
-  const lidas = new Set(lerLS(LIDAS_MEN, [])), lim = new Date(Date.now() - 60 * 864e5).toISOString(), r = [];
+  const lidas = new Set(lerLS(lidasMen(), [])), lim = new Date(Date.now() - 60 * 864e5).toISOString(), r = [];
   const ver = (itens, tipo, reg, onde) => (itens || []).forEach(c => {
     if (!mencionaMim(c) || (c.em || "") < lim) return;
     const k = chaveMen(tipo, reg, c); if (!lidas.has(k)) r.push({ k, tipo, id: reg.id, onde, por: c.por, em: c.em, t: c.t });
@@ -15947,15 +15961,15 @@ function mencoesParaMim() {
   return r.sort((a, b) => (b.em || "").localeCompare(a.em || ""));
 }
 function marcarMencoesLidas(tipo, reg, todas) {    // abriu a conversa (ou "Marcar como vistas"): as menções dela saem do Início
-  const lidas = lerLS(LIDAS_MEN, []), set = new Set(lidas); let mudou = false;
+  const lidas = lerLS(lidasMen(), []), set = new Set(lidas); let mudou = false;
   const marca = (tp, rg, c) => { const k = chaveMen(tp, rg, c); if (!set.has(k)) { set.add(k); lidas.push(k); mudou = true; } };
   if (todas) mencoesParaMim().forEach(m => { if (!set.has(m.k)) { set.add(m.k); lidas.push(m.k); mudou = true; } });
   else ((tipo === "fu" ? reg?.ativ : reg?.coment) || []).forEach(c => { if (mencionaMim(c)) marca(tipo, reg, c); });
   if (!mudou) return;
-  gravarLS(LIDAS_MEN, lidas.slice(-500));
+  gravarLS(lidasMen(), lidas.slice(-500));
   if (secao === "inicio" && !$("tela-inicio").hidden) redesenharInicio();
 }
-const mencionadoTar = t => (t.coment || []).some(c => (c.men || []).some(m => (m.email || "").toLowerCase() === emailDe()));
+function mencionadoTar(t) { return !!conta && (t.coment || []).some(c => (c.men || []).some(m => (m.email || "").toLowerCase() === emailDe())); }   // declaração de função: usada também no começo (podeVerTarefas)
 /* comentários de uma tarefa (conversa): quem pode mexer na tarefa escreve; cada um apaga os seus.
    Usado no detalhe da tarefa e na janela que abre pelo ícone da tabela. depois() redesenha quem chamou. */
 function comentariosTar(t, depois, idCampo) {
@@ -15996,14 +16010,14 @@ function desenharComentariosTar() {
   if (!comAtual) return;
   const fu = comTipo === "fu", t = regsDe(fu ? colFu : colTar)[comAtual], corpo = $("com-corpo");
   if (!t) { aviso(fu ? "A oportunidade foi apagada por outra pessoa." : "A tarefa foi apagada por outra pessoa."); fecharComentariosTar(); return; }
-  const velho = $("com-novo"), rasc = velho?.value || "", foco = !!velho && document.activeElement === velho;   // redesenho (sincronização): mantém o que está sendo escrito
+  const velho = $("com-novo"), rasc = velho?.value || "", foco = !!velho && document.activeElement === velho, cur = velho ? [velho.selectionStart, velho.selectionEnd] : null;   // redesenho (sincronização): mantém o que está sendo escrito
   $("com-titulo").textContent = fu ? "Contatos e anotações" : "Comentários";
   $("com-tarefa").textContent = fu ? t.nome || "(sem nome)" : t.titulo || "(sem título)";
   corpo.innerHTML = "";
   corpo.appendChild(fu ? anotacoesFu(t, desenharComentariosTar, "com-novo") : comentariosTar(t, desenharComentariosTar, "com-novo"));
   const novo = $("com-novo");
-  if (novo && rasc) { novo.value = rasc; novo.dispatchEvent(new Event("input")); }   // o campo volta com a altura do texto
   if (novo && foco) novo.focus({ preventScroll: true });
+  if (novo && rasc) { novo.value = rasc; if (cur) novo.setSelectionRange(cur[0], cur[1]); novo.dispatchEvent(new Event("input")); }   // o campo volta com a altura do texto e o cursor no mesmo lugar
 }
 /* celular: a janela da conversa acompanha a parte da tela que sobra com o teclado aberto (iPhone não encolhe a página),
    para o campo de escrever não ficar escondido embaixo do teclado */
@@ -16168,7 +16182,7 @@ function aoMudarFu() {
   if (comAtual && comTipo === "fu" && $("dlg-com").open) desenharComentariosTar();   // janela de anotações aberta: mostra as novas (guarda o que está sendo escrito)
   (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", manterQuadro("tela-funil", desenharFunil)))();
   if (conta && secao === "cliente" && !$("tela-cliente").hidden) redesenharCliente();
-  if (conta && secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // número do funil no painel do computador
+  if (conta && secao === "inicio" && !$("tela-inicio").hidden) redesenharInicio();   // número do funil no painel do computador e menções do Comercial
 }
 const colFu = colecao({ chave: "vpx_funil", pasta: CONFIG.pastaFunil, prefixo: "funil", n: 32, pode: () => pode("funil"), aoMudar: aoMudarFu });
 
@@ -18321,7 +18335,7 @@ function anotacoesFu(o, depois, idCampo) {
     chave: (idCampo ? "dlg:fu:" : "det:fu:") + o.id,
     itens: o.ativ, max: 60, vazio: "Nenhum contato registrado ainda.",
     meu: a => a.por === nomeColaborador(),
-    campo: { ph: "O que foi conversado? (@ menciona)", rotulo: "Registrar contato de hoje", id: idCampo,
+    campo: { ph: "O que foi conversado? (@ menciona)", rotulo: "Registrar contato de hoje", id: idCampo, funcao: "funil",
       aoEnviar: (v, men) => { registrarContatoFu(o.id, v, null, men); depois(); } }
   }));
   return f;
@@ -18399,7 +18413,7 @@ setInterval(() => {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden || !conta) return;
   sincronizarCol(colTar);
-  if (!$("tela-funil").hidden || (computador.matches && secao === "inicio")) sincronizarCol(colFu);
+  if (!$("tela-funil").hidden || secao === "inicio") sincronizarCol(colFu);   // Início: número do funil (computador) e menções do Comercial
 });
 window.addEventListener("online", () => { if (tarTela) desenharTar(); if (fuTela) desenharFunil(); });
 
@@ -19558,7 +19572,7 @@ async function iniciarApp() {
   sincronizarOS();                                // ordens de serviço (fila no Início) e baixas que ficaram sem internet
   sincronizarCol(colTar, true);                   // tarefas (cartão no Início e número no menu lateral); o funil só ao abrir (no celular)
   sincronizarCol(colCc, true);                    // centros de custo (listas do comprovante, das solicitações e das transações)
-  if (computador.matches) permOk.then(() => sincronizarCol(colFu, true), () => {});   // computador: número do funil no painel do Início, só depois de conferir as permissões (sincronizarCol confere pode("funil"))
+  permOk.then(() => sincronizarCol(colFu, true), () => {});   // computador: número do funil no painel do Início, só depois de conferir as permissões (sincronizarCol confere pode("funil"))
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") redesenharInicio();     // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
