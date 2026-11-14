@@ -1960,6 +1960,30 @@ span.fu-orc-lin{cursor:default}
 @media (prefers-color-scheme:dark){
   body.logado .nav .nav-sub button[aria-current="page"]{color:var(--tinta)}
 }
+
+/* Ordens de serviço em tabela (pedido do Gustavo em 13/11/2026) */
+#os-corpo{container-type:inline-size}
+.os-tab .os-c-st{width:108px}
+.os-tab .orc-sub{overflow-wrap:break-word;word-break:normal}
+.os-tab .os-c-st .os-st{margin:0 4px 3px 0}
+.os-tab .os-c-prev{width:62px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.os-tab td.os-c-prev small{display:block;font-size:12px;font-weight:700}
+.os-tab td.crit{color:var(--crit-tx);font-weight:700}
+.os-tab tr.os-urg td:first-child{box-shadow:inset 4px 0 0 var(--erro)}
+.os-tab tr.os-atr td:first-child{box-shadow:inset 4px 0 0 var(--laranja)}
+.os-tab tr.os-fim .orc-cli{color:var(--suave)}
+.os-tab .orc-sub .ic.in,.os-tab td.os-c-tipo .ic.in{width:15px;height:15px;margin-right:4px;vertical-align:-2px}
+.os-resumo{margin:2px 2px 10px}
+@container (min-width:860px){
+  .os-tab .os-c-st{width:128px}
+  .os-tab .os-c-tipo{width:220px}
+  .os-tab .os-c-quem{width:200px}
+  .os-tab .os-c-prev{width:110px}
+  .os-tab td.os-c-prev small{display:inline;margin-left:6px}
+}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  #os-corpo{display:block}
+}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -8347,8 +8371,45 @@ function desenharOS() {
   const pend = lerLS("vpx_os_baixas", []).length;
   if (pend) c.appendChild(el("p", "ld-aviso", `⏳ ${pend} baixa${pend > 1 ? "s" : ""} aguardando internet para ser enviada${pend > 1 ? "s" : ""}.`));
   if (!lista.length) c.appendChild(vazio("os", { fila: "Nenhuma OS na fila", minhas: "Nenhuma OS com você agora", andamento: "Nenhuma OS em andamento", concluidas: "Nenhuma OS concluída ainda" }[osTela.filtro], osTela.filtro === "minhas" && listaOS().some(naFilaOS) ? "Veja em Fila as que esperam um técnico." : ""));
-  lista.slice(0, osTela.filtro === "concluidas" ? 60 : 500).forEach(o => c.appendChild(cartaoOS(o)));
+  if (lista.length) {
+    const atr = lista.filter(atrasadaOS).length, urg = lista.filter(o => o.prioridade === "urgente" && (o.status === "aberta" || o.status === "andamento")).length;
+    c.appendChild(el("p", "orc-resumo os-resumo", `${lista.length} ${lista.length === 1 ? "ordem" : "ordens"} de serviço` + (urg ? ` · ${urg} urgente${urg === 1 ? "" : "s"}` : "") + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : "") + (osTela.filtro === "concluidas" && lista.length > 60 ? " (as 60 mais recentes)" : "")));
+    c.appendChild(tabelaOS(lista.slice(0, osTela.filtro === "concluidas" ? 60 : 500)));
+  }
   if (!navigator.onLine) c.appendChild(el("p", "avcb-nota", "Sem internet: mostrando a última lista guardada."));
+}
+/* lista das OS como planilha (pedido do Gustavo em 13/11/2026: "como lista, não como esses quadradinhos"; como as tabelas de Tarefas e Solicitações).
+   Celular: Cliente (nº, tipo e quem embaixo) · Situação · Prevista; tela larga: também Tipo e Responsável. Os cartões (cartaoOS) continuam no Início e na página do cliente. */
+const quemOS = o => o.status === "andamento" ? `Com ${o.tecnico?.nome || "-"}` : o.status === "aberta" ? (o.para ? `Para ${o.para.nome}` : "Qualquer técnico")
+  : o.status === "concluida" ? `Concluída por ${o.concluida?.por?.nome || "-"}${o.concluida?.em ? " em " + dataBRde(o.concluida.em.slice(0, 10)) : ""}` : "";
+function tabelaOS(lista) {
+  const tb = el("table", "orc-tab os-tab"), cab = el("thead"), hr = el("tr"), corpo = el("tbody");
+  [["Cliente", "orc-c-cli"], ["Tipo", "tar-so-pc os-c-tipo"], ["Situação", "os-c-st"], ["Responsável", "tar-so-pc os-c-quem"], ["Prevista", "os-c-prev"]]
+    .forEach(([r, cls]) => { const th = el("th", cls, r); th.scope = "col"; hr.appendChild(th); });
+  cab.appendChild(hr);
+  for (const o of lista) {
+    const ativa = o.status === "aberta" || o.status === "andamento", urg = o.prioridade === "urgente" && ativa, atr = atrasadaOS(o);
+    const tr = el("tr", (urg ? "os-urg" : atr ? "os-atr" : "") + (ativa ? "" : " os-fim")); tr.tabIndex = 0;
+    const tc = el("td", "orc-c-cli");
+    tc.appendChild(el("span", "orc-cli", o.cliente || "(sem cliente)"));
+    const sub = el("small", "orc-sub"); sub.append(o.numero);
+    const tp = el("span", "orc-so-cel"); tp.append(" · ", ic(TIPOS_OS[o.tipo]?.ico || "chave", "in"), descTipoOS(o)); sub.appendChild(tp);
+    tc.appendChild(sub);
+    const q = quemOS(o); if (q) tc.appendChild(el("small", "orc-sub orc-so-cel", q));
+    const tt = el("td", "tar-so-pc os-c-tipo"); tt.append(ic(TIPOS_OS[o.tipo]?.ico || "chave", "in"), descTipoOS(o));
+    const ts = el("td", "os-c-st"); ts.appendChild(el("span", "os-st " + o.status, ST_OS[o.status] || o.status));
+    if (urg) ts.appendChild(el("span", "os-st urgente", "Urgente"));
+    const tq = el("td", "tar-so-pc os-c-quem", q || "—");
+    const tz = el("td", "os-c-prev" + (atr ? " crit" : ""));
+    if (o.prevista) { tz.appendChild(el("span", "", dataCurta(o.prevista))); if (atr) tz.appendChild(el("small", "", "atrasada")); } else tz.textContent = "—";
+    tr.append(tc, tt, ts, tq, tz);
+    const abrir = () => { guardarRol("tela-os"); osTela.aberta = o.numero; desenharOS(); $("os-corpo").scrollTop = 0; };
+    tr.onclick = abrir;
+    tr.onkeydown = e => { if (e.key === "Enter" && e.target === tr) abrir(); };
+    corpo.appendChild(tr);
+  }
+  tb.append(cab, corpo);
+  return tb;
 }
 const filtroOS = f => f === "fila" ? naFilaOS : f === "minhas" ? comigoOS : f === "andamento" ? (o => o.status === "andamento") : (o => o.status === "concluida" || o.status === "cancelada");
 function detalheOS(o) {
