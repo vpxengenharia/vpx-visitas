@@ -204,7 +204,6 @@ button,input,label{font:inherit}
 /* Clientes: a mesma tabela (pedido do Gustavo em 07/11/2026); o cabeçalho gruda logo abaixo do título e da busca */
 #tela-clientes{container-type:inline-size}
 #cl-tab[hidden],#cl-vazio[hidden],#cl-exportar[hidden],#cl-exp-contatos[hidden],.orc-sel[hidden]{display:none}
-.orc-filtros.cl-filtros{grid-template-columns:1fr 1fr;margin:12px 0 0}
 #cl-recentes{margin-top:0;align-items:center}
 #cl-recentes p{flex:none;max-width:none;margin:0 2px 0 0}   /* "Recentes:" na mesma linha dos nomes */
 .cl-resumo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 2px;font-size:15.5px;font-weight:600}
@@ -234,7 +233,6 @@ button,input,label{font:inherit}
   #cl-recentes button{flex:none;max-width:240px}   /* não encolhe: a linha rola de lado */
 }
 @container (min-width:860px){
-  .orc-filtros.cl-filtros{grid-template-columns:repeat(2,minmax(0,280px))}
   .cl-c-cnpj{display:table-cell;width:150px;white-space:nowrap;font-variant-numeric:tabular-nums}
   .cl-c-cont{display:table-cell;width:210px}
   .cl-tab .cl-c-avcb{width:186px}
@@ -1717,16 +1715,13 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 :where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
 /* resumos das tabelas: a regra geral p{max-width:60ch} quebrava a linha com metade da tela livre ("4 em dia" caía sozinho) */
 .orc-resumo{max-width:none}
-/* Clientes em tela larga: a data do AVCB não invade a coluna ao lado; título e busca numa linha; filtros compactos numa linha, resumo na linha de baixo */
+/* Clientes em tela larga: a data do AVCB não invade a coluna ao lado; título e busca numa linha; resumo na linha de baixo */
 @container (min-width:860px){
   .cl-tab .cl-c-avcb{width:224px}
   .cl-c-avcb small{overflow:hidden;text-overflow:ellipsis}
   .cl-cab{display:flex;align-items:center;gap:16px}
   .cl-cab .hub-tit{margin:0}
   .cl-cab .hub-busca{flex:1;max-width:420px;min-height:44px;margin:0}
-  .orc-filtros.cl-filtros{grid-auto-flow:column;grid-template-columns:none;justify-content:start;gap:12px;margin:10px 0 0}
-  .cl-filtros .orc-sel{flex-direction:row;align-items:center;gap:8px}
-  .cl-filtros select{width:170px;min-height:40px}
   .cl-resumo{margin:10px 2px 12px}
 }
 .nav-atalho{display:none}
@@ -1784,12 +1779,18 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
 .pf-grade{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;align-items:end}
 .pf-grade .campo input{min-width:0}
 @media (prefers-color-scheme:dark){.pf-tags span{background:rgba(255,255,255,.1);color:var(--tinta)}.pf-tags .pf-vazio{background:none}}
-/* filtro "O que o cliente tem" (aba Clientes): as opções são compridas: linha inteira no celular; na tela larga, mais largo e desce se não couber */
-#cl-pf-rot{grid-column:1 / -1}
-@container (min-width:860px){
-  .orc-filtros.cl-filtros{display:flex;flex-wrap:wrap}
-  .cl-filtros #cl-pf{width:250px}
+/* Clientes: filtros no título das colunas (pedido do Gustavo em 14/11/2026, como no Comercial). O funil laranja do título
+   "Cliente" aparece sempre com o filtro "O que o cliente tem" e, na tela estreita, também com CNPJ/CPF ou contato (colunas escondidas) */
+.cl-tab thead button.tar-th{display:inline-flex;align-items:center;white-space:nowrap}
+.cl-tab thead .tar-th-fil{display:inline-block}
+@container (min-width:860px){.cl-tab thead .tar-th-fil.f-cel{display:none}.cl-tab .cl-c-ext{width:168px}}
+/* celular: nas colunas estreitas (AVCB, Ext./mang.) a setinha do menu some quando já há a seta da ordem ou o funil */
+@container (max-width:859px){
+  .cl-tab thead :is(.cl-c-avcb,.cl-c-ext) :is(.tar-th-seta,.tar-th-fil) ~ .tar-th-menu{display:none}
+  .cl-tab thead .cl-c-ext .tar-th-seta:has(~ .tar-th-fil){display:none}   /* "Ext./mang." com ordem e filtro: fica só o funil (não cabe) */
 }
+#cl-fil-at[hidden]{display:none}
+#cl-fil-at{margin:-2px 0 10px}
 /* ===== Itens aprovados pelo Gustavo em 11/11/2026 (mudam decisões anteriores dele; ver CLAUDE.md) ===== */
 /* (2) opção marcada em azul; o laranja cheio fica para o botão principal. No escuro, marcado = claro invertido */
 .chips button[aria-pressed="true"],.tipos button[aria-pressed="true"]{background:var(--marinho);border-color:var(--marinho);color:#fff}
@@ -2304,37 +2305,16 @@ span.fu-orc-lin{cursor:default}
     </div>
     <!-- tabela como planilha, igual às de notas fiscais e validade AVCB (pedido do Gustavo em 07/11/2026) -->
     <div class="recentes" id="cl-recentes" hidden></div>
-    <div class="orc-filtros cl-filtros">
-      <label class="orc-sel"><span>AVCB</span>
-        <select id="cl-avcb">
-          <option value="">Todos</option>
-          <option value="crit">Vencido</option>
-          <option value="warn">A vencer</option>
-          <option value="ok">Em dia</option>
-          <option value="sem">Sem AVCB na lista</option>
-        </select>
-      </label>
-      <label class="orc-sel" id="cl-ext-rot"><span>Extintores e mangueiras</span>
-        <select id="cl-ext">
-          <option value="">Todos</option>
-          <option value="crit">Vencido</option>
-          <option value="warn">A vencer</option>
-          <option value="ok">Em dia</option>
-          <option value="sem">Sem cadastro</option>
-        </select>
-      </label>
-      <label class="orc-sel" id="cl-pf-rot" hidden><span>O que o cliente tem</span>
-        <select id="cl-pf"><option value="">Todos</option></select>
-      </label>
-    </div>
     <div class="cl-resumo" id="cl-resumo"></div>
+    <div class="tar-fil-at" id="cl-fil-at" hidden></div>   <!-- filtros ligados: "AVCB: Vencido ×" -->
+    <!-- o título de cada coluna abre o menu de ordenar e filtrar (como no Comercial; montado em cabCl) -->
     <table class="orc-tab cl-tab" id="cl-tab">
       <thead><tr>
-        <th class="orc-c-cli" scope="col"><button type="button" data-col="cli">Cliente</button></th>
-        <th class="cl-c-cnpj" scope="col"><span>CNPJ/CPF</span></th>
-        <th class="cl-c-avcb" scope="col"><button type="button" data-col="avcb">AVCB/CLCB</button></th>
-        <th class="cl-c-ext" scope="col"><button type="button" data-col="ext" aria-label="Extintores e mangueiras"><span class="orc-so-cel">Ext./mang.</span><span class="orc-data-l">Extintores e mang.</span></button></th>
-        <th class="cl-c-cont" scope="col"><button type="button" data-col="cont">Contato principal</button></th>
+        <th class="orc-c-cli" scope="col"></th>
+        <th class="cl-c-cnpj" scope="col"></th>
+        <th class="cl-c-avcb" scope="col"></th>
+        <th class="cl-c-ext" scope="col"></th>
+        <th class="cl-c-cont" scope="col"></th>
       </tr></thead>
       <tbody id="cl-corpo"></tbody>
     </table>
@@ -17958,7 +17938,89 @@ function buscaCliente(x, q) {
   if (dq.length >= 4 && dq.length >= q.replace(/\s/g, "").length - 4 && digitos(x.doc).includes(dq)) return true;
   return buscaFicha(x.c, q);
 }
-const COLS_CL = { cli: x => x.c, avcb: x => x.s ? x.s.dias : null, ext: x => x.ext ? ORDEM_SIT_CL[x.ext] : null, cont: x => x.contato ? x.contato.nome || x.contato.funcao || null : null };
+const COLS_CL = { cli: x => x.c, doc: x => digitos(x.doc) || null, avcb: x => x.s ? x.s.dias : null, ext: x => x.ext ? ORDEM_SIT_CL[x.ext] : null, cont: x => x.contato ? x.contato.nome || x.contato.funcao || null : null };
+/* filtros no título das colunas (pedido do Gustavo em 14/11/2026: "igual na aba Vendas"): clFil = { avcb, ext, pf, doc, cont }
+   ("" = todos). Cada opção mostra quantos clientes a tabela teria com ela (depois da busca e dos outros filtros); zero some. */
+const clFil = { avcb: "", ext: "", pf: "", doc: "", cont: "" };
+const OPC_AVCB_CL = { crit: "Vencido", warn: "A vencer", ok: "Em dia", sem: "Sem AVCB na lista" };
+const OPC_EXT_CL = { crit: "Vencido", warn: "A vencer", ok: "Em dia", sem: "Sem cadastro" };
+const FILTRO_CL = {
+  avcb: (x, v) => v === "sem" ? !x.s : x.s?.cls === v,
+  ext: (x, v) => v === "sem" ? !x.ext : x.ext === v,
+  pf: (x, v) => { const p = x.f?.perfil; return v === "sem" ? !temPerfil(p) : v.includes(":") ? p?.gas?.tem === "s" && (p.gas.tipo || "").startsWith(v.split(":")[1]) : p?.[v]?.tem === "s"; },
+  doc: (x, v) => !!x.doc === (v === "com"),
+  cont: (x, v) => !!x.contato === (v === "com")
+};
+const ROT_FILTRO_CL = { avcb: "AVCB", ext: "Extintores e mangueiras", pf: "O que o cliente tem", doc: "CNPJ/CPF", cont: "Contato principal" };
+// filtros que a pessoa pode usar (extintores só com "equip"; o que o cliente tem e contato só com "ficha")
+const filtrosClPodem = () => Object.keys(FILTRO_CL).filter(k => k === "ext" ? pode("equip") : k === "pf" || k === "cont" ? pode("ficha") : true);
+const ORDENAR_CL = {
+  cli: [["A → Z", false], ["Z → A", true]],
+  doc: [["Menor número primeiro", false], ["Maior número primeiro", true]],
+  avcb: [["Mais urgente primeiro", false], ["Validade mais longa primeiro", true]],
+  ext: [["Vencidos primeiro", false], ["Em dia primeiro", true]],
+  cont: [["A → Z", false], ["Z → A", true]]
+};
+// filtros de cada coluna; com a tela estreita, o título "Cliente" filtra também CNPJ/CPF e contato (colunas escondidas)
+function filtrosDaColunaCl(col, vis = { doc: true, cont: true }) {
+  const podem = filtrosClPodem();
+  return (({ cli: ["pf", !vis.doc && "doc", !vis.cont && "cont"].filter(Boolean), doc: ["doc"], avcb: ["avcb"], ext: ["ext"], cont: ["cont"] })[col] || []).filter(k => podem.includes(k));
+}
+function menuColunaCl(b, col) {
+  const t = $("cl-tab"), mostra = c => getComputedStyle(t.querySelector("th." + c)).display !== "none";
+  const ops = [[null, "Ordenar", "menu-tit"]], atual = [];
+  ORDENAR_CL[col].forEach(([rot, desc], i) => { ops.push(["o:" + i, rot]); if (clOrdem.col === col && clOrdem.desc === desc) atual.push("o:" + i); });
+  for (const k of filtrosDaColunaCl(col, { doc: mostra("cl-c-cnpj"), cont: mostra("cl-c-cont") })) {
+    ops.push([null, "Filtrar: " + ROT_FILTRO_CL[k].toLowerCase().replace("cnpj/cpf", "CNPJ/CPF").replace("avcb", "AVCB"), "menu-tit"], ["f:" + k + ":", "Todos"]);
+    for (const [v, txt, n] of clFil.opF?.[k] || []) ops.push(["f:" + k + ":" + v, `${txt} (${n})`]);
+    atual.push("f:" + k + ":" + clFil[k]);
+  }
+  menuOpcoes(b, ops, atual, v => {
+    if (v.startsWith("o:")) clOrdem = { col, desc: ORDENAR_CL[col][+v.slice(2)][1] };
+    else { const [, k, ...resto] = v.split(":"); clFil[k] = resto.join(":"); }
+    desenharClientesHub();
+    $("cl-tab").querySelector(`thead button[data-col="${col}"]`)?.focus({ preventScroll: true });
+  });
+}
+// título das colunas: setinha embaixo = tem menu; ↑/↓ = ordem; funil laranja = filtro ligado
+function cabCl() {
+  const ths = $("cl-tab").querySelectorAll("thead th");
+  // [coluna, título, título curto do celular, nome para o leitor de tela]
+  [["cli", "Cliente"], ["doc", "CNPJ/CPF"], ["avcb", "AVCB/CLCB", "AVCB"], ["ext", "Extintores e mang.", "Ext./mang.", "Extintores e mangueiras"], ["cont", "Contato principal"]].forEach(([col, rot, curto, nome], i) => {
+    const th = ths[i], b = el("button", "tar-th"), ativa = clOrdem.col === col;
+    b.type = "button"; b.dataset.col = col; b.setAttribute("aria-haspopup", "menu"); b.title = "Ordenar e filtrar";
+    if (curto) { b.setAttribute("aria-label", nome || rot); b.append(el("span", "orc-so-cel", curto), el("span", "orc-data-l", rot)); }
+    else b.append(rot);
+    th.setAttribute("aria-sort", ativa ? (clOrdem.desc ? "descending" : "ascending") : "none");
+    if (ativa) b.appendChild(el("span", "tar-th-seta", clOrdem.desc ? " ↓" : " ↑"));
+    if (col === "cli") {                              // "O que o cliente tem" (sempre) e, na tela estreita, CNPJ/CPF e contato
+      if (clFil.pf) b.appendChild(ic("funil", "tar-th-fil"));
+      else if (clFil.doc || clFil.cont) b.appendChild(ic("funil", "tar-th-fil f-cel"));
+    } else if (filtrosDaColunaCl(col).some(k => clFil[k])) b.appendChild(ic("funil", "tar-th-fil"));
+    b.appendChild(el("span", "tar-th-menu"));
+    b.onclick = () => menuColunaCl(b, col);
+    th.replaceChildren(b);
+  });
+}
+// filtros ligados, em cima da tabela: "AVCB: Vencido ×" (tocar tira); com 2 ou mais, "Limpar filtros"
+function filtrosEscolhidosCl() {
+  const w = $("cl-fil-at"), at = Object.keys(FILTRO_CL).filter(k => clFil[k]);
+  w.replaceChildren(); w.hidden = !at.length;
+  for (const k of at) {
+    const txt = textoFiltroCl(k);
+    const b = el("button", "tar-fil-chip", `${ROT_FILTRO_CL[k]}: ${txt}`); b.type = "button";
+    b.title = "Tirar este filtro"; b.setAttribute("aria-label", `Tirar o filtro ${ROT_FILTRO_CL[k]}: ${txt}`);
+    b.appendChild(el("span", "tar-fil-x", "×"));
+    b.onclick = () => { clFil[k] = ""; desenharClientesHub(); };
+    w.appendChild(b);
+  }
+  if (at.length > 1) {
+    const b = el("button", "tar-limpar", "Limpar filtros"); b.type = "button";
+    b.onclick = () => { Object.keys(FILTRO_CL).forEach(k => { clFil[k] = ""; }); desenharClientesHub(); };
+    w.appendChild(b);
+  }
+}
+const textoFiltroCl = k => (clFil.opF?.[k] || []).find(([v]) => v === clFil[k])?.[1] || clFil[k];
 function compCl(a, b) {
   const f = COLS_CL[clOrdem.col], x = f(a), y = f(b);
   if ((x == null) !== (y == null)) return x == null ? 1 : -1;   // sem o dado: sempre no fim
@@ -17973,21 +18035,10 @@ function ajustarCabCl() {
   $("tela-clientes").style.setProperty("--cl-th-top", ((parseFloat(getComputedStyle(cab).top) || 0) + cab.getBoundingClientRect().height - 1) + "px");
 }
 function desenharClientesHub() {
-  const q = semAcento($("cl-busca").value.trim()), fa = $("cl-avcb").value, temEq = pode("equip"), temFicha = pode("ficha");
-  const fe = temEq ? $("cl-ext").value : "";
-  // filtro "O que o cliente tem" (com gás, com gerador…): montado uma vez
-  $("cl-pf-rot").hidden = !temFicha;
-  if ($("cl-pf").options.length === 1) {
-    for (const i of PERFIL_ITENS) {
-      $("cl-pf").appendChild(new Option("Com " + i.nome.toLowerCase().replace("spda", "SPDA").replace(/ \(.*/, ""), i.id));
-      if (i.id === "gas") { $("cl-pf").appendChild(new Option("Com gás GN", "gas:GN")); $("cl-pf").appendChild(new Option("Com gás GLP", "gas:GLP")); }
-    }
-    $("cl-pf").appendChild(new Option("Sem cadastro", "sem"));
-  }
-  const fp = temFicha ? $("cl-pf").value : "";
-  const passaP = x => { const p = x.f?.perfil; return !fp || (fp === "sem" ? !temPerfil(p) : fp.includes(":") ? p?.gas?.tem === "s" && (p.gas.tipo || "").startsWith(fp.split(":")[1]) : p?.[fp]?.tem === "s"); };
+  const q = semAcento($("cl-busca").value.trim()), temEq = pode("equip"), temFicha = pode("ficha");
+  const podem = filtrosClPodem();
+  Object.keys(FILTRO_CL).forEach(k => { if (!podem.includes(k)) clFil[k] = ""; });   // sem a função, o filtro não vale
   $("cl-busca").placeholder = temFicha ? "Buscar nome, contato ou CNPJ" : "Buscar nome ou CNPJ";
-  $("cl-ext-rot").hidden = !temEq;
   $("cl-tab").classList.toggle("sem-ext", !temEq);
   $("cl-tab").classList.toggle("sem-cont", !temFicha);
   // recentes: um toque abre a página (como antes); somem durante a busca
@@ -18000,41 +18051,56 @@ function desenharClientesHub() {
   rec.hidden = !recs.length;
   const avcbs = listaAvcb();                       // uma vez por desenho (e não uma vez por cliente)
   const daBusca = clientes.map(c => infoCliente(c, avcbs)).filter(x => !q || buscaCliente(x, q));
-  const passaA = x => !fa || (fa === "sem" ? !x.s : x.s?.cls === fa), passaE = x => !fe || (fe === "sem" ? !x.ext : x.ext === fe);
-  clVisiveis = daBusca.filter(x => passaA(x) && passaE(x) && passaP(x)).sort(compCl);
+  const passaCl = (x, menos) => podem.every(k => k === menos || !clFil[k] || FILTRO_CL[k](x, clFil[k]));
+  // opções de cada filtro com a quantidade, para o menu do título da coluna
+  const pares = {
+    avcb: Object.entries(OPC_AVCB_CL), ext: Object.entries(OPC_EXT_CL),
+    pf: [...PERFIL_ITENS.flatMap(i => [[i.id, "Com " + i.nome.toLowerCase().replace("spda", "SPDA").replace(/ \(.*/, "")],
+      ...(i.id === "gas" ? [["gas:GN", "Com gás GN"], ["gas:GLP", "Com gás GLP"]] : [])]), ["sem", "Sem cadastro"]],
+    doc: [["com", "Com CNPJ/CPF"], ["sem", "Sem CNPJ/CPF"]],
+    cont: [["com", "Com contato principal"], ["sem", "Sem contato"]]
+  };
+  clFil.opF = {};
+  for (const k of podem) {
+    const comOutros = daBusca.filter(x => passaCl(x, k));
+    clFil.opF[k] = pares[k].map(([v, txt]) => [v, txt, comOutros.filter(x => FILTRO_CL[k](x, v)).length]).filter(([v, , n]) => n || v === clFil[k]);
+  }
+  clVisiveis = daBusca.filter(x => passaCl(x)).sort(compCl);
   // resumo: quantos e o que está vencido ou a vencer (contando com o outro filtro); tocar num número filtra por ele
   const res = $("cl-resumo");
   res.innerHTML = "";
   if (clientes.length) {
     res.appendChild(el("span", "", `${clVisiveis.length}${clVisiveis.length !== clientes.length ? " de " + clientes.length : ""} cliente${clientes.length === 1 ? "" : "s"}`));
-    const chip = (sel, cls, n, txt, titulo) => {
+    const chip = (k, cls, n, txt, titulo) => {         // os números também ligam e desligam os filtros (os mesmos do título da coluna)
       if (!n) return;
-      const ativo = $(sel).value === cls;
+      const ativo = clFil[k] === cls;
       const b = el("button", "avcb-qt " + cls, `${n} ${txt}`); b.type = "button"; b.title = titulo;
-      b.setAttribute("aria-pressed", String(ativo)); b.dataset.f = sel + "-" + cls;
-      b.onclick = () => { $(sel).value = ativo ? "" : cls; desenharClientesHub(); $("cl-resumo").querySelector(`[data-f="${sel}-${cls}"]`)?.focus(); };
+      b.setAttribute("aria-pressed", String(ativo)); b.dataset.f = k + "-" + cls;
+      b.onclick = () => { clFil[k] = ativo ? "" : cls; desenharClientesHub(); $("cl-resumo").querySelector(`[data-f="${k}-${cls}"]`)?.focus(); };
       res.appendChild(b);
     };
-    const comE = daBusca.filter(x => passaE(x) && passaP(x)), comA = daBusca.filter(x => passaA(x) && passaP(x)), pl = (n, um, varios) => n === 1 ? um : varios;
+    const comE = daBusca.filter(x => passaCl(x, "avcb")), comA = daBusca.filter(x => passaCl(x, "ext")), pl = (n, um, varios) => n === 1 ? um : varios;
     let n = comE.filter(x => x.s?.cls === "crit").length;
-    chip("cl-avcb", "crit", n, pl(n, "AVCB vencido", "AVCB vencidos"), "Clientes com AVCB ou CLCB vencido");
+    chip("avcb", "crit", n, pl(n, "AVCB vencido", "AVCB vencidos"), "Clientes com AVCB ou CLCB vencido");
     n = comE.filter(x => x.s?.cls === "warn").length;
-    chip("cl-avcb", "warn", n, "AVCB a vencer", "Clientes com AVCB ou CLCB vencendo em até 3 meses");
+    chip("avcb", "warn", n, "AVCB a vencer", "Clientes com AVCB ou CLCB vencendo em até 3 meses");
     if (temEq) {
       n = comA.filter(x => x.ext === "crit").length;
-      chip("cl-ext", "crit", n, pl(n, "ext./mang. vencido", "ext./mang. vencidos"), "Clientes com extintor ou mangueira vencido");
+      chip("ext", "crit", n, pl(n, "ext./mang. vencido", "ext./mang. vencidos"), "Clientes com extintor ou mangueira vencido");
       n = comA.filter(x => x.ext === "warn").length;
-      chip("cl-ext", "warn", n, "ext./mang. a vencer", "Clientes com extintor ou mangueira vencendo em até 60 dias");
+      chip("ext", "warn", n, "ext./mang. a vencer", "Clientes com extintor ou mangueira vencendo em até 60 dias");
     }
   }
-  $("cl-tab").querySelectorAll("thead button").forEach(b => {
-    const ativa = b.dataset.col === clOrdem.col;
-    b.dataset.seta = ativa ? (clOrdem.desc ? " ↓" : " ↑") : "";
-    b.closest("th").setAttribute("aria-sort", ativa ? (clOrdem.desc ? "descending" : "ascending") : "none");
-  });
-  $("cl-corpo").replaceChildren(...clVisiveis.map(linhaCl));
-  $("cl-tab").hidden = !clVisiveis.length;
-  $("cl-vazio").hidden = !!clVisiveis.length;
+  cabCl();
+  filtrosEscolhidosCl();
+  // com filtro e nada achado, a tabela continua (o título das colunas tira o filtro), com a linha "Nenhum cliente com esses filtros."
+  const comFiltro = podem.some(k => clFil[k]), vaziaFiltro = !clVisiveis.length && comFiltro && !!daBusca.length;
+  const linhas = clVisiveis.map(linhaCl);
+  if (vaziaFiltro) { const v = el("tr", "cl-vazia"), td = el("td", "avcb-nota", "Nenhum cliente com esses filtros."); v.appendChild(td); linhas.push(v); }
+  $("cl-corpo").replaceChildren(...linhas);
+  $("cl-tab").hidden = !clVisiveis.length && !vaziaFiltro;
+  if (vaziaFiltro) $("cl-corpo").querySelector(".cl-vazia td").colSpan = [...$("cl-tab").querySelectorAll("thead th")].filter(t => getComputedStyle(t).display !== "none").length || 3;
+  $("cl-vazio").hidden = !!clVisiveis.length || vaziaFiltro;
   $("cl-vazio").textContent = !clientes.length ? (navigator.onLine ? "Carregando os clientes…" : "Sem internet e sem lista de clientes guardada.")
     : q && !daBusca.length ? "Nenhum cliente encontrado. Para cadastrar um cliente novo, comece um registro no Operacional e, ao escolher o cliente, digite o nome dele."
     : "Nenhum cliente com esses filtros.";
@@ -18133,16 +18199,13 @@ async function exportarClientes() {
 }
 // relatório em PDF da tabela de Clientes (pedido do Gustavo em 13/11/2026): as mesmas linhas da tela (clVisiveis, já filtradas
 // e na ordem escolhida), com os filtros ligados escritos no alto; as colunas de extintores e de contato só para quem as vê na tela
-const ORDEM_CL_PDF = { cli: ["Cliente", "A a Z", "Z a A"], avcb: ["AVCB/CLCB", "vencidos primeiro", "validade mais longa primeiro"],
+const ORDEM_CL_PDF = { cli: ["Cliente", "A a Z", "Z a A"], doc: ["CNPJ/CPF", "menor número primeiro", "maior número primeiro"],avcb: ["AVCB/CLCB", "vencidos primeiro", "validade mais longa primeiro"],
   ext: ["Extintores e mangueiras", "vencidos primeiro", "em dia primeiro"], cont: ["Contato principal", "A a Z", "Z a A"] };
 function defPdfClientes() {
   const temEq = pode("equip"), temFicha = pode("ficha"), lista = clVisiveis, q = $("cl-busca").value.trim();
-  const opcao = id => $(id).selectedOptions[0]?.text || $(id).value;
   const filtros = [];
   if (q) filtros.push(`Busca: "${q}"`);
-  if ($("cl-avcb").value) filtros.push("AVCB: " + opcao("cl-avcb"));
-  if (temEq && $("cl-ext").value) filtros.push("Extintores e mangueiras: " + opcao("cl-ext"));
-  if (temFicha && $("cl-pf").value) filtros.push("O que o cliente tem: " + opcao("cl-pf"));
+  for (const k of filtrosClPodem()) if (clFil[k]) filtros.push(`${ROT_FILTRO_CL[k]}: ${textoFiltroCl(k)}`);
   if (filtros.length) filtros.push(`${lista.length} de ${clientes.length} cliente${clientes.length === 1 ? "" : "s"}`);
   const o = ORDEM_CL_PDF[clOrdem.col];
   if (o && (clOrdem.col !== "cli" || clOrdem.desc)) filtros.push(`Ordem: ${o[0]} (${o[clOrdem.desc ? 2 : 1]})`);
@@ -18895,13 +18958,7 @@ document.addEventListener("drop", e => {
 $("trab-voltar").onclick = voltarInicio;
 $("ok-inicio").onclick = () => { novaVisita(); voltarInicio(); };
 $("cl-busca").oninput = () => { clearTimeout(desenharClientesHub.t); desenharClientesHub.t = setTimeout(desenharClientesHub, 200); };
-// Clientes em tabela: filtros, ordem pelo título da coluna (de novo, inverte), planilhas e o cabeçalho fixo
-$("cl-avcb").onchange = $("cl-ext").onchange = $("cl-pf").onchange = () => desenharClientesHub();
-$("cl-tab").querySelectorAll("thead button").forEach(b => b.onclick = () => {
-  const c = b.dataset.col;
-  clOrdem = clOrdem.col === c ? { col: c, desc: !clOrdem.desc } : { col: c, desc: false };
-  desenharClientesHub();
-});
+// Clientes em tabela: planilhas e o cabeçalho fixo (ordem e filtros pelo menu do título da coluna: cabCl/menuColunaCl)
 $("cl-exportar").onclick = exportarClientes;
 $("cl-pdf").onclick = () => { clearTimeout(desenharClientesHub.t); desenharClientesHub(); pdfClientes(); };   // redesenha antes: a busca digitada há menos de 200 ms ainda não tinha entrado na lista
 $("cl-exp-contatos").onclick = exportarFichas;
