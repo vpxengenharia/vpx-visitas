@@ -17699,6 +17699,8 @@ async function iniciarApp() {
     gravarLS("vpx_pediu_acesso", false);
   }
   document.body.classList.add("logado");          // no computador, o menu lateral aparece
+  // depois de recarregar (F5), o passo atual pode ter um estado de antes: começa do zero, para o Backspace/"voltar" nunca sair do app pelo Início
+  if (history.state) history.replaceState(null, "");
   const nome = conta.name || conta.username || "";
   const ini = nome.split(/\s+/).filter(Boolean).map(p => p[0]).slice(0, 2).join("").toUpperCase();
   $("btn-conta").textContent = ini || "?";
@@ -17976,8 +17978,16 @@ computador.addEventListener("change", () => {      // janela passou da largura d
 // no computador o botão da Galeria se chama "Escolher arquivos" (as fotos vêm de arquivos)
 const rotuloGaleria = () => { const t = computador.matches ? "Escolher arquivos" : "Galeria"; $("gal-rot").textContent = t; for (const s of document.querySelectorAll(".gal-nome")) s.textContent = t; };
 rotuloGaleria(); computador.addEventListener("change", rotuloGaleria);
+// Backspace = "voltar": o que conta como campo de digitação (caixas de marcar e botões não), a hora em que a pessoa saiu de um campo
+// e se há um registro novo ou uma edição só na memória à vista (o Backspace não descarta nada disso)
+const CAMPO_TEXTO = "input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=file]):not([type=range]):not([type=color]):not([type=image]), textarea, select, [contenteditable]:not([contenteditable=false])";
+let saiuDoCampo = 0;
+// só quando o campo continua à vista (Enter, clique fora); quando a tela troca e o campo some, não conta
+document.addEventListener("focusout", e => { const c = e.target; if (c.matches?.(CAMPO_TEXTO)) setTimeout(() => { if (c.isConnected && c.offsetParent) saiuDoCampo = Date.now(); }, 0); }, true);
+const rascunhoAberto = () => !!(tarTela?.nova || fuTela?.nova || osTela?.nova || nfTela?.nova || trTela?.novo || trTela?.aberto || trTela?.cad?.edit
+  || (pcNovo && !$("tela-pc").hidden) || agForm || novoAvcb || eq?.editando || fichaTela?.editando);
 // no computador: Ctrl+K abre "Escolher cliente" e vai para a página dele; "/" põe o cursor na busca da tela;
-// Esc fecha a tela aberta por cima (o mesmo que "‹ Voltar"); num campo de texto, só sai do campo
+// Esc fecha a tela aberta por cima (o mesmo que "‹ Voltar"); num campo de texto, só sai do campo; Backspace = "voltar" (fora dos campos de texto)
 document.addEventListener("keydown", e => {
   const ctrlK = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key?.toLowerCase() === "k";
   // o Ctrl+K é do app mesmo quando a lista não pode abrir agora (já aberta, câmera, visualizador, envio): senão o Chrome leva o cursor para a barra de endereço
@@ -18000,6 +18010,31 @@ document.addEventListener("keydown", e => {
       if (busca) { e.preventDefault(); busca.focus(); busca.select(); }
       return;
     }
+  }
+  /* Backspace = "voltar" no computador (pedido do Gustavo em 13/11/2026: "apertar o backspace e voltar" ao entrar pelos menus e submenus):
+     o mesmo que o "voltar" do celular. Nunca num campo de texto (lá ele apaga letras), com uma janela aberta, com a câmera ou durante um envio.
+     Ordem: visualizador → menu de opções → "‹ Voltar" da tela de cima (o mesmo do Esc) → "‹" do formulário → um passo do histórico do app
+     (só quando o passo atual é do app: no primeiro passo não faz nada, para nunca sair do app). */
+  if (e.key === "Backspace" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && computador.matches && document.body.classList.contains("logado")) {
+    if (e.target.closest?.(CAMPO_TEXTO) || e.target.isContentEditable) return;
+    if (document.querySelector("dialog[open]") || cam || enviando || !$("tela-assinar").hidden || e.repeat) return;
+    // quem acabou de dar Enter ou clicar fora de um campo e aperta Backspace quer corrigir a letra, não voltar
+    if (Date.now() - saiuDoCampo < 1500) return;
+    // registro novo ou edição que só existe na memória (tarefa, oportunidade, lançamento, solicitação, compromisso…): o Backspace não descarta;
+    // para sair sem salvar, o "‹ Voltar" ou o Esc (revisão de 13/11/2026)
+    if (rascunhoAberto()) return;
+    e.preventDefault();
+    if (!$("visor-pdf").hidden) { fecharVisor(); return; }
+    if ($("menu-op") && !$("menu-op").hidden) { $("menu-op").hidden = true; return; }
+    const zi = t => +getComputedStyle(t).zIndex || 0;
+    const cima = [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).reduce((a, t) => !a || zi(t) >= zi(a) ? t : a, null);
+    const v = cima?.querySelector(".avcb-voltar");
+    // Solicitações: no detalhe, volta para a lista (o "‹ Voltar" de cima fecharia a tela inteira)
+    if (cima?.id === "tela-pc" && pcAberto) { pcAberto = null; desenharPedidos(); reporRol("tela-pc"); return; }
+    if (v && v.offsetParent) { v.click(); return; }
+    if (!cima && secao === "trabalho" && $("trab-voltar").offsetParent) { $("trab-voltar").click(); return; }
+    if (history.state) history.back();
+    return;
   }
   if (e.key !== "Escape" || $("dlg").open || $("dlg-enviar").open || $("dlg-perg").open || cam) return;   // a lista de clientes (e o "Enviar agora") fecha sozinha com o Esc; a câmera tem o próprio botão
   if (e.target.matches?.("input, textarea, select")) { e.target.blur(); return; }
