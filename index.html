@@ -934,14 +934,42 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .tar-add{display:flex;gap:8px;margin-bottom:12px}
 .tar-add input{flex:1;min-width:0;min-height:48px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:0 12px;font-size:16px}
 .tar-add .btn{flex:none;width:auto;min-height:48px;padding:0 16px}
-.tar-novo-com textarea{width:100%;min-height:76px;border-radius:10px;border:1.5px solid var(--linha);background:var(--papel);color:var(--tinta);padding:10px 12px;font:inherit;font-size:16px;resize:vertical}
 .tar-novo-com textarea:focus,.tar-add input:focus{outline:3px solid var(--laranja);outline-offset:1px}
-.tar-novo-com .btn{width:100%;min-height:48px;margin:6px 0 12px}
-.tar-coms{display:grid;gap:8px;margin-bottom:12px}
-.tar-com{position:relative;padding:10px 12px;border:1.5px solid var(--linha);border-radius:12px;background:var(--papel)}
-.tar-com small{display:block;padding-right:40px;font-size:13px;color:var(--suave)}
-.tar-com p{margin:4px 0 0;max-width:none;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15.5px;line-height:1.4}
-.tar-com .tar-x{position:absolute;top:2px;right:2px;min-width:40px;min-height:40px;font-size:20px}
+/* conversa no jeito do WhatsApp (comentários das tarefas e contatos e anotações do Comercial; pedido do Gustavo em 14/11/2026):
+   antigas em cima, novas embaixo, campo de escrever no pé; as da pessoa à direita em azul-claro */
+:root{--chat-meu:#DCE8F5;--chat-fundo:#E9EEF4}
+@media (prefers-color-scheme:dark){:root{--chat-meu:#1F3D60;--chat-fundo:#0F1C2B}}
+.chat-lista{display:flex;flex-direction:column;max-height:min(440px,62vh);overflow-y:auto;padding:8px 10px 10px;border:1px solid var(--linha);border-radius:14px;background:var(--chat-fundo)}
+.chat-lista:focus-visible{outline:3px solid var(--laranja);outline-offset:1px}
+.chat-lista > :first-child{margin-top:auto}   /* poucas mensagens: ficam embaixo, perto do campo (como no WhatsApp); com muitas, a lista rola normalmente */
+.chat-lista > .chat-vazio:first-child{margin:auto}
+.chat-dia{width:fit-content;margin:10px auto 6px;padding:3px 12px;border-radius:99px;background:var(--papel);color:var(--suave);font-size:12.5px;font-weight:700;box-shadow:0 1px 2px rgba(19,37,59,.08)}
+.chat-msg{width:fit-content;max-width:84%;margin:4px auto 4px 0;padding:6px 10px 4px;border:1px solid var(--linha);border-radius:12px 12px 12px 4px;background:var(--papel);color:var(--tinta)}
+.chat-msg.meu{margin:4px 0 4px auto;border-color:transparent;border-radius:12px 12px 4px 12px;background:var(--chat-meu)}
+.chat-por{display:block;margin-bottom:1px;font-size:12.5px;color:var(--marinho)}
+@media (prefers-color-scheme:dark){.chat-por{color:var(--laranja)}}
+.chat-msg p{margin:0;max-width:none;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15.5px;line-height:1.38}
+.chat-pe{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:2px}
+.chat-hora{font-size:11.5px;color:var(--suave);white-space:nowrap}
+.chat-x{position:relative;min-height:0;padding:0;border:0;background:none;color:var(--suave);font:inherit;font-size:12px;font-weight:600;text-decoration:underline;cursor:pointer}
+.chat-x::after{content:"";position:absolute;inset:-12px -8px}   /* área de toque maior, invisível */
+.chat-x:hover{color:var(--erro)}
+.chat-vazio,.chat-aviso{margin:0 auto;padding:22px 8px;max-width:none;text-align:center;color:var(--suave);font-size:14.5px}
+.chat-aviso{padding:4px 8px 6px;font-size:12.5px}
+.chat-campo{display:flex;align-items:flex-end;gap:8px;margin:8px 0 14px}
+.chat-campo textarea{flex:1;min-width:0;min-height:46px;max-height:140px;margin:0;padding:11px 16px;border:1.5px solid var(--borda-campo);border-radius:23px;background:var(--papel);color:var(--tinta);font:inherit;font-size:16px;line-height:1.35;resize:none;overflow-y:auto}
+.chat-campo textarea:focus{outline:none;border-color:var(--marinho);box-shadow:0 0 0 3px rgba(235,157,43,.45)}
+@media (prefers-color-scheme:dark){.chat-campo textarea:focus{border-color:var(--laranja)}}
+.chat-enviar{flex:none;display:grid;place-items:center;width:46px;height:46px;min-height:0;padding:0;border:0;border-radius:50%;background:var(--laranja);color:#13253B;cursor:pointer;--ic-ac:currentColor}
+.chat-enviar .ic{width:22px;height:22px;stroke:currentColor;margin-left:-2px;--ic-ac:currentColor}   /* sobre o laranja o detalhe fica da cor do texto (regra dos ícones) */
+.chat-enviar:hover{filter:brightness(1.05)}
+.chat-enviar:focus-visible{outline:3px solid var(--marinho);outline-offset:2px}
+/* na janela: lista ocupa o meio e o campo fica preso embaixo */
+#dlg-com[open]{display:flex;flex-direction:column}
+#com-corpo{flex:1;min-height:0;display:flex;flex-direction:column;padding:0}
+#com-corpo .chat{flex:1;min-height:0;display:flex;flex-direction:column}
+#com-corpo .chat-lista{flex:1;min-height:0;max-height:none;overscroll-behavior:contain;border:0;border-radius:0;padding:8px 14px 12px}
+#com-corpo .chat-campo{margin:0;padding:10px 12px 12px;border-top:1px solid var(--linha);background:var(--papel)}
 /* comentários pela tabela (pedido do Gustavo em 13/11/2026): ícone ao lado do nome e janela com a lista e o campo para escrever */
 .tar-tab .tar-c-com,.fu-tab .fu-c-com{width:44px;padding-left:0;padding-right:0;text-align:center;color:var(--suave)}
 .tar-tab th.tar-c-com .ic,.fu-tab th.fu-c-com .ic{width:17px;height:17px;opacity:.7;vertical-align:middle}
@@ -952,12 +980,12 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .tar-com-btn:not(.tem) .ic{opacity:.5}
 .tar-com-btn.tem{color:var(--tinta)}
 @media (hover:hover){.tar-com-btn:hover{border-color:var(--linha);background-color:var(--papel)}.tar-com-btn:hover .ic{opacity:1}}
-#dlg-com{width:calc(100% - 24px);max-width:540px;height:fit-content;max-height:calc(100% - 24px);margin:auto;padding:0;border-radius:16px;background:var(--papel);overflow-y:auto;overscroll-behavior:contain;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+#dlg-com{width:calc(100% - 24px);max-width:560px;height:min(700px,calc(100% - 24px));max-height:calc(100% - 24px);margin:auto;padding:0;border-radius:16px;background:var(--papel);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}   /* altura fixa: a conversa rola por dentro e o campo fica embaixo */
 .com-topo{position:sticky;top:0;z-index:1;display:flex;align-items:flex-start;gap:8px;padding:14px 8px 12px 20px;border-bottom:1px solid var(--linha);background:var(--papel)}
 .com-tit{flex:1;min-width:0;padding-top:4px}
 .com-tit strong{display:block;font-size:18px}
 .com-tit small{display:block;margin-top:2px;font-size:14.5px;color:var(--suave);overflow-wrap:anywhere}
-#com-corpo{padding:14px 20px 8px}
+
 #dlg-com:focus{outline:none}
 .tar-hist summary{padding:8px 2px;color:var(--suave);font-weight:600;cursor:pointer}
 .tar-rodape{margin:14px 2px 0;font-size:13px;color:var(--suave)}
@@ -2224,6 +2252,7 @@ span.fu-orc-lin{cursor:default}
   <symbol id="i-telefone" viewBox="0 0 24 24"><path d="M8.4 4.2 6.6 4a1.7 1.7 0 0 0-1.8 1.5c-.3 3.3 1 6.8 3.8 9.7 2.9 2.9 6.4 4.2 9.8 3.8a1.7 1.7 0 0 0 1.5-1.8l-.2-1.8a1.6 1.6 0 0 0-1.2-1.4l-2.1-.6a1.6 1.6 0 0 0-1.6.4l-.9.9a11.3 11.3 0 0 1-4.3-4.3l.9-.9a1.6 1.6 0 0 0 .4-1.6l-.6-2.1a1.6 1.6 0 0 0-1.4-1.2z"/><path style="stroke:var(--ic-ac)" d="M14.5 3.7a6 6 0 0 1 5.8 5.8M14.3 7.2a2.6 2.6 0 0 1 2.5 2.5"/></symbol>
   <symbol id="i-conversa" viewBox="0 0 24 24"><path d="M12 3.8a8.2 8.2 0 0 0-7.1 12.3l-1.1 4.1 4.2-1.1A8.2 8.2 0 1 0 12 3.8z"/><path style="stroke:var(--ic-ac)" d="M8.6 12h.01M12 12h.01M15.4 12h.01"/></symbol>
   <symbol id="i-comentario" viewBox="0 0 24 24"><path d="M5 4.5h14a1.8 1.8 0 0 1 1.8 1.8v9.4a1.8 1.8 0 0 1-1.8 1.8H10.2l-4.7 3.4v-3.4H5a1.8 1.8 0 0 1-1.8-1.8V6.3A1.8 1.8 0 0 1 5 4.5z"/><path style="stroke:var(--ic-ac)" d="M7.6 9.4h8.8M7.6 12.8h5.4"/></symbol>
+  <symbol id="i-enviar" viewBox="0 0 24 24"><path d="M4 11.6 20 4.5l-6.9 15.6-2.5-6.3z"/><path style="stroke:var(--ic-ac)" d="m10.6 13.8 4.6-4.6"/></symbol>
   <symbol id="i-nf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 7.5h7M8.5 10.7h7"/><path style="stroke:var(--ic-ac)" d="M8.5 14.5v3M10.7 14.5v3M12.6 14.5v3M15.5 14.5v3"/></symbol>
   <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
   <symbol id="i-tarefas" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path style="stroke:var(--ic-ac)" d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1"/><path d="M14.4 9.6h2.6M14.4 15.8h2.6"/></symbol>
@@ -15160,7 +15189,7 @@ function fecharTar(voltar = true) {
 }
 function abrirTarefa(id) {
   if (!tarTela.aberta && !tarTela.nova && !tarTela.direto) guardarRol("tela-tar");   // saindo da lista: guarda onde ela estava
-  tarTela.aberta = id; tarTela.nova = null;
+  tarTela.aberta = id; tarTela.nova = null; chatRol.delete("det:tar:" + id);   // comentários abrem no fim da conversa
   if (!tarTela.direto && !history.state?.tarSub) history.pushState({ ...history.state, tar: true, tarSub: true }, "");   // o "voltar" volta para a lista (mantém o passo do cliente do Operacional)
   desenharTar();
   $("tela-tar").querySelector(".avcb-corpo").scrollTop = 0;
@@ -15680,40 +15709,113 @@ function cartaoTar(t, op = {}) {
   if (op.arrastar && (pode("tarefas") || minhaTar(t))) arrastavel(b, t.id);
   return b;
 }
-/* comentários de uma tarefa: campo para escrever (quem pode mexer na tarefa) e a lista, os mais novos em cima; cada um apaga os seus.
-   Usado no detalhe da tarefa e na janela que abre pelo ícone ao lado do nome na tabela. depois() redesenha quem chamou. */
+/* conversa no jeito do WhatsApp (pedido do Gustavo em 14/11/2026: "os comentários em cima e a parte de escrever embaixo"):
+   as mensagens mais antigas em cima e as novas embaixo, separadas por dia ("Hoje", "Ontem", data), as da própria pessoa à direita
+   (balão azul-claro, sem o nome) e as dos outros à esquerda (com o nome); o campo de escrever fica embaixo da lista, com o botão
+   redondo de enviar (no computador Enter envia e Shift+Enter pula linha; Ctrl+Enter também envia; no celular o Enter pula linha).
+   Usada nos comentários das tarefas (Tarefas e Operacional) e nos contatos e anotações do Comercial, na janela da tabela e no detalhe.
+   A lista abre no fim (as mais novas à vista); num redesenho (sincronização, outra mudança na tarefa) fica onde a pessoa deixou,
+   a não ser que ela estivesse no fim ou tenha acabado de mandar uma mensagem. */
+const chatRol = new Map();                         // chave da conversa → { top, perto } (onde a pessoa deixou a lista)
+let chatFim = null;                                // chave da conversa em que a pessoa acabou de mandar: desce até o fim
+// a lista ficou mais baixa (campo crescendo, teclado do celular): quem estava no fim continua vendo as mais novas
+function manterFimChat(lista, chave) { const e = chatRol.get(chave); if (lista?.isConnected && (!e || e.perto)) lista.scrollTop = lista.scrollHeight; }
+const horaChat = iso => iso ? new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+function diaChat(d) {
+  if (!d) return "Sem data";
+  const hoje = dataISO(), ontem = dataISO(new Date(Date.now() - 864e5));
+  if (d === hoje) return "Hoje";
+  if (d === ontem) return "Ontem";
+  const [a, m, dd] = d.split("-");
+  return `${dd}/${m}/${a}`;
+}
+// op: { chave, itens [{ id, em, por, t }], meu(c), aoApagar(c) (só nas da pessoa; sem ela, não apaga), vazio, max (só as N mais novas), campo { ph, rotulo, id, aoEnviar(texto) } }
+function conversa(op) {
+  const w = el("div", "chat");
+  const lista = el("div", "chat-lista"); lista.setAttribute("role", "log"); lista.tabIndex = 0;
+  lista.setAttribute("aria-label", op.campo?.rotulo === "Comentar" ? "Comentários" : "Mensagens");
+  const ord = (op.itens || []).slice().sort((a, b) => (a.em || "").localeCompare(b.em || ""));
+  const vis = op.max && ord.length > op.max ? ord.slice(-op.max) : ord;
+  if (vis.length < ord.length) lista.appendChild(el("p", "chat-aviso", `Mostrando os ${op.max} mais recentes de ${ord.length}.`));
+  if (!vis.length) lista.appendChild(el("p", "chat-vazio", op.vazio || "Nada ainda."));
+  let dia = null;
+  for (const c of vis) {
+    const d = c.em ? dataISO(new Date(c.em)) : "";
+    if (d !== dia) { dia = d; lista.appendChild(el("div", "chat-dia", diaChat(d))); }
+    const eu = !!op.meu?.(c);
+    const m = el("div", "chat-msg" + (eu ? " meu" : ""));
+    if (!eu) m.appendChild(el("b", "chat-por", c.por || "-"));
+    m.appendChild(el("p", "", c.t || ""));
+    const pe = el("div", "chat-pe");
+    if (eu && op.aoApagar) {
+      const x = el("button", "chat-x", "Apagar"); x.type = "button"; x.title = "Apagar esta mensagem"; x.setAttribute("aria-label", "Apagar a mensagem das " + horaChat(c.em));
+      x.onclick = () => op.aoApagar(c);
+      pe.appendChild(x);
+    }
+    pe.appendChild(el("small", "chat-hora", horaChat(c.em)));
+    m.appendChild(pe);
+    lista.appendChild(m);
+  }
+  w.appendChild(lista);
+  let ta = null;
+  if (op.campo) {
+    const nc = el("div", "chat-campo");
+    ta = document.createElement("textarea"); ta.rows = 1; ta.placeholder = op.campo.ph; ta.setAttribute("aria-label", op.campo.ph);
+    if (op.campo.id) ta.id = op.campo.id;
+    const bt = el("button", "chat-enviar"); bt.type = "button"; bt.title = op.campo.rotulo; bt.setAttribute("aria-label", op.campo.rotulo);
+    bt.appendChild(ic("enviar"));
+    const ajustar = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 140) + "px"; manterFimChat(lista, op.chave); };   // cresce até ~5 linhas (a lista fica mais baixa: quem estava no fim continua no fim)
+    ta.addEventListener("input", ajustar);
+    bt.onclick = () => {
+      const v = ta.value.trim(); if (!v) { ta.focus(); return; }
+      ta.value = ""; ajustar(); chatFim = op.chave;
+      op.campo.aoEnviar(v);
+    };
+    ta.addEventListener("keydown", e => {
+      if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+      if (computador.matches || e.ctrlKey || e.metaKey) { e.preventDefault(); bt.click(); }   // no celular o Enter pula linha (como no WhatsApp)
+    });
+    nc.append(ta, bt); w.appendChild(nc);
+  }
+  // rolagem: guarda onde a pessoa deixou; abre no fim
+  lista.addEventListener("scroll", () => chatRol.set(op.chave, { top: lista.scrollTop, perto: lista.scrollHeight - lista.scrollTop - lista.clientHeight < 60 }), { passive: true });
+  // mandar uma mensagem redesenha a conversa duas vezes no mesmo toque (aoMudar e depois()): o "descer até o fim" vale para
+  // todas até a lista que ficou na página ser posicionada (achado da revisão: antes a 2ª voltava para onde a pessoa tinha rolado)
+  const ant = chatRol.get(op.chave), forcar = chatFim === op.chave;
+  const pos = () => {
+    if (!lista.isConnected) return;
+    if (forcar && chatFim === op.chave) chatFim = null;
+    const fim = forcar || !ant || ant.perto;
+    lista.scrollTop = fim ? lista.scrollHeight : ant.top;
+    if (fim) chatRol.set(op.chave, { top: lista.scrollTop, perto: true });
+  };
+  requestAnimationFrame(pos); setTimeout(pos, 80);
+  // a lista fica mais baixa (teclado do celular abrindo, campo crescendo): quem estava no fim continua vendo as mais novas
+  let altLista = 0;
+  if (window.ResizeObserver) {
+    lista._ro = new ResizeObserver(() => {           // guardado na lista: o observador vive enquanto ela existir
+      const h = lista.clientHeight, mudou = h !== altLista; altLista = h;
+      const e = chatRol.get(op.chave);
+      if (mudou && lista.isConnected && (!e || e.perto)) lista.scrollTop = lista.scrollHeight;
+    });
+    lista._ro.observe(lista);
+  }
+  if (forcar && ta && computador.matches) setTimeout(() => { if (ta.isConnected && !document.querySelector("dialog[open]:not(#dlg-com)")) ta.focus({ preventScroll: true }); }, 0);   // mandou: continua escrevendo
+  return w;
+}
+/* comentários de uma tarefa (conversa): quem pode mexer na tarefa escreve; cada um apaga os seus.
+   Usado no detalhe da tarefa e na janela que abre pelo ícone da tabela. depois() redesenha quem chamou. */
 function comentariosTar(t, depois, idCampo) {
-  const f = document.createDocumentFragment();
   const mexe = pode("tarefas") || minhaTar(t);
   const salvarC = fn => { const p = mudarReg(colTar, t.id, fn); depois(); return p; };   // quando a gravação termina, aoMudarTar redesenha
-  if (mexe) {
-    const nc = el("div", "tar-novo-com");
-    const tc = document.createElement("textarea"); tc.placeholder = "Escreva um comentário ou uma atualização"; tc.setAttribute("aria-label", "Novo comentário");
-    if (idCampo) tc.id = idCampo;
-    const bt = el("button", "btn sec", "Comentar"); bt.type = "button";
-    bt.onclick = () => {
-      const v = tc.value.trim(); if (!v) { tc.focus(); return; }
-      const c = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: v };
-      tc.value = ""; salvarC(r => { (r.coment ||= []).push(c); });
-    };
-    tc.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); bt.click(); } });   // Ctrl+Enter envia
-    nc.append(tc, bt); f.appendChild(nc);
-  }
-  const cs = (t.coment || []).slice().sort((a, b) => (b.em || "").localeCompare(a.em || ""));
-  if (cs.length) {
-    const lc = el("div", "tar-coms");
-    cs.forEach(c => {
-      const d = el("div", "tar-com"); d.append(el("small", "", `${c.por || "-"} · ${dataHoraBR(c.em)}`), el("p", "", c.t));
-      if (c.por === nomeColaborador()) {
-        const x = el("button", "tar-x", "×"); x.type = "button"; x.title = "Apagar o comentário"; x.setAttribute("aria-label", "Apagar o comentário");
-        x.onclick = async () => { if (await confirmarApagar("Apagar este comentário?", "", "Apagar", "Manter")) salvarC(r => { r.coment = (r.coment || []).filter(y => y.id !== c.id); }); };
-        d.appendChild(x);
-      }
-      lc.appendChild(d);
-    });
-    f.appendChild(lc);
-  } else f.appendChild(el("p", "avcb-nota", "Nenhum comentário ainda."));
-  return f;
+  return conversa({
+    chave: (idCampo ? "dlg:tar:" : "det:tar:") + t.id,
+    itens: t.coment, vazio: "Nenhum comentário ainda.",
+    meu: c => c.por === nomeColaborador(),
+    aoApagar: async c => { if (await confirmarApagar("Apagar este comentário?", "", "Apagar", "Manter")) salvarC(r => { r.coment = (r.coment || []).filter(y => y.id !== c.id); }); },
+    campo: mexe ? { ph: "Escreva um comentário", rotulo: "Comentar", id: idCampo,
+      aoEnviar: v => { const c = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: v }; salvarC(r => { (r.coment ||= []).push(c); }); } } : null
+  });
 }
 // janela de comentários aberta pelo ícone ao lado do nome da tarefa na tabela (pedido do Gustavo em 13/11/2026);
 // o "voltar" do celular fecha só a janela (passo { com } no histórico, como a pergunta do app)
@@ -15721,10 +15823,11 @@ let comAtual = null, comTipo = "tar";            // comTipo "fu" = contatos e an
 function abrirComentariosTar(id, tipo = "tar") {
   if (!regsDe(tipo === "fu" ? colFu : colTar)[id]) return;
   comAtual = id; comTipo = tipo;
+  chatRol.delete(`dlg:${tipo}:${id}`);             // abre sempre no fim da conversa (as mais novas à vista)
   history.pushState({ ...(history.state || {}), com: true }, "");
   desenharComentariosTar();
   $("dlg-com").showModal();
-  $("dlg-com").scrollTop = 0;
+  ajustarDlgCom();
   ((computador.matches && $("com-novo")) || $("dlg-com")).focus();   // no celular o foco fica na janela (sem abrir o teclado nem marcar o ×)
 }
 function fecharComentariosTar() {
@@ -15745,9 +15848,20 @@ function desenharComentariosTar() {
   corpo.innerHTML = "";
   corpo.appendChild(fu ? anotacoesFu(t, desenharComentariosTar, "com-novo") : comentariosTar(t, desenharComentariosTar, "com-novo"));
   const novo = $("com-novo");
-  if (novo && rasc) novo.value = rasc;
-  if (novo && foco) novo.focus();
+  if (novo && rasc) { novo.value = rasc; novo.dispatchEvent(new Event("input")); }   // o campo volta com a altura do texto
+  if (novo && foco) novo.focus({ preventScroll: true });
 }
+/* celular: a janela da conversa acompanha a parte da tela que sobra com o teclado aberto (iPhone não encolhe a página),
+   para o campo de escrever não ficar escondido embaixo do teclado */
+function ajustarDlgCom() {
+  const d = $("dlg-com"), vv = window.visualViewport;
+  if (!d.open || !vv || computador.matches) { d.style.removeProperty("height"); d.style.removeProperty("margin-top"); return; }
+  const h = Math.max(240, Math.min(720, vv.height - 24));
+  d.style.height = h + "px";
+  d.style.marginTop = Math.max(0, vv.offsetTop + (vv.height - h) / 2) + "px";
+  if (comAtual) manterFimChat($("com-corpo").querySelector(".chat-lista"), `dlg:${comTipo}:${comAtual}`);
+}
+if (window.visualViewport) { visualViewport.addEventListener("resize", ajustarDlgCom); visualViewport.addEventListener("scroll", ajustarDlgCom); }
 function detalheTar(t) {
   const w = el("div", "tar-det");
   if (!t) { w.appendChild(el("p", "avcb-nota", "Tarefa não encontrada: pode ter sido apagada por outra pessoa.")); return w; }
@@ -17621,7 +17735,7 @@ function fecharFunil(voltar = true) {
 function abrirOport(id) {
   if (!fuTela) { abrirFunil({ aberta: id }); return; }
   if (!fuTela.aberta && !fuTela.nova && !fuTela.direto) guardarRol("tela-funil");
-  fuTela.aberta = id; fuTela.nova = null;
+  fuTela.aberta = id; fuTela.nova = null; chatRol.delete("det:fu:" + id);   // contatos e anotações abrem no fim da conversa
   if (!fuTela.direto && !history.state?.fuSub) history.pushState({ fu: true, fuSub: true }, "");   // o "voltar" volta para o funil
   desenharFunil();
   $("tela-funil").querySelector(".avcb-corpo").scrollTop = 0;
@@ -18044,20 +18158,16 @@ function detalheFu(o) {
 /* contatos e anotações de uma oportunidade: campo "Registrar contato de hoje" (vira o último contato) e a lista, os mais novos em cima.
    Usado no detalhe e na janela que abre pelo ícone da tabela (a mesma dos comentários das tarefas). depois() redesenha quem chamou. */
 function anotacoesFu(o, depois, idCampo) {
+  // conversa (como os comentários das tarefas): as mais antigas em cima, o campo embaixo; mandar = registrar o contato de hoje (vira o último contato).
+  // As anotações não se apagam (como antes); só as 60 mais recentes aparecem.
   const f = document.createDocumentFragment();
-  const nc = el("div", "tar-novo-com");
-  const ta = document.createElement("textarea"); ta.placeholder = "O que foi conversado? (ligação, visita, mensagem…)"; ta.setAttribute("aria-label", "Novo registro de contato");
-  if (idCampo) ta.id = idCampo;
-  const bt = el("button", "btn sec", "Registrar contato de hoje"); bt.type = "button";
-  bt.onclick = () => { const v = ta.value.trim(); if (!v) { ta.focus(); return; } ta.value = ""; registrarContatoFu(o.id, v); depois(); };
-  ta.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); bt.click(); } });   // Ctrl+Enter registra
-  nc.append(ta, bt); f.appendChild(nc);
-  const at = (o.ativ || []).slice().sort((a, b) => (b.em || "").localeCompare(a.em || ""));
-  if (at.length) {
-    const l = el("div", "tar-coms");
-    at.slice(0, 60).forEach(a => { const d = el("div", "tar-com"); d.append(el("small", "", `${a.por || "-"} · ${dataHoraBR(a.em)}`), el("p", "", a.t)); l.appendChild(d); });
-    f.appendChild(l);
-  } else f.appendChild(el("p", "avcb-nota", "Nenhum contato registrado ainda."));
+  f.appendChild(conversa({
+    chave: (idCampo ? "dlg:fu:" : "det:fu:") + o.id,
+    itens: o.ativ, max: 60, vazio: "Nenhum contato registrado ainda.",
+    meu: a => a.por === nomeColaborador(),
+    campo: { ph: "O que foi conversado hoje?", rotulo: "Registrar contato de hoje", id: idCampo,
+      aoEnviar: v => { registrarContatoFu(o.id, v); depois(); } }
+  }));
   return f;
 }
 function formNovaFu() {
