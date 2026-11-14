@@ -956,7 +956,22 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .chat-x:hover{color:var(--erro)}
 .chat-vazio,.chat-aviso{margin:0 auto;padding:22px 8px;max-width:none;text-align:center;color:var(--suave);font-size:14.5px}
 .chat-aviso{padding:4px 8px 6px;font-size:12.5px}
-.chat-campo{display:flex;align-items:flex-end;gap:8px;margin:8px 0 14px}
+.chat-campo{position:relative;display:flex;align-items:flex-end;gap:8px;margin:8px 0 14px}
+/* @menções: lista das pessoas em cima do campo, nome destacado na mensagem, faixa laranja quando a mensagem menciona quem lê */
+.chat-men{position:absolute;left:0;right:54px;bottom:calc(100% + 6px);z-index:6;max-height:min(260px,40vh);overflow-y:auto;overscroll-behavior:contain;padding:4px;border:1px solid var(--linha);border-radius:12px;background:var(--papel);box-shadow:0 8px 24px rgba(19,37,59,.18)}
+.chat-men[hidden]{display:none}
+.chat-men-op{display:block;width:100%;min-height:44px;padding:6px 10px;border:0;border-radius:9px;background:none;color:var(--tinta);font:inherit;text-align:left;cursor:pointer}
+.chat-men-op b{display:block;font-size:15px}
+.chat-men-op small{display:block;font-size:12.5px;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-men-op[aria-selected="true"],.chat-men-op:hover{background:var(--chat-meu)}
+.chat-men-tag{font-weight:700;color:var(--marinho)}
+.chat-men-tag.eu{padding:0 3px;border-radius:5px;background:rgba(235,157,43,.25)}
+.chat-msg.men-mim{box-shadow:inset 3px 0 0 var(--laranja)}
+@media (prefers-color-scheme:dark){.chat-men-tag{color:#8FB8E8}}
+.ini-men-tit{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ini-men-lidas{min-height:0;padding:4px 2px;font-size:13.5px}
+.hub-card.ini-men{box-shadow:inset 4px 0 0 var(--laranja)}
+.hub-card.ini-men b{font-weight:600;white-space:pre-wrap;overflow-wrap:anywhere}
 .chat-campo textarea{flex:1;min-width:0;min-height:46px;max-height:140px;margin:0;padding:11px 16px;border:1.5px solid var(--borda-campo);border-radius:23px;background:var(--papel);color:var(--tinta);font:inherit;font-size:16px;line-height:1.35;resize:none;overflow-y:auto}
 .chat-campo textarea:focus{outline:none;border-color:var(--marinho);box-shadow:0 0 0 3px rgba(235,157,43,.45)}
 @media (prefers-color-scheme:dark){.chat-campo textarea:focus{border-color:var(--laranja)}}
@@ -15102,7 +15117,7 @@ function sairProjOp() {                            // chamada pelo popstate (o p
   $("tela-tar").querySelector(".avcb-corpo").scrollTop = tarTela.rolCli || 0;
 }
 const minhaTar = t => (t.resp || []).some(p => p.email === emailDe());
-const veTar = t => pode("tarefas") || minhaTar(t);
+const veTar = t => pode("tarefas") || minhaTar(t) || mencionadoTar(t);   // quem foi mencionado num comentário também vê a tarefa
 const abertaTar = t => t.status !== "feito";
 const atrasadaTar = t => abertaTar(t) && !!t.prazo && t.prazo < dataISO();
 const hojeTar = t => abertaTar(t) && t.prazo === dataISO();
@@ -15768,7 +15783,8 @@ function conversa(op) {
     const eu = !!op.meu?.(c);
     const m = el("div", "chat-msg" + (eu ? " meu" : ""));
     if (!eu) m.appendChild(el("b", "chat-por", c.por || "-"));
-    m.appendChild(el("p", "", c.t || ""));
+    m.appendChild(textoComMencoes(c.t || "", c.men));
+    if (mencionaMim(c)) m.classList.add("men-mim");
     const pe = el("div", "chat-pe");
     if (eu && op.aoApagar) {
       const x = el("button", "chat-x", "Apagar"); x.type = "button"; x.title = "Apagar esta mensagem"; x.setAttribute("aria-label", "Apagar a mensagem das " + horaChat(c.em));
@@ -15789,10 +15805,12 @@ function conversa(op) {
     bt.appendChild(ic("enviar"));
     const ajustar = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 140) + "px"; manterFimChat(lista, op.chave); };   // cresce até ~5 linhas (a lista fica mais baixa: quem estava no fim continua no fim)
     ta.addEventListener("input", ajustar);
+    const men = ligarMencoes(ta, nc, ajustar);       // @ abre a lista de pessoas (pedido do Gustavo em 14/11/2026)
     bt.onclick = () => {
       const v = ta.value.trim(); if (!v) { ta.focus(); return; }
+      men.fechar();
       ta.value = ""; ajustar(); chatFim = op.chave;
-      op.campo.aoEnviar(v);
+      op.campo.aoEnviar(v, mencoesDoTexto(v));
     };
     ta.addEventListener("keydown", e => {
       if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
@@ -15826,18 +15844,131 @@ function conversa(op) {
   if (forcar && ta && computador.matches) setTimeout(() => { if (ta.isConnected && !document.querySelector("dialog[open]:not(#dlg-com)")) ta.focus({ preventScroll: true }); }, 0);   // mandou: continua escrevendo
   return w;
 }
+/* menções com @ (pedido do Gustavo em 14/11/2026: "quero poder mencionar as pessoas com @"): no campo da conversa, digitar @ abre a
+   lista das pessoas da equipe (pessoasEquipe, menos quem escreve; filtra pelo que vem depois do @, sem acento, pelo começo de cada
+   palavra do nome ou do e-mail); setas + Enter/Tab ou toque escolhem e o campo fica com "@Nome Sobrenome ". Ao mandar, o texto é lido de
+   novo (mencoesDoTexto: "@" + nome de alguém da equipe) e a mensagem guarda men: [{ email, nome }]. Na lista, o "@Nome" fica destacado
+   e a mensagem que menciona a própria pessoa ganha uma faixa laranja. Quem foi mencionado vê o aviso no Início (mencoesParaMim) e
+   pode ver e responder a tarefa (veTar / mexe em comentariosTar). Lido = abriu a conversa (marcarMencoesLidas, vpx_men_lidas). */
+const semAc = t => semAcento(t || "");
+function mencoesDoTexto(v) {
+  const r = [], vistos = new Set();
+  const ps = pessoasEquipe().filter(p => p.email !== emailDe()).sort((a, b) => b.nome.length - a.nome.length);   // nomes compridos primeiro ("Ana Clara" antes de "Ana")
+  let resto = v;
+  for (const p of ps) {
+    const re = new RegExp("@" + p.nome.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\p{L}\\p{N}])", "iu");
+    if (re.test(resto) && !vistos.has(p.email)) { vistos.add(p.email); r.push({ email: p.email, nome: p.nome }); resto = resto.replace(re, " "); }
+  }
+  return r;
+}
+const mencionaMim = c => !!conta && (c.men || []).some(m => (m.email || "").toLowerCase() === emailDe()) && c.por !== nomeColaborador();
+function textoComMencoes(t, men) {
+  const p = el("p", "");
+  const nomes = (men || []).map(m => m.nome).filter(Boolean).sort((a, b) => b.length - a.length);
+  if (!nomes.length) { p.textContent = t; return p; }
+  const re = new RegExp("@(" + nomes.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(?![\\p{L}\\p{N}])", "giu");
+  let i = 0;
+  for (const m of t.matchAll(re)) {
+    if (m.index > i) p.append(t.slice(i, m.index));
+    const quem = (men || []).find(x => semAc(x.nome) === semAc(m[1]));
+    const sp = el("span", "chat-men-tag" + (quem && (quem.email || "").toLowerCase() === emailDe() ? " eu" : ""), m[0]);
+    if (quem) sp.title = quem.email;
+    p.appendChild(sp); i = m.index + m[0].length;
+  }
+  if (i < t.length) p.append(t.slice(i));
+  return p;
+}
+function ligarMencoes(ta, caixaPai, ajustar) {
+  const lista = el("div", "chat-men"); lista.setAttribute("role", "listbox"); lista.setAttribute("aria-label", "Pessoas para mencionar"); lista.hidden = true;
+  lista.id = "chat-men-" + Math.random().toString(36).slice(2, 8);
+  ta.setAttribute("aria-autocomplete", "list"); ta.setAttribute("aria-controls", lista.id);
+  caixaPai.appendChild(lista);
+  let pick = null;                                  // { ini, q, itens, sel }
+  const fechar = () => { pick = null; lista.hidden = true; ta.setAttribute("aria-expanded", "false"); ta.removeAttribute("aria-activedescendant"); };
+  const token = () => {
+    if (ta.selectionStart !== ta.selectionEnd) return null;
+    const antes = ta.value.slice(0, ta.selectionStart), m = antes.match(/(^|[\s(\[{"'])@([^\s@]{0,30})$/u);
+    return m ? { ini: ta.selectionStart - m[2].length - 1, q: m[2] } : null;
+  };
+  const pintar = () => {
+    lista.innerHTML = "";
+    pick.itens.forEach((p, i) => {
+      const b = el("button", "chat-men-op"); b.type = "button"; b.id = lista.id + "-" + i; b.tabIndex = -1;
+      b.setAttribute("role", "option"); b.setAttribute("aria-selected", String(i === pick.sel));
+      b.append(el("b", "", p.nome), el("small", "", p.email));
+      b.addEventListener("pointerdown", e => e.preventDefault());   // o campo continua com o foco (o teclado do celular não fecha)
+      b.addEventListener("mousedown", e => e.preventDefault());
+      b.onclick = () => escolher(i);
+      lista.appendChild(b);
+    });
+    lista.hidden = false; ta.setAttribute("aria-expanded", "true"); ta.setAttribute("aria-activedescendant", lista.id + "-" + pick.sel);
+    lista.children[pick.sel]?.scrollIntoView({ block: "nearest" });
+  };
+  const abrir = () => {
+    const tk = token(); if (!tk) return fechar();
+    const q = semAc(tk.q);
+    const itens = pessoasEquipe().filter(p => p.email !== emailDe())
+      .filter(p => !q || semAc(p.nome).split(/\s+/).some(w => w.startsWith(q)) || semAc(p.nome).startsWith(q) || p.email.startsWith(q)).slice(0, 8);
+    if (!itens.length) return fechar();
+    const sel = pick && pick.ini === tk.ini ? Math.min(pick.sel, itens.length - 1) : 0;
+    pick = { ...tk, itens, sel }; pintar();
+  };
+  const escolher = i => {
+    if (!pick) return;
+    const p = pick.itens[i], fim = ta.selectionStart;
+    const depois = ta.value.slice(fim).replace(/^[^\s@]*/u, "");   // o resto da palavra que estava sendo escrita sai
+    ta.value = ta.value.slice(0, pick.ini) + "@" + p.nome + " " + depois.replace(/^\s+/, "");
+    const c = pick.ini + p.nome.length + 2; ta.setSelectionRange(c, c);
+    fechar(); ajustar(); ta.focus({ preventScroll: true });
+  };
+  ta.addEventListener("input", abrir);
+  ta.addEventListener("click", abrir);
+  ta.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== ta) fechar(); }, 150));
+  ta.addEventListener("keydown", e => {             // registrado antes do "Enter envia": com a lista aberta, as teclas são dela
+    if (!pick) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); e.stopImmediatePropagation(); pick.sel = (pick.sel + (e.key === "ArrowDown" ? 1 : pick.itens.length - 1)) % pick.itens.length; pintar(); }
+    else if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") { e.preventDefault(); e.stopImmediatePropagation(); escolher(pick.sel); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); e.stopPropagation(); fechar(); }   // fecha só a lista (não a janela nem a tela)
+  });
+  return { fechar };
+}
+// menções à pessoa que está no app, ainda não vistas (Início); só as dos últimos 60 dias
+const LIDAS_MEN = "vpx_men_lidas";
+const chaveMen = (tipo, reg, c) => tipo + ":" + reg.id + ":" + (c.id || c.em);
+function mencoesParaMim() {
+  if (!conta) return [];
+  const lidas = new Set(lerLS(LIDAS_MEN, [])), lim = new Date(Date.now() - 60 * 864e5).toISOString(), r = [];
+  const ver = (itens, tipo, reg, onde) => (itens || []).forEach(c => {
+    if (!mencionaMim(c) || (c.em || "") < lim) return;
+    const k = chaveMen(tipo, reg, c); if (!lidas.has(k)) r.push({ k, tipo, id: reg.id, onde, por: c.por, em: c.em, t: c.t });
+  });
+  Object.values(regsDe(colTar)).forEach(t => ver(t.coment, "tar", t, (t.op ? "Operacional · " : "Tarefa · ") + (t.titulo || "(sem título)")));
+  if (pode("funil")) Object.values(regsDe(colFu)).forEach(o => ver(o.ativ, "fu", o, "Comercial · " + (o.nome || "(sem nome)")));
+  return r.sort((a, b) => (b.em || "").localeCompare(a.em || ""));
+}
+function marcarMencoesLidas(tipo, reg, todas) {    // abriu a conversa (ou "Marcar como vistas"): as menções dela saem do Início
+  const lidas = lerLS(LIDAS_MEN, []), set = new Set(lidas); let mudou = false;
+  const marca = (tp, rg, c) => { const k = chaveMen(tp, rg, c); if (!set.has(k)) { set.add(k); lidas.push(k); mudou = true; } };
+  if (todas) mencoesParaMim().forEach(m => { if (!set.has(m.k)) { set.add(m.k); lidas.push(m.k); mudou = true; } });
+  else ((tipo === "fu" ? reg?.ativ : reg?.coment) || []).forEach(c => { if (mencionaMim(c)) marca(tipo, reg, c); });
+  if (!mudou) return;
+  gravarLS(LIDAS_MEN, lidas.slice(-500));
+  if (secao === "inicio" && !$("tela-inicio").hidden) redesenharInicio();
+}
+const mencionadoTar = t => (t.coment || []).some(c => (c.men || []).some(m => (m.email || "").toLowerCase() === emailDe()));
 /* comentários de uma tarefa (conversa): quem pode mexer na tarefa escreve; cada um apaga os seus.
    Usado no detalhe da tarefa e na janela que abre pelo ícone da tabela. depois() redesenha quem chamou. */
 function comentariosTar(t, depois, idCampo) {
-  const mexe = pode("tarefas") || minhaTar(t);
+  const mexe = pode("tarefas") || minhaTar(t) || mencionadoTar(t);   // quem foi mencionado também responde
+  marcarMencoesLidas("tar", t);
   const salvarC = fn => { const p = mudarReg(colTar, t.id, fn); depois(); return p; };   // quando a gravação termina, aoMudarTar redesenha
   return conversa({
     chave: (idCampo ? "dlg:tar:" : "det:tar:") + t.id,
     itens: t.coment, vazio: "Nenhum comentário ainda.",
     meu: c => c.por === nomeColaborador(),
     aoApagar: async c => { if (await confirmarApagar("Apagar este comentário?", "", "Apagar", "Manter")) salvarC(r => { r.coment = (r.coment || []).filter(y => y.id !== c.id); }); },
-    campo: mexe ? { ph: "Escreva um comentário", rotulo: "Comentar", id: idCampo,
-      aoEnviar: v => { const c = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: v }; salvarC(r => { (r.coment ||= []).push(c); }); } } : null
+    campo: mexe ? { ph: "Escreva… (@ para mencionar)", rotulo: "Comentar", id: idCampo,
+      aoEnviar: (v, men) => { const c = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: v }; if (men?.length) c.men = men; salvarC(r => { (r.coment ||= []).push(c); }); } } : null
   });
 }
 // janela de comentários aberta pelo ícone ao lado do nome da tarefa na tabela (pedido do Gustavo em 13/11/2026);
@@ -17707,8 +17838,9 @@ function botaoOrcFu(o, sub) {
   return b;
 }
 // registro de contato (ligação, visita, mensagem): entra nas anotações e vira o "último contato"
-function registrarContatoFu(id, texto, situacao) {
+function registrarContatoFu(id, texto, situacao, men) {
   const a = { id: novoIdReg(), em: new Date().toISOString(), por: nomeColaborador(), t: texto };
+  if (men?.length) a.men = men;                    // @menções (avisam a pessoa no Início)
   return mudarReg(colFu, id, r => { (r.ativ ||= []).push(a); r.ultimoContato = dataISO(); if (situacao) r.situacao = situacao; }, situacao ? "Situação: " + situacao : null);
 }
 function cartaoFu(o, op = {}) {
@@ -18181,6 +18313,7 @@ function detalheFu(o) {
 /* contatos e anotações de uma oportunidade: campo "Registrar contato de hoje" (vira o último contato) e a lista, os mais novos em cima.
    Usado no detalhe e na janela que abre pelo ícone da tabela (a mesma dos comentários das tarefas). depois() redesenha quem chamou. */
 function anotacoesFu(o, depois, idCampo) {
+  marcarMencoesLidas("fu", o);
   // conversa (como os comentários das tarefas): as mais antigas em cima, o campo embaixo; mandar = registrar o contato de hoje (vira o último contato).
   // As anotações não se apagam (como antes); só as 60 mais recentes aparecem.
   const f = document.createDocumentFragment();
@@ -18188,8 +18321,8 @@ function anotacoesFu(o, depois, idCampo) {
     chave: (idCampo ? "dlg:fu:" : "det:fu:") + o.id,
     itens: o.ativ, max: 60, vazio: "Nenhum contato registrado ainda.",
     meu: a => a.por === nomeColaborador(),
-    campo: { ph: "O que foi conversado hoje?", rotulo: "Registrar contato de hoje", id: idCampo,
-      aoEnviar: v => { registrarContatoFu(o.id, v); depois(); } }
+    campo: { ph: "O que foi conversado? (@ menciona)", rotulo: "Registrar contato de hoje", id: idCampo,
+      aoEnviar: (v, men) => { registrarContatoFu(o.id, v, null, men); depois(); } }
   }));
   return f;
 }
@@ -18332,6 +18465,23 @@ function desenharInicio() {
   if (computador.matches) {
     const g = el("div", "ini-grade" + (pode("agenda") ? "" : " so-uma"));
     esq = el("div"); dir = el("div"); g.append(esq, dir); t.appendChild(g);
+  }
+  // menções com @ ainda não vistas (pedido do Gustavo em 14/11/2026): no topo, cada uma abre a conversa
+  const mens = mencoesParaMim();
+  if (mens.length) {
+    const tit = el("div", "ini-men-tit");
+    tit.appendChild(el("p", "hub-rot", mens.length === 1 ? "Você foi mencionado(a)" : `Você foi mencionado(a) ${mens.length} vezes`));
+    const lv = el("button", "laudo-link ini-men-lidas", "Marcar como vistas"); lv.type = "button"; lv.onclick = () => marcarMencoesLidas(null, null, true);
+    tit.appendChild(lv); esq.appendChild(tit);
+    mens.slice(0, 4).forEach(m => {
+      const b = el("button", "hub-card ini-men"); b.type = "button";
+      b.appendChild(comIc(el("small", "os-tipo"), "comentario", `${primeiroNome(m.por || "Alguém")} · ${m.onde}`));
+      b.appendChild(el("b", "", (m.t || "").length > 140 ? m.t.slice(0, 140) + "…" : m.t || ""));
+      b.appendChild(el("small", "", diaChat(m.em ? dataISO(new Date(m.em)) : "") + " · " + horaChat(m.em)));
+      b.onclick = () => abrirComentariosTar(m.id, m.tipo);
+      esq.appendChild(b);
+    });
+    if (mens.length > 4) esq.appendChild(el("p", "ini-vazio", `E mais ${mens.length - 4}. Elas saem daqui quando você abre a conversa.`));
   }
   const cont = itensContinuar();
   if (cont.length) {
