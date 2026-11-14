@@ -1752,6 +1752,21 @@ textarea.tar-tit-in{resize:none;overflow:hidden;min-height:0}
   .cl-resumo{margin:10px 2px 12px}
 }
 .nav-atalho{display:none}
+/* atalhos Alt+número (computador): os números aparecem por cima do ícone enquanto a pessoa segura o Alt */
+.nav-tecla{display:none}
+body.alt-teclas .nav button > .nav-tecla{position:absolute;left:4px;top:50%;z-index:2;display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:6px;background:var(--marinho);color:#fff;font:700 13px/1 var(--texto-fonte);transform:translateY(-50%);box-shadow:0 2px 6px rgba(19,37,59,.3)}
+@media (prefers-color-scheme:dark){body.alt-teclas .nav button > .nav-tecla{background:var(--laranja);color:#13253B}}
+.dlg-teclas{max-width:820px;max-height:calc(100% - 24px);overflow-y:auto}
+#teclas-lista{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));column-gap:32px}
+.tc-col > .tc-grupo:first-child{margin-top:4px}
+.dlg-teclas .env-acoes{display:flex;justify-content:flex-end;margin-top:20px}
+.dlg-teclas .env-acoes .btn{width:220px}
+.dlg-teclas #teclas-titulo{margin-bottom:8px}
+.tc-grupo{display:block;margin:14px 0 6px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--suave)}
+.tc-linha{display:flex;align-items:center;gap:12px;padding:4px 0;border-bottom:1px solid var(--linha);font-size:15px}
+.tc-teclas{flex:none;min-width:104px;display:flex;align-items:center;gap:4px;color:var(--suave);font-size:13px}
+.tc-teclas kbd{min-width:26px;padding:2px 7px;border:1px solid var(--borda-campo);border-bottom-width:2px;border-radius:6px;background:var(--papel);color:var(--tinta);font:600 13px/1.4 var(--texto-fonte);text-align:center}
+.dlg-teclas p.tc-dica{margin:8px 0 0;font-size:13.5px;font-weight:400;color:var(--suave)}
 @media (min-width:900px) and (hover:hover) and (pointer:fine){
   /* com mouse os números do resumo não precisam de 42 px */
   .cl-resumo .avcb-qt,#avcb-resumo .avcb-qt{min-height:34px;font-size:14.5px}
@@ -2252,6 +2267,7 @@ span.fu-orc-lin{cursor:default}
   <symbol id="i-telefone" viewBox="0 0 24 24"><path d="M8.4 4.2 6.6 4a1.7 1.7 0 0 0-1.8 1.5c-.3 3.3 1 6.8 3.8 9.7 2.9 2.9 6.4 4.2 9.8 3.8a1.7 1.7 0 0 0 1.5-1.8l-.2-1.8a1.6 1.6 0 0 0-1.2-1.4l-2.1-.6a1.6 1.6 0 0 0-1.6.4l-.9.9a11.3 11.3 0 0 1-4.3-4.3l.9-.9a1.6 1.6 0 0 0 .4-1.6l-.6-2.1a1.6 1.6 0 0 0-1.4-1.2z"/><path style="stroke:var(--ic-ac)" d="M14.5 3.7a6 6 0 0 1 5.8 5.8M14.3 7.2a2.6 2.6 0 0 1 2.5 2.5"/></symbol>
   <symbol id="i-conversa" viewBox="0 0 24 24"><path d="M12 3.8a8.2 8.2 0 0 0-7.1 12.3l-1.1 4.1 4.2-1.1A8.2 8.2 0 1 0 12 3.8z"/><path style="stroke:var(--ic-ac)" d="M8.6 12h.01M12 12h.01M15.4 12h.01"/></symbol>
   <symbol id="i-comentario" viewBox="0 0 24 24"><path d="M5 4.5h14a1.8 1.8 0 0 1 1.8 1.8v9.4a1.8 1.8 0 0 1-1.8 1.8H10.2l-4.7 3.4v-3.4H5a1.8 1.8 0 0 1-1.8-1.8V6.3A1.8 1.8 0 0 1 5 4.5z"/><path style="stroke:var(--ic-ac)" d="M7.6 9.4h8.8M7.6 12.8h5.4"/></symbol>
+  <symbol id="i-teclado" viewBox="0 0 24 24"><rect x="2.8" y="6" width="18.4" height="12" rx="2.2"/><path d="M6.5 9.6h.01M9.5 9.6h.01M12.5 9.6h.01M15.5 9.6h.01M17.5 12.4h.01M6.5 12.4h.01"/><path style="stroke:var(--ic-ac)" d="M8.6 15h6.8"/></symbol>
   <symbol id="i-enviar" viewBox="0 0 24 24"><path d="M4 11.6 20 4.5l-6.9 15.6-2.5-6.3z"/><path style="stroke:var(--ic-ac)" d="m10.6 13.8 4.6-4.6"/></symbol>
   <symbol id="i-nf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8.5 7.5h7M8.5 10.7h7"/><path style="stroke:var(--ic-ac)" d="M8.5 14.5v3M10.7 14.5v3M12.6 14.5v3M15.5 14.5v3"/></symbol>
   <symbol id="i-planilha" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17M9.5 9.5v10"/><path style="stroke:var(--ic-ac)" d="M3.5 9.5h17"/></symbol>
@@ -2461,6 +2477,7 @@ span.fu-orc-lin{cursor:default}
   <div class="nav-conta so-pc">
     <!-- nome e e-mail: abrem "Meu perfil" (pedido do Gustavo em 14/11/2026) -->
     <button class="nc-quem" data-acao="perfil" title="Meu perfil: foto, dados e preferências"><span class="avatar" id="nav-av" aria-hidden="true"></span><span class="nc-tx"><b id="nav-conta-nome"></b><small id="nav-conta-email"></small></span><svg class="nc-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+    <button data-acao="teclas"><svg class="ic" aria-hidden="true"><use href="#i-teclado"/></svg>Atalhos do teclado</button>
     <button data-acao="tema"><svg class="ic" aria-hidden="true"><use id="nav-tema-ic" href="#i-lua"/></svg><span id="nav-tema-rot">Modo noturno</span></button>
     <button data-acao="sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5M9.5 8 5.5 12l4 4M5.5 12h9"/></svg>Sair da conta</button>
   </div>
@@ -2780,6 +2797,12 @@ span.fu-orc-lin{cursor:default}
   <div class="env-acoes perg-acoes"><button class="btn prim" id="perg-sim" type="button"></button><button class="btn sec" id="perg-nao" type="button"></button></div>
 </dialog>
 <!-- comentários de uma tarefa, abertos pelo ícone ao lado do nome na tabela (pedido do Gustavo em 13/11/2026) -->
+<!-- atalhos do teclado (computador; pedido do Gustavo em 14/11/2026) -->
+<dialog id="dlg-teclas" class="dlg-enviar dlg-teclas" aria-labelledby="teclas-titulo">
+  <p id="teclas-titulo">Atalhos do teclado</p>
+  <div id="teclas-lista"></div>
+  <div class="env-acoes"><button class="btn prim" id="teclas-ok" type="button">Fechar</button></div>
+</dialog>
 <dialog id="dlg-com" class="dlg-com" aria-labelledby="com-titulo" tabindex="-1">
   <div class="com-topo"><div class="com-tit"><strong id="com-titulo">Comentários</strong><small id="com-tarefa"></small></div><button class="tar-x com-fechar" id="com-fechar" type="button" title="Fechar" aria-label="Fechar os comentários">×</button></div>
   <div id="com-corpo"></div>
@@ -19421,6 +19444,7 @@ $("btn-conta").onclick = () => irPara("mais");     // iniciais no topo: conta e 
 $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (b.dataset.acao === "sair") { sairConta(); return; }
   if (b.dataset.acao === "tema") { alternarTema(); return; }
+  if (b.dataset.acao === "teclas") { abrirTeclas(); return; }
   if (b.dataset.acao === "perfil" && !$("tela-perfil").hidden) { fecharPerfil(); return; }   // de novo no nome: fecha
   // computador: o nome de um item com submenu (Comercial, Operacional, Financeiro) só mostra ou esconde as opções embaixo;
   // a tela abre pela opção escolhida (pedido do Gustavo em 13/11/2026: "quando eu clicar no nome, quero que abra o submenu")
@@ -19582,6 +19606,7 @@ function opcaoNavAtual() {
 }
 function pintarMenuSub() { if (conta && computador.matches) pintarSubmenusNav(); }   // para as telas que mudam a opção sem passar pelo atualizarNav
 function pintarSubmenusNav() {
+  if (typeof pintarTeclasNav === "function") setTimeout(pintarTeclasNav, 0);   // números e dicas dos atalhos Alt+número acompanham os itens à vista
   const atual = conta && computador.matches ? opcaoNavAtual() : null;
   for (const [pai, itens] of Object.entries(SUBMENUS_NAV)) {
     const sub = $("nav-sub-" + pai); if (!sub) continue;
@@ -19669,6 +19694,14 @@ document.addEventListener("keydown", e => {
       }, true);
       return;
     }
+    // Alt+1 … Alt+9 e Alt+0: os itens do menu lateral (o AltGr do teclado brasileiro manda Ctrl+Alt e fica de fora)
+    if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && /^Digit[0-9]$/.test(e.code) && e.key === e.code.slice(5)) {   // no Mac o Option+número escreve ª, º, •…: fica para o campo
+      e.preventDefault(); esconderTeclasNav();
+      if ($("menu-op")) $("menu-op").hidden = true;   // menu de opções aberto não fica flutuando sobre a tela nova
+      if (!e.repeat) irPelaTecla(+e.code.slice(5));
+      return;
+    }
+    if (e.key === "?" && !e.metaKey && e.ctrlKey === e.altKey && !e.target.closest?.(CAMPO_TEXTO) && !e.target.isContentEditable) { e.preventDefault(); abrirTeclas(); return; }
     if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.target.matches?.("input, textarea, select, [contenteditable]")) {
       const zi = t => +getComputedStyle(t).zIndex || 0;
       const cima = [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden && !t.classList.contains("como-secao")).reduce((a, t) => !a || zi(t) >= zi(a) ? t : a, null);
@@ -19702,7 +19735,7 @@ document.addEventListener("keydown", e => {
     if (history.state) history.back();
     return;
   }
-  if (e.key !== "Escape" || $("dlg").open || $("dlg-enviar").open || $("dlg-perg").open || cam) return;   // a lista de clientes (e o "Enviar agora") fecha sozinha com o Esc; a câmera tem o próprio botão
+  if (e.key !== "Escape" || document.querySelector("dialog[open]") || cam) return;   // janela aberta (lista de clientes, pergunta, comentários, atalhos…): ela fecha sozinha com o Esc e a tela de baixo fica   // a lista de clientes (e o "Enviar agora") fecha sozinha com o Esc; a câmera tem o próprio botão
   if (e.target.matches?.("input, textarea, select")) { e.target.blur(); return; }
   if (!$("visor-pdf").hidden) { fecharVisor(); return; }
   if ($("menu-op") && !$("menu-op").hidden) { $("menu-op").hidden = true; return; }   // menu da situação da tarefa
@@ -19711,6 +19744,72 @@ document.addEventListener("keydown", e => {
   const voltar = [...document.querySelectorAll(".tela-avcb")].filter(t => !t.hidden).reduce((a, t) => !a || zi(t) >= zi(a) ? t : a, null)?.querySelector(".avcb-voltar");
   if (voltar && voltar.offsetParent) voltar.click();
 });
+/* atalhos de teclado para as abas (pedido do Gustavo em 14/11/2026: "atalhos no teclado para todas as abas"), só no computador:
+   Alt+1 … Alt+9 e Alt+0 abrem os itens do menu lateral na ordem em que aparecem para a pessoa (quem não vê um item não perde um
+   número). Item com submenu (Comercial, Operacional, Financeiro) abre a 1ª opção dele (Vendas, Andamento dos clientes, Visão geral),
+   pelo mesmo clique da opção (os mesmos cuidados do menu). Segurar o Alt mostra os números no menu; "?" (ou o botão
+   "Atalhos do teclado" no pé do menu) abre a lista de todos os atalhos. */
+const SEM_TECLA_NAV = ["tema", "sair", "acesso", "perfil", "teclas"];
+function itensTeclaNav() {
+  if (!computador.matches || !document.body.classList.contains("logado")) return [];
+  return [...$("nav").querySelectorAll("button[data-s], button[data-acao]")]
+    .filter(b => !b.closest(".nav-conta, .nav-sub") && !SEM_TECLA_NAV.includes(b.dataset.acao) && b.offsetParent !== null).slice(0, 10);
+}
+const teclaNav = i => i === 9 ? "0" : String(i + 1);
+const nomeNav = b => (b.querySelector(".nav-rot")?.textContent || b.textContent).trim();
+const opcaoTeclaNav = b => { const w = b.closest(".nav-item"); return w && !w.classList.contains("sem-sub") ? [...w.querySelectorAll(".nav-sub button[data-sub]")].find(x => !x.hidden) : null; };
+function pintarTeclasNav() {                       // números (aparecem segurando o Alt) e a dica ao passar o mouse
+  $("nav").querySelectorAll(".nav-tecla").forEach(k => k.remove());
+  $("nav").querySelectorAll("[aria-keyshortcuts]").forEach(b => { b.removeAttribute("aria-keyshortcuts"); if (b.dataset.dicaTecla) { b.removeAttribute("title"); delete b.dataset.dicaTecla; } });
+  itensTeclaNav().forEach((b, i) => {
+    const k = el("kbd", "nav-tecla", teclaNav(i)); k.setAttribute("aria-hidden", "true"); b.appendChild(k);
+    b.setAttribute("aria-keyshortcuts", "Alt+" + teclaNav(i));
+    if (!b.title || b.dataset.dicaTecla) { b.title = nomeNav(b) + " (Alt+" + teclaNav(i) + ")"; b.dataset.dicaTecla = "1"; }
+  });
+}
+function irPelaTecla(n) {
+  const b = itensTeclaNav()[n === 0 ? 9 : n - 1]; if (!b) return false;
+  (opcaoTeclaNav(b) || b).click();
+  return true;
+}
+let teclasTimer = 0;
+function esconderTeclasNav() { clearTimeout(teclasTimer); document.body.classList.remove("alt-teclas"); }
+document.addEventListener("keydown", e => {
+  if (e.key !== "Alt") { esconderTeclasNav(); return; }
+  if (e.ctrlKey || e.metaKey || e.repeat || !itensTeclaNav().length) return;
+  clearTimeout(teclasTimer);                       // um instante segurando (o Alt+Tab não pisca os números)
+  teclasTimer = setTimeout(() => { pintarTeclasNav(); document.body.classList.add("alt-teclas"); }, 250);
+});
+document.addEventListener("keyup", e => { if (e.key === "Alt") esconderTeclasNav(); });
+window.addEventListener("blur", esconderTeclasNav);
+function abrirTeclas() {
+  const d = $("dlg-teclas"); if (d.open || !computador.matches || document.querySelector("dialog[open]")) return;
+  const l = $("teclas-lista"); l.innerHTML = "";
+  let col = null;                                  // duas colunas: as abas à esquerda e os outros atalhos à direita (cabe numa tela de notebook)
+  const coluna = () => { col = el("div", "tc-col"); l.appendChild(col); };
+  const tecla = (...ks) => { const w = el("span", "tc-teclas"); ks.forEach((k, i) => { if (i) w.append("+"); w.appendChild(el("kbd", "", k)); }); return w; };
+  const linha = (ks, txt) => { const r = el("div", "tc-linha"); r.append(tecla(...ks), el("span", "tc-o-que", txt)); col.appendChild(r); };
+  const itens = itensTeclaNav();
+  if (itens.length) {
+    coluna();
+    col.appendChild(el("b", "tc-grupo", "Abas do menu"));
+    itens.forEach((b, i) => { const op = opcaoTeclaNav(b); linha(["Alt", teclaNav(i)], nomeNav(b) + (op ? " › " + op.textContent.trim() : "")); });
+    col.appendChild(el("p", "tc-dica", "Segure o Alt para ver os números no menu."));
+  }
+  coluna();
+  col.appendChild(el("b", "tc-grupo", "Em qualquer tela"));
+  linha(["Ctrl", "K"], "Ir para um cliente");
+  linha(["/"], "Buscar na tela aberta");
+  linha(["Esc"], "Fechar a tela aberta por cima");
+  linha(["Backspace"], "Voltar (fora dos campos de texto)");
+  linha(["?"], "Esta lista de atalhos");
+  col.appendChild(el("b", "tc-grupo", "Nos comentários"));
+  linha(["Enter"], "Enviar");
+  linha(["Shift", "Enter"], "Pular linha");
+  d.showModal(); d.scrollTop = 0; $("teclas-ok").focus({ preventScroll: true });
+}
+$("teclas-ok").onclick = () => $("dlg-teclas").close();
+$("dlg-teclas").addEventListener("click", e => { if (e.target === $("dlg-teclas")) $("dlg-teclas").close(); });
 // no computador: arrastar fotos, vídeos e PDFs do computador para o formulário (o mesmo que escolher na Galeria)
 const podeSoltar = () => secao === "trabalho" && !$("tela-app").hidden && !document.body.classList.contains("modo-laudo") && !enviando
   && !cam && !$("dlg").open && $("visor-pdf").hidden && ![...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden);
