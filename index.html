@@ -2245,7 +2245,7 @@ span.fu-orc-lin{cursor:default}
 <nav class="nav" id="nav" hidden aria-label="Menu principal">
   <button data-s="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Início</button>
   <button data-s="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16"/><path d="M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg>Clientes<kbd class="nav-atalho" title="Ir para um cliente (Ctrl+K)" aria-hidden="true">Ctrl K</kbd></button>
-  <button data-s="reg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><path d="M16.75 14v5.5M14 16.75h5.5"/></svg>Registros</button>
+  <button class="so-cel" data-s="reg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5.5 15a6.5 6.5 0 0 1 13 0M3.5 15h17v2.3a1.2 1.2 0 0 1-1.2 1.2H4.7a1.2 1.2 0 0 1-1.2-1.2zM10.4 8.8V12.5M13.6 8.8V12.5"/></svg>Operacional<span class="avcb-qtd" id="nav-reg-qtd" hidden></span></button>
   <button data-s="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
   <!-- no computador (menu lateral) o que fica no Mais aparece direto; no celular, só o Mais (pedido do Gustavo em 06/11/2026) -->
   <!-- tarefas e funil comercial (pedido do Gustavo em 07/11/2026): no computador, direto no menu; no celular, no Mais, em Registros e no Início -->
@@ -11873,9 +11873,10 @@ function atualizarNav() {
   nav.querySelector('[data-acao="admin"]').hidden = !ehAdmin();
   nav.querySelector('[data-acao="tar"]').hidden = !podeVerTarefas();
   nav.querySelector('[data-acao="funil"]').hidden = !pode("funil");
-  nav.querySelector('[data-acao="op"]').hidden = !podeVerOp();
+  nav.querySelector('[data-acao="op"]').hidden = !podeVerOp() && !SUBMENUS_NAV.op.some(it => it[2]());   // também para quem só tem as opções que eram de Registros
   const nOp = conta ? alertaOp() : 0;               // tarefas do Operacional da pessoa atrasadas ou para hoje
   $("nav-op-qtd").hidden = !nOp; $("nav-op-qtd").textContent = nOp;
+  $("nav-reg-qtd").hidden = !nOp; $("nav-reg-qtd").textContent = nOp;   // celular: na aba Operacional da barra de baixo
   nav.querySelector('[data-acao="sol"]').hidden = !podeSol();
   const nAdm = ehAdmin() ? pedidosAcesso.length : 0;
   $("nav-adm-qtd").hidden = !nAdm; $("nav-adm-qtd").textContent = nAdm;
@@ -11886,6 +11887,7 @@ function atualizarNav() {
   const s = secao === "trabalho" ? trabDe : secao;   // formulário aberto: marca de onde ele veio (no computador o menu continua à vista)
   let atual = s === "cliente" ? "clientes" : s === "mod" ? "reg" : s === "fin" ? finDe : s;
   if (computador.matches) {
+    if (atual === "reg") atual = "op";             // a página Operacional (antiga Registros) e o que abre dela: no computador marca o item Operacional (pedido do Gustavo em 13/11/2026)
     if (s === "fin" && atual === "mais") atual = "fin";   // aberto pelo Mais no celular e a janela cresceu
     if (!$("tela-its").hidden) atual = "its";      // ITs e Administração abrem por cima: ficam marcadas enquanto abertas
     if (!$("tela-admin").hidden) atual = "admin";
@@ -11965,7 +11967,7 @@ function abrirTrabalho(m, cli) {
 // título do formulário (ex.: "Laudo · Aterramento"); refeito quando o tipo de laudo muda
 function tituloTrabalho() {
   $("trab-titulo").textContent = (NOME_MODO[modo] || "") + (modo === "laudo" && LAUDOS[laudo.tipo] ? " · " + LAUDOS[laudo.tipo].curto : "");
-  $("trab-voltar").textContent = "‹ " + ({ mod: MOD_INFO[modAtual]?.tit, cliente: "Cliente", clientes: "Clientes", reg: "Registros", fin: "Financeiro", mais: "Mais" }[trabDe] || "Início");
+  $("trab-voltar").textContent = "‹ " + ({ mod: MOD_INFO[modAtual]?.tit, cliente: "Cliente", clientes: "Clientes", reg: "Operacional", fin: "Financeiro", mais: "Mais" }[trabDe] || "Início");
 }
 // volta para a tela de onde o formulário foi aberto (página do assunto, cliente, Financeiro ou Início)
 function voltarInicio() {
@@ -11989,7 +11991,7 @@ let modAtual = "laudo";
 function abrirModulo(m) { modAtual = m; irPara("mod"); }
 function desenharModulo() {
   const m = modAtual, info = MOD_INFO[m], t = $("tela-mod"); t.innerHTML = "";
-  const v = el("button", "hub-voltar", "‹ Registros"); v.type = "button"; v.onclick = () => history.state?.sub ? voltarSub() : irPara("reg");
+  const v = el("button", "hub-voltar", "‹ Operacional"); v.type = "button"; v.onclick = () => history.state?.sub ? voltarSub() : irPara("reg");
   { const h = el("h1", "hub-tit"); h.append(icCaixa(info.ico), info.tit); t.append(v, h); }
   const n = el("button", "btn prim", "+ " + info.novo); n.type = "button"; n.style.marginBottom = "14px"; n.onclick = () => novoDoModulo(m);
   t.appendChild(n);
@@ -17073,7 +17075,7 @@ function desenharClientesHub() {
   $("cl-tab").hidden = !clVisiveis.length;
   $("cl-vazio").hidden = !!clVisiveis.length;
   $("cl-vazio").textContent = !clientes.length ? (navigator.onLine ? "Carregando os clientes…" : "Sem internet e sem lista de clientes guardada.")
-    : q && !daBusca.length ? "Nenhum cliente encontrado. Para cadastrar um cliente novo, comece um registro em Registros e, ao escolher o cliente, digite o nome dele."
+    : q && !daBusca.length ? "Nenhum cliente encontrado. Para cadastrar um cliente novo, comece um registro no Operacional e, ao escolher o cliente, digite o nome dele."
     : "Nenhum cliente com esses filtros.";
   $("cl-exportar").hidden = !clVisiveis.length;
   $("cl-exp-contatos").hidden = !(temFicha && Object.keys(fichas).length);   // uma linha por contato, de todos os clientes
@@ -17231,19 +17233,28 @@ function desenharPaginaCliente() {
   }
 }
 
-// Registros (aba do meio da barra de baixo): um quadrado por assunto; cada um abre a página do assunto (lista + "+ Novo")
+// Operacional (aba do meio da barra de baixo; era "Registros" até 13/11/2026, por dentro continua "reg"): no topo as tarefas dos clientes;
+// embaixo um quadrado por assunto; cada um abre a página do assunto (lista + "+ Novo")
+function resumoOp() {                              // linha "Tarefas dos clientes": clientes em andamento e as tarefas da pessoa
+  const ab = tarefasOp().filter(x => abertaTar(x) && veTar(x)), nCli = new Set(ab.map(x => x.cliente)).size, minhas = ab.filter(minhaTar), atr = minhas.filter(atrasadaTar).length, hj = minhas.filter(hojeTar).length;
+  return { txt: nCli ? `${nCli} cliente${nCli > 1 ? "s" : ""} em andamento` + (minhas.length ? ` · ${minhas.length} com você` : "") + (atr ? ` · ${atr} atrasada${atr > 1 ? "s" : ""}` : hj ? ` · ${hj} para hoje` : "") : "Tarefas de cada cliente", n: atr + hj };
+}
 function desenharReg() {
   const t = $("tela-reg"); t.innerHTML = "";
-  t.appendChild(el("h1", "hub-tit", "Registros"));
+  t.appendChild(el("h1", "hub-tit", "Operacional"));
   const modos = MODOS_APP.filter(([m]) => pode(m));
-  if (!modos.length && !podeSol() && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc") && !pode("nf") && !podeVerTarefas() && !pode("funil")) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
+  if (!modos.length && !podeSol() && !pode("os") && !pode("avcb") && !pode("equip") && !pode("orc") && !pode("nf") && !podeVerTarefas() && !pode("funil") && !podeVerOp()) { t.appendChild(el("p", "sem-acesso-msg", "Você ainda não tem acesso às funções do app. Peça ao administrador para liberar.")); return; }
+  if (podeVerOp()) {                               // as tarefas de cada cliente (área Operacional do monday), no topo
+    const r = resumoOp(), l = el("div", "hub-lista");
+    l.appendChild(linha("operacional", "Tarefas dos clientes", r.txt, () => abrirOp(), r.n));
+    t.appendChild(l);
+  }
   // três grupos com título, na mesma ordem de antes (aprovado pelo Gustavo em 10/11/2026): filas de trabalho, novo registro, consultas e controles
   let g = el("div", "hub-grade");
   const grupo = titulo => { if (g.children.length) { g.classList.add("compacta"); t.appendChild(el("p", "hub-rot", titulo)); t.appendChild(g); } g = el("div", "hub-grade"); };   // quadrados mais baixos: os três grupos cabem numa tela
   if (pode("os")) g.appendChild(tile("os", "OS", () => abrirOS()));
   if (podeVerTarefas()) g.appendChild(tile("tarefas", "Tarefas", () => abrirTar()));             // como no monday (pedido do Gustavo em 07/11/2026)
   if (pode("funil")) g.appendChild(tile("funil", "Comercial", () => abrirFunil()));
-  if (podeVerOp()) g.appendChild(tile("operacional", "Operacional", () => abrirOp()));   // as tarefas de cada cliente (área Operacional do monday)
   if (podeSol()) g.appendChild(tile("solicitacao", "Solicitações", abrirSolicitacoes));   // compra e pagamento (saíram do Financeiro em 12/11/2026)
   grupo("Filas de trabalho");
   modos.forEach(([m, ico, nome]) => g.appendChild(tile(ico, nome, () => m === "comp" ? irPara("fin") : abrirModulo(m))));
@@ -17259,7 +17270,7 @@ function desenharReg() {
 function desenharFin() {
   const t = $("tela-fin"); t.innerHTML = "";
   // no computador o Financeiro está no menu lateral: só tem "voltar" quando veio do quadrado Comprovante (Registros)
-  if (finDe === "reg" || !computador.matches) { const v = el("button", "hub-voltar", finDe === "reg" ? "‹ Registros" : "‹ Mais"); v.type = "button"; v.onclick = () => history.state?.sub ? voltarSub() : irPara(finDe === "fin" ? "mais" : finDe); t.appendChild(v); }
+  if (finDe === "reg" || !computador.matches) { const v = el("button", "hub-voltar", finDe === "reg" ? "‹ Operacional" : "‹ Mais"); v.type = "button"; v.onclick = () => history.state?.sub ? voltarSub() : irPara(finDe === "fin" ? "mais" : finDe); t.appendChild(v); }
   t.appendChild(el("h1", "hub-tit", "Financeiro"));
   // transações (receitas e despesas): o mês em números e o que venceu, com atalho para a tela (só quem pode)
   if (podeTrans()) {
@@ -17367,17 +17378,13 @@ function desenharMais() {
     if (podeFin()) f.appendChild(linha("dinheiro", "Financeiro", (t => t.charAt(0).toUpperCase() + t.slice(1))([podeTrans() && "receitas e despesas", pode("nf") && "notas fiscais", pode("comp") && (podeTrans() || pode("nf") ? "comprovantes" : "comprovantes de compras")].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " e $1")), () => irPara("fin")));
     t.appendChild(f);
   }
-  // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também em Registros e no Início)
+  // tarefas e funil comercial: no computador ficam no menu lateral; no celular, aqui (e também no Operacional e no Início); o Operacional é a aba do meio
   const tf = el("div", "hub-lista");
   if (podeVerTarefas()) {
     const minhas = tarefas().filter(x => minhaTar(x) && abertaTar(x)), atr = minhas.filter(atrasadaTar).length, hj = minhas.filter(hojeTar).length;
     tf.appendChild(linha("tarefas", "Tarefas", minhas.length ? `${minhas.length} com você` + (atr ? ` · ${atr} atrasada${atr > 1 ? "s" : ""}` : hj ? ` · ${hj} para hoje` : "") : "Nenhuma tarefa com você", () => abrirTar(), atr + hj));
   }
   if (pode("funil")) tf.appendChild(linha("funil", "Comercial", "Oportunidades, propostas e ligações", () => abrirFunil()));
-  if (podeVerOp()) {
-    const ab = tarefasOp().filter(x => abertaTar(x) && veTar(x)), nCli = new Set(ab.map(x => x.cliente)).size, minhas = ab.filter(minhaTar), atr = minhas.filter(atrasadaTar).length, hj = minhas.filter(hojeTar).length;
-    tf.appendChild(linha("operacional", "Operacional", nCli ? `${nCli} cliente${nCli > 1 ? "s" : ""} em andamento` + (minhas.length ? ` · ${minhas.length} com você` : "") : "Tarefas de cada cliente", () => abrirOp(), atr + hj));
-  }
   if (tf.children.length) t.appendChild(tf);
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
@@ -17561,7 +17568,7 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
     else if (b.dataset.acao === "admin") abrirAdmin();
     else if (b.dataset.acao === "tar") abrirTar();
     else if (b.dataset.acao === "funil") abrirFunil();
-    else if (b.dataset.acao === "op") abrirOp();
+    else if (b.dataset.acao === "op") { if (podeVerOp()) abrirOp(); else irPara("reg", true); }   // sem as tarefas dos clientes: a página com os quadrados
     else if (b.dataset.acao === "sol") abrirSolicitacoes();
     else irPara(b.dataset.s, true);
     // computador: tela aberta pelo menu lateral é uma seção como as outras — sem o "‹ Voltar" (pedido do Gustavo em 13/11/2026); sai ao fechar
@@ -17584,7 +17591,7 @@ if ($("tela-tr")) new MutationObserver(() => { if (conta) atualizarNav(); }).obs
    A seção de fundo ("reg", "fin") é aberta antes quando a opção abre uma tela por cima: ao fechar ela, a pessoa fica nessa seção.
    Item sem nenhuma opção liberada fica sem setinha. O que fica aberto é lembrado no aparelho (vpx_nav_sub). */
 const SUBMENUS_NAV = {
-  reg: [
+  op: [                                            // as opções que eram de Registros (pedido do Gustavo em 13/11/2026: "Registros não vai existir mais")
     ["os", "Ordens de serviço", () => pode("os"), () => abrirOS(), "reg"],
     ...MODOS_APP.filter(([m]) => m !== "comp").map(([m, , nome]) => ["m-" + m, nome, () => pode(m), () => abrirModulo(m)]),
     ["avcb", "Validade AVCB / CLCB", () => pode("avcb"), () => abrirAvcb(), "reg"],
@@ -17609,8 +17616,8 @@ const SUBMENUS_NAV = {
     ["comph", "Histórico de comprovantes", () => pode("comp"), () => abrirCompHist(), "fin"]
   ]
 };
-const NOME_NAV = { reg: "Registros", tar: "Tarefas", funil: "Comercial", sol: "Solicitações", fin: "Financeiro" };
-const navAbertos = new Set(lerLS("vpx_nav_sub", []).filter(p => p in SUBMENUS_NAV).slice(-1));   // só um submenu aberto por vez (pedido do Gustavo em 13/11/2026); o de um item que perdeu o submenu (Tarefas) é esquecido
+const NOME_NAV = { op: "Operacional", tar: "Tarefas", funil: "Comercial", sol: "Solicitações", fin: "Financeiro" };
+const navAbertos = new Set(lerLS("vpx_nav_sub", []).map(p => p === "reg" ? "op" : p).filter(p => p in SUBMENUS_NAV).slice(-1));   // só um submenu aberto por vez (pedido do Gustavo em 13/11/2026); o de um item que perdeu o submenu (Tarefas) é esquecido
 const pintarNavSub = {};                           // item → função que mostra ou esconde o submenu dele
 // abre só o submenu de "pai" (ou nenhum, com null) e recolhe os outros
 function abrirSoSubmenu(pai) {
@@ -17655,7 +17662,7 @@ function montarSubmenusNav() {
   $("nav").addEventListener("click", e => {
     const b = e.target.closest("button");
     if (!b || b.classList.contains("nav-seta") || b.closest(".nav-sub, .nav-conta")) return;
-    const pai = b.dataset.s || b.dataset.acao;
+    const pai = (b.dataset.s === "reg" ? "op" : b.dataset.s) || b.dataset.acao;
     if ([...navAbertos].some(p => p !== pai)) abrirSoSubmenu(navAbertos.has(pai) ? pai : null);
   });
   pintarSubmenusNav();
