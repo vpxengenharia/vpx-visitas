@@ -2433,7 +2433,6 @@ span.fu-orc-lin{cursor:default}
     <!-- nome e e-mail: abrem "Meu perfil" (pedido do Gustavo em 14/11/2026) -->
     <button class="nc-quem" data-acao="perfil" title="Meu perfil: foto, dados e preferências"><span class="avatar" id="nav-av" aria-hidden="true"></span><span class="nc-tx"><b id="nav-conta-nome"></b><small id="nav-conta-email"></small></span><svg class="nc-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
     <button data-acao="tema"><svg class="ic" aria-hidden="true"><use id="nav-tema-ic" href="#i-lua"/></svg><span id="nav-tema-rot">Modo noturno</span></button>
-    <button data-acao="acesso"><svg class="ic" aria-hidden="true"><use href="#i-escudo"/></svg>Conferir meu acesso</button>
     <button data-acao="sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5M9.5 8 5.5 12l4 4M5.5 12h9"/></svg>Sair da conta</button>
   </div>
 </nav>
@@ -9028,7 +9027,7 @@ async function carregarPermissoes() {
   const st = lerPermissoes.estado;
   if (st && !st.ok && st.semAcesso && !ehConvidado() && !ehAdminFixo() && !carregarPermissoes.avisou) {
     carregarPermissoes.avisou = true;
-    aviso("Este aparelho não conseguiu ler as suas permissões: a pasta de configuração do app não está compartilhada com você. Peça ao administrador para abrir a Administração do app. (Mais › Conferir meu acesso)", true);
+    aviso("Este aparelho não conseguiu ler as suas permissões: a pasta de configuração do app não está compartilhada com você. Peça ao administrador para abrir a Administração do app. (Meu perfil › Conferir meu acesso)", true);
   }
 }
 async function lerPermissoes() {
@@ -18916,7 +18915,6 @@ function desenharMais() {
   const c = el("div", "hub-lista");
   { const b = linha("pessoa", conta?.name || "Conta", "Meu perfil: foto, dados e preferências", abrirPerfil);   // abre Meu perfil (pedido do Gustavo em 14/11/2026)
     b.classList.add("pf-linha"); b.querySelector(".ico").replaceChildren(avatar(42)); c.appendChild(b); }
-  c.appendChild(linha("escudo", "Conferir meu acesso", "Permissões e pastas que este aparelho enxerga", conferirAcesso));
   { const esc = temaEscuroAgora(); c.appendChild(linha(esc ? "sol" : "lua", esc ? "Modo dia" : "Modo noturno", esc ? "Deixar o app claro" : "Deixar o app escuro", alternarTema)); }
   c.appendChild(linha("sair", "Sair da conta", "", sairConta));
   t.appendChild(c);
@@ -19312,7 +19310,6 @@ $("btn-conta").onclick = () => irPara("mais");     // iniciais no topo: conta e 
 // menu (barra de baixo / menu lateral): seções; no computador também ITs, Administração e Sair (que abrem por cima)
 $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (b.dataset.acao === "sair") { sairConta(); return; }
-  if (b.dataset.acao === "acesso") { conferirAcesso(); return; }
   if (b.dataset.acao === "tema") { alternarTema(); return; }
   if (b.dataset.acao === "perfil" && !$("tela-perfil").hidden) { fecharPerfil(); return; }   // de novo no nome: fecha
   // computador: o nome de um item com submenu (Comercial, Operacional, Financeiro) só mostra ou esconde as opções embaixo;
