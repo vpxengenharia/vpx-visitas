@@ -17559,6 +17559,10 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
   if (b.dataset.acao === "sair") { sairConta(); return; }
   if (b.dataset.acao === "acesso") { conferirAcesso(); return; }
   if (b.dataset.acao === "tema") { alternarTema(); return; }
+  // computador: o nome de um item com submenu (Comercial, Operacional, Financeiro) só mostra ou esconde as opções embaixo;
+  // a tela abre pela opção escolhida (pedido do Gustavo em 13/11/2026: "quando eu clicar no nome, quero que abra o submenu")
+  const paiSub = (b.dataset.s === "reg" ? "op" : b.dataset.s) || b.dataset.acao;
+  if (computador.matches && SUBMENUS_NAV[paiSub] && !b.closest(".nav-item")?.classList.contains("sem-sub")) { abrirSoSubmenu(navAbertos.has(paiSub) ? null : paiSub); return; }
   // celular: lista aberta por cima com a barra à vista (com-nav) — o passo dela sai do histórico, senão o "voltar" do aparelho ficaria uma vez sem efeito
   const passo = !computador.matches && !history.state?.sub && !!document.querySelector(".tela-avcb.com-nav:not([hidden])");
   const passos = history.state?.tarProj ? 2 : 1;   // Operacional dentro de um cliente: dois passos (lista dos clientes e o cliente)
@@ -17586,12 +17590,13 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
 for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil", "tela-pc"]) new MutationObserver(() => { if ($(id).hidden) $(id).classList.remove("pela-lateral"); if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
 if ($("tela-tr")) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($("tela-tr"), { attributes: true, attributeFilter: ["hidden"] });
-/* submenus do menu lateral do computador (pedido do Gustavo em 13/11/2026, como no Fin365): a setinha à direita do item mostra ou esconde
-   as opções embaixo; o nome do item continua abrindo a tela como antes. Cada opção: [chave, rótulo, quem vê, o que abre, seção de fundo].
+/* submenus do menu lateral do computador (pedido do Gustavo em 13/11/2026, como no Fin365): a setinha à direita do item e também o nome
+   do item mostram ou escondem as opções embaixo (desde 13/11/2026 o nome não abre mais tela: a pessoa escolhe a opção). Cada opção: [chave, rótulo, quem vê, o que abre, seção de fundo].
    A seção de fundo ("reg", "fin") é aberta antes quando a opção abre uma tela por cima: ao fechar ela, a pessoa fica nessa seção.
    Item sem nenhuma opção liberada fica sem setinha. O que fica aberto é lembrado no aparelho (vpx_nav_sub). */
 const SUBMENUS_NAV = {
   op: [                                            // as opções que eram de Registros (pedido do Gustavo em 13/11/2026: "Registros não vai existir mais")
+    ["clientes", "Andamento dos clientes", () => podeVerOp(), () => abrirOp()],   // a lista dos clientes do Operacional (antes abria pelo nome do item)
     ["os", "Ordens de serviço", () => pode("os"), () => abrirOS(), "reg"],
     ...MODOS_APP.filter(([m]) => m !== "comp").map(([m, , nome]) => ["m-" + m, nome, () => pode(m), () => abrirModulo(m)]),
     ["avcb", "Validade AVCB / CLCB", () => pode("avcb"), () => abrirAvcb(), "reg"],
@@ -17603,6 +17608,7 @@ const SUBMENUS_NAV = {
     ["nova", "+ Nova oportunidade", () => true, () => abrirFunil({ nova: {} })]
   ],
   fin: [
+    ["resumo", "Visão geral", () => podeFin(), () => irPara("fin", true)],   // a tela do Financeiro com os resumos (antes abria pelo nome do item)
     ["desp", "Despesas", () => podeTrans(), () => abrirTransacoes({ tipo: "desp" }), "fin"],
     ["rec", "Receitas", () => podeTrans(), () => abrirTransacoes({ tipo: "rec" }), "fin"],
     ["pagar", "Contas a pagar", () => podeTrans(), () => abrirContas({ tipo: "pagar" }), "fin"],
@@ -17631,7 +17637,7 @@ function abrirDoSubmenu(pai, [, , , fn, fundo]) {
   const ir = () => {
     if (fundo && secao !== fundo) irPara(fundo, true);
     fn();
-    const tela = { tar: "tela-tar", funil: "tela-funil", sol: "tela-pc" }[pai];
+    const tela = { tar: "tela-tar", funil: "tela-funil", sol: "tela-pc", op: "tela-tar" }[pai];
     if (tela && !$(tela).hidden) $(tela).classList.add("pela-lateral");
   };
   if (secao === "agenda") {
@@ -17652,7 +17658,7 @@ function montarSubmenusNav() {
     for (const it of itens) { const sb = el("button", "", it[1]); sb.type = "button"; sb.dataset.sub = it[0]; sb.onclick = () => abrirDoSubmenu(pai, it); sub.appendChild(sb); }
     const pintar = () => {
       const ab = navAbertos.has(pai); sub.hidden = !ab;
-      seta.setAttribute("aria-expanded", String(ab)); seta.title = `${ab ? "Esconder" : "Mostrar"} as opções de ${NOME_NAV[pai]}`; seta.setAttribute("aria-label", seta.title);
+      seta.setAttribute("aria-expanded", String(ab)); b.setAttribute("aria-expanded", String(ab)); b.setAttribute("aria-controls", sub.id); seta.title = `${ab ? "Esconder" : "Mostrar"} as opções de ${NOME_NAV[pai]}`; seta.setAttribute("aria-label", seta.title);
     };
     seta.onclick = () => abrirSoSubmenu(navAbertos.has(pai) ? null : pai);   // abrir um recolhe os outros; de novo, recolhe este
     pintarNavSub[pai] = pintar;
