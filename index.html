@@ -2208,7 +2208,7 @@ span.fu-orc-lin{cursor:default}
    Início e Agenda em duas colunas, e a barra dos formulários numa linha só (sobra altura para as fotos). Formulários continuam com 720 px. */
 /* Duo aberto em pé (669 px), iPad em pé: a partir de 600 px de toque, Início em duas colunas, quadrados e listas do hub em mais colunas
    (a Apple pede para a tela de dentro não ser o layout do celular esticado). O resto do layout largo começa em 840 px. */
-@media (min-width:600px) and (pointer:coarse){
+@media (min-width:560px) and (pointer:coarse){   /* 560: no Duo aberto em pé sobram 585 px ao lado da coluna de botões */
   .hub-grade{grid-template-columns:repeat(auto-fill,minmax(176px,1fr))!important;gap:12px}
   .hub .hub-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:0;border-radius:0;background:none;overflow:visible;box-shadow:none}
   .hub .hub-lista:has(> .hub-linha:only-child){grid-template-columns:minmax(0,1fr)}   /* uma linha só (Andamento dos clientes) usa a largura toda */
@@ -2243,22 +2243,40 @@ span.fu-orc-lin{cursor:default}
 /* iPhone Duo instalado na tela inicial (html.duo, posto pelo script do <head>): barra de status "black-translucent", o app vai até a
    borda do lado da câmera. O iOS informava 84 px de espaço reservado em cima (a faixa da hora) e o topo ficava alto: no Duo vale 0.
    Com a barra transparente o iOS do Duo não mostra a hora sobre o app (conferido no aparelho do Gustavo em 15/11/2026): sem quadradinho no canto. */
-html.duo{--sat:0px;--sar:max(env(safe-area-inset-right,0px), env(safe-area-inset-top,0px))}
-/* Duo fechado (tela de fora, até 520 px): a Apple pede que nada tocável fique na faixa da câmera frontal e da Dynamic Island,
-   do lado direito. O fundo vai até a borda; botões e textos ficam afastados dela pela medida que o iOS informa (--sar: o iOS do
-   Duo informava a faixa como espaço "de cima", por isso vale o maior dos dois). Aberto, a tela de dentro usa as barras normais. */
-@media (max-width:520px){
-  html.duo .topo,html.duo .barra{padding-right:calc(18px + var(--sar))}
-  html.duo .topo-dir{right:calc(14px + var(--sar))}
-  html.duo .nav{padding-right:calc(4px + var(--sar))}
-  html.duo main{padding-right:calc(18px + var(--sar))}
-  html.duo .tela-avcb .avcb-topo{padding-right:calc(14px + var(--sar))}
-  html.duo .avcb-corpo{padding-right:calc(16px + var(--sar))}
-  html.duo .cam,html.duo .visor-pdf,html.duo dialog{padding-right:var(--sar)}
-  html.duo .ld-prog{padding-right:calc(12px + var(--sar))}
-  html.duo .aviso{right:calc(18px + var(--sar))}
-  html.duo .versao-nova{right:calc(12px + var(--sar))}
+html.duo{--sat:0px;--sar:max(env(safe-area-inset-right,0px), env(safe-area-inset-top,0px))}   /* o iOS do Duo informava a faixa da hora como espaço "de cima": vale o maior dos dois */
+/* Coluna de botões do Duo (pedido do Gustavo em 15/11/2026, a partir do app Notas da Apple): no Duo, fechado ou aberto, a faixa
+   do lado da câmera (--faixa) vira uma coluna de botões redondos translúcidos — "Voltar" em cima e o botão de criar ("+ Nova",
+   "+ Novo", "+ Cliente"…) embaixo. Os botões são cópias (pintarFaixaDuo) que clicam no original da tela de cima; o original some
+   do topo (classe na-faixa). Nada tocável fica embaixo da câmera: topo, barra de baixo, conteúdo e telas por cima se afastam da faixa
+   (o fundo vai até a borda). A barra de abas continua embaixo, como a Apple manda. */
+html.duo{--faixa:max(var(--sar), 84px)}
+html.duo .topo,html.duo .barra{padding-right:calc(18px + var(--faixa))}
+html.duo .topo-dir{right:calc(14px + var(--faixa))}
+html.duo .nav{padding-right:calc(4px + var(--faixa))}
+html.duo main{padding-right:calc(18px + var(--faixa))}
+html.duo .tela-avcb .avcb-topo,html.duo #tela-agenda.como-secao .avcb-topo{padding-right:calc(14px + var(--faixa))}
+html.duo .avcb-corpo{padding-right:calc(16px + var(--faixa))}
+html.duo .cam,html.duo .visor-pdf,html.duo dialog{padding-right:var(--faixa)}
+html.duo .ld-prog{padding-right:calc(12px + var(--faixa))}
+html.duo .aviso{right:calc(18px + var(--faixa))}
+html.duo .versao-nova{right:calc(12px + var(--faixa))}
+html.duo .na-faixa{display:none!important}
+#duo-faixa{display:none}
+html.duo #duo-faixa{display:block;position:fixed;top:0;right:0;bottom:0;width:var(--faixa);z-index:36;pointer-events:none}
+#duo-faixa .df-grupo{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:12px}
+#duo-faixa .df-cima{top:96px}
+#duo-faixa .df-baixo{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body.form-on #duo-faixa .df-baixo{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+.df-btn{pointer-events:auto;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;color:var(--tinta);background:rgba(255,255,255,.66);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border:1px solid rgba(19,37,59,.10);box-shadow:0 6px 18px rgba(19,37,59,.16),inset 0 1px 0 rgba(255,255,255,.7)}
+.df-btn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.df-btn.df-novo{color:var(--laranja)}
+.df-btn.df-novo svg{stroke-width:2.6}
+.df-btn:active{transform:scale(.94);background:rgba(255,255,255,.85)}
+@media (prefers-color-scheme:dark){
+  .df-btn{color:#fff;background:rgba(44,64,92,.62);border-color:rgba(255,255,255,.12);box-shadow:0 6px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.10)}
+  .df-btn:active{background:rgba(60,84,118,.8)}
 }
+@media (prefers-reduced-transparency:reduce){.df-btn{background:var(--papel);-webkit-backdrop-filter:none;backdrop-filter:none}}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -3213,7 +3231,7 @@ const GRAPH = "https://graph.microsoft.com/v1.0";
 const $ = id => document.getElementById(id);
 // computador (tela larga e mouse): menu lateral e telas largas; a mesma condição está no CSS ("computador")
 const computador = matchMedia("(min-width:900px) and (hover:hover) and (pointer:fine)");
-const toqueLargo = matchMedia("(min-width:600px) and (pointer:coarse)");   // Início em duas colunas (Duo aberto, iPad)   // iPhone Duo aberto e deitado, iPad: layout do celular usando a largura
+const toqueLargo = matchMedia("(min-width:560px) and (pointer:coarse)");   // Início em duas colunas (Duo aberto, iPad)   // iPhone Duo aberto e deitado, iPad: layout do celular usando a largura
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
@@ -19897,6 +19915,65 @@ computador.addEventListener("change", () => {      // janela passou da largura d
   if (secao === "fin") desenharFin();
   atualizarNav();
 });
+/* coluna de botões do Duo (CSS "Coluna de botões do Duo"): copia o "Voltar" e o botão de criar da tela de cima para a coluna da
+   direita. A tela de cima é a .tela-avcb que está no meio da tela (elementFromPoint); sem nenhuma, o "‹ Início" do formulário
+   ou o "‹ Clientes"/"‹ Operacional" da página. Os originais ficam escondidos (na-faixa) e continuam fazendo o trabalho (o clique da
+   cópia é o clique deles). Refeito por um MutationObserver (telas abrindo e fechando), juntando as mudanças de 40 ms. */
+function pintarFaixaDuo() {
+  if (!document.documentElement.classList.contains("duo")) return;
+  let f = $("duo-faixa");
+  if (!f) {
+    f = el("nav", ""); f.id = "duo-faixa"; f.setAttribute("aria-label", "Ações da tela");
+    f.append(el("div", "df-grupo df-cima"), el("div", "df-grupo df-baixo")); document.body.appendChild(f);
+  }
+  const visivel = e => {
+    if (!e || !e.isConnected) return false;
+    const tinha = e.classList.contains("na-faixa"); if (tinha) e.classList.remove("na-faixa");
+    const ok = e.getClientRects().length > 0; if (tinha) e.classList.add("na-faixa");
+    return ok;
+  };
+  let voltar = null, novo = null;
+  const porCima = !$("cam").hidden || !$("visor-pdf").hidden;      // câmera e visualizador cobrem a tela inteira: coluna vazia
+  if (!porCima) {
+    const meio = document.elementFromPoint(Math.max(1, (innerWidth - f.offsetWidth) / 2), innerHeight / 2);   // a tela que está de fato à vista no meio
+    const t = meio?.closest(".tela-avcb") || null;
+    if (t) {
+      const topo = t.querySelector(":scope > .avcb-topo");
+      voltar = topo ? [...topo.querySelectorAll(".avcb-voltar:not(.agenda-hoje)")].find(visivel) || null : null;
+      novo = topo ? [...topo.querySelectorAll(".ag-novo")].find(visivel) || null : null;
+    } else if (document.body.classList.contains("form-on")) voltar = visivel($("trab-voltar")) ? $("trab-voltar") : null;
+    else voltar = [...document.querySelectorAll("main .hub-voltar")].find(visivel) || null;
+  }
+  const rot = e => e ? (e.getAttribute("aria-label") || e.textContent).replace(/[‹+]/g, "").trim() : "";
+  const assin = [voltar, novo].map(e => e ? rot(e) : "-").join("|");
+  if (pintarFaixaDuo.v === voltar && pintarFaixaDuo.n === novo && pintarFaixaDuo.assin === assin) return;
+  for (const e of document.querySelectorAll(".na-faixa")) if (e !== voltar && e !== novo) e.classList.remove("na-faixa");
+  pintarFaixaDuo.v = voltar; pintarFaixaDuo.n = novo; pintarFaixaDuo.assin = assin;
+  const [cima, baixo] = f.children; cima.innerHTML = ""; baixo.innerHTML = "";
+  const copia = (orig, cls, desenho, onde) => {
+    const b = el("button", "df-btn " + cls); b.type = "button";
+    const r = rot(orig) || (cls === "df-novo" ? "Novo" : "Voltar");
+    b.setAttribute("aria-label", cls === "df-voltar" ? "Voltar: " + r : r); b.title = r;
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${desenho}"/></svg>`;
+    b.onclick = () => orig.click();
+    onde.appendChild(b); orig.classList.add("na-faixa");
+  };
+  if (voltar) copia(voltar, "df-voltar", "M15 5l-7 7 7 7", cima);
+  if (novo) copia(novo, "df-novo", "M12 5v14M5 12h14", baixo);
+}
+function ligarFaixaDuo() {
+  if (ligarFaixaDuo.ok || !document.documentElement.classList.contains("duo")) return;
+  ligarFaixaDuo.ok = true;
+  let pedido = 0;
+  const obs = new MutationObserver(() => {
+    if (pedido) return;
+    pedido = setTimeout(() => { pedido = 0; pintarFaixaDuo(); obs.takeRecords(); }, 40);   // junta as mudanças seguidas; descarta as feitas pela própria pintura
+  });
+  obs.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
+  addEventListener("resize", () => pintarFaixaDuo());
+  pintarFaixaDuo();
+}
+ligarFaixaDuo();
 toqueLargo.addEventListener("change", () => {      // iPhone Duo: abriu/fechou ou girou (a página não recarrega, só muda de tamanho)
   if (conta && secao === "inicio") desenharInicio();
 });
