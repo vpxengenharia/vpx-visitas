@@ -9,7 +9,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="VPX Engenharia">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>
+/* iPhone Duo (pedido do Gustavo em 15/11/2026): com a barra de status "default" o iOS reserva uma faixa de 84 px do lado da câmera
+   (hora e bateria) e o app não chega à borda. Só no Duo instalado na tela inicial (tela de 466 x 678 em qualquer posição) a barra
+   fica "black-translucent": o app vai até a borda e a hora aparece em branco sobre o quadradinho azul do canto (html.duo no CSS).
+   Os outros iPhones continuam com "default". O iOS lê esta marcação ao abrir o app. */
+(function () {
+  var w = screen.width, h = screen.height, duo = Math.min(w, h) === 466 && Math.max(w, h) === 678 && navigator.standalone === true;
+  if (duo) document.documentElement.classList.add("duo");
+  document.write('<meta name="apple-mobile-web-app-status-bar-style" content="' + (duo ? "black-translucent" : "default") + '">');
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icone-180.png?v=3">
 <link rel="icon" href="icone-192.png?v=3">
@@ -20,7 +30,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style id="estilo-app">
 :root{
-  --marinho:#1C3C61; --laranja:#EB9D2B; --tinta:#13253B; --fundo:#EDF0F4; --topo-h:60px;
+  --marinho:#1C3C61; --laranja:#EB9D2B; --tinta:#13253B; --fundo:#EDF0F4; --topo-h:60px; --sat:env(safe-area-inset-top,0px);
   --papel:#FFFFFF; --linha:#D3DAE3; --suave:#5B6B80; --erro:#B3261E; --ok:#1E7A46;
   --texto-fonte:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --titulo-fonte:"Barlow Semi Condensed","Barlow",system-ui,sans-serif;
@@ -35,7 +45,7 @@ body{font-family:var(--texto-fonte);font-size:17px;line-height:1.45;color:var(--
 button,input,label{font:inherit}
 .oculto{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 
-.topo{background:#fff;color:var(--marinho);padding:env(safe-area-inset-top,0px) 18px 0;height:calc(env(safe-area-inset-top,0px) + var(--topo-h));display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:5;border-bottom:4px solid var(--laranja)}
+.topo{background:#fff;color:var(--marinho);padding:var(--sat) 18px 0;height:calc(var(--sat) + var(--topo-h));display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:5;border-bottom:4px solid var(--laranja)}
 .marca{font-family:var(--titulo-fonte);font-weight:700;font-size:22px;letter-spacing:.01em;margin:0}
 .marca{display:flex;align-items:center}
 .marca img{height:36px;width:auto;display:block}
@@ -526,7 +536,7 @@ button,input,label{font:inherit}
 .topo-dir #btn-its,.topo-dir #btn-admin,.topo-dir #btn-agenda,.topo-dir #btn-avcb,.topo-dir #btn-menu{display:none!important}
 /* logo no centro do topo; as iniciais saíram (a conta fica em Mais) e só o aviso da fila fica à direita */
 .topo{justify-content:center}
-.topo-dir{position:absolute;right:14px;top:env(safe-area-inset-top,0px);bottom:0}
+.topo-dir{position:absolute;right:14px;top:var(--sat);bottom:0}
 .topo-dir #btn-conta{display:none!important}
 .topo-fila{min-height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--warn-bg);color:var(--warn-tx);font-size:13px;font-weight:700;cursor:pointer}
 .topo-fila[hidden]{display:none}
@@ -547,13 +557,13 @@ body.hub-on main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
    da barra de rolagem reservado dos dois lados; assim nada "pula" de lugar ao trocar de aba (a lista de Clientes
    é a única longa e fazia o topo, a barra de baixo e o conteúdo andarem 7 px). No celular continua como antes. */
 @media (hover:hover) and (pointer:fine){
-  body.hub-on main{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--topo-h));bottom:calc(65.5px + env(safe-area-inset-bottom,0px));left:0;right:0;max-width:none;margin:0;overflow-y:auto;scrollbar-gutter:stable both-edges;padding:18px max(18px, calc((100% - 684px) / 2)) 24px}
+  body.hub-on main{position:fixed;top:calc(var(--sat) + var(--topo-h));bottom:calc(65.5px + env(safe-area-inset-bottom,0px));left:0;right:0;max-width:none;margin:0;overflow-y:auto;scrollbar-gutter:stable both-edges;padding:18px max(18px, calc((100% - 684px) / 2)) 24px}
   body.hub-on .cl-cab{top:-18px}                  /* encosta no topo da área que rola (cobre o espaço de 18 px de cima) */
 }
 /* Agenda aberta pela barra de baixo: vira uma seção como as outras (barra de baixo visível, sem "Voltar") */
 body.agenda-secao .nav{z-index:35}
 #tela-agenda.como-secao #agenda-voltar{display:none}
-#tela-agenda.como-secao{top:calc(env(safe-area-inset-top,0px) + var(--topo-h))}   /* o topo do app (logo) continua visível */
+#tela-agenda.como-secao{top:calc(var(--sat) + var(--topo-h))}   /* o topo do app (logo) continua visível */
 #tela-agenda.como-secao .avcb-topo{background:transparent;border-bottom:0;padding:14px 18px 0;max-width:720px;width:100%;margin:0 auto}
 #tela-agenda.como-secao .avcb-topo strong{font-size:26px;color:var(--tinta)}
 #tela-agenda.como-secao .avcb-corpo{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
@@ -602,7 +612,7 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .hub-linha .qtd{background:var(--erro);color:#fff;border-radius:10px;font-size:12px;font-weight:700;padding:1px 7px}
 .hub-busca{margin-bottom:12px}
 /* Clientes: título e busca grudados logo abaixo do topo (logo) enquanto a lista rola */
-.cl-cab{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--topo-h));z-index:4;background:var(--fundo);margin:-18px -18px 0;padding:18px 18px 2px}
+.cl-cab{position:sticky;top:calc(var(--sat) + var(--topo-h));z-index:4;background:var(--fundo);margin:-18px -18px 0;padding:18px 18px 2px}
 .hub-voltar{background:none;border:0;color:var(--marinho);font-size:16px;font-weight:700;padding:6px 0;cursor:pointer;min-height:40px}
 @media (prefers-color-scheme:dark){.hub-voltar,.trab-voltar{color:var(--laranja)}}
 .hub-valor{font-family:var(--titulo-fonte);font-size:26px;font-weight:700;color:var(--marinho)}
@@ -613,7 +623,7 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .trab-topo strong{font-family:var(--titulo-fonte);font-size:21px;color:var(--tinta);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .menu-btn{position:relative}
 .menu-btn[hidden]{display:none}
-.menu{position:fixed;z-index:30;top:calc(env(safe-area-inset-top,0px) + 74px);right:12px;min-width:250px;max-width:min(300px,calc(100vw - 24px));background:var(--papel);border:1.5px solid var(--linha);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column}
+.menu{position:fixed;z-index:30;top:calc(var(--sat) + 74px);right:12px;min-width:250px;max-width:min(300px,calc(100vw - 24px));background:var(--papel);border:1.5px solid var(--linha);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column}
 .menu[hidden]{display:none}
 .menu button{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 12px;border:0;border-radius:10px;background:none;color:var(--tinta);font-size:16px;font-weight:600;text-align:left;cursor:pointer}
 .menu button:hover,.menu button:focus-visible{background:rgba(127,127,127,.12)}
@@ -716,7 +726,7 @@ small .ic.in,.pt-doc .ic.in,.li-foto .ic.in{width:17px;height:17px;margin:-2px 5
 .avcb-aviso.ok,.avcb-card.ok,.avcb-resumo .ok{background:var(--okv-bg);color:var(--okv-tx)}
 .tela-avcb{position:fixed;inset:0;z-index:34;background:var(--fundo);display:flex;flex-direction:column}
 .tela-avcb[hidden]{display:none}
-.avcb-topo{flex:none;display:flex;align-items:center;gap:10px;background:#fff;color:var(--marinho);padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;border-bottom:4px solid var(--laranja)}
+.avcb-topo{flex:none;display:flex;align-items:center;gap:10px;background:#fff;color:var(--marinho);padding:calc(var(--sat) + 12px) 14px 12px;border-bottom:4px solid var(--laranja)}
 .avcb-topo strong{font-family:var(--titulo-fonte);font-size:20px}
 .avcb-voltar{min-height:44px;padding:0 12px;border-radius:10px;border:1.5px solid var(--linha);background:transparent;color:var(--marinho);font-weight:600;font-size:16px;cursor:pointer}
 .avcb-corpo{flex:1;overflow:auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0px));max-width:720px;width:100%;margin:0 auto}
@@ -1073,7 +1083,7 @@ textarea.tar-tit-in.tar-tit-lin{flex:1 1 auto;width:auto;min-width:0;margin:-4px
 .ag-acoes button.perigo{color:var(--erro)}
 @media (prefers-color-scheme:dark){.ag-acoes button{color:var(--tinta)}}
 
-main{padding:calc(env(safe-area-inset-top,0px) + var(--topo-h) + 18px) 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
+main{padding:calc(var(--sat) + var(--topo-h) + 18px) 18px calc(190px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
 h1{font-family:var(--titulo-fonte);font-weight:700;font-size:30px;line-height:1.1;margin:24px 0 10px}
 p{margin:0 0 14px;max-width:60ch}
 
@@ -1167,7 +1177,7 @@ p{margin:0 0 14px;max-width:60ch}
 .ld-tudo-c small{font-weight:400;font-size:13px;color:var(--suave)}
 @media (prefers-color-scheme:dark){.ld-tudo-c{color:#6FCE97;border-color:#6FCE97}}
 /* barra fixa do laudo: seção atual, quantos itens já têm resposta e atalho para o próximo que falta */
-.ld-prog{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + var(--topo-h));z-index:4;background:var(--papel);border-bottom:1.5px solid var(--linha);box-shadow:0 4px 10px rgba(0,0,0,.08);padding:6px 18px 7px;cursor:pointer}
+.ld-prog{position:fixed;left:0;right:0;top:calc(var(--sat) + var(--topo-h));z-index:4;background:var(--papel);border-bottom:1.5px solid var(--linha);box-shadow:0 4px 10px rgba(0,0,0,.08);padding:6px 18px 7px;cursor:pointer}
 .ld-prog[hidden]{display:none}
 .ld-prog-in{max-width:684px;margin:0 auto;display:flex;align-items:center;gap:10px}
 .ld-prog-txt{flex:1;min-width:0}
@@ -1299,7 +1309,7 @@ body.entrada-on .entrada-arte{display:block;position:relative;flex:none;height:3
 /* visualizador do relatório (PDF desenhado dentro do app) */
 .visor-pdf{position:fixed;inset:0;z-index:35;background:#525659;display:flex;flex-direction:column}
 .visor-pdf[hidden]{display:none}
-.visor-topo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--marinho);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px}
+.visor-topo{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--marinho);color:#fff;padding:calc(var(--sat) + 8px) 10px 8px}
 .visor-topo strong{flex:1;text-align:center;font-family:var(--titulo-fonte);font-size:16px;line-height:1.1}
 .visor-btn{min-height:44px;padding:0 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-weight:600;cursor:pointer}
 .visor-btn:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
@@ -1324,7 +1334,7 @@ body.entrada-on .entrada-arte{display:block;position:relative;flex:none;height:3
 
 dialog{border:0;padding:0;width:100%;max-width:720px;height:100%;max-height:100%;margin:0 auto;background:var(--fundo);color:var(--tinta)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
-.dlg-topo{background:var(--marinho);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 14px;position:sticky;top:0}
+.dlg-topo{background:var(--marinho);color:#fff;padding:calc(var(--sat) + 12px) 18px 14px;position:sticky;top:0}
 .dlg-topo div{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .dlg-topo h2{font-family:var(--titulo-fonte);margin:0;font-size:22px}
 .fechar{background:none;border:0;color:#fff;font-size:30px;line-height:1;cursor:pointer;width:40px;height:40px}
@@ -1370,8 +1380,8 @@ body.versao-on.form-on main{padding-bottom:calc(280px + env(safe-area-inset-bott
 /* câmera em sequência: visual inspirado na câmera do iPhone (amarelo #FFD60A nos itens ativos) */
 .cam{position:fixed;inset:0;z-index:30;background:#000;color:#fff;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
 .cam[hidden]{display:none}
-.cam-topo{flex:none;position:relative;height:calc(env(safe-area-inset-top,0px) + 56px);padding:env(safe-area-inset-top,0px) 14px 0;display:flex;align-items:center;justify-content:space-between}
-.cam-tempo{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 28px);transform:translate(-50%,-50%);background:#FF3B30;color:#fff;font-size:17px;font-weight:500;font-variant-numeric:tabular-nums;padding:2px 10px;border-radius:6px}
+.cam-topo{flex:none;position:relative;height:calc(var(--sat) + 56px);padding:var(--sat) 14px 0;display:flex;align-items:center;justify-content:space-between}
+.cam-tempo{position:absolute;left:50%;top:calc(var(--sat) + 28px);transform:translate(-50%,-50%);background:#FF3B30;color:#fff;font-size:17px;font-weight:500;font-variant-numeric:tabular-nums;padding:2px 10px;border-radius:6px}
 .cam-tempo[hidden]{display:none}
 .cam-luz{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;padding:0}
 .cam-luz[hidden]{display:none}
@@ -1692,7 +1702,7 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
   .nav button{font-size:13px}
   .nav button[aria-current="page"] svg{color:inherit}
   .nav button[aria-current="page"]::before{content:"";position:absolute;top:-5.5px;left:50%;margin-left:-14px;width:28px;height:3px;border-radius:0 0 3px 3px;background:var(--laranja)}
-  .avcb-topo{padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:6px}   /* as telas por cima acompanham o topo mais baixo */
+  .avcb-topo{padding-top:calc(var(--sat) + 6px);padding-bottom:6px}   /* as telas por cima acompanham o topo mais baixo */
   #tela-agenda.como-secao .avcb-topo{padding-top:14px;padding-bottom:0}
 }
 /* selos de situação do mesmo tamanho em todas as listas */
@@ -1874,7 +1884,7 @@ body.alt-teclas .nav button > .nav-tecla{position:absolute;left:4px;top:50%;z-in
 @media not all and (min-width:900px) and (hover:hover) and (pointer:fine){
   /* (1) formulários no celular: o "voltar" e o título ficam dentro da faixa do topo, no lugar da logo (sobra mais tela para o formulário) */
   body.form-on .topo .marca{display:none}
-  body.form-on .trab-topo{position:fixed;z-index:6;left:0;top:env(safe-area-inset-top,0px);height:56px;max-width:calc(100% - 136px);gap:6px;margin:0;padding:0 0 0 12px}
+  body.form-on .trab-topo{position:fixed;z-index:6;left:0;top:var(--sat);height:56px;max-width:calc(100% - 136px);gap:6px;margin:0;padding:0 0 0 12px}
   body.form-on .trab-voltar{max-width:108px;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}   /* com o aviso da fila à vista quem encurta é o "voltar", não o título */
   body.form-on:has(#topo-fila[hidden]) .trab-topo{max-width:calc(100% - 12px);gap:10px}   /* sem o aviso da fila à direita, o título usa a largura toda */
   body.form-on:has(#topo-fila[hidden]) .trab-voltar{max-width:none;padding:0 12px}
@@ -2226,6 +2236,14 @@ span.fu-orc-lin{cursor:default}
   body.form-on main{padding-bottom:140px}
   body.form-on .aviso,body.form-on .versao-nova{bottom:130px}
 }
+/* iPhone Duo instalado na tela inicial (html.duo, posto pelo script do <head>): barra de status "black-translucent", o app vai até a
+   borda do lado da câmera. O iOS informava 84 px de espaço reservado em cima (a faixa da hora) e o topo ficava alto: no Duo vale 0.
+   A hora e a bateria (brancas) ficam sobre um quadradinho azul-marinho no canto de cima à direita; os botões do topo se afastam dele. */
+html.duo{--sat:0px}
+html.duo body::after{content:"";position:fixed;top:0;right:0;width:84px;height:100px;background:var(--marinho);border-bottom-left-radius:18px;z-index:2147483000;pointer-events:none}
+html.duo .topo{padding-right:96px}
+html.duo .topo-dir{right:96px}
+html.duo .avcb-topo,html.duo #tela-agenda.como-secao .avcb-topo{padding-right:96px}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
