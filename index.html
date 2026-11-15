@@ -12,7 +12,7 @@
 <script>
 /* iPhone Duo (pedido do Gustavo em 15/11/2026): com a barra de status "default" o iOS reserva uma faixa de 84 px do lado da câmera
    (hora e bateria) e o app não chega à borda. Só no Duo instalado na tela inicial (tela de 466 x 678 em qualquer posição) a barra
-   fica "black-translucent": o app vai até a borda e a hora aparece em branco sobre o quadradinho azul do canto (html.duo no CSS).
+   fica "black-translucent": o app vai até a borda (html.duo no CSS).
    Os outros iPhones continuam com "default". O iOS lê esta marcação ao abrir o app. */
 (function () {
   var w = screen.width, h = screen.height, duo = Math.min(w, h) === 466 && Math.max(w, h) === 678 && navigator.standalone === true;
@@ -2238,12 +2238,8 @@ span.fu-orc-lin{cursor:default}
 }
 /* iPhone Duo instalado na tela inicial (html.duo, posto pelo script do <head>): barra de status "black-translucent", o app vai até a
    borda do lado da câmera. O iOS informava 84 px de espaço reservado em cima (a faixa da hora) e o topo ficava alto: no Duo vale 0.
-   A hora e a bateria (brancas) ficam sobre um quadradinho azul-marinho no canto de cima à direita; os botões do topo se afastam dele. */
+   Com a barra transparente o iOS do Duo não mostra a hora sobre o app (conferido no aparelho do Gustavo em 15/11/2026): sem quadradinho no canto. */
 html.duo{--sat:0px}
-html.duo body::after{content:"";position:fixed;top:0;right:0;width:84px;height:100px;background:var(--marinho);border-bottom-left-radius:18px;z-index:2147483000;pointer-events:none}
-html.duo .topo{padding-right:96px}
-html.duo .topo-dir{right:96px}
-html.duo .avcb-topo,html.duo #tela-agenda.como-secao .avcb-topo{padding-right:96px}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
