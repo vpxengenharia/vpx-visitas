@@ -17,6 +17,7 @@
 (function () {
   var w = screen.width, h = screen.height, duo = Math.min(w, h) === 466 && Math.max(w, h) === 678 && navigator.standalone === true;
   if (duo) document.documentElement.classList.add("duo");
+  if (duo && matchMedia("(orientation: landscape), (max-width: 559px)").matches) document.documentElement.classList.add("duo-col");   // coluna de botões: fechado ou aberto deitado
   document.write('<meta name="apple-mobile-web-app-status-bar-style" content="' + (duo ? "black-translucent" : "default") + '">');
 })();
 </script>
@@ -2244,29 +2245,40 @@ span.fu-orc-lin{cursor:default}
    borda do lado da câmera. O iOS informava 84 px de espaço reservado em cima (a faixa da hora) e o topo ficava alto: no Duo vale 0.
    Com a barra transparente o iOS do Duo não mostra a hora sobre o app (conferido no aparelho do Gustavo em 15/11/2026): sem quadradinho no canto. */
 html.duo{--sat:0px;--sar:max(env(safe-area-inset-right,0px), env(safe-area-inset-top,0px))}   /* o iOS do Duo informava a faixa da hora como espaço "de cima": vale o maior dos dois */
-/* Coluna de botões do Duo (pedido do Gustavo em 15/11/2026, a partir do app Notas da Apple): no Duo, fechado ou aberto, a faixa
-   do lado da câmera (--faixa) vira uma coluna de botões redondos translúcidos — "Voltar" em cima e o botão de criar ("+ Nova",
-   "+ Novo", "+ Cliente"…) embaixo. Os botões são cópias (pintarFaixaDuo) que clicam no original da tela de cima; o original some
+/* Coluna de botões do Duo (pedido do Gustavo em 15/11/2026, a partir do app Notas da Apple; regras da Apple em docs/iphone-duo-apple.md):
+   com o Duo FECHADO ou ABERTO DEITADO (html.duo-col; aberto em pé ficam as barras normais), a faixa do lado da câmera (--faixa) vira
+   uma coluna de botões redondos translúcidos — no alto "Voltar" e logo abaixo o botão de criar ("+ Nova", "+ Novo", "+ Cliente"…);
+   embaixo, as abas (Início, Clientes, Operacional, Agenda, Mais) numa cápsula de vidro. Os botões são cópias (pintarFaixaDuo) que clicam no original da tela de cima; o original some
    do topo (classe na-faixa). Nada tocável fica embaixo da câmera: topo, barra de baixo, conteúdo e telas por cima se afastam da faixa
-   (o fundo vai até a borda). A barra de abas continua embaixo, como a Apple manda. */
+   (o fundo vai até a borda). */
 html.duo{--faixa:max(var(--sar), 84px)}
-html.duo .topo,html.duo .barra{padding-right:calc(18px + var(--faixa))}
-html.duo .topo-dir{right:calc(14px + var(--faixa))}
-html.duo .nav{padding-right:calc(4px + var(--faixa))}
-html.duo main{padding-right:calc(18px + var(--faixa))}
-html.duo .tela-avcb .avcb-topo,html.duo #tela-agenda.como-secao .avcb-topo{padding-right:calc(14px + var(--faixa))}
-html.duo .avcb-corpo{padding-right:calc(16px + var(--faixa))}
-html.duo .cam,html.duo .visor-pdf,html.duo dialog{padding-right:var(--faixa)}
-html.duo .ld-prog{padding-right:calc(12px + var(--faixa))}
-html.duo .aviso{right:calc(18px + var(--faixa))}
-html.duo .versao-nova{right:calc(12px + var(--faixa))}
-html.duo .na-faixa{display:none!important}
+html.duo-col .topo,html.duo-col .barra{padding-right:calc(18px + var(--faixa))}
+html.duo-col .topo-dir{right:calc(14px + var(--faixa))}
+html.duo-col .nav{padding-right:calc(4px + var(--faixa))}
+html.duo-col main{padding-right:calc(18px + var(--faixa))}
+html.duo-col .tela-avcb .avcb-topo,html.duo-col #tela-agenda.como-secao .avcb-topo{padding-right:calc(14px + var(--faixa))}
+html.duo-col .avcb-corpo{padding-right:calc(16px + var(--faixa))}
+html.duo-col .cam,html.duo-col .visor-pdf,html.duo-col dialog{padding-right:var(--faixa)}
+html.duo-col .ld-prog{padding-right:calc(12px + var(--faixa))}
+html.duo-col .aviso{right:calc(18px + var(--faixa))}
+html.duo-col .versao-nova{right:calc(12px + var(--faixa))}
+html.duo-col .na-faixa{display:none!important}
 #duo-faixa{display:none}
-html.duo #duo-faixa{display:block;position:fixed;top:0;right:0;bottom:0;width:var(--faixa);z-index:36;pointer-events:none}
+html.duo-col #duo-faixa{display:block;position:fixed;top:0;right:0;bottom:0;width:var(--faixa);z-index:36;pointer-events:none}
 #duo-faixa .df-grupo{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:12px}
 #duo-faixa .df-cima{top:96px}
-#duo-faixa .df-baixo{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-body.form-on #duo-faixa .df-baixo{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+#duo-faixa .df-baixo{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+/* abas na coluna (a Apple põe a barra de abas na coluna, embaixo): a barra de baixo some e as telas usam a altura toda */
+html.duo-col .nav{display:none!important}
+html.duo-col body.hub-on .tela-avcb.com-nav{bottom:0}
+html.duo-col body.hub-on .versao-nova{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.df-abas{pointer-events:auto;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:34px;background:rgba(255,255,255,.66);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border:1px solid rgba(19,37,59,.10);box-shadow:0 6px 18px rgba(19,37,59,.16),inset 0 1px 0 rgba(255,255,255,.7)}
+.df-aba{position:relative;width:52px;height:52px;border-radius:50%;border:0;background:none;padding:0;display:grid;place-items:center;color:var(--suave);cursor:pointer}
+.df-aba svg{width:25px;height:25px}
+.df-aba[aria-current="page"]{background:rgba(28,60,97,.12);color:var(--marinho)}
+.df-aba[aria-current="page"] svg{color:var(--laranja)}
+.df-aba:active{transform:scale(.92)}
+.df-aba .df-qtd{position:absolute;top:2px;right:0;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--erro);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center}
 .df-btn{pointer-events:auto;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;color:var(--tinta);background:rgba(255,255,255,.66);-webkit-backdrop-filter:blur(18px) saturate(1.8);backdrop-filter:blur(18px) saturate(1.8);border:1px solid rgba(19,37,59,.10);box-shadow:0 6px 18px rgba(19,37,59,.16),inset 0 1px 0 rgba(255,255,255,.7)}
 .df-btn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .df-btn.df-novo{color:var(--laranja)}
@@ -2275,8 +2287,11 @@ body.form-on #duo-faixa .df-baixo{bottom:calc(150px + env(safe-area-inset-bottom
 @media (prefers-color-scheme:dark){
   .df-btn{color:#fff;background:rgba(44,64,92,.62);border-color:rgba(255,255,255,.12);box-shadow:0 6px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.10)}
   .df-btn:active{background:rgba(60,84,118,.8)}
+  .df-abas{background:rgba(44,64,92,.62);border-color:rgba(255,255,255,.12);box-shadow:0 6px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.10)}
+  .df-aba{color:#B9C6D8}
+  .df-aba[aria-current="page"]{background:rgba(255,255,255,.14);color:#fff}
 }
-@media (prefers-reduced-transparency:reduce){.df-btn{background:var(--papel);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-transparency:reduce){.df-btn,.df-abas{background:var(--papel);-webkit-backdrop-filter:none;backdrop-filter:none}}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -19921,6 +19936,12 @@ computador.addEventListener("change", () => {      // janela passou da largura d
    cópia é o clique deles). Refeito por um MutationObserver (telas abrindo e fechando), juntando as mudanças de 40 ms. */
 function pintarFaixaDuo() {
   if (!document.documentElement.classList.contains("duo")) return;
+  if (!document.documentElement.classList.contains("duo-col")) {      // aberto em pé: barras normais, nada na coluna
+    for (const e of document.querySelectorAll(".na-faixa")) e.classList.remove("na-faixa");
+    if ($("duo-faixa")) for (const g of $("duo-faixa").children) g.innerHTML = "";
+    pintarFaixaDuo.v = pintarFaixaDuo.n = pintarFaixaDuo.assin = undefined;
+    return;
+  }
   let f = $("duo-faixa");
   if (!f) {
     f = el("nav", ""); f.id = "duo-faixa"; f.setAttribute("aria-label", "Ações da tela");
@@ -19945,7 +19966,11 @@ function pintarFaixaDuo() {
     else voltar = [...document.querySelectorAll("main .hub-voltar")].find(visivel) || null;
   }
   const rot = e => e ? (e.getAttribute("aria-label") || e.textContent).replace(/[‹+]/g, "").trim() : "";
-  const assin = [voltar, novo].map(e => e ? rot(e) : "-").join("|");
+  // abas: os botões da barra de baixo do celular (a barra some na coluna), quando ela estaria à vista
+  const abas = !porCima && !$("nav").hidden ? [...$("nav").children].filter(b => b.tagName === "BUTTON" && !b.hidden && !b.classList.contains("so-pc") && (b.dataset.s || b.dataset.acao)) : [];
+  const qtdDe = b => { const q = b.querySelector(".avcb-qtd:not([hidden])"); return q ? q.textContent.trim() : ""; };
+  const nomeDe = b => (b.querySelector(".nav-rot")?.textContent || [...b.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join("")).trim();   // o nome fica na span.nav-rot (montarSubmenusNav)
+  const assin = [voltar, novo].map(e => e ? rot(e) : "-").join("|") + "#" + abas.map(b => nomeDe(b) + ":" + (b.getAttribute("aria-current") || "") + ":" + qtdDe(b)).join(",");
   if (pintarFaixaDuo.v === voltar && pintarFaixaDuo.n === novo && pintarFaixaDuo.assin === assin) return;
   for (const e of document.querySelectorAll(".na-faixa")) if (e !== voltar && e !== novo) e.classList.remove("na-faixa");
   pintarFaixaDuo.v = voltar; pintarFaixaDuo.n = novo; pintarFaixaDuo.assin = assin;
@@ -19959,7 +19984,21 @@ function pintarFaixaDuo() {
     onde.appendChild(b); orig.classList.add("na-faixa");
   };
   if (voltar) copia(voltar, "df-voltar", "M15 5l-7 7 7 7", cima);
-  if (novo) copia(novo, "df-novo", "M12 5v14M5 12h14", baixo);
+  if (novo) copia(novo, "df-novo", "M12 5v14M5 12h14", cima);   // logo abaixo do Voltar: navegação no alto, depois a ação de destaque (regra da Apple)
+  if (abas.length) {
+    const cx = el("div", "df-abas"); cx.setAttribute("role", "tablist"); cx.setAttribute("aria-label", "Menu principal");
+    for (const o of abas) {
+      const b = el("button", "df-aba"); b.type = "button"; b.setAttribute("role", "tab");
+      const nome = nomeDe(o), q = qtdDe(o);
+      b.setAttribute("aria-label", nome + (q ? " (" + q + ")" : "")); b.title = nome;
+      if (o.getAttribute("aria-current")) { b.setAttribute("aria-current", o.getAttribute("aria-current")); b.setAttribute("aria-selected", "true"); }
+      const s = o.querySelector("svg"); if (s) b.appendChild(s.cloneNode(true));
+      if (q) b.appendChild(el("span", "df-qtd", q));
+      b.onclick = () => o.click();
+      cx.appendChild(b);
+    }
+    baixo.appendChild(cx);
+  }
 }
 function ligarFaixaDuo() {
   if (ligarFaixaDuo.ok || !document.documentElement.classList.contains("duo")) return;
@@ -19969,9 +20008,12 @@ function ligarFaixaDuo() {
     if (pedido) return;
     pedido = setTimeout(() => { pedido = 0; pintarFaixaDuo(); obs.takeRecords(); }, 40);   // junta as mudanças seguidas; descarta as feitas pela própria pintura
   });
-  obs.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
+  obs.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["hidden", "class", "style", "aria-current"] });
+  const mq = matchMedia("(orientation: landscape), (max-width: 559px)");   // fechado ou aberto deitado: coluna; aberto em pé: barras normais
+  const aplicar = () => { document.documentElement.classList.toggle("duo-col", mq.matches); pintarFaixaDuo(); };
+  mq.addEventListener("change", aplicar);
   addEventListener("resize", () => pintarFaixaDuo());
-  pintarFaixaDuo();
+  aplicar();
 }
 ligarFaixaDuo();
 toqueLargo.addEventListener("change", () => {      // iPhone Duo: abriu/fechou ou girou (a página não recarrega, só muda de tamanho)

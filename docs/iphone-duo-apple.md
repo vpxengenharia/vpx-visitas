@@ -69,15 +69,15 @@ Se a Apple mudar a página, ler de novo pelo mesmo arquivo `.json` e atualizar a
 ## O que isso quer dizer para o VPX Visitas (app web)
 
 O app é uma página web na tela inicial: **não tem** os componentes nativos que fazem isso sozinhos, nem acesso às "regiões
-reservadas" e à dobra (o Safari não informa onde fica a dobra). O que dá para seguir, e onde está no app:
+reservadas" e à dobra (o Safari não informa onde fica a dobra). O que dá para seguir, e onde está no app (atualizado em 15/11/2026):
 
 | Regra da Apple | No app (15/11/2026) |
 |---|---|
 | Dois casos (estreita/larga), sem medidas fixas | Layout largo de toque a partir de 560/840 px — são medidas fixas, inevitáveis em CSS |
 | Nada embaixo da câmera / coluna | `--faixa` afasta topo, conteúdo, barras e janelas da borda direita (`html.duo`) |
-| Voltar no alto da coluna, ação de destaque, "nova" sempre à vista | `#duo-faixa`: Voltar em cima, "+" embaixo (`pintarFaixaDuo`) |
-| Barra de abas também na coluna (fechado e aberto deitado) | **Ainda não**: a barra de abas continua embaixo |
-| Aberto **em pé**: barras normais, sem coluna | **Ainda não**: a coluna aparece também aberto em pé |
+| Voltar no alto da coluna, logo depois a ação de destaque, "nova" sempre à vista | `#duo-faixa`: Voltar no alto e "+" logo abaixo (`pintarFaixaDuo`) |
+| Barra de abas também na coluna (fechado e aberto deitado) | Feito em 15/11/2026: abas numa cápsula de vidro embaixo da coluna (`.df-abas`); a barra de baixo some |
+| Aberto **em pé**: barras normais, sem coluna | Feito em 15/11/2026: coluna só com `html.duo-col` (deitado ou até 559 px) |
 | Tela de dentro com um nível a mais (lista + detalhe) | **Ainda não** (proposto como passo 3) |
 | Grades com número par de colunas | Quadrados em `auto-fill` (pode dar número ímpar) |
 | Ícone + título em cada botão; poucos botões de texto | Botões da coluna com ícone e `aria-label`/`title`; "Hoje" e outros textos ficam no topo |
