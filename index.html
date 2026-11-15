@@ -2197,7 +2197,7 @@ span.fu-orc-lin{cursor:default}
    Continua o layout do celular (barra de baixo, Câmera em destaque, toque), mas usa a largura: conteúdo até 1040 px nas telas da
    barra de baixo e nas listas por cima (as tabelas passam de 860 px de área e mostram as colunas extras), quadrados em mais colunas,
    Início e Agenda em duas colunas, e a barra dos formulários numa linha só (sobra altura para as fotos). Formulários continuam com 720 px. */
-@media (min-width:900px) and (pointer:coarse){
+@media (min-width:840px) and (pointer:coarse){   /* 840: no Duo o iOS tira 84 px do lado da câmera para a hora e a bateria — o app deitado fica com 867 px */
   body.hub-on main{max-width:1040px}
   .avcb-corpo{max-width:1040px}
   #tela-agenda.como-secao .avcb-topo{max-width:1040px}
@@ -3180,7 +3180,7 @@ const GRAPH = "https://graph.microsoft.com/v1.0";
 const $ = id => document.getElementById(id);
 // computador (tela larga e mouse): menu lateral e telas largas; a mesma condição está no CSS ("computador")
 const computador = matchMedia("(min-width:900px) and (hover:hover) and (pointer:fine)");
-const toqueLargo = matchMedia("(min-width:900px) and (pointer:coarse)");   // iPhone Duo aberto e deitado, iPad: layout do celular usando a largura
+const toqueLargo = matchMedia("(min-width:840px) and (pointer:coarse)");   // iPhone Duo aberto e deitado, iPad: layout do celular usando a largura
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
