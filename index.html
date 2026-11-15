@@ -2193,6 +2193,39 @@ span.fu-orc-lin{cursor:default}
   .nav-conta .nc-tx small{font-size:12.5px;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .nav-conta .nc-seta{width:16px!important;height:16px!important;color:var(--suave);flex:none}
 }
+/* Tela larga de toque: iPhone Duo aberto e deitado (951 px no app da tela inicial), iPad (pedido do Gustavo em 15/11/2026).
+   Continua o layout do celular (barra de baixo, Câmera em destaque, toque), mas usa a largura: conteúdo até 1040 px nas telas da
+   barra de baixo e nas listas por cima (as tabelas passam de 860 px de área e mostram as colunas extras), quadrados em mais colunas,
+   Início e Agenda em duas colunas, e a barra dos formulários numa linha só (sobra altura para as fotos). Formulários continuam com 720 px. */
+@media (min-width:900px) and (pointer:coarse){
+  body.hub-on main{max-width:1040px}
+  .avcb-corpo{max-width:1040px}
+  #tela-agenda.como-secao .avcb-topo{max-width:1040px}
+  #tela-avcb-novo .avcb-corpo,#tela-assinar .avcb-corpo,#tela-admin .avcb-corpo,#tela-ficha .avcb-corpo,#tela-perfil .avcb-corpo{max-width:760px}
+  .hub-grade{grid-template-columns:repeat(auto-fill,minmax(176px,1fr))!important;gap:12px}
+  .hub .hub-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:0;border-radius:0;background:none;overflow:visible;box-shadow:none}
+  .hub .hub-lista:has(> .hub-linha:only-child){grid-template-columns:minmax(0,1fr)}   /* uma linha só (Andamento dos clientes) usa a largura toda */
+  .hub .hub-lista .hub-linha{border:1px solid var(--linha-cartao);border-radius:var(--r-l);background:var(--papel);box-shadow:var(--sombra-1)}
+  .ini-grade{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:0 24px;align-items:start}
+  .ini-grade.so-uma{grid-template-columns:minmax(0,1fr)}
+  .ini-grade .hub-rot:first-child{margin-top:4px}
+  .hub-saud.com-av{max-width:none}                 /* a regra geral p{max-width:60ch} deixava a foto no meio da linha */
+  #agenda-lista:not([hidden]){display:grid;grid-template-columns:380px minmax(0,1fr);grid-template-rows:auto auto auto 1fr;column-gap:28px;align-items:start}
+  #agenda-lista > .ag-mes-cab,#agenda-lista > .ag-cal,#agenda-lista > .avcb-nota,#agenda-lista > .ag-leg{grid-column:1}
+  #agenda-lista > .ag-dir{grid-column:2;grid-row:1 / span 4}
+  #agenda-lista > .ag-dir > .ag-dia-sel{border-top:0;padding-top:0}
+  #agenda-lista > .ag-dir > .ag-dia-sel .ag-dia{margin-top:10px}
+  #agenda-lista.ag-buscando:not([hidden]){display:block}
+  /* formulários: Câmera, Galeria e Salvar lado a lado (a Câmera continua em azul cheio) */
+  .barra{padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+  .barra-in{max-width:684px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}   /* mesma largura do conteúdo do formulário */
+  .captura{flex:none}
+  .captura .btn,.captura label.btn,#btn-seq{flex:none;flex-direction:row;gap:8px;min-height:52px;padding:0 22px;white-space:nowrap}
+  #progresso{flex-basis:100%;order:-1}
+  #btn-salvar{flex:1;min-height:52px}
+  body.form-on main{padding-bottom:140px}
+  body.form-on .aviso,body.form-on .versao-nova{bottom:130px}
+}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -3147,6 +3180,7 @@ const GRAPH = "https://graph.microsoft.com/v1.0";
 const $ = id => document.getElementById(id);
 // computador (tela larga e mouse): menu lateral e telas largas; a mesma condição está no CSS ("computador")
 const computador = matchMedia("(min-width:900px) and (hover:hover) and (pointer:fine)");
+const toqueLargo = matchMedia("(min-width:900px) and (pointer:coarse)");   // iPhone Duo aberto e deitado, iPad: layout do celular usando a largura
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
@@ -18476,7 +18510,7 @@ function desenharInicio() {
     if (k.children.length) t.appendChild(k);
   }
   let esq = t, dir = t;
-  if (computador.matches) {
+  if (computador.matches || toqueLargo.matches) {
     const g = el("div", "ini-grade" + (pode("agenda") ? "" : " so-uma"));
     esq = el("div"); dir = el("div"); g.append(esq, dir); t.appendChild(g);
   }
@@ -19829,6 +19863,9 @@ computador.addEventListener("change", () => {      // janela passou da largura d
   if (secao === "inicio") desenharInicio();
   if (secao === "fin") desenharFin();
   atualizarNav();
+});
+toqueLargo.addEventListener("change", () => {      // iPhone Duo: abriu/fechou ou girou (a página não recarrega, só muda de tamanho)
+  if (conta && secao === "inicio") desenharInicio();
 });
 // no computador o botão da Galeria se chama "Escolher arquivos" (as fotos vêm de arquivos)
 const rotuloGaleria = () => { const t = computador.matches ? "Escolher arquivos" : "Galeria"; $("gal-rot").textContent = t; for (const s of document.querySelectorAll(".gal-nome")) s.textContent = t; };
