@@ -1484,7 +1484,6 @@ body.soltando #tela-app::before{content:"Solte aqui para adicionar";position:fix
   body.hub-on .cl-cab{top:-28px;margin:-28px -28px 0;padding:28px 28px 4px}
   .hub-busca{max-width:560px}
   .busca:focus{outline:3px solid var(--laranja);outline-offset:1px}
-  .hub-grade{grid-template-columns:repeat(auto-fill,minmax(176px,1fr))!important;gap:12px}
   .hub-grade:has(> :nth-child(6):last-child){grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important}   /* 6 quadrados numa linha só */
   .hub-tile{min-height:104px}
   .hub .hub-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px;border:0;border-radius:0;background:none;overflow:visible}
@@ -2207,11 +2206,9 @@ span.fu-orc-lin{cursor:default}
    Continua o layout do celular (barra de baixo, Câmera em destaque, toque), mas usa a largura: conteúdo até 1040 px nas telas da
    barra de baixo e nas listas por cima (as tabelas passam de 860 px de área e mostram as colunas extras), quadrados em mais colunas,
    Início e Agenda em duas colunas, e a barra dos formulários numa linha só (sobra altura para as fotos). Formulários continuam com 720 px. */
-@media (min-width:840px) and (pointer:coarse){   /* 840: no Duo o iOS tira 84 px do lado da câmera para a hora e a bateria — o app deitado fica com 867 px */
-  body.hub-on main{max-width:1040px}
-  .avcb-corpo{max-width:1040px}
-  #tela-agenda.como-secao .avcb-topo{max-width:1040px}
-  #tela-avcb-novo .avcb-corpo,#tela-assinar .avcb-corpo,#tela-admin .avcb-corpo,#tela-ficha .avcb-corpo,#tela-perfil .avcb-corpo{max-width:760px}
+/* Duo aberto em pé (669 px), iPad em pé: a partir de 600 px de toque, Início em duas colunas, quadrados e listas do hub em mais colunas
+   (a Apple pede para a tela de dentro não ser o layout do celular esticado). O resto do layout largo começa em 840 px. */
+@media (min-width:600px) and (pointer:coarse){
   .hub-grade{grid-template-columns:repeat(auto-fill,minmax(176px,1fr))!important;gap:12px}
   .hub .hub-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:0;border-radius:0;background:none;overflow:visible;box-shadow:none}
   .hub .hub-lista:has(> .hub-linha:only-child){grid-template-columns:minmax(0,1fr)}   /* uma linha só (Andamento dos clientes) usa a largura toda */
@@ -2220,6 +2217,13 @@ span.fu-orc-lin{cursor:default}
   .ini-grade.so-uma{grid-template-columns:minmax(0,1fr)}
   .ini-grade .hub-rot:first-child{margin-top:4px}
   .hub-saud.com-av{max-width:none}                 /* a regra geral p{max-width:60ch} deixava a foto no meio da linha */
+}
+@media (min-width:840px) and (pointer:coarse){   /* 840: no Duo o iOS tira 84 px do lado da câmera para a hora e a bateria — o app deitado fica com 867 px */
+  body.hub-on main{max-width:1040px}
+  .avcb-corpo{max-width:1040px}
+  #tela-agenda.como-secao .avcb-topo{max-width:1040px}
+  #tela-avcb-novo .avcb-corpo,#tela-assinar .avcb-corpo,#tela-admin .avcb-corpo,#tela-ficha .avcb-corpo,#tela-perfil .avcb-corpo{max-width:760px}
+  .hub-grade{grid-template-columns:repeat(auto-fill,minmax(176px,1fr))!important;gap:12px}
   #agenda-lista:not([hidden]){display:grid;grid-template-columns:380px minmax(0,1fr);grid-template-rows:auto auto auto 1fr;column-gap:28px;align-items:start}
   #agenda-lista > .ag-mes-cab,#agenda-lista > .ag-cal,#agenda-lista > .avcb-nota,#agenda-lista > .ag-leg{grid-column:1}
   #agenda-lista > .ag-dir{grid-column:2;grid-row:1 / span 4}
@@ -2239,7 +2243,22 @@ span.fu-orc-lin{cursor:default}
 /* iPhone Duo instalado na tela inicial (html.duo, posto pelo script do <head>): barra de status "black-translucent", o app vai até a
    borda do lado da câmera. O iOS informava 84 px de espaço reservado em cima (a faixa da hora) e o topo ficava alto: no Duo vale 0.
    Com a barra transparente o iOS do Duo não mostra a hora sobre o app (conferido no aparelho do Gustavo em 15/11/2026): sem quadradinho no canto. */
-html.duo{--sat:0px}
+html.duo{--sat:0px;--sar:max(env(safe-area-inset-right,0px), env(safe-area-inset-top,0px))}
+/* Duo fechado (tela de fora, até 520 px): a Apple pede que nada tocável fique na faixa da câmera frontal e da Dynamic Island,
+   do lado direito. O fundo vai até a borda; botões e textos ficam afastados dela pela medida que o iOS informa (--sar: o iOS do
+   Duo informava a faixa como espaço "de cima", por isso vale o maior dos dois). Aberto, a tela de dentro usa as barras normais. */
+@media (max-width:520px){
+  html.duo .topo,html.duo .barra{padding-right:calc(18px + var(--sar))}
+  html.duo .topo-dir{right:calc(14px + var(--sar))}
+  html.duo .nav{padding-right:calc(4px + var(--sar))}
+  html.duo main{padding-right:calc(18px + var(--sar))}
+  html.duo .tela-avcb .avcb-topo{padding-right:calc(14px + var(--sar))}
+  html.duo .avcb-corpo{padding-right:calc(16px + var(--sar))}
+  html.duo .cam,html.duo .visor-pdf,html.duo dialog{padding-right:var(--sar)}
+  html.duo .ld-prog{padding-right:calc(12px + var(--sar))}
+  html.duo .aviso{right:calc(18px + var(--sar))}
+  html.duo .versao-nova{right:calc(12px + var(--sar))}
+}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -3194,7 +3213,7 @@ const GRAPH = "https://graph.microsoft.com/v1.0";
 const $ = id => document.getElementById(id);
 // computador (tela larga e mouse): menu lateral e telas largas; a mesma condição está no CSS ("computador")
 const computador = matchMedia("(min-width:900px) and (hover:hover) and (pointer:fine)");
-const toqueLargo = matchMedia("(min-width:840px) and (pointer:coarse)");   // iPhone Duo aberto e deitado, iPad: layout do celular usando a largura
+const toqueLargo = matchMedia("(min-width:600px) and (pointer:coarse)");   // Início em duas colunas (Duo aberto, iPad)   // iPhone Duo aberto e deitado, iPad: layout do celular usando a largura
 
 let msalApp, conta, clientes = [], cliente = null, fotos = [], enviando = false, seq = 0;
 // modo "visita" (fotos da visita técnica) ou "comp" (notas e reembolsos); cada aba guarda suas próprias fotos e cliente
