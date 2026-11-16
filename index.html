@@ -2267,6 +2267,10 @@ html.duo-col .na-faixa{display:none!important}
 html.duo-col #duo-faixa{display:block;position:fixed;top:0;right:0;bottom:0;width:var(--faixa);z-index:36;pointer-events:none}
 #duo-faixa .df-grupo{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:12px}
 #duo-faixa .df-cima{top:96px}
+/* o iOS às vezes reserva a própria faixa da hora fora do app (fotos do Gustavo em 15/11/2026: o app fica com 867 px deitado ou 382 px
+   fechado): aí a câmera não está no app e a coluna encosta na borda, mais estreita e com os botões no alto (html.duo-sis) */
+html.duo.duo-sis{--faixa:72px}
+html.duo-sis #duo-faixa .df-cima{top:16px}
 #duo-faixa .df-baixo{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 /* abas na coluna (a Apple põe a barra de abas na coluna, embaixo): a barra de baixo some e as telas usam a altura toda */
 html.duo-col .nav{display:none!important}
@@ -20010,9 +20014,11 @@ function ligarFaixaDuo() {
   });
   obs.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["hidden", "class", "style", "aria-current"] });
   const mq = matchMedia("(orientation: landscape), (max-width: 559px)");   // fechado ou aberto deitado: coluna; aberto em pé: barras normais
-  const aplicar = () => { document.documentElement.classList.toggle("duo-col", mq.matches); pintarFaixaDuo(); };
+  // a faixa da hora do iOS ficou fora do app? (larguras medidas no aparelho: 951 - 84 = 867 deitado, 466 - 84 = 382 fechado)
+  const faixaSistema = () => document.documentElement.classList.toggle("duo-sis", [867, 382].some(l => Math.abs(innerWidth - l) <= 3));
+  const aplicar = () => { document.documentElement.classList.toggle("duo-col", mq.matches); faixaSistema(); pintarFaixaDuo(); };
   mq.addEventListener("change", aplicar);
-  addEventListener("resize", () => pintarFaixaDuo());
+  addEventListener("resize", () => { faixaSistema(); pintarFaixaDuo(); });
   aplicar();
 }
 ligarFaixaDuo();
