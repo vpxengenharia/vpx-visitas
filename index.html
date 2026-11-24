@@ -9440,11 +9440,45 @@ async function carregarPedidosAcesso() {
   atualizarPedidosAcesso();
 }
 // pedidos sem resposta = cadastros que não estão nem liberados (usuários) nem recusados
+// Recusado (ou com o acesso removido) que fez um cadastro NOVO depois da recusa (o convidado foi apagado no Entra e a pessoa pediu de novo)
+// volta a ser pedido: recusadosEm guarda a data de cada recusa (desde 24/11/2026; as recusas antigas, sem data, continuam valendo)
+const recusaVelha = (p, x) => { const em = p?.recusadosEm?.[x.email]; return !!em && !!x.quando && x.quando > em; };
 function atualizarPedidosAcesso() {
   const p = adm?.perm || perm, feitos = new Set([...Object.keys(p?.usuarios || {}), ...(p?.recusados || [])]);
-  pedidosAcesso = cadastrosCampo.filter(x => !feitos.has(x.email));
+  pedidosAcesso = cadastrosCampo.filter(x => !feitos.has(x.email) || (!p?.usuarios?.[x.email] && recusaVelha(p, x)));
   gravarLS("vpx_pedidos_acesso", pedidosAcesso);
   atualizarNav();                                  // número de pedidos na Administração do menu lateral
+}
+/* aviso de pedido novo (relatado pelo Gustavo em 24/11/2026: um cadastro novo não chegou para ele). Os pedidos só eram lidos ao abrir
+   o app e a Administração: com o app aberto (o instalado fica aberto por dias) o pedido não aparecia. Agora o administrador confere
+   ao voltar para o app, a cada 5 minutos com ele à vista e quando a internet volta; cada pedido novo dá um aviso com "Ver" uma vez
+   por aparelho (vpx_pedidos_avisados). Não há notificação com o app fechado: o iPhone só faria isso com um servidor de notificações. */
+async function conferirPedidosAcesso(forcar) {
+  if (!conta || !navigator.onLine || !ehAdmin() || conferirPedidosAcesso.rodando) return;
+  if (!forcar && Date.now() - (conferirPedidosAcesso.quando || 0) < 120000) return;
+  conferirPedidosAcesso.rodando = true; conferirPedidosAcesso.quando = Date.now();
+  try {
+    const chave = () => pedidosAcesso.map(x => x.email + "|" + x.quando).join();
+    const antes = chave();
+    await carregarPedidosAcesso();
+    conferirPedidosAcesso.erro = "";
+    if (chave() !== antes) {                         // só redesenha quando a lista mudou (não mexe na Administração aberta à toa)
+      if (adm?.pedidosLidos && !$("tela-admin").hidden) { adm.pedidosErro = ""; desenharPedidosAcesso(); }
+      if (secao === "inicio") redesenharInicio(); else if (secao === "mais") desenharMais();
+    }
+    avisarPedidosNovos();
+  } catch (e) { console.error("pedidos de acesso:", e); conferirPedidosAcesso.erro = e.message || String(e); }
+  finally { conferirPedidosAcesso.rodando = false; }
+}
+function avisarPedidosNovos() {
+  const ja = new Set(lerLS("vpx_pedidos_avisados", [])), novos = pedidosAcesso.filter(x => !ja.has(x.email + "|" + x.quando));
+  if (!novos.length) return;
+  novos.forEach(x => ja.add(x.email + "|" + x.quando));
+  gravarLS("vpx_pedidos_avisados", [...ja].slice(-200));
+  if (!$("tela-admin").hidden) return;             // a Administração aberta já mostra o pedido
+  const x = novos[0], quem = x.nome || x.email;
+  aviso(novos.length > 1 ? `${novos.length} pedidos de acesso novos da equipe de campo (${quem} e mais ${novos.length - 1}).` : `Pedido de acesso novo: ${quem}${x.funcao ? " (" + x.funcao + ")" : ""}.`, false,
+    { rotulo: "Ver", fn: () => { if (fecharTelasPorCima()) abrirAdmin(); } });
 }
 function desenharPedidosAcesso() {
   const w = $("adm-pedidos");
@@ -9481,7 +9515,7 @@ function desenharPedidosAcesso() {
     }
     w.appendChild(card);
   }
-  const rec = cadastrosCampo.filter(x => recusados.includes(x.email));
+  const rec = cadastrosCampo.filter(x => recusados.includes(x.email) && !pedidosAcesso.includes(x));   // quem pediu de novo depois da recusa está nos pedidos
   if (rec.length) {
     w.appendChild(el("p", "adm-grupo", "Recusados"));
     rec.forEach(x => {
@@ -9531,6 +9565,7 @@ async function liberarAcessoJa(x, funcoes, botao) {
     await compartilharPasta(await pastaConfig(true), x.email, "read");
     adm.perm.usuarios[x.email] = { nome: x.nome, funcoes: funcoes.slice(), convidado: true, liberado: new Date().toISOString() };
     adm.perm.recusados = (adm.perm.recusados || []).filter(e => e !== x.email);
+    if (adm.perm.recusadosEm) delete adm.perm.recusadosEm[x.email];
     mudouAdmin();
     await salvarPermissoes();
     if (!adm || adm.mudou) throw new Error("as permissões não foram salvas. Tente de novo.");
@@ -9545,12 +9580,14 @@ async function liberarAcessoJa(x, funcoes, botao) {
 async function recusarAcesso(x) {
   if (!confirm(`Recusar o pedido de ${x.nome || x.email}?\n\nA pessoa continua sem acesso a nada. Se quiser apagar o cadastro dela, apague em Microsoft Entra › Usuários.`)) return;
   adm.perm.recusados = [...new Set([...(adm.perm.recusados || []), x.email])];
+  (adm.perm.recusadosEm ||= {})[x.email] = new Date().toISOString();   // um cadastro novo depois desta data volta a ser pedido
   mudouAdmin();
   await salvarPermissoes();
   atualizarPedidosAcesso(); desenharAdmin();
 }
 async function desfazerRecusa(x) {
   adm.perm.recusados = (adm.perm.recusados || []).filter(e => e !== x.email);
+  if (adm.perm.recusadosEm) delete adm.perm.recusadosEm[x.email];
   mudouAdmin();
   await salvarPermissoes();
   atualizarPedidosAcesso(); desenharAdmin();
@@ -9565,6 +9602,7 @@ async function removerAcessoJa(email, nome) {
     for (const id of [CONFIG.pastaClientesId, await pastaConfig(true)]) sobrou.push(...await descompartilharPasta(id, email));
     delete adm.perm.usuarios[email];
     adm.perm.recusados = [...new Set([...(adm.perm.recusados || []), email])];
+    (adm.perm.recusadosEm ||= {})[email] = new Date().toISOString();
     adm.aberto = null;
     mudouAdmin();
     await salvarPermissoes();
@@ -19683,7 +19721,8 @@ async function iniciarApp() {
   enviarPerfilPend();                              // cadastro do cliente preenchido por um levantamento feito sem internet
   if (lerLS("vpx_abrir_agenda", false)) { gravarLS("vpx_abrir_agenda", false); irPara("agenda"); }   // voltou da autorização da agenda
   // administrador: pedidos de acesso da equipe de campo (cartão no Início e número no Mais)
-  if (ehAdmin()) carregarPedidosAcesso().then(() => { if (secao === "inicio") redesenharInicio(); else if (secao === "mais") desenharMais(); }).catch(e => console.error("pedidos de acesso:", e));
+  // (depois de conferir as permissões: quem acabou de virar administrador também confere)
+  permOk.then(() => conferirPedidosAcesso(true), () => conferirPedidosAcesso(true));
   if (lerLS("vpx_abrir_admin", false)) { gravarLS("vpx_abrir_admin", false); abrirAdmin(); }   // voltou da autorização para ler os pedidos de acesso
 }
 
@@ -20380,6 +20419,10 @@ $("adm-add").onclick = adicionarUsuarioAdmin;
 $("adm-email").onkeydown = e => { if (e.key === "Enter") adicionarUsuarioAdmin(); };
 // permissões alteradas pelo administrador: confere ao voltar para o app (no máximo 1 vez por minuto)
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (carregarPermissoes.quando || 0) > 60000) carregarPermissoes(); });
+// administrador: pedidos de acesso novos da equipe de campo com o app aberto (ao voltar para ele, a cada 5 min à vista e quando a internet volta)
+document.addEventListener("visibilitychange", () => { if (!document.hidden) conferirPedidosAcesso(); });
+setInterval(() => { if (!document.hidden) conferirPedidosAcesso(true); }, 300000);
+window.addEventListener("online", () => conferirPedidosAcesso(true));
 // ordens de serviço: novas OS da fila aparecem ao voltar para o app (no máximo 1 vez por minuto)
 document.addEventListener("visibilitychange", () => { if (!document.hidden && conta && Date.now() - (sincronizarOS.quando || 0) > 60000) sincronizarOS(); });
 // lista de clientes ao voltar para o app (no máximo 1 vez a cada 5 min): cliente arquivado ou desarquivado em outro aparelho troca de lista aqui
