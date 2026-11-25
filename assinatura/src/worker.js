@@ -100,7 +100,8 @@ async function prepararBanco(env) {
   if (bancoPronto) return;
   const t = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='envelopes'").first();
   if (!t) {
-    const comandos = SCHEMA.split("\n").map(l => l.replace(/--.*$/, "")).join("\n").split(";").map(s => s.trim()).filter(Boolean);
+    // por linha (\r\n também: com o git do Windows o schema.sql vem com CRLF e o "--" do comentário não era tirado, e um ";" dentro dele cortava o comando)
+    const comandos = SCHEMA.split(/\r?\n/).map(l => l.replace(/--.*$/, "")).join("\n").split(";").map(s => s.trim()).filter(Boolean);
     await env.DB.batch(comandos.map(c => env.DB.prepare(c)));
   } else {
     // banco criado antes destas colunas/tabelas (o schema.sql já as tem): acrescenta o que falta
@@ -108,12 +109,24 @@ async function prepararBanco(env) {
     const cmds = [];
     if (!cols.includes("anterior")) cmds.push("ALTER TABLE eventos ADD COLUMN anterior TEXT");
     if (!cols.includes("local")) cmds.push("ALTER TABLE eventos ADD COLUMN local TEXT");
-    cmds.push("CREATE TABLE IF NOT EXISTS gestores (email TEXT PRIMARY KEY, desde TEXT NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS idx_evt_anterior ON eventos (envelope_id, anterior)");
+    cmds.push("CREATE TABLE IF NOT EXISTS gestores (email TEXT PRIMARY KEY, desde TEXT NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS idx_evt_anterior ON eventos (envelope_id, anterior)",
+      // contratos excluídos pelo administrador (25/11/2026): a lápide e os links que deixaram de valer
+      "CREATE TABLE IF NOT EXISTS excluidos (id TEXT PRIMARY KEY, codigo TEXT NOT NULL, titulo TEXT, status_antes TEXT, excluido_em TEXT NOT NULL, excluido_por TEXT NOT NULL)",
+      "CREATE TABLE IF NOT EXISTS excluidos_tokens (hash TEXT PRIMARY KEY, envelope_id TEXT NOT NULL)",
+      "CREATE INDEX IF NOT EXISTS idx_exc_codigo ON excluidos (codigo)", "CREATE INDEX IF NOT EXISTS idx_exc_quando ON excluidos (excluido_em)");
     await env.DB.batch(cmds.map(c => env.DB.prepare(c)));
   }
   bancoPronto = true;
 }
 const lerEnv = (env, id) => env.DB.prepare("SELECT * FROM envelopes WHERE id = ?").bind(id).first();
+// contrato excluído pelo administrador (a lápide): as rotas respondem 410 com uma mensagem clara, nunca um erro genérico
+const lapide = (env, id) => env.DB.prepare("SELECT * FROM excluidos WHERE id = ?").bind(id).first();
+const MSG_EXCLUIDO = "Este contrato foi excluído pelo administrador e não está mais disponível.";
+const MSG_EXCLUIDO_PUB = "Este documento não está mais disponível: ele foi excluído pela VPX Engenharia.";
+// 404 do contrato que não existe, ou 410 do que foi excluído
+async function semEnvelope(env, id) { return (await lapide(env, id)) ? falha(410, MSG_EXCLUIDO) : falha(404, "Contrato não encontrado."); }
+// uma gravação condicional não pegou: se o contrato foi excluído no meio, 410; senão, o 409 de sempre
+async function falhaMudou(env, id, msg) { return (await lapide(env, id)) ? falha(410, MSG_EXCLUIDO) : falha(409, msg); }
 const lerSigs = (env, id) => env.DB.prepare(`SELECT ${SIG_COLS} FROM signatarios WHERE envelope_id = ? ORDER BY ordem, rowid`).bind(id).all().then(r => r.results || []);
 function pubSig(s, comImagem) {
   let geo = null; try { geo = s.geo ? JSON.parse(s.geo) : null; } catch {}
@@ -136,7 +149,7 @@ function pubEnv(env, e, sigs, comImagem, lista, gestor) {
     signatarios: sigs.map(s => lista ? sigLista(s, gestor) : pubSig(s, comImagem)) };
 }
 async function envelopeCompleto(env, id, comImagem = false, comEventos = false) {
-  const e = await lerEnv(env, id); if (!e) throw falha(404, "Contrato não encontrado.");
+  const e = await lerEnv(env, id); if (!e) throw await semEnvelope(env, id);
   const sigs = await lerSigs(env, id);
   if (comImagem) {                                   // as imagens das assinaturas, só deste contrato
     const ims = (await env.DB.prepare("SELECT id, imagem FROM signatarios WHERE envelope_id = ? AND imagem IS NOT NULL").bind(id).all()).results || [];
@@ -165,8 +178,9 @@ async function evento(env, envId, tipo, op = {}) {
     try {
       const [ins] = await env.DB.batch([
         env.DB.prepare(`INSERT INTO eventos (envelope_id, signatario_id, tipo, quando, ip, aparelho, local, detalhe, anterior, hash)
-          SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE COALESCE((SELECT hash FROM eventos WHERE envelope_id = ? ORDER BY seq DESC LIMIT 1), '') = ?`)
-          .bind(envId, sid, tipo, quando, ip, aparelho, local, detalhe, anterior, hash, envId, r.ult || ""),
+          SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE COALESCE((SELECT hash FROM eventos WHERE envelope_id = ? ORDER BY seq DESC LIMIT 1), '') = ?
+            AND EXISTS (SELECT 1 FROM envelopes WHERE id = ?)`)   // contrato excluído no meio: nenhum evento solto fica no banco (a volta seguinte devolve "")
+          .bind(envId, sid, tipo, quando, ip, aparelho, local, detalhe, anterior, hash, envId, r.ult || "", envId),
         env.DB.prepare("UPDATE envelopes SET atualizado_em = ? WHERE id = ?").bind(agora(), envId)
       ]);
       if (ins.meta?.changes) return hash;
@@ -344,6 +358,7 @@ async function chamarQuemEstaNaVez(env, req, e, sigs) {
 // depois de uma assinatura: conclui ou chama o próximo. Devolve true quando todos assinaram.
 async function depoisDeAssinar(env, req, envId, s) {
   const e = await lerEnv(env, envId), sigs = await lerSigs(env, envId);
+  if (!e) return false;                              // excluído pelo administrador no mesmo instante
   if (sigs.every(x => x.status === "assinado")) {
     const q = agora();
     const r = await env.DB.prepare("UPDATE envelopes SET status = 'concluido', concluido_em = ?, atualizado_em = ? WHERE id = ? AND status = 'aguardando'").bind(q, q, envId).run();
@@ -449,12 +464,20 @@ async function rotaApp(env, req, url, quem) {
         FROM signatarios WHERE envelope_id IN (${lote.map(() => "?").join(",")}) ORDER BY ordem, rowid`).bind(...lote).all()).results || [];
       for (const s of ss) (porEnv[s.envelope_id] ||= []).push(s);
     }
-    return json({ envelopes: envs.map(e => pubEnv(env, e, porEnv[e.id] || [], false, true, quem.gestor)), agora: hora,
+    // os contratos excluídos pelo administrador desde a última leitura (na 1ª página; sem "desde", todos): os aparelhos tiram da lista.
+    // Vão para todos (gestor ou não): são só os ids aleatórios, sem título nem dado nenhum, e o aparelho só apaga o que já tinha.
+    const excluidos = apos ? [] : ((await env.DB.prepare("SELECT id FROM excluidos WHERE excluido_em >= ? ORDER BY excluido_em DESC LIMIT 5000").bind(desde).all()).results || []).map(r => r.id);
+    return json({ envelopes: envs.map(e => pubEnv(env, e, porEnv[e.id] || [], false, true, quem.gestor)), agora: hora, excluidos,
       mais: lidos.length > LISTA_PAGINA ? { desde: ult.atualizado_em, apos: ult.id } : null });
   }
   if (!(mm = p.match(/^\/api\/envelopes\/([a-z2-7]{16})(\/.*)?$/))) throw falha(404, "Rota desconhecida.");
   const id = mm[1], resto = mm[2] || "";
-  let e = await lerEnv(env, id); if (!e) throw falha(404, "Contrato não encontrado.");
+  // excluir: só o administrador (ADMINS do wrangler.toml), em qualquer situação — antes de qualquer outra conferência
+  if (resto === "/excluir" && m === "POST") {
+    if (!quem.admin) throw falha(403, "Só o administrador pode excluir contratos.");
+    return excluirEnvelope(env, id, quem);
+  }
+  let e = await lerEnv(env, id); if (!e) throw await semEnvelope(env, id);
   const meu = await env.DB.prepare("SELECT id, status FROM signatarios WHERE envelope_id = ? AND email = ? AND modo = 'app'").bind(id, quem.email).first();
   const criador = e.criador_email === quem.email;
   if (!quem.gestor && !criador && !meu) throw falha(404, "Contrato não encontrado.");
@@ -476,7 +499,8 @@ async function rotaApp(env, req, url, quem) {
     const tam = +req.headers.get("Content-Length");
     if (!req.body || tam !== e.tamanho) throw falha(400, "O tamanho do PDF não confere com o informado.");
     await env.PDFS.put("orig:" + id, req.body);
-    await env.DB.prepare("UPDATE envelopes SET pdf_ok = 1, atualizado_em = ? WHERE id = ?").bind(agora(), id).run();
+    const r = await env.DB.prepare("UPDATE envelopes SET pdf_ok = 1, atualizado_em = ? WHERE id = ?").bind(agora(), id).run();
+    if (!r.meta?.changes) { await env.PDFS.delete("orig:" + id); throw await semEnvelope(env, id); }   // excluído enquanto o PDF subia: não fica PDF solto
     return json({ envelope: await envelopeCompleto(env, id) });
   }
 
@@ -506,7 +530,7 @@ async function rotaApp(env, req, url, quem) {
     const h = agora();
     cmds.push(env.DB.prepare("UPDATE envelopes SET status = 'aguardando', enviado_em = ?, atualizado_em = ? WHERE id = ? AND status = 'rascunho'").bind(h, h, id));
     const res = await env.DB.batch(cmds);
-    if (!res[res.length - 1].meta?.changes) throw falha(409, "Este contrato já foi enviado.");
+    if (!res[res.length - 1].meta?.changes) throw await falhaMudou(env, id, "Este contrato já foi enviado.");
     e.status = "aguardando"; e.enviado_em = h;
     await evento(env, id, "enviado", { quando: h, ip: q.ip, aparelho: q.aparelho, local: q.local, detalhe: quem.email });
     await chamarQuemEstaNaVez(env, req, e, sigs);
@@ -562,9 +586,10 @@ async function rotaApp(env, req, url, quem) {
     const r = await env.DB.prepare(`UPDATE signatarios SET status = 'assinado', assinado_em = ?, visto_em = COALESCE(visto_em, ?), identificado_em = COALESCE(identificado_em, ?), metodo = 'microsoft',
       nome_assinado = ?, cpf_assinado = ?, ip = ?, aparelho = ?, local = ?, geo = ?, imagem = ? WHERE id = ? AND status = 'pendente' AND (SELECT status FROM envelopes WHERE id = ?) = 'aguardando'`)
       .bind(h, h, h, nome, digitos(c.cpf), q.ip, q.aparelho, q.local, geo, c.imagem, s.id, id).run();
-    if (!r.meta?.changes) throw falha(409, "Este contrato não está mais aguardando a sua assinatura (outra pessoa mudou agora). Abra o contrato de novo.");
+    if (!r.meta?.changes) throw await falhaMudou(env, id, "Este contrato não está mais aguardando a sua assinatura (outra pessoa mudou agora). Abra o contrato de novo.");
     const hashEv = await evento(env, id, "assinou", { sid: s.id, quando: h, ip: q.ip, aparelho: q.aparelho, local: q.local,
       detalhe: await detalheAssinou("conta Microsoft " + quem.email, nome, c.cpf, c.hash_visto, c.imagem, versaoAceite, geo) });
+    if (!hashEv) throw falha(410, MSG_EXCLUIDO);       // excluído pelo administrador no mesmo instante: sem recibo nem e-mails
     await mandarRecibo(env, e, s, hashEv, h);
     await depoisDeAssinar(env, req, id, s);
     return json({ envelope: await envelopeCompleto(env, id) });
@@ -579,7 +604,7 @@ async function rotaApp(env, req, url, quem) {
     if (!pode.includes(e.status)) throw falha(409, c.soRascunho && e.status !== "cancelado" ? "Este contrato já foi enviado." : "Este contrato não pode mais ser cancelado (" + (STATUS_ENV[e.status] || e.status) + ").");
     const h = agora();
     const r = await env.DB.prepare(`UPDATE envelopes SET status = 'cancelado', motivo = ?, atualizado_em = ? WHERE id = ? AND status IN (${pode.map(() => "?").join(",")})`).bind(motivo || null, h, id, ...pode).run();
-    if (!r.meta?.changes) throw falha(409, "O contrato mudou agora (outra pessoa assinou ou mexeu nele). Abra de novo.");
+    if (!r.meta?.changes) throw await falhaMudou(env, id, "O contrato mudou agora (outra pessoa assinou ou mexeu nele). Abra de novo.");
     await evento(env, id, "cancelado", { quando: h, ip: q.ip, aparelho: q.aparelho, local: q.local, detalhe: [quem.email, motivo].filter(Boolean).join(" · ") });
     if (e.status === "aguardando") for (const s of await lerSigs(env, id)) {
       if (!s.notificado_em || s.status !== "pendente") continue;
@@ -600,10 +625,12 @@ async function rotaApp(env, req, url, quem) {
     if (!req.body || !(tam > 0) || tam > MAX_FINAL) throw falha(400, "O documento final está vazio ou passa de 25 MB.");
     const tok = b64url(aleatorio(32)), th = await sha256(tok);
     const r = await env.DB.prepare("UPDATE envelopes SET hash_final = ?, final_dl = ?, atualizado_em = ? WHERE id = ? AND hash_final IS NULL").bind(hf, th, agora(), id).run();
-    if (!r.meta?.changes) throw falha(409, "O documento final já foi gravado por outro aparelho.");
+    if (!r.meta?.changes) throw await falhaMudou(env, id, "O documento final já foi gravado por outro aparelho.");
     try { await env.PDFS.put("final:" + id, req.body); }
     catch (x) { await env.DB.prepare("UPDATE envelopes SET hash_final = NULL, final_dl = NULL WHERE id = ?").bind(id).run(); throw x; }
-    await evento(env, id, "final_gravado", { ip: q.ip, aparelho: q.aparelho, local: q.local, detalhe: `${hf} · por ${quem.email}` });
+    // excluído enquanto a via subia: apaga a via (nada fica solto no serviço) e não manda os e-mails
+    if (!(await lerEnv(env, id))) { await env.PDFS.delete("final:" + id); throw falha(410, MSG_EXCLUIDO); }
+    if (!(await evento(env, id, "final_gravado", { ip: q.ip, aparelho: q.aparelho, local: q.local, detalhe: `${hf} · por ${quem.email}` }))) { await env.PDFS.delete("final:" + id); throw falha(410, MSG_EXCLUIDO); }
     const base = urlPublica(env, req), link = base + "/api/f/" + tok, verif = urlVerificacao(env, e.codigo);
     const para = new Set((await lerSigs(env, id)).map(s => (s.email || "").toLowerCase()).filter(Boolean)); para.add(e.criador_email);
     for (const pa of para) {
@@ -681,12 +708,43 @@ async function criarEnvelope(env, req, quem) {
   return json({ envelope: await envelopeCompleto(env, id) });
 }
 
+// Excluir um contrato (só o administrador; pedido do Gustavo em 25/11/2026: "eu fiz o teste de um, assinei e agora não consigo deletar").
+// Qualquer situação. Num comando só (D1 batch = uma transação): grava a lápide (id, código, título, situação de antes, quando, quem; sem
+// dados pessoais) e os SHA-256 dos links do contrato (para responderem "não está mais disponível") e apaga o envelope, os signatários, os
+// eventos, os códigos e as sessões. Depois apaga os PDFs do KV. Excluir de novo (dois cliques, dois aparelhos) responde a mesma lápide.
+async function excluirEnvelope(env, id, quem) {
+  const h = agora();
+  const res = await env.DB.batch([
+    env.DB.prepare("INSERT OR IGNORE INTO excluidos (id, codigo, titulo, status_antes, excluido_em, excluido_por) SELECT id, codigo, titulo, status, ?, ? FROM envelopes WHERE id = ?").bind(h, quem.email, id),
+    env.DB.prepare("INSERT OR IGNORE INTO excluidos_tokens (hash, envelope_id) SELECT token_hash, envelope_id FROM signatarios WHERE envelope_id = ? AND token_hash IS NOT NULL").bind(id),
+    env.DB.prepare("INSERT OR IGNORE INTO excluidos_tokens (hash, envelope_id) SELECT final_dl, id FROM envelopes WHERE id = ? AND final_dl IS NOT NULL").bind(id),
+    env.DB.prepare("DELETE FROM codigos WHERE signatario_id IN (SELECT id FROM signatarios WHERE envelope_id = ?)").bind(id),
+    env.DB.prepare("DELETE FROM sessoes WHERE signatario_id IN (SELECT id FROM signatarios WHERE envelope_id = ?)").bind(id),
+    env.DB.prepare("DELETE FROM eventos WHERE envelope_id = ?").bind(id),
+    env.DB.prepare("DELETE FROM signatarios WHERE envelope_id = ?").bind(id),
+    env.DB.prepare("DELETE FROM envelopes WHERE id = ?").bind(id)
+  ]);
+  const lap = await lapide(env, id);
+  if (!res[res.length - 1].meta?.changes && !lap) throw falha(404, "Contrato não encontrado.");
+  // Também quando já tinha sido excluído (uma 2ª tentativa limpa o que sobrou). Uma falha do KV aqui não muda a resposta: o contrato já
+  // foi excluído no banco, e a tarefa diária apaga de novo os PDFs das lápides dos últimos 7 dias.
+  for (const k of ["orig:" + id, "final:" + id]) { try { await env.PDFS.delete(k); } catch (e) { console.log("KV: não apagou", k, String(e?.message || e)); } }
+  console.log("contrato excluído", id, lap?.codigo, "por", quem.email);
+  return json({ ok: true, excluido: { id, codigo: lap?.codigo, status_antes: lap?.status_antes, excluido_em: lap?.excluido_em, excluido_por: lap?.excluido_por } });
+}
+
 /* ---------- rotas públicas: página de assinatura ---------- */
 async function porToken(env, t) {
   if (typeof t !== "string" || !/^[A-Za-z0-9_-]{30,60}$/.test(t)) throw falha(404, "Este link não é válido. Confira se copiou o endereço inteiro do e-mail.");
-  const s = await env.DB.prepare(`SELECT ${SIG_COLS} FROM signatarios WHERE token_hash = ?`).bind(await sha256(t)).first();
-  if (!s) throw falha(404, "Este link não é válido. Confira se copiou o endereço inteiro do e-mail.");
-  const e = await conferirPrazo(env, await lerEnv(env, s.envelope_id));
+  const th = await sha256(t);
+  const s = await env.DB.prepare(`SELECT ${SIG_COLS} FROM signatarios WHERE token_hash = ?`).bind(th).first();
+  if (!s) {
+    if (await env.DB.prepare("SELECT 1 AS x FROM excluidos_tokens WHERE hash = ?").bind(th).first()) throw falha(410, MSG_EXCLUIDO_PUB);
+    throw falha(404, "Este link não é válido. Confira se copiou o endereço inteiro do e-mail.");
+  }
+  const e0 = await lerEnv(env, s.envelope_id);
+  if (!e0) throw falha(410, MSG_EXCLUIDO_PUB);         // excluído entre as duas leituras
+  const e = await conferirPrazo(env, e0);
   return { s, e };
 }
 function situacaoLink(e, sigs, s) {
@@ -804,9 +862,10 @@ async function rotaPublica(env, req, url) {
     // só grava se o contrato ainda espera assinaturas (cancelamento ou recusa no mesmo instante: não assina)
     const r = await env.DB.prepare(`UPDATE signatarios SET status = 'assinado', assinado_em = ?, metodo = 'codigo-email', nome_assinado = ?, cpf_assinado = ?, ip = ?, aparelho = ?, local = ?, geo = ?, imagem = ?
       WHERE id = ? AND status = 'pendente' AND (SELECT status FROM envelopes WHERE id = ?) = 'aguardando'`).bind(h, nome, digitos(c.cpf), q.ip, q.aparelho, q.local, geo, c.imagem, s.id, e.id).run();
-    if (!r.meta?.changes) throw falha(409, "Este documento não está mais esperando a sua assinatura (ele mudou agora). Recarregue a página.");
+    if (!r.meta?.changes) throw (await lapide(env, e.id)) ? falha(410, MSG_EXCLUIDO_PUB) : falha(409, "Este documento não está mais esperando a sua assinatura (ele mudou agora). Recarregue a página.");
     const hashEv = await evento(env, e.id, "assinou", { sid: s.id, quando: h, ...onde,
       detalhe: await detalheAssinou("código enviado ao e-mail " + mascararEmail(s.email), nome, c.cpf, c.hash_visto, c.imagem, versaoAceite, geo) });
+    if (!hashEv) throw falha(410, MSG_EXCLUIDO_PUB);   // excluído no mesmo instante: sem recibo nem e-mails
     await mandarRecibo(env, e, s, hashEv, h);
     const todos = await depoisDeAssinar(env, req, e.id, s);
     return json({ ok: true, todos, registro: hashEv });
@@ -822,7 +881,7 @@ async function rotaPublica(env, req, url) {
       env.DB.prepare("UPDATE envelopes SET status = 'recusado', motivo = ?, atualizado_em = ? WHERE id = ? AND status = 'aguardando' AND (SELECT status FROM signatarios WHERE id = ?) = 'recusado'")
         .bind(`${s.nome}: ${motivo}`, h, e.id, s.id)
     ]);
-    if (!r1.meta?.changes) throw falha(409, "Este documento não está mais aberto para assinatura (ele mudou agora). Recarregue a página.");
+    if (!r1.meta?.changes) throw (await lapide(env, e.id)) ? falha(410, MSG_EXCLUIDO_PUB) : falha(409, "Este documento não está mais aberto para assinatura (ele mudou agora). Recarregue a página.");
     await evento(env, e.id, "recusou", { sid: s.id, quando: h, ...onde, detalhe: motivo });
     await avisarCriador(env, e, `${s.nome} recusou: ${e.titulo}`, "Documento recusado", `<b>${esc(s.nome)}</b> recusou <b>${esc(e.titulo)}</b>.<br>Motivo: ${esc(motivo)}`);
     return json({ ok: true });
@@ -835,6 +894,10 @@ async function rotaPublica(env, req, url) {
 async function rotaVerificar(env, codigo) {
   const cod = normCodigo(codigo);
   const e = cod && await env.DB.prepare("SELECT * FROM envelopes WHERE codigo = ?").bind(cod).first();
+  if (!e && cod) {                                   // excluído pelo administrador: só a data (sem título, nomes nem hashes)
+    const x = await env.DB.prepare("SELECT excluido_em, status_antes FROM excluidos WHERE codigo = ?").bind(cod).first();
+    if (x && x.status_antes !== "rascunho") return json({ erro: `Este documento foi excluído pelo administrador da VPX Engenharia em ${dataBR(new Date(Date.parse(x.excluido_em) - 3 * 3600000).toISOString())} e não pode mais ser conferido por este serviço.`, excluido: true, excluido_em: x.excluido_em }, 410);
+  }
   if (!e || e.status === "rascunho") throw falha(404, "Nenhum documento com este código.");
   const sigs = await lerSigs(env, e.id);
   const ult = await env.DB.prepare("SELECT hash, quando, (SELECT COUNT(*) FROM eventos WHERE envelope_id = ?1) AS total FROM eventos WHERE envelope_id = ?1 ORDER BY seq DESC LIMIT 1").bind(e.id).first();
@@ -846,8 +909,12 @@ async function rotaVerificar(env, codigo) {
 }
 async function rotaFinal(env, req, tok) {
   if (!/^[A-Za-z0-9_-]{30,60}$/.test(tok)) throw falha(404, "Link inválido.");
-  const e = await env.DB.prepare("SELECT * FROM envelopes WHERE final_dl = ?").bind(await sha256(tok)).first();
-  if (!e) throw falha(404, "Link inválido.");
+  const th = await sha256(tok);
+  const e = await env.DB.prepare("SELECT * FROM envelopes WHERE final_dl = ?").bind(th).first();
+  if (!e) {
+    if (await env.DB.prepare("SELECT 1 AS x FROM excluidos_tokens WHERE hash = ?").bind(th).first()) throw falha(410, "Esta via assinada não está mais disponível: o documento foi excluído pela VPX Engenharia.");
+    throw falha(404, "Link inválido.");
+  }
   const ev = await env.DB.prepare("SELECT quando FROM eventos WHERE envelope_id = ? AND tipo = 'final_gravado' ORDER BY seq LIMIT 1").bind(e.id).first();
   if (ev && Date.parse(ev.quando) < Date.now() - 30 * 864e5) throw falha(410, "Este link venceu (vale 30 dias). Peça a via assinada à VPX Engenharia.");
   const obj = await env.PDFS.get("final:" + e.id, "stream");
@@ -899,6 +966,10 @@ async function tarefaDiaria(env) {
     await env.PDFS.delete("orig:" + id); await env.PDFS.delete("final:" + id);
     await env.DB.prepare("UPDATE envelopes SET pdfs_apagados_em = ? WHERE id = ?").bind(agora(), id).run();
   }
+  // Contratos excluídos nos últimos 7 dias: apaga de novo os PDFs (se o KV falhou na hora da exclusão, não ficam sem dono; apagar uma
+  // chave que não existe não dá erro).
+  const exc = (await env.DB.prepare("SELECT id FROM excluidos WHERE excluido_em >= ?").bind(somaDias(h, -7)).all()).results || [];
+  for (const { id } of exc) for (const k of ["orig:" + id, "final:" + id]) { try { await env.PDFS.delete(k); } catch {} }
   // LGPD: contratos que não valeram (cancelados, recusados, com o prazo vencido) não guardam dados pessoais depois de 90 dias
   // (imagem da assinatura, CPF, telefone, IP, aparelho, local e localização). Ficam nomes, situações e hashes.
   const limpos = await env.DB.prepare(`UPDATE signatarios SET imagem = NULL, cpf = NULL, cpf_assinado = NULL, telefone = NULL, ip = NULL, aparelho = NULL, local = NULL, geo = NULL

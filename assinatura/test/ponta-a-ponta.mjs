@@ -321,5 +321,72 @@ console.log("\n7. Quem pode o quê, corridas e e-mails que não saem");
   ok((await pub("codigo", { t: tokenDe(Object.values(X.links)[0]) })).st === 503, "depois da falha, novo pedido de código não espera 1 minuto");
 }
 
+console.log("\n8. Excluir contrato (só o administrador, em qualquer situação)");
+{
+  const TEC = "tecnico@vpxengenharia.com.br", tokTec = "teste:" + TEC + "|Técnico de Campo";
+  const antes = new Date(Date.now() - 1000).toISOString();
+  const env1 = (await api(`/api/envelopes/${F.id}`)).d.envelope;              // o concluído (com via final e arquivado) da parte 3
+  const dlF = (await emails()).filter(e => /Documento assinado por todos/.test(e.assunto) && e.texto.includes(env1.codigo))[0]?.texto.match(/https?:\/\/\S+\/api\/f\/[A-Za-z0-9_-]+/)?.[0];
+  const tCliF = tokenDe(Object.values(F.links)[0]);
+  ok(env1.status === "concluido" && env1.hash_final && env1.arquivado_em && dlF, "contrato concluído com via final e link de download para excluir");
+  ok((await api(`/api/envelopes/${F.id}/excluir`, { json: {}, tok: tokTec })).st === 403, "excluir por quem não é administrador: 403");
+  const gw = await api(`/api/envelopes/${F.id}/excluir`, { json: {}, tok: tokWill });
+  ok(gw.st === 403 && /administrador/.test(gw.d.erro), "excluir por quem cuida dos contratos mas não é administrador: 403", JSON.stringify(gw.d));
+  ok((await api(`/api/envelopes/${F.id}`)).st === 200, "contrato continua lá depois das recusas");
+  const ex = await api(`/api/envelopes/${F.id}/excluir`, { json: {} });
+  ok(ex.st === 200 && ex.d.excluido?.id === F.id && ex.d.excluido.status_antes === "concluido" && ex.d.excluido.excluido_por === GUS, "administrador excluiu o concluído", JSON.stringify(ex.d));
+  const g = await api(`/api/envelopes/${F.id}`);
+  ok(g.st === 410 && /excluído/.test(g.d.erro), "detalhe do excluído: 410 com mensagem", JSON.stringify(g.d));
+  ok((await api(`/api/envelopes/${F.id}/pdf`)).st === 410 && (await api(`/api/envelopes/${F.id}/final`)).st === 410, "PDFs do excluído pelo app: 410");
+  const fin = pdf("de novo");
+  const pf = await api(`/api/envelopes/${F.id}/final`, { method: "PUT", body: fin, headers: { "Content-Type": "application/pdf", "X-Hash-Final": sha(fin) } });
+  ok(pf.st === 410 && /excluído/.test(pf.d.erro), "PUT final depois da exclusão (finalização de outro aparelho): 410", JSON.stringify(pf.d));
+  ok((await api(`/api/envelopes/${F.id}/arquivado`, { json: { caminho: "x" } })).st === 410, "arquivado depois da exclusão: 410");
+  const li = await pub("info", { t: tCliF });
+  ok(li.st === 410 && /não está mais disponível/.test(li.d.erro), "link de assinatura do excluído: mensagem clara (410)", JSON.stringify(li.d));
+  const vr = await api("/api/v/" + env1.codigo, { tok: null });
+  ok(vr.st === 410 && /excluído pelo administrador/.test(vr.d.erro) && !JSON.stringify(vr.d).includes(env1.titulo) && !JSON.stringify(vr.d).includes("@"), "verificação do excluído: 'foi excluído pelo administrador em …' sem dados", JSON.stringify(vr.d));
+  const bx = await fetch(dlF), bxd = await bx.json().catch(() => ({}));
+  ok(bx.status === 410 && /excluído/.test(bxd.erro || ""), "download da via final do excluído: 410 com mensagem", bx.status + " " + JSON.stringify(bxd));
+  const l = await api("/api/envelopes?desde=" + encodeURIComponent(antes));
+  ok(l.st === 200 && l.d.excluidos?.includes(F.id) && !l.d.envelopes.some(e => e.id === F.id), "lista incremental traz o id em 'excluidos' (e não o envelope)", JSON.stringify(l.d.excluidos));
+  ok((await api("/api/envelopes")).d.excluidos?.includes(F.id), "lista completa (sem desde) também traz os excluídos");
+  ok((await api("/api/envelopes?desde=" + encodeURIComponent(new Date(Date.now() + 60000).toISOString()))).d.excluidos.length === 0, "lista com desde depois da exclusão: nenhum excluído");
+  ok((await api(`/api/envelopes/${F.id}/excluir`, { json: {} })).st === 200, "excluir de novo (2º clique, outro aparelho): responde a mesma exclusão");
+  ok((await api(`/api/envelopes/aaaaaaaaaaaaaaaa/excluir`, { json: {} })).st === 404, "excluir um contrato que não existe: 404");
+
+  // aguardando, com quem assina pelo link e pelo app
+  const A = await criarEnviado("Contrato de teste 8", [{ nome: "Bia Ramos", email: "bia@exemplo.com", papel: "contratante", modo: "link" }, { nome: "William Reis", email: WILL, papel: "testemunha", modo: "app" }]);
+  const ta = tokenDe(Object.values(A.links)[0]), sa = await identificar(ta), sW = A.env.signatarios.find(s => s.modo === "app");
+  const ea = await api(`/api/envelopes/${A.id}/excluir`, { json: {} });
+  ok(ea.st === 200 && ea.d.excluido.status_antes === "aguardando", "administrador excluiu o que aguardava assinaturas");
+  ok((await pub("info", { t: ta })).st === 410 && (await pub("codigo", { t: ta })).st === 410, "link do excluído: info e código respondem 410");
+  const pa = await pub("assinar", { t: ta, sessao: sa, nome: "Bia Ramos", cpf: "52998224725", imagem: IMG, hash_visto: sha(A.bytes), aceite: true });
+  ok(pa.st === 410 && /não está mais disponível/.test(pa.d.erro), "assinar pelo link (com a confirmação já feita) depois da exclusão: 410");
+  ok((await api(`/api/envelopes/${A.id}/assinar-app`, { tok: tokWill, json: { sid: sW.id, nome: "William Reis", cpf: "39053344705", imagem: IMG, hash_visto: sha(A.bytes), aceite: true } })).st === 410, "assinar pelo app depois da exclusão: 410");
+  ok((await api(`/api/envelopes/${A.id}/cancelar`, { json: {} })).st === 410 && (await api(`/api/envelopes/${A.id}/lembrar`, { json: {} })).st === 410, "cancelar e lembrar depois da exclusão: 410");
+  const lw = await api("/api/envelopes?desde=" + encodeURIComponent(antes), { tok: tokWill });
+  ok(lw.d.excluidos?.includes(A.id), "outro aparelho (gestor) recebe o id excluído na lista incremental");
+
+  // rascunho: some sem deixar verificação pública
+  const b = pdf("rascunho"), R = await api("/api/envelopes", { json: { titulo: "Rascunho para excluir", hash_original: sha(b), tamanho: b.length, signatarios: [{ nome: "C D", email: "cd@exemplo.com", papel: "contratante", modo: "link" }] } });
+  ok((await api(`/api/envelopes/${R.d.envelope.id}/excluir`, { json: {} })).st === 200 && (await api("/api/v/" + R.d.envelope.codigo, { tok: null })).st === 404, "rascunho excluído (a verificação continua sem conhecer o código: 404)");
+
+  // excluir enquanto alguém assina: nunca 500, e o contrato some de vez
+  const C = await criarEnviado("Contrato de teste 9", [{ nome: "Davi Melo", email: "davi@exemplo.com", papel: "contratante", modo: "link" }]);
+  const tc = tokenDe(Object.values(C.links)[0]), sc = await identificar(tc);
+  const [ca, ce] = await Promise.all([pub("assinar", { t: tc, sessao: sc, nome: "Davi Melo", cpf: "52998224725", imagem: IMG, hash_visto: sha(C.bytes), aceite: true }), api(`/api/envelopes/${C.id}/excluir`, { json: {} })]);
+  ok(ce.st === 200 && [200, 410].includes(ca.st) && (await api(`/api/envelopes/${C.id}`)).st === 410, "assinar e excluir ao mesmo tempo: exclusão vale, assinatura 200 ou 410 (sem 500)", [ca.st, ce.st, JSON.stringify(ca.d)].join(" "));
+  // excluir enquanto outro aparelho grava a via final
+  const D = await criarEnviado("Contrato de teste 10", [{ nome: "Eva Luz", email: "eva@exemplo.com", papel: "contratante", modo: "link" }]);
+  const td = tokenDe(Object.values(D.links)[0]), sd = await identificar(td);
+  await pub("assinar", { t: td, sessao: sd, nome: "Eva Luz", cpf: "52998224725", imagem: IMG, hash_visto: sha(D.bytes), aceite: true });
+  const fd = pdf("final D");
+  const [dp, de] = await Promise.all([api(`/api/envelopes/${D.id}/final`, { method: "PUT", body: fd, headers: { "Content-Type": "application/pdf", "X-Hash-Final": sha(fd) }, tok: tokWill }), api(`/api/envelopes/${D.id}/excluir`, { json: {} })]);
+  ok(de.st === 200 && [200, 410].includes(dp.st) && (await api(`/api/envelopes/${D.id}/final`)).st === 410, "gravar a via final e excluir ao mesmo tempo: sem 500, e a via não fica", [dp.st, de.st].join(" "));
+  const dv = await api(`/api/envelopes/${D.id}`);
+  ok(dv.st === 410, "depois da corrida o contrato continua excluído");
+}
+
 console.log(`\n${passos - falhas} de ${passos} conferências passaram.`);
 process.exit(falhas ? 1 : 0);

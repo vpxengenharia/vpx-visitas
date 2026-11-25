@@ -2484,6 +2484,7 @@ html.duo-col body.hub-on .versao-nova{bottom:calc(16px + env(safe-area-inset-bot
   <symbol id="i-megafone" viewBox="0 0 24 24"><path d="M3.5 10v4a1 1 0 0 0 1 1h2.5l8 4.5v-15l-8 4.5H4.5a1 1 0 0 0-1 1z"/><path d="M7 15l1 4.5"/><path style="stroke:var(--ic-ac)" d="M18.2 8.6a5 5 0 0 1 0 6.8"/></symbol>
   <symbol id="i-compartilhar" viewBox="0 0 24 24"><path d="M12 14.5V3.5M8 7.3l4-3.8 4 3.8"/><path d="M8.5 10.5H7A1.5 1.5 0 0 0 5.5 12v7A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5h-1.5"/></symbol>
   <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h3.5"/><path style="stroke:var(--ic-ac)" d="M14.5 12v5M12 14.5h5"/></symbol>
+  <symbol id="i-lixeira" viewBox="0 0 24 24"><path d="M4 6.5h16M9.5 6.5V4.8A1.3 1.3 0 0 1 10.8 3.5h2.4a1.3 1.3 0 0 1 1.3 1.3v1.7"/><path d="M6 6.5l.9 12.6A1.5 1.5 0 0 0 8.4 20.5h7.2a1.5 1.5 0 0 0 1.5-1.4L18 6.5"/><path style="stroke:var(--ic-ac)" d="M10 10.5v6M14 10.5v6"/></symbol>
   <symbol id="i-lapis" viewBox="0 0 24 24"><path d="M15.6 4.4a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/><path style="stroke:var(--ic-ac)" d="m13.6 6.4 3 3"/></symbol>
   <symbol id="i-impressora" viewBox="0 0 24 24"><path d="M7 8.5v-5h10v5"/><path d="M7 17H5a1.5 1.5 0 0 1-1.5-1.5V10A1.5 1.5 0 0 1 5 8.5h14a1.5 1.5 0 0 1 1.5 1.5v5.5A1.5 1.5 0 0 1 19 17h-2"/><path style="stroke:var(--ic-ac)" d="M7 13.5h10v7H7z"/></symbol>
   <symbol id="i-pausa" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></symbol>
@@ -20057,6 +20058,8 @@ let ctTela = null, ctModelos = lerLS("vpx_ct_modelos", null), ctEnviando = false
 const ctCompleto = {}, ctBytes = {}, ctLinks = {}, ctFalhou = {};   // detalhe com eventos e imagens; PDFs baixados; links dos signatários; finalização que falhou (tenta de novo depois)
 const gravarCt = () => gravarLS("vpx_ct", ctDados);
 const ctErroFinal = {};                               // último erro da montagem automática da via final (aparece no contrato)
+const ctExcluindo = new Set();                         // contratos sendo excluídos neste aparelho (excluirCt; já durante a pergunta)
+const ctExcluidosAqui = new Set();                     // excluídos (aqui ou em outro aparelho): uma leitura que começou antes não os traz de volta
 // a cópia que fica no aparelho: sem os eventos, as imagens das assinaturas e os dados pessoais (CPF, IP, aparelho, local, localização),
 // que ficam só no detalhe aberto (ctCompleto, na memória)
 function leveCt(e) {
@@ -20169,11 +20172,12 @@ async function sincronizarContratos(forcar) {
   let deNovo = false, recarregarDet = false;
   try {
     // "desde" com 5 min de folga: uma gravação que terminou depois da leitura anterior do servidor ainda entra (repetir não faz mal)
-    let desde = ctDados.agora ? new Date(Date.parse(ctDados.agora) - 5 * 60000).toISOString() : "", apos = "", agora = "", gestor;
+    let desde = ctDados.agora ? new Date(Date.parse(ctDados.agora) - 5 * 60000).toISOString() : "", apos = "", agora = "", gestor, excluidos = [];
     for (let pag = 0; pag < 50; pag++) {            // a lista vem em páginas (o servidor manda "mais" enquanto houver)
       const r = await ctApi("/api/envelopes" + (desde ? "?desde=" + encodeURIComponent(desde) + (apos ? "&apos=" + encodeURIComponent(apos) : "") : ""), { fundo: true });
-      if (!pag) { agora = r?.agora || ""; gestor = typeof r?.gestor === "boolean" ? r.gestor : podeContratos(); }
+      if (!pag) { agora = r?.agora || ""; gestor = typeof r?.gestor === "boolean" ? r.gestor : podeContratos(); excluidos = r?.excluidos || []; }
       for (const e of r?.envelopes || []) {
+        if (ctExcluidosAqui.has(e.id)) continue;     // excluído depois que esta leitura começou
         const ant = ctDados.envs[e.id];
         if (!ant || ant.atualizado_em !== e.atualizado_em) {
           if (ctTela?.det === e.id) recarregarDet = true; else delete ctCompleto[e.id];   // o contrato aberto não perde a trilha: é relido
@@ -20183,6 +20187,12 @@ async function sincronizarContratos(forcar) {
       if (!r?.mais) break;
       desde = r.mais.desde; apos = r.mais.apos;
     }
+    // excluídos pelo administrador (em outro aparelho): saem da lista (e o contrato aberto volta para a lista com um aviso)
+    for (const id of excluidos) { if (ctExcluindo.has(id)) continue; if (ctTela?.det === id) recarregarDet = false; ctFoiExcluido(id); }
+    // exclusões deste aparelho que ficaram sem resposta do servidor e não voltaram em 30 dias: esquecidas
+    const lixo = lerLS("vpx_ct_lixo", {}); let velho = false;
+    for (const [id, p] of Object.entries(lixo)) if (!(p?.quando > Date.now() - 30 * 864e5)) { delete lixo[id]; velho = true; }
+    if (velho) gravarLS("vpx_ct_lixo", lixo);
     // quem passou a cuidar dos contratos precisa da lista inteira (antes o servidor mandava só os seus); quem deixou, fica só com os seus
     if (gestor && ctDados.todos === false && ctDados.agora) { ctDados.agora = ""; deNovo = true; }
     else if (agora) ctDados.agora = agora;
@@ -20405,6 +20415,8 @@ async function carregarDetCt(id, avisar) {
   if (!ctBase() || !navigator.onLine) return ctCompleto[id] || ctDados.envs[id] || null;
   try {
     const e = envCt(await ctApi("/api/envelopes/" + encodeURIComponent(id)));
+    if (ctExcluidosAqui.has(id)) return null;        // excluído enquanto a leitura ia
+    if (e?.id && !ctExcluindo.has(e.id)) tirarLixoCt(e.id);   // o contrato existe: uma exclusão sem resposta não aconteceu
     if (e?.id) {
       ctCompleto[e.id] = e;
       ctDados.envs[e.id] = leveCt(e); gravarCt();
@@ -20412,7 +20424,10 @@ async function carregarDetCt(id, avisar) {
     if (ctTela?.det === id && !ctTela.assinar) desenharCt(true);
     pintarQtdCt();
     return e;
-  } catch (x) { console.error(x); if (avisar) aviso("Não foi possível abrir o contrato: " + x.message, true); return ctCompleto[id] || ctDados.envs[id] || null; }
+  } catch (x) {
+    if (x.status === 410) { if (!ctExcluindo.has(id) && ctFoiExcluido(id)) aoMudarCt(); return null; }   // excluído pelo administrador
+    console.error(x); if (avisar) aviso("Não foi possível abrir o contrato: " + x.message, true); return ctCompleto[id] || ctDados.envs[id] || null;
+  }
 }
 // o PDF (original ou final) do servidor; fica na memória enquanto o app está aberto
 // hashEsperado: o PDF baixado tem de ter esse SHA-256 (a via final é sempre conferida com o hash gravado no servidor antes de abrir,
@@ -20427,6 +20442,8 @@ async function baixarPdfCt(id, final, hashEsperado) {
   return ctBytes[k];
 }
 const nomeArqCt = (e, final) => limparNome(String(e.titulo || "Contrato").replace(/\//g, "-")).slice(0, 120) + (final ? " - assinado" : "") + ".pdf";
+// no OneDrive, com o código: "<título> - K7QH-3MZD-P2XA - assinado.pdf" / "… - original.pdf"
+const nomeOdCt = (e, final) => nomeArqCt(e, false).replace(/\.pdf$/i, "") + (e.codigo ? " - " + codCt(e.codigo) : "") + (final ? " - assinado.pdf" : " - original.pdf");
 async function verDocCt(e, final) {
   try {
     aviso(final ? "Abrindo o documento assinado…" : "Abrindo o documento…");
@@ -20516,7 +20533,7 @@ function desenharDetCt() {
   w.appendChild(ac);
   if (e.status === "concluido" && !e.arquivado_em) {
     const p = el("p", "laudo-dica ct-montando", podeContratos() ? "Todos assinaram. O app monta o documento final (com a folha de assinaturas) e guarda no OneDrive do cliente." : "Todos assinaram. O documento final é montado pelo app de quem cuida dos contratos.");
-    if (podeContratos()) { const b = el("button", "laudo-link", ctFinalizando.has(e.id) ? "Montando…" : "Montar agora"); b.type = "button"; b.disabled = ctFinalizando.has(e.id); b.onclick = () => finalizarAgoraCt(e.id); p.append(" ", b); }
+    if (podeContratos()) { const b = el("button", "laudo-link", ctFinalizando.has(e.id) ? "Montando…" : "Montar agora"); b.type = "button"; b.disabled = ctFinalizando.has(e.id) || ctExcluindo.has(e.id); b.onclick = () => finalizarAgoraCt(e.id); p.append(" ", b); }
     w.appendChild(p);
     if (podeContratos() && ctErroFinal[e.id] && !ctFinalizando.has(e.id)) w.appendChild(el("p", "avcb-nota ct-erro-final", "A última tentativa de montar o documento final não deu certo: " + ctErroFinal[e.id]));
   }
@@ -20593,6 +20610,194 @@ function desenharDetCt() {
       w.appendChild(el("p", "laudo-dica", "Cada evento guarda o SHA-256 do anterior (o primeiro, um código ligado a este contrato e ao documento original): mudar um evento mudaria todos os seguintes. Hora, IP e local são do servidor (horário de Brasília). Quem assina pelo link recebe por e-mail um recibo com o registro da assinatura."));
     }
   }
+  // excluir: só o administrador fixo (CONFIG.admins = o ADMINS do servidor; o "admin" do permissoes.json não vale aqui), em qualquer
+  // situação (pedido do Gustavo em 25/11/2026), no fim e discreto
+  if (ehAdminFixo() && ctBase()) {
+    const x = comIc(el("button", "btn sec perigo tar-excluir ct-excluir"), "lixeira", ctExcluindo.has(e.id) ? "Excluindo…" : "Excluir contrato"); x.type = "button";
+    x.disabled = ctExcluindo.has(e.id) || !!ctTela.assinar;
+    x.onclick = () => excluirCt(e);
+    w.appendChild(x);
+  }
+}
+/* ---------- excluir contrato (só o administrador fixo; pedido do Gustavo em 25/11/2026: "eu fiz o teste de um, assinei e agora não estou
+   conseguindo deletar… eu, como administrador, quero ter essa função"). Qualquer situação. Primeiro o servidor de assinatura
+   (POST …/excluir: apaga o contrato, a trilha e os PDFs de lá e guarda só uma "lápide" sem dados pessoais; os links deixam de valer e a
+   verificação diz que foi excluído). Se o servidor recusar, nada muda no OneDrive. Depois, a via assinada e o original guardados no
+   OneDrive (<cliente>/01 - Contrato ou 00 - Contratos Assinados) vão para a lixeira do OneDrive (DELETE da Graph: dá para recuperar),
+   só os que têm o SHA-256 registrado no contrato (outro contrato com o mesmo título não é tocado; o original que outro contrato também
+   usa fica). Resposta do servidor perdida: confere; sem como saber, os dados para a lixeira ficam guardados (vpx_ct_lixo) e a lixeira
+   roda quando o servidor disser que o contrato foi excluído. A oportunidade ligada não muda. ---------- */
+// tira o contrato do aparelho (lista, detalhe, PDFs baixados, links, lembretes da via final e da oportunidade)
+function esquecerCt(id) {
+  const e = ctCompleto[id] || ctDados.envs[id];
+  for (const s of e?.signatarios || []) delete ctLinks[s.id];
+  ctExcluidosAqui.add(id);
+  delete ctDados.envs[id]; delete ctCompleto[id]; delete ctErroFinal[id]; delete ctFalhou[id];
+  delete ctBytes[id + ":orig"]; delete ctBytes[id + ":final"];
+  for (const ch of ["vpx_ct_arq", "vpx_ct_oport"]) { const g = lerLS(ch, {}); if (g && g[id]) { delete g[id]; gravarLS(ch, g); } }
+  gravarCt();
+}
+// o contrato aberto deixou de existir: volta para a lista (pelo histórico quando o detalhe tem um passo próprio). O visualizador ou a
+// tela de assinar abertos por cima fecham junto, com o passo deles no histórico.
+function sairDoExcluidoCt(id) {
+  if (!ctTela || ctTela.det !== id) return;
+  const camada = (!$("visor-pdf").hidden && history.state?.visor) || (!$("tela-assinar").hidden && history.state?.assinar);
+  if (!$("visor-pdf").hidden) fecharVisor(false);
+  if (!$("tela-assinar").hidden) fecharAssinar(false);
+  ctTela.assinar = null;
+  if (!ctTela.direto && (history.state?.ctSub || camada)) { history.go(camada ? -2 : -1); return; }   // o popstate volta para a lista
+  ctTela.direto = false; ctTela.det = ctTela.fim = null; desenharCt(true); reporRol("tela-ct");
+  if (camada) history.back();                        // só tira o passo da camada (a lista já está à vista)
+}
+// excluído em outro aparelho (a lista do servidor mandou o id, ou o contrato respondeu 410)
+function ctFoiExcluido(id) {
+  if (lerLS("vpx_ct_lixo", {})[id]) processarLixoCt(id);   // exclusão deste aparelho que tinha ficado sem resposta: agora a lixeira
+  if (!ctDados.envs[id] && !ctCompleto[id]) return false;
+  const aberto = ctTela?.det === id;
+  esquecerCt(id);
+  if (aberto) { sairDoExcluidoCt(id); aviso("Este contrato foi excluído pelo administrador."); }
+  return true;
+}
+// o que a lixeira do OneDrive precisa, guardado antes de pedir a exclusão (o esquecerCt apaga o resto)
+function dadosLixoCt(e) {
+  const c = ctCompleto[e.id] || e, arq = lerLS("vpx_ct_arq", {})[e.id] || null;
+  const ev = (c.eventos || []).filter(v => v.tipo === "arquivado").pop();
+  return { id: e.id, titulo: e.titulo || "", codigo: e.codigo || "", cliente: e.cliente || "", hash_final: c.hash_final || e.hash_final || "", hash_original: c.hash_original || e.hash_original || "",
+    arq, caminhoEv: ev?.detalhe ? String(ev.detalhe).split(" · ")[0] : "", arquivado: !!(c.arquivado_em || e.arquivado_em || arq), por: emailDe(), quando: Date.now() };
+}
+const tirarLixoCt = id => { const L = lerLS("vpx_ct_lixo", {}); if (L[id]) { delete L[id]; gravarLS("vpx_ct_lixo", L); } };
+// a pasta onde a via foi guardada (o que este aparelho gravou, senão o evento "arquivado", senão a pasta do cliente), a partir de 02 - Clientes
+function pastaLixoCt(p) {
+  const pasta = c => c && c.includes("/") ? c.slice(0, c.lastIndexOf("/")) : "";
+  return pasta(p.arq?.caminho) || pasta(p.caminhoEv) || `${CONFIG.pastaClientesNome}/${p.cliente ? caminhoCli(p.cliente) + "/" + CONFIG.pastaContrato : CONFIG.pastaContratosAssinados}`;
+}
+const pastaTxtCt = c => c.split("/").filter(Boolean).join(" › ");
+// as pastas onde a via e o original podem estar: a gravada por este aparelho (pelo id), a do evento "arquivado" e a do cliente (ativo ou
+// arquivado) ou 00 - Contratos Assinados. Cada uma vira o endereço da lista dos arquivos dela na Graph.
+function pastasLixoCt(p) {
+  const l = [], rel = c => { const pre = CONFIG.pastaClientesNome + "/"; return c && c.startsWith(pre) ? c.slice(pre.length) : ""; };
+  if (p.arq?.pasta) l.push(`/drives/${CONFIG.driveId}/items/${p.arq.pasta}/children`);
+  for (const c of [rel(pastaLixoCt({ arq: p.arq })), rel(pastaLixoCt({ caminhoEv: p.caminhoEv }))]) if (c) l.push(`${BASE()}:/${encPath(c)}:/children`);
+  if (p.cliente) for (const c of new Set([caminhoCli(p.cliente), p.cliente, `${CONFIG.pastaArquivado}/${p.cliente}`])) l.push(`${BASE()}:/${encPath(c + "/" + CONFIG.pastaContrato)}:/children`);
+  l.push(`${BASE()}:/${encPath(CONFIG.pastaContratosAssinados)}:/children`);
+  return [...new Set(l)];
+}
+// a via assinada e o original no OneDrive: lista as pastas e confere pelo SHA-256 os PDFs cujo nome começa pelo título do contrato (pega
+// também "… - assinado 1.pdf", que o OneDrive cria quando já há um arquivo com o mesmo nome, e os nomes com o código). O original que
+// outro contrato em andamento ou concluído também usa (mesmo PDF) não entra: o arquivo é um só no OneDrive.
+// Devolve { itens: [{ id, name, tipo: "via" | "orig" }], origFica }.
+async function arquivosOneDriveCt(p) {
+  const origFica = !!p.hash_original && Object.values(ctDados.envs).some(o => o.id !== p.id && o.hash_original === p.hash_original && !["cancelado", "expirado", "recusado"].includes(o.status));
+  const tipos = {}; if (p.hash_final) tipos[p.hash_final] = "via"; if (p.hash_original && !origFica) tipos[p.hash_original] = "orig";
+  if (!Object.keys(tipos).length) return { itens: [], origFica };
+  const base = limparNome(String(p.titulo || "Contrato").replace(/\//g, "-")).slice(0, 120).toLowerCase();
+  const exatos = new Set([p.arq?.caminho, p.caminhoEv].filter(Boolean).map(c => c.split("/").pop().toLowerCase()));
+  const achados = new Map(), vistos = new Set();
+  for (const pasta of pastasLixoCt(p)) {
+    let url = pasta + "?$top=200";
+    try {
+      while (url) {
+        const r = await graph(url);
+        for (const it of r?.value || []) {
+          const n = String(it.name || "").toLowerCase();
+          if (!it.file || !it.id || vistos.has(it.id) || !n.endsWith(".pdf") || !(n.startsWith(base) || exatos.has(n)) || vistos.size >= 40) continue;
+          vistos.add(it.id);
+          const dl = it["@microsoft.graph.downloadUrl"]; if (!dl) continue;
+          try {                                      // confere o conteúdo: só vai para a lixeira o arquivo deste contrato
+            const b = await fetch(dl); if (!b.ok) continue;
+            const t = tipos[await sha256Hex(await b.arrayBuffer())];
+            if (t) achados.set(it.id, { id: it.id, name: it.name, tipo: t });
+          } catch (x) { console.error("contrato: conferir arquivo do OneDrive", x); }
+        }
+        url = r?.["@odata.nextLink"] || "";
+      }
+    } catch (x) { if (x.status !== 404 && x.status !== 400) throw x; }   // pasta que não existe
+  }
+  return { itens: [...achados.values()], origFica };
+}
+// manda para a lixeira do OneDrive o que é do contrato excluído; devolve o que fazer constar no aviso (null = nada a procurar)
+async function lixeiraOneDriveCt(p) {
+  if (!p.hash_final && !p.arquivado) { tirarLixoCt(p.id); return null; }
+  const r = { apagados: [], faltam: [], erro: "", pasta: pastaTxtCt(pastaLixoCt(p)), origFica: false };
+  try {
+    const { itens, origFica } = await arquivosOneDriveCt(p);
+    r.origFica = origFica;
+    for (const it of itens) { await graph(`/drives/${CONFIG.driveId}/items/${it.id}`, { method: "DELETE" }); r.apagados.push(it.name); }
+    if (p.arquivado) {                               // guardado no OneDrive: diz o que deveria estar lá e não foi achado
+      if (p.hash_final && !itens.some(i => i.tipo === "via")) r.faltam.push("a via assinada");
+      if (!origFica && p.hash_original && (!p.arq || p.arq.orig) && !itens.some(i => i.tipo === "orig")) r.faltam.push("o original");   // (este aparelho sabe se gravou o original)
+    }
+  } catch (x) { console.error("contrato: lixeira do OneDrive", x); r.erro = x.message; }
+  tirarLixoCt(p.id);
+  return r;
+}
+function textoLixoCt(r, titulo) {
+  const ini = titulo ? `Contrato "${titulo}" excluído.` : "Contrato excluído.";
+  if (!r) return ini;
+  if (r.erro) return `${ini} Os arquivos dele no OneDrive não foram para a lixeira (${r.erro}): apague-os à mão na pasta ${r.pasta}.`;
+  const f = [ini];
+  if (r.apagados.length) f.push(`${r.apagados.length === 1 ? "1 arquivo do OneDrive foi" : r.apagados.length + " arquivos do OneDrive foram"} para a lixeira (${r.apagados.join(", ")}).`);
+  if (r.faltam.length) f.push(`Não ${r.faltam.length > 1 ? "foram achados" : r.faltam[0] === "a via assinada" ? "foi achada" : "foi achado"} no OneDrive: ${r.faltam.join(" e ")} (talvez tenha${r.faltam.length > 1 ? "m" : ""} sido movido${r.faltam.length > 1 ? "s" : ""}); confira a pasta ${r.pasta}.`);
+  if (r.origFica) f.push("O original ficou no OneDrive: outro contrato usa o mesmo arquivo.");
+  return f.join(" ");
+}
+// exclusão que tinha ficado sem resposta: o servidor agora diz que o contrato foi excluído (só no aparelho de quem pediu)
+async function processarLixoCt(id) {
+  const p = lerLS("vpx_ct_lixo", {})[id];
+  if (!p || p.por !== emailDe() || !ehAdminFixo() || !navigator.onLine || (processarLixoCt.rodando ||= new Set()).has(id)) return;
+  processarLixoCt.rodando.add(id);
+  try { const r = await comGravacao(() => lixeiraOneDriveCt(p)); aviso(textoLixoCt(r, p.titulo), !!r?.erro); }
+  finally { processarLixoCt.rodando.delete(id); }
+}
+// POST …/excluir (a rota não faz mal repetida). 410 = já excluído (por este pedido, com a resposta perdida, ou por outro aparelho).
+// Sem resposta ou erro do servidor: tenta mais uma vez e, se continuar, pergunta ao servidor se o contrato ainda existe.
+// Erro com "incerto" = não deu para saber.
+async function pedirExclusaoCt(id) {
+  const u = `/api/envelopes/${encodeURIComponent(id)}`;
+  let erro;
+  for (let i = 0; i < 2; i++) {
+    try { await ctApi(u + "/excluir", { method: "POST", json: {} }); return; }
+    catch (x) { if (x.status === 410) return; erro = x; if (x.status && x.status < 500) throw x; }
+  }
+  try { await ctApi(u); } catch (x) { if (x.status === 410) return; erro.incerto = !x.status || x.status >= 500; }
+  throw erro;
+}
+async function excluirCt(e) {
+  if (!ehAdminFixo() || ctExcluindo.has(e.id)) return;
+  if (!navigator.onLine) { aviso("Sem internet: para excluir um contrato o app precisa de conexão.", true); return; }
+  if (ctFinalizando.has(e.id)) { aviso("Espere o app terminar de montar o documento final deste contrato e tente de novo.", true); return; }
+  ctExcluindo.add(e.id);                             // já durante a pergunta: a via final não começa a ser montada nem guardada
+  const lixo = dadosLixoCt(e), [a, tot] = contaCt(e), sit = (SIT_CT[e.status] || [e.status])[0];
+  const texto = [`Código ${codCt(e.codigo)}\n${sit}${tot ? ` · ${a} de ${tot} ${tot === 1 ? "assinou" : "assinaram"}` : ""}`,
+    "O contrato some do app e do serviço de assinatura, com a trilha de eventos e os PDFs guardados lá. Os links de assinatura deixam de funcionar e a página de verificação passa a dizer que o documento foi excluído.",
+    lixo.arquivado ? `A via assinada e o original guardados no OneDrive (pasta ${pastaTxtCt(pastaLixoCt(lixo))}) vão para a lixeira do OneDrive: dá para recuperar de lá por um tempo.`
+      : lixo.hash_final ? "Se a via assinada já estiver no OneDrive, ela e o original vão para a lixeira do OneDrive (dá para recuperar de lá por um tempo)." : "",
+    "Não dá para desfazer pelo app."].filter(Boolean).join("\n\n");
+  let sim = false;
+  try { sim = await confirmarApagar(`Excluir o contrato "${e.titulo}"?`, texto, "Excluir o contrato", "Manter"); } catch (x) { console.error(x); }
+  if (!sim || !navigator.onLine) {
+    ctExcluindo.delete(e.id); if (ctTela?.det === e.id) desenharCt(true);
+    if (sim) aviso("Sem internet: o contrato não foi excluído.", true);
+    return;
+  }
+  if (ctTela?.det === e.id) desenharCt(true);
+  const fin = ctFinalizandoP.get(e.id); if (fin) await fin.catch(() => {});   // montagem que já ia: termina antes (o que ela guardar é achado)
+  const L = lerLS("vpx_ct_lixo", {}); L[e.id] = lixo; gravarLS("vpx_ct_lixo", L);
+  let r = null;
+  try { await comGravacao(async () => { await pedirExclusaoCt(e.id); r = await lixeiraOneDriveCt(lixo); }); }
+  catch (x) {
+    ctExcluindo.delete(e.id); if (!x.incerto) tirarLixoCt(e.id);
+    if (ctTela?.det === e.id) desenharCt(true);
+    aviso(x.incerto ? `Não deu para confirmar a exclusão (${x.message}). Se o contrato tiver sido excluído, ele sai da lista na próxima sincronização e os arquivos dele no OneDrive vão para a lixeira; senão, tente de novo.`
+      : "Não foi possível excluir o contrato: " + x.message, true);
+    return;
+  }
+  ctExcluindo.delete(e.id);
+  const aberto = ctTela?.det === e.id;
+  esquecerCt(e.id);
+  if (aberto) sairDoExcluidoCt(e.id);
+  aoMudarCt();
+  aviso(textoLixoCt(r), !!r?.erro);
 }
 
 /* ---------- assinar pelo app (signatário modo "app", a vez é da pessoa logada) ---------- */
@@ -21551,15 +21756,18 @@ async function montarFinalCt(e, orig, comOriginal = true) {
 }
 
 /* ---------- finalização: quem tem a função e abre o app depois que todos assinaram monta o final, manda ao servidor e guarda no OneDrive ---------- */
-const ctFinalizando = new Set();
+const ctFinalizando = new Set(), ctFinalizandoP = new Map();   // montagens em andamento (e a promessa de cada uma, que a exclusão espera)
 async function finalizarPendentesCt() {
   if (finalizarPendentesCt.rodando || !podeContratos() || !navigator.onLine || !ctBase()) return;
   finalizarPendentesCt.rodando = true;
   try {
     for (const e of Object.values(ctDados.envs)) {
-      if (e.status !== "concluido" || e.arquivado_em || (ctFalhou[e.id] || 0) > Date.now() || ctFinalizando.has(e.id)) continue;
+      if (e.status !== "concluido" || e.arquivado_em || (ctFalhou[e.id] || 0) > Date.now() || ctFinalizando.has(e.id) || ctExcluindo.has(e.id)) continue;
+      if (ctExcluidosAqui.has(e.id)) { delete ctDados.envs[e.id]; gravarCt(); continue; }   // excluído: não monta (e não fica na lista)
       try { await finalizarCt(e.id); delete ctErroFinal[e.id]; }
-      catch (x) { console.error("contrato final:", x); ctFalhou[e.id] = Date.now() + 5 * 60000; finalizarCt.erro = ctErroFinal[e.id] = x.message; if (ctTela?.det === e.id) desenharCt(true); }
+      catch (x) {
+        if (x.status === 410) { ctFoiExcluido(e.id); aoMudarCt(); continue; }   // excluído pelo administrador: não monta (o servidor recusa a via)
+        console.error("contrato final:", x); ctFalhou[e.id] = Date.now() + 5 * 60000; finalizarCt.erro = ctErroFinal[e.id] = x.message; if (ctTela?.det === e.id) desenharCt(true); }
     }
   } finally { finalizarPendentesCt.rodando = false; }
 }
@@ -21567,15 +21775,18 @@ async function finalizarAgoraCt(id) {
   delete ctFalhou[id];
   if (ctTela?.det === id) desenharCt(true);
   try { await finalizarCt(id); delete ctErroFinal[id]; aviso("Documento final montado e guardado no OneDrive."); }
-  catch (x) { aviso("Não foi possível montar o documento final: " + x.message, true); ctFalhou[id] = Date.now() + 5 * 60000; ctErroFinal[id] = x.message; }
+  catch (x) {
+    if (x.status === 410) { ctFoiExcluido(id); aoMudarCt(); return; }   // excluído pelo administrador
+    aviso("Não foi possível montar o documento final: " + x.message, true); ctFalhou[id] = Date.now() + 5 * 60000; ctErroFinal[id] = x.message;
+  }
   if (ctTela?.det === id) desenharCt(true);
 }
 const MAX_FINAL_CT = 24 * 1048576;                     // o serviço aceita a via final até 25 MB
 async function finalizarCt(id) {
-  if (ctFinalizando.has(id)) return;
+  if (ctFinalizando.has(id) || ctExcluindo.has(id) || ctExcluidosAqui.has(id)) return;   // sendo excluído aqui (já na pergunta): não monta
   ctFinalizando.add(id);
-  try {
-    await comGravacao(async () => {
+  const criados = [];                                // arquivos que esta montagem criou no OneDrive (vão para a lixeira se o contrato foi excluído no meio)
+  const fim = comGravacao(async () => {
       let e = envCt(await ctApi("/api/envelopes/" + encodeURIComponent(id)));
       if (!e?.id || e.status !== "concluido") return;
       ctCompleto[e.id] = e;
@@ -21598,26 +21809,39 @@ async function finalizarCt(id) {
       }
       // a via final do serviço só é guardada se o SHA-256 for o gravado (um arquivo trocado no caminho não vai para o OneDrive)
       if (!final) final = await baixarPdfCt(id, true, e.hash_final); else ctBytes[id + ":final"] = final;
-      const dest = await arquivarFinalCt(e, final, orig);
+      if (ctExcluindo.has(id) || ctExcluidosAqui.has(id)) return;   // excluído enquanto montava: não guarda no OneDrive
+      const dest = await arquivarFinalCt(e, final, orig, criados);
       const r = envCt(await ctApi(`/api/envelopes/${encodeURIComponent(id)}/arquivado`, { method: "POST", json: { caminho: dest.caminho } }));
       atualizarEnvCt(r?.id ? r : { ...e, arquivado_em: new Date().toISOString() });
-    });
-  } finally { ctFinalizando.delete(id); }
+  });
+  ctFinalizandoP.set(id, fim);
+  try { await fim; }
+  catch (x) {
+    // 410: o contrato foi excluído (em outro aparelho) enquanto esta montagem guardava a via: o que ela acabou de criar vai para a lixeira
+    if (x.status === 410) {
+      for (const it of criados) try { await graph(`/drives/${CONFIG.driveId}/items/${it}`, { method: "DELETE" }); } catch (y) { console.error("contrato: lixeira do OneDrive", y); }
+      const g = lerLS("vpx_ct_arq", {}); if (g[id]) { delete g[id]; gravarLS("vpx_ct_arq", g); }
+    }
+    throw x;
+  } finally { ctFinalizando.delete(id); ctFinalizandoP.delete(id); }
+  if (ctExcluidosAqui.has(id)) return;
   carregarDetCt(id);
   aoMudarCt();
   fecharOportunidadesCt();
 }
-function atualizarEnvCt(e) { ctDados.envs[e.id] = { ...ctDados.envs[e.id], ...leveCt(e) }; gravarCt(); }
-// grava "<título> - assinado.pdf" e "<título> - original.pdf" em 02 - Clientes › <cliente> › 01 - Contrato
+function atualizarEnvCt(e) { if (ctExcluidosAqui.has(e.id)) return; ctDados.envs[e.id] = { ...ctDados.envs[e.id], ...leveCt(e) }; gravarCt(); }
+// grava "<título> - <código> - assinado.pdf" e "<título> - <código> - original.pdf" em 02 - Clientes › <cliente> › 01 - Contrato
 // (sem a pasta do cliente: 02 - Clientes › 00 - Contratos Assinados). O mesmo arquivo já lá (outro aparelho gravou) não é duplicado.
-async function arquivarFinalCt(e, bytes, orig) {
+// O código no nome (desde 25/11/2026; antes era só "<título> - assinado.pdf") faz dois contratos com o mesmo título e o mesmo PDF nunca
+// usarem o mesmo arquivo no OneDrive (a exclusão de um levaria o original do outro). criados: recebe os ids dos arquivos criados agora.
+async function arquivarFinalCt(e, bytes, orig, criados = []) {
   const guard = lerLS("vpx_ct_arq", {});
   let res = guard[e.id];                              // já gravado por este aparelho (o "arquivado" é que falhou)
   const gravar = async (pastaId, nome, b) => {
     const blob = new Blob([b], { type: "application/pdf" });
     let it = null;
     try { it = await graph(`/drives/${CONFIG.driveId}/items/${pastaId}:/${encodeURIComponent(nome)}`); } catch (x) { if (x.status !== 404) throw x; }
-    if (!(it?.id && it.size === blob.size)) it = await enviarArquivo(pastaId, nome, blob);
+    if (!(it?.id && it.size === blob.size)) { it = await enviarArquivo(pastaId, nome, blob); if (it?.id) criados.push(it.id); }
     return it;
   };
   if (!res) {
@@ -21631,13 +21855,13 @@ async function arquivarFinalCt(e, bytes, orig) {
       pasta = await garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaContratosAssinados]);
       caminho = `${CONFIG.pastaClientesNome}/${CONFIG.pastaContratosAssinados}`;
     }
-    const nome = nomeArqCt(e, true), it = await gravar(pasta.id, nome, bytes);
+    const nome = nomeOdCt(e, true), it = await gravar(pasta.id, nome, bytes);
     res = { caminho: `${caminho}/${it?.name || nome}`, web: it?.webUrl || "", pasta: pasta.id || "" };
     guard[e.id] = res; gravarLS("vpx_ct_arq", guard);
   }
   if (orig && res.pasta && !res.orig) {               // o original ao lado (é o arquivo cujo SHA-256 a página de verificação reconhece como "original")
-    await gravar(res.pasta, nomeArqCt(e, false).replace(/\.pdf$/i, " - original.pdf"), orig);
-    res.orig = true; guard[e.id] = res; gravarLS("vpx_ct_arq", guard);
+    const it = await gravar(res.pasta, nomeOdCt(e, false), orig);
+    res.orig = it?.name || true; guard[e.id] = res; gravarLS("vpx_ct_arq", guard);
   }
   return res;
 }

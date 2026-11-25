@@ -68,6 +68,13 @@ CREATE TABLE codigos (signatario_id TEXT PRIMARY KEY, codigo_hash TEXT, expira T
 CREATE TABLE sessoes (sessao_hash TEXT PRIMARY KEY, signatario_id TEXT NOT NULL, expira TEXT NOT NULL);
 -- quem cuida dos contratos (a função Contratos do app): o administrador manda a lista pelo app (PUT /api/gestores); os ADMINS do wrangler.toml valem sempre
 CREATE TABLE gestores (email TEXT PRIMARY KEY, desde TEXT NOT NULL);
+-- contratos excluídos pelo administrador (POST /api/envelopes/:id/excluir, pedido do Gustavo em 25/11/2026). A "lápide" fica para sempre,
+-- sem dados pessoais (sem CPF, IP, imagens nem e-mails dos signatários): a verificação diz que o documento foi excluído e os aparelhos
+-- tiram o contrato da lista. O envelope, os signatários, os eventos, os códigos, as sessões e os PDFs são apagados.
+-- Em um banco que já existe, o servidor cria estas tabelas sozinho (prepararBanco, CREATE TABLE IF NOT EXISTS).
+CREATE TABLE excluidos (id TEXT PRIMARY KEY, codigo TEXT NOT NULL, titulo TEXT, status_antes TEXT, excluido_em TEXT NOT NULL, excluido_por TEXT NOT NULL);
+-- SHA-256 dos links (de assinatura e de download da via final) de um contrato excluído: o link responde "não está mais disponível"
+CREATE TABLE excluidos_tokens (hash TEXT PRIMARY KEY, envelope_id TEXT NOT NULL);
 
 -- Índices (para as listas e a tarefa diária ficarem rápidas)
 CREATE INDEX idx_env_atualizado ON envelopes (atualizado_em);
@@ -78,3 +85,5 @@ CREATE INDEX idx_sig_email ON signatarios (email);
 CREATE INDEX idx_evt_envelope ON eventos (envelope_id, seq);
 CREATE UNIQUE INDEX idx_evt_anterior ON eventos (envelope_id, anterior);   -- dois eventos não podem seguir o mesmo anterior (a cadeia não bifurca)
 CREATE INDEX idx_sessoes_sig ON sessoes (signatario_id);
+CREATE INDEX idx_exc_codigo ON excluidos (codigo);
+CREATE INDEX idx_exc_quando ON excluidos (excluido_em);
