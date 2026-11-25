@@ -2301,6 +2301,121 @@ html.duo-col body.hub-on .versao-nova{bottom:calc(16px + env(safe-area-inset-bot
 .orc-ult-p.sem-planilha b{color:var(--suave)}
 .orc-ult-b .orc-ult-erro{white-space:normal;color:var(--suave);line-height:1.3}
 .orc-ult-b[hidden]{display:none}
+/* ---------- Contratos: assinatura eletrônica (24/11/2026; plano em docs/assinatura-contratos.md) ---------- */
+#tela-ct .avcb-corpo{container-type:inline-size}
+#ct-lista-tela[hidden],#ct-sub[hidden],#ct-vazio[hidden],#ct-exp[hidden],#ct-tab[hidden],#ct-novo[hidden]{display:none}
+#ct-estado:empty{display:none}
+#ct-abas{margin:0 0 10px}
+#ct-atualizar{margin-top:8px}
+.ct-tab .ct-c-st{width:118px}
+.ct-cod{white-space:nowrap}
+.ct-tab .ct-c-prazo{width:72px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ct-tab .ct-c-prazo small,.ct-tab .ct-c-st small{display:block;font-size:12.5px;line-height:1.25;margin-top:3px}
+.ct-tab .ct-c-st .os-st{margin:0}
+.ct-tab td.ct-venc{color:var(--crit-tx);font-weight:700}
+.ct-tab .orc-cli{font-weight:600}
+.ct-sua-vez{color:var(--warn-tx);font-weight:700}
+.ct-tab tr.ct-apag .orc-cli{color:var(--suave)}
+@container (max-width:859px){.ct-tab{font-size:15px}.ct-tab tbody td{padding-top:10px;padding-bottom:10px}}
+@container (min-width:860px){
+  .ct-tab .ct-c-cli{width:210px;color:var(--tinta)}
+  .ct-tab .ct-c-st{width:170px}
+  .ct-tab .ct-c-env{width:108px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ct-tab .ct-c-prazo{width:104px}
+  .ct-tab .ct-c-tit .orc-sub{display:none}
+  .ct-tab .ct-c-tit .orc-cli{font-size:15.5px}
+}
+/* um contrato */
+.ct-card .os-num{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.ct-card .os-st{margin:0}
+.nf-card.ct-card.ok{border-left-color:var(--ok)}
+.ct-sigs{display:grid;gap:8px;margin:0 0 6px}
+.ct-sig-l{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:11px 12px;border-radius:var(--r-l,14px);border:1px solid var(--linha);border-left:5px solid var(--linha);background:var(--papel)}
+.ct-sig-l.assinado{border-left-color:var(--ok)}
+.ct-sig-l.recusado{border-left-color:var(--crit-tx)}
+.ct-sig-l.vez{border-left-color:var(--laranja)}
+.ct-sig-tx{flex:1 1 220px;min-width:0;display:grid;gap:2px}
+.ct-sig-tx b{font-size:16px;overflow-wrap:anywhere}
+.ct-sig-tx small{color:var(--suave);font-size:13.5px;overflow-wrap:anywhere}
+.ct-sig-st{font-size:14px;font-weight:600;color:var(--tinta)}
+.ct-sig-l.assinado .ct-sig-st{color:var(--okv-tx)}
+.ct-sig-l.vez .ct-sig-st{color:var(--warn-tx)}
+.ct-sig-ac{display:flex;flex-wrap:wrap;gap:6px}
+.ct-sig-ac .fc-bt{cursor:pointer;font:inherit;font-size:14px}
+.ct-hash{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;overflow-wrap:anywhere;word-break:break-all;color:var(--suave)}
+.ct-montando{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.ct-trilha-bt{width:100%}
+.ct-eventos{list-style:none;margin:10px 0 6px;padding:0;display:grid;gap:0;border:1px solid var(--linha);border-radius:var(--r-l,14px);background:var(--papel);overflow:hidden}
+.ct-eventos li{display:grid;gap:2px;padding:9px 12px;border-bottom:1px solid var(--linha)}
+.ct-eventos li:last-child{border-bottom:0}
+.ct-eventos li b{font-size:14.5px}
+.ct-eventos li small{font-size:13px;color:var(--suave)}
+.ct-ev-q{font-size:12.5px;color:var(--suave);font-variant-numeric:tabular-nums}
+.ct-eventos .ct-hash{font-size:11px}
+/* assinar pelo app */
+.ct-assinar>.btn{width:100%;margin-bottom:8px}
+.ct-aceite{align-items:flex-start;margin:14px 0 4px;line-height:1.35}
+/* contrato novo */
+.ct-passo{display:flex;align-items:center;gap:10px}
+.ct-passo-n{display:inline-grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:var(--marinho);color:#fff;font-size:15px;font-weight:700}
+.ct-escolha,.ct-mods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 12px}
+.ct-mods{grid-template-columns:1fr}
+.ct-opcao{display:grid;justify-items:start;align-content:start;gap:4px;padding:12px;min-height:44px;border-radius:var(--r-l,14px);border:1.5px solid var(--borda-campo,var(--linha));background:var(--papel);color:var(--tinta);font:inherit;text-align:left;cursor:pointer}
+.ct-opcao b{font-size:16px}
+.ct-opcao small{font-size:13.5px;color:var(--suave);line-height:1.3}
+.ct-opcao[aria-pressed="true"]{border-color:var(--marinho);box-shadow:inset 0 0 0 1.5px var(--marinho);background:var(--brand-tint,#E0E9F3)}
+.ct-larga{width:100%}
+.ct-arq{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-l,14px);border:1px solid var(--linha);background:var(--papel)}
+.ct-arq-tx{flex:1;min-width:0;display:grid}
+.ct-arq-tx b{overflow-wrap:anywhere}
+.ct-arq-tx small{color:var(--suave);font-size:13.5px}
+.ct-sigs-ed{display:grid;gap:10px}
+.ct-sig-ed{padding:10px 12px 12px;border-radius:var(--r-l,14px);border:1px solid var(--linha);background:var(--papel)}
+.ct-sig-topo{display:flex;align-items:center;gap:8px}
+.ct-sig-topo select{flex:1;min-width:0;min-height:44px;border-radius:10px;border:1.5px solid var(--borda-campo,var(--linha));background:var(--papel);color:var(--tinta);padding:0 8px;font:inherit;font-weight:700}
+.ct-sig-topo .tar-x{flex:none;min-width:44px;min-height:44px}
+.ct-ordem{display:inline-grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:var(--laranja);color:#13253B;font-weight:700}
+.ct-sig-ed .tar-2col{margin-top:4px}
+.ct-modo{margin-top:4px}
+.ct-add{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.ct-add .btn{flex:1 1 180px}
+.ct-dica-chk{margin:-2px 0 8px 32px}
+.ct-mod-rot{margin:18px 0 4px;padding-top:12px;border-top:1px dashed var(--linha);font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--suave)}
+.ct-modo-tx{display:block;color:var(--suave);font-size:13.5px;line-height:1.35}
+#tela-ct.ct-estreita{--larg:760px}
+.ct-extenso{display:block;margin-top:4px;color:var(--suave);font-size:13.5px}
+.ct-clau{margin:6px 0;border:1px solid var(--linha);border-radius:12px;background:var(--papel)}
+.ct-clau>summary{display:flex;align-items:center;gap:8px;min-height:46px;padding:8px 12px;cursor:pointer;list-style-position:inside}
+.ct-clau>summary b{flex:1;font-size:15px}
+.ct-clau[open]{padding-bottom:10px}
+.ct-clau[open]>summary{border-bottom:1px solid var(--linha);margin-bottom:6px}
+.ct-clau>.campo,.ct-clau>p,.ct-clau>button{margin-left:12px;margin-right:12px}
+.ct-clau.editada{border-color:var(--laranja)}
+.ct-tag{flex:none;padding:1px 8px;border-radius:999px;background:var(--warn-bg);color:var(--warn-tx);font-size:12px;font-weight:700}
+.ct-sem-mod{padding:10px 12px;border-radius:12px;background:var(--papel);border:1px dashed var(--linha)}
+.ct-fim-form{margin-top:18px}
+.ct-ok{display:grid;justify-items:center;gap:6px;text-align:center;padding:18px 12px 8px}
+.ct-ok .ic-caixa{width:56px;height:56px}
+.ct-ok b{font-family:var(--titulo-fonte);font-size:22px}
+.ct-ok small{color:var(--suave);font-size:14px}
+/* oportunidade do Comercial (etapa Fechar contrato) */
+.ct-fu{display:grid;gap:8px}
+.ct-fu-l{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--linha);border-left:5px solid var(--laranja);background:var(--papel);color:var(--tinta);font:inherit;text-align:left;cursor:pointer}
+.ct-fu-tx{flex:1;min-width:0;display:grid}
+.ct-fu-tx b{overflow-wrap:anywhere}
+.ct-fu-tx small{color:var(--suave);font-size:13px}
+.ct-fu-l .os-st{margin:0;flex:none}
+.ct-fu-nota{color:var(--suave)}
+@media (prefers-color-scheme:dark){
+  .ct-opcao[aria-pressed="true"]{border-color:var(--tinta);box-shadow:inset 0 0 0 1.5px var(--tinta);background:rgba(255,255,255,.08)}
+  .ct-passo-n{background:var(--laranja);color:#13253B}
+}
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  #tela-ct .avcb-corpo{max-width:var(--larg)}
+  .ct-escolha{grid-template-columns:1fr 1fr}
+  .ct-mods{grid-template-columns:1fr 1fr}
+  .ct-sig-l:hover,.ct-opcao:hover,.ct-fu-l:hover{border-color:var(--suave)}
+}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -2385,6 +2500,7 @@ html.duo-col body.hub-on .versao-nova{bottom:calc(16px + env(safe-area-inset-bot
   <symbol id="i-grade" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><path d="M16.75 14v5.5M14 16.75h5.5"/></symbol>
   <symbol id="i-email" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path style="stroke:var(--ic-ac)" d="m4.5 7 7.5 6 7.5-6"/></symbol>
   <symbol id="i-sair" viewBox="0 0 24 24"><path d="M13.5 4.5H17A1.5 1.5 0 0 1 18.5 6v12a1.5 1.5 0 0 1-1.5 1.5h-3.5"/><path style="stroke:var(--ic-ac)" d="M9.5 8 5.5 12l4 4M5.5 12h9"/></symbol>
+  <symbol id="i-contrato" viewBox="0 0 24 24"><path d="M13.5 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8.5z"/><path d="M13.5 3.5v5h5M8.5 9.5h3.5M8.5 12.5h7"/><path style="stroke:var(--ic-ac)" d="M8.3 17.3c.9-1.6 1.7-1.6 2.1-.2.3 1.2 1.1 1.2 1.8-.3.4 1 1.2 1.3 3.3.9"/></symbol>
   <symbol id="i-orcamento" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path style="stroke:var(--ic-ac)" d="M8.5 7.3h7v3h-7z"/><path d="M8.7 14h.01M12 14h.01M15.3 14h.01M8.7 17.2h.01M12 17.2h.01M15.3 17.2h.01"/></symbol>
   <symbol id="i-contatos" viewBox="0 0 24 24"><rect x="5.5" y="3.5" width="14" height="17" rx="2"/><path d="M3.5 8h3M3.5 12h3M3.5 16h3"/><circle style="stroke:var(--ic-ac)" cx="12.5" cy="10" r="2.5"/><path style="stroke:var(--ic-ac)" d="M8.6 16.6c.8-1.8 2.2-2.7 3.9-2.7s3.1.9 3.9 2.7"/></symbol>
   <symbol id="i-telefone" viewBox="0 0 24 24"><path d="M8.4 4.2 6.6 4a1.7 1.7 0 0 0-1.8 1.5c-.3 3.3 1 6.8 3.8 9.7 2.9 2.9 6.4 4.2 9.8 3.8a1.7 1.7 0 0 0 1.5-1.8l-.2-1.8a1.6 1.6 0 0 0-1.2-1.4l-2.1-.6a1.6 1.6 0 0 0-1.6.4l-.9.9a11.3 11.3 0 0 1-4.3-4.3l.9-.9a1.6 1.6 0 0 0 .4-1.6l-.6-2.1a1.6 1.6 0 0 0-1.4-1.2z"/><path style="stroke:var(--ic-ac)" d="M14.5 3.7a6 6 0 0 1 5.8 5.8M14.3 7.2a2.6 2.6 0 0 1 2.5 2.5"/></symbol>
@@ -2589,7 +2705,7 @@ html.duo-col body.hub-on .versao-nova{bottom:calc(16px + env(safe-area-inset-bot
   <!-- no computador (menu lateral) o que fica no Mais aparece direto; no celular, só o Mais (pedido do Gustavo em 06/11/2026) -->
   <!-- tarefas e funil comercial (pedido do Gustavo em 07/11/2026): no computador, direto no menu; no celular, no Mais, em Registros e no Início -->
   <button class="so-pc" data-acao="tar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="m7.4 9.2 1.6 1.6 3-3.1M7.4 15.4 9 17l3-3.1M14.4 9.6h2.6M14.4 15.8h2.6"/></svg>Tarefas<span class="avcb-qtd" id="nav-tar-qtd" hidden></span></button>
-  <button class="so-pc" data-acao="funil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/></svg>Comercial</button>
+  <button class="so-pc" data-acao="funil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.8 5h16.4l-6.2 7.6v5.6l-4 2v-7.6z"/></svg>Comercial<span class="avcb-qtd" id="nav-ct-qtd" hidden title="Contratos esperando a sua assinatura"></span></button>
   <button class="so-pc" data-acao="op"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5.5 15a6.5 6.5 0 0 1 13 0M3.5 15h17v2.3a1.2 1.2 0 0 1-1.2 1.2H4.7a1.2 1.2 0 0 1-1.2-1.2zM10.4 8.8V12.5M13.6 8.8V12.5"/></svg>Operacional<span class="avcb-qtd" id="nav-op-qtd" hidden></span></button>
   <!-- solicitações de compra e de pagamento (pedido do Gustavo em 12/11/2026: saíram do Financeiro) -->
   <button class="so-pc" data-acao="sol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5h6.5l5 5V13"/><path d="M13.5 3.5v5h5M8.5 12h6M8.5 15.5h3.5"/><path d="M14.5 18.5h6M18 16l2.5 2.5L18 21"/></svg>Solicitações<span class="avcb-qtd" id="nav-sol-qtd" hidden></span></button>
@@ -2677,6 +2793,26 @@ html.duo-col body.hub-on .versao-nova{bottom:calc(16px + env(safe-area-inset-bot
   <div class="avcb-corpo" id="perfil-corpo"></div>
   <input type="file" id="in-perfil-foto" accept="image/*" hidden>
   <input type="file" id="in-perfil-cam" accept="image/*" capture="user" hidden>
+</div>
+
+<!-- contratos com assinatura eletrônica (pedido do Gustavo em 24/11/2026; plano em docs/assinatura-contratos.md); antes da tela de assinar, que abre por cima dela -->
+<div class="tela-avcb com-nav" id="tela-ct" hidden role="dialog" aria-label="Contratos">
+  <div class="avcb-topo"><button class="avcb-voltar" id="ct-voltar">‹ Voltar</button><strong id="ct-titulo">Contratos</strong><button class="ag-novo" id="ct-novo" type="button">+ Novo</button></div>
+  <div class="avcb-corpo">
+    <div id="ct-lista-tela">
+      <div class="tar-ctrl"><input class="avcb-busca" id="ct-busca" type="search" placeholder="Buscar contrato" aria-label="Buscar por título, cliente, quem assina ou código" autocomplete="off"></div>
+      <div class="chips avcb-filtro" id="ct-abas" role="group" aria-label="Situação dos contratos"></div>
+      <p class="orc-resumo" id="ct-resumo"></p>
+      <p class="avcb-nota" id="ct-estado"></p>
+      <div id="ct-fil-at"></div>
+      <table class="orc-tab ct-tab fc-tab" id="ct-tab"><thead id="ct-cab"></thead><tbody id="ct-corpo"></tbody></table>
+      <div id="ct-vazio" hidden></div>
+      <div class="exp-bot" id="ct-exp"><button class="btn sec" id="ct-pdf" type="button"><svg class="ic in" aria-hidden="true"><use href="#i-doc"/></svg>Exportar PDF</button></div>
+      <button class="laudo-link" id="ct-atualizar" type="button">Atualizar lista</button>
+    </div>
+    <div id="ct-sub" hidden></div>
+    <input type="file" id="ct-in-pdf" accept="application/pdf,.pdf" hidden>
+  </div>
 </div>
 
 <div class="tela-avcb" id="tela-assinar" hidden role="dialog" aria-label="Assinatura">
@@ -3157,7 +3293,12 @@ const CONFIG = {
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
   subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
   pastaArquivado: "01 - Arquivado",            // dentro de 02 - Clientes: pastas dos clientes arquivados (aparecem na aba Clientes com o filtro Arquivados)
-  ignorar: [/^01 - Arquivado$/i, /^Nova pasta/i,/-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i, /^00 - Tarefas$/i, /^00 - Funil Comercial$/i, /^00 - Centros de Custo$/i],
+  ignorar: [/^01 - Arquivado$/i, /^Nova pasta/i,/-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i, /^00 - Tarefas$/i, /^00 - Funil Comercial$/i, /^00 - Centros de Custo$/i, /^00 - Contratos Assinados$/i],
+  // contratos com assinatura eletrônica (24/11/2026; plano em docs/assinatura-contratos.md): endereço do servidor de assinatura
+  // (Cloudflare Worker, sem barra no fim); vazio = ainda não configurado (a tela Contratos avisa e não deixa criar)
+  assinaturaUrl: "https://vpx-assinatura.vpx-assinatura.workers.dev",   // publicado em 25/11/2026 na conta Cloudflare da VPX
+  pastaContrato: "01 - Contrato",              // dentro da pasta do cliente: o contrato assinado por todos ("<título> - assinado.pdf")
+  pastaContratosAssinados: "00 - Contratos Assinados",   // em 02 - Clientes: contrato assinado de cliente sem pasta
   pastaOS: "00 - Ordens de Serviço",           // dentro de 02 - Clientes: um .json por ordem de serviço (OS-0001.json…)
   pastaEquip: "00 - Extintores e Mangueiras",  // dentro de 02 - Clientes: um .json por cliente com os grupos de extintores e mangueiras
   pastaFichas: "00 - Fichas dos Clientes",     // dentro de 02 - Clientes: um .json por cliente com os dados e os contatos (ficha do cliente)
@@ -9126,7 +9267,8 @@ const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Visita comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes e reembolsos", "aba"],
   ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Solicitações de compra"], ["pagamentos", "Solicitações de pagamento"], ["pagar", "Realizar pagamentos"], ["comprar", "Realizar compras"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
-  ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Comercial (oportunidades e propostas)"], ["trans", "Transações (receitas e despesas)"]
+  ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Comercial (oportunidades e propostas)"], ["trans", "Transações (receitas e despesas)"],
+  ["contratos", "Contratos (assinatura eletrônica)"]   // fora do perfil padrão: só quem o Gustavo marcar (podeContratos)
 ];
 const TODAS_FUNCOES = FUNCOES.map(f => f[0]);
 const ABAS_APP = FUNCOES.filter(f => f[2] === "aba").map(f => f[0]);
@@ -9411,6 +9553,7 @@ async function salvarPermissoes() {
     aviso("Permissões salvas. Valem quando cada pessoa abrir o app (ou em até 1 minuto, com o app aberto).");
     aplicarPermissoes();
     compartilharConfig([...(adm.lista || []).map(u => u.email), ...Object.keys(dados.usuarios || {})], dados);   // sem esperar: não segura o botão Salvar
+    enviarGestoresCt();                           // quem tem a função Contratos vale também no servidor de assinatura
   } catch (e) {
     console.error(e);
     aviso(e.status === 403 || e.semAcesso ? "Sem permissão para alterar o arquivo de permissões." : "Não foi possível salvar: " + e.message, true);
@@ -10263,7 +10406,7 @@ function atualizarContadores() {
   const n = esperandoMim();
   $("menu-qtd").hidden = !n; $("menu-qtd").textContent = n;
   $("mn-pc-qtd").hidden = !n; $("mn-pc-qtd").textContent = n;
-  $("nav-fin-qtd").hidden = !n; $("nav-fin-qtd").textContent = n;   // barra de baixo: Mais (o Financeiro fica lá dentro)
+  { const m = n + nParaMimCt(); $("nav-fin-qtd").hidden = !m; $("nav-fin-qtd").textContent = m; }   // barra de baixo: Mais (o Financeiro e os contratos ficam lá dentro)
   $("nav-sol-qtd").hidden = !n; $("nav-sol-qtd").textContent = n;   // menu lateral do computador: Solicitações
   if (secao === "fin") desenharFin();
   if (secao === "inicio" && computador.matches && !$("tela-inicio").hidden) redesenharInicio();   // "Aguardando você" no painel do computador
@@ -12653,7 +12796,7 @@ function fecharVisor(voltar = true) {
   visor?.obs?.disconnect();
   visor = null;
   travarVertical(true);
-  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden && $("tela-eq").hidden && $("tela-eqv").hidden && $("tela-avcb").hidden && $("tela-orc").hidden && $("tela-nf").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes/AVCB/orçamentos/notas: a lista continua
+  document.body.style.overflow = $("tela-arq").hidden && $("tela-hist").hidden && $("tela-pt").hidden && $("tela-its").hidden && $("tela-ch").hidden && $("tela-eq").hidden && $("tela-eqv").hidden && $("tela-avcb").hidden && $("tela-orc").hidden && $("tela-nf").hidden && $("tela-ct").hidden ? "" : "hidden";   // aberto a partir dos arquivos/histórico/ITs/comprovantes/AVCB/orçamentos/notas: a lista continua
   if (voltar && history.state?.visor) history.back();
 }
 
@@ -12745,7 +12888,8 @@ function atualizarNav() {
   nav.querySelector('[data-acao="its"]').hidden = !pode("normas");
   nav.querySelector('[data-acao="admin"]').hidden = !ehAdmin();
   nav.querySelector('[data-acao="tar"]').hidden = !podeVerTarefas();
-  nav.querySelector('[data-acao="funil"]').hidden = !pode("funil");
+  nav.querySelector('[data-acao="funil"]').hidden = !pode("funil") && !podeVerCt();
+  pintarQtdCt();                                   // contratos esperando a assinatura da pessoa (item Comercial e Mais)
   nav.querySelector('[data-acao="op"]').hidden = !podeVerOp() && !SUBMENUS_NAV.op.some(it => it[0] && it[2]());   // também para quem só tem as opções que eram de Registros
   const nOp = conta ? alertaOp() : 0;               // tarefas do Operacional da pessoa atrasadas ou para hoje
   $("nav-op-qtd").hidden = !nOp; $("nav-op-qtd").textContent = nOp;
@@ -12816,12 +12960,14 @@ function irPara(s, deMenu) {                       // deMenu: tocado na barra de
 // (a Agenda o irPara já fecha). Falso se a pessoa preferir não sair (permissões alteradas e não salvas).
 function fecharTelasPorCima() {
   if (enviando) return false;
+  if (ctEnviando) { aviso("Espere terminar o envio do contrato.", true); return false; }   // sair no meio desfaria o envio
   if (!$("tela-admin").hidden && adm?.mudou && !confirm("Sair sem salvar as alterações de permissões?")) return false;
   if (fichaTela?.mudou && !confirm("Sair sem salvar as mudanças da ficha?")) return false;
+  if (novoComAlgoCt() && !confirm("Sair sem enviar o contrato?")) return false;
   const havia = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-agenda");
   if (adm) adm.mudou = false;
   fecharAssinar(false); fecharNovoAvcb(false); fecharAdmin(false); fecharArquivos(false); fecharHistorico(false); fecharPastaTec(false);
-  fecharFicha(false); fecharTar(false); fecharFunil(false); fecharTr(false); fecharPerfil(false);
+  fecharFicha(false); fecharTar(false); fecharFunil(false); fecharTr(false); fecharPerfil(false); if (ctTela) descartarRascunhoCt(); fecharCt(false);
   fecharNormas(false); fecharPedidos(false); fecharCompHist(false); fecharEq(false); fecharEqv(false); fecharOrc(false); fecharNf(false); fecharOS(false); fecharAvcb(false);
   if (havia) { document.body.style.overflow = ""; history.replaceState(SECOES_SUB.includes(secao) && !(secao === "cliente" && cliDe === "avcb") && !(secao === "fin" && finDe === "fin") ? { sub: true, dup: true } : null, ""); }   // numa página interna o passo dela continua (dup: há outro igual embaixo)
   return true;
@@ -18593,6 +18739,7 @@ function detalheFu(o) {
   const prox = PROX_ETAPA[o.etapa];
   if (prox) { const av = el("button", "btn prim", prox === "08" ? "Marcar como fechado" : "Avançar: " + NOME_ETAPA[prox]); av.type = "button"; av.onclick = () => moverEtapa(o.id, prox); le.appendChild(av); }
   we.appendChild(le); w.appendChild(we);
+  { const bc = blocoContratoFu(o); if (bc) w.appendChild(bc); }   // contrato para assinatura (etapa Fechar contrato)
   const g1 = el("div", "tar-2col");
   const ws = el("label", "campo"); ws.appendChild(el("span", "", "Situação do contato"));
   const ss = document.createElement("select");
@@ -19336,6 +19483,7 @@ function desenharPaginaCliente() {
   if (pode("laudo")) g.appendChild(tile("salvo", "Laudos salvos", () => { abrirTrabalho("laudo", c); if (cliente === c) abrirSalvos(); }));
   if (pode("orc")) g.appendChild(tile("orcamento", "Orçamentos", () => abrirOrcamentos(c)));   // a lista de todos, já buscando este cliente
   if (pode("nf")) g.appendChild(tile("nf", "Notas fiscais", () => abrirNotas(c)));             // idem, notas fiscais
+  if (podeContratos()) g.appendChild(tile("contrato", "Contratos", () => abrirContratos({ cli: c, aba: "todos" })));   // os contratos deste cliente (assinatura eletrônica)
   if (podeVerOp() && (pode("tarefas") || tarefasOp().some(x => x.cliente === c && veTar(x)))) g.appendChild(tile("operacional", "Operacional", () => abrirOp({ proj: c })));   // tarefas do cliente no Operacional
   if (g.children.length) { t.appendChild(el("p", "hub-rot", "Documentos e controles")); if (g.children.length % 2 === 0) g.style.gridTemplateColumns = "1fr 1fr"; t.appendChild(g); }
   if (pode("equip") && (eqDados[c] || av)) t.appendChild(botoesAviso(c));   // mensagem e PDF da situação para o cliente
@@ -19556,6 +19704,7 @@ function desenharMais() {
     tf.appendChild(linha("tarefas", "Tarefas", minhas.length ? `${minhas.length} com você` + (atr ? ` · ${atr} atrasada${atr > 1 ? "s" : ""}` : hj ? ` · ${hj} para hoje` : "") : "Nenhuma tarefa com você", () => abrirTar(), atr + hj));
   }
   if (pode("funil")) tf.appendChild(linha("funil", "Comercial", "Oportunidades, propostas e ligações", () => abrirFunil()));
+  if (podeVerCt()) tf.appendChild(linha("contrato", "Contratos", resumoCt(), () => abrirContratos(), nParaMimCt()));   // assinatura eletrônica (24/11/2026)
   if (tf.children.length) t.appendChild(tf);
   const l = el("div", "hub-lista");
   if (pode("normas")) l.appendChild(linha("livro", "ITs do CBM-BA", "Busca por palavra, funciona sem internet", abrirNormas));
@@ -19894,6 +20043,1616 @@ function mostrarEspera() {
   mostrar("tela-espera");
 }
 
+/* ---------- Contratos: assinatura eletrônica (pedido do Gustavo em 24/11/2026: "semelhante ao Autentique") ----------
+   Plano completo (rotas, banco, regras, telas e modelos) em docs/assinatura-contratos.md. O contrato (PDF pronto ou modelo preenchido aqui)
+   vai para o servidor de assinatura (Cloudflare, CONFIG.assinaturaUrl), que manda os links por e-mail e guarda a trilha; quem é da VPX
+   assina dentro do app com a conta Microsoft (signatário modo "app"). O servidor não tem credencial da Microsoft: quem grava no OneDrive
+   é sempre o app (o PDF final, montado aqui com o pdf-lib, vai para <cliente>/01 - Contrato). Toda chamada leva o id_token do login
+   (idTokenAssinatura); toda gravação conta como gravação (comGravacao + graph.escrevendo). O hash SHA-256 é sempre calculado no aparelho. */
+const podeContratos = () => ehAdmin() || (!!perm && !ehConvidado() && !!perm.usuarios?.[emailDe()]?.funcoes?.includes("contratos"));   // como o podeTrans: só quem o Gustavo marcar
+const ctBase = () => String(CONFIG.assinaturaUrl || "").trim().replace(/\/+$/, "");
+const QRCODE_LIB = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";   // QR code da verificação (folha de assinaturas), carregado só quando usado
+let ctDados = lerLS("vpx_ct", null) || { email: "", agora: "", envs: {} };   // cópia dos envelopes (sem as imagens das assinaturas)
+let ctTela = null, ctModelos = lerLS("vpx_ct_modelos", null), ctEnviando = false, ctTimer = 0, ctVisiveis = [];
+const ctCompleto = {}, ctBytes = {}, ctLinks = {}, ctFalhou = {};   // detalhe com eventos e imagens; PDFs baixados; links dos signatários; finalização que falhou (tenta de novo depois)
+const gravarCt = () => gravarLS("vpx_ct", ctDados);
+const ctErroFinal = {};                               // último erro da montagem automática da via final (aparece no contrato)
+// a cópia que fica no aparelho: sem os eventos, as imagens das assinaturas e os dados pessoais (CPF, IP, aparelho, local, localização),
+// que ficam só no detalhe aberto (ctCompleto, na memória)
+function leveCt(e) {
+  const l = JSON.parse(JSON.stringify(e)); delete l.eventos; delete l.cadeia;
+  for (const s of l.signatarios || []) for (const k of ["imagem", "cpf", "cpf_assinado", "ip", "aparelho", "local", "geo"]) delete s[k];
+  return l;
+}
+function erroCt(msg, status) { const e = new Error(msg); e.ct = true; if (status) e.status = status; return e; }
+const tamCt = b => b < 1048576 ? Math.max(1, Math.round(b / 1024)) + " KB" : (b / 1048576).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " MB";
+const emailVpx = e => String(e || "").toLowerCase().endsWith("@" + CONFIG.dominio);
+
+// id_token do login (o servidor confere a assinatura da Microsoft): renovado quando falta menos de 5 min para vencer
+async function idTokenAssinatura(forcar = false, fundo = false) {
+  if (!msalApp || !conta) throw erroCt("Entre na sua conta da VPX para usar os contratos.");
+  try {
+    let r = await msalApp.acquireTokenSilent({ scopes: ESCOPOS, account: conta, forceRefresh: !!forcar });
+    if (!forcar && (r.idTokenClaims?.exp || 0) * 1000 - Date.now() < 5 * 60000) r = await msalApp.acquireTokenSilent({ scopes: ESCOPOS, account: conta, forceRefresh: true });
+    if (!r.idToken) throw erroCt("A Microsoft não devolveu o login. Feche o app e abra de novo.");
+    return r.idToken;
+  } catch (e) {
+    if (typeof msal !== "undefined" && e instanceof msal.InteractionRequiredAuthError && !fundo) await msalApp.acquireTokenRedirect({ scopes: ESCOPOS, account: conta });
+    throw e;
+  }
+}
+// chamada ao servidor de assinatura. op: { method, json, body, headers, bytes (resposta em bytes), fundo (sem levar ao login) }.
+// Erro: a mensagem em português do servidor ({ erro }), ou uma nossa (sem internet, não configurado). Gravação: conta como gravação.
+async function ctApi(caminho, op = {}) {
+  if (!ctBase()) throw erroCt("O serviço de assinatura ainda não foi configurado.");
+  if (!navigator.onLine) throw erroCt("Sem internet: os contratos precisam de conexão.");
+  const metodo = (op.method || "GET").toUpperCase();
+  const pedir = async forcar => {
+    const headers = { Authorization: "Bearer " + await idTokenAssinatura(forcar, op.fundo), ...(op.headers || {}) };
+    let body = op.body;
+    if (op.json !== undefined) { headers["Content-Type"] = "application/json"; body = JSON.stringify(op.json); }
+    let res;
+    try { res = await fetch(ctBase() + caminho, { method: metodo, headers, body }); }
+    catch { throw erroCt("Sem conexão com o serviço de assinatura. Tente de novo quando o sinal voltar."); }
+    if (res.status === 401 && !forcar) return pedir(true);   // o login venceu no caminho: pega um novo uma vez
+    if (!res.ok) {
+      let msg = ""; try { msg = (await res.json()).erro || ""; } catch {}
+      throw erroCt(msg || `O serviço de assinatura não respondeu (código ${res.status}). Tente de novo daqui a pouco.`, res.status);
+    }
+    if (op.bytes) return new Uint8Array(await res.arrayBuffer());
+    if (res.status === 204) return null;
+    try { return await res.json(); } catch { return null; }
+  };
+  if (metodo === "GET") return pedir(false);
+  graph.escrevendo = (graph.escrevendo || 0) + 1;  // enquanto grava, o app não recarrega sozinho para pegar uma versão nova
+  try { return await comGravacao(() => pedir(false)); } finally { graph.escrevendo--; }
+}
+const envCt = r => r?.envelope || r;                 // as rotas respondem { envelope } (ou o envelope direto)
+async function sha256Hex(dados) { const h = await crypto.subtle.digest("SHA-256", dados); return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join(""); }
+const codCt = c => { const s = String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); return s ? s.match(/.{1,4}/g).join("-") : ""; };   // sempre com hífens: K7QH-3MZD-P2XA
+const mascararEmail = e => { const [u, d] = String(e || "").split("@"); return d ? (u[0] || "") + "***@" + d : ""; };
+const urlVerifCt = c => ctBase() + "/v/" + codCt(c);
+// o endereço de verificação que o servidor usa nos e-mails (URL_PUBLICA): QR, rodapé e e-mails sempre iguais; o do CONFIG só como reserva
+const urlVerifDeCt = e => e?.url_verificacao || urlVerifCt(e?.codigo);
+// a folha de assinaturas usa a fonte padrão do PDF (só Latin-1): o nome tem de sair igual ao registrado
+const nomeImprimivelCt = n => !/[^\x20-\x7e -ÿ]/.test(String(n || "").normalize("NFC"));
+const ACEITE_CT = { versao: "aceite-v1", texto: "Li e concordo com o documento e com a assinatura eletrônica (MP 2.200-2/2001, art. 10, § 2º)." };   // o mesmo texto do servidor (ACEITES)
+const FORMULA_CT = 'base = SHA-256("vpx-assinatura-v2|" + id do contrato + "|" + código + "|" + SHA-256 do original); hash = SHA-256(anterior + "|" + JSON.stringify([id do contrato, tipo, quando, id do signatário, ip, aparelho, local, detalhe])), com "" nos campos vazios';
+// aparelho em poucas palavras (para a trilha impressa): sistema e navegador
+function aparelhoCurtoCt(ua) {
+  ua = String(ua || ""); if (!ua) return "";
+  const so = /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android" : /Windows/.test(ua) ? "Windows" : /Mac OS X|Macintosh/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "";
+  const nav = /Edg\//.test(ua) ? "Edge" : /SamsungBrowser/.test(ua) ? "Samsung Internet" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\/|CriOS/.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "";
+  return [so, nav].filter(Boolean).join(" · ") || ua.slice(0, 60);
+}
+const PAPEL_CT = { contratante: "Contratante", contratada: "Contratada", testemunha: "Testemunha" };
+const SIT_CT = { rascunho: ["Envio não concluído", "aberta"], aguardando: ["Aguardando", "andamento"], concluido: ["Assinado", "concluida"],
+  recusado: ["Recusado", "urgente"], cancelado: ["Cancelado", "cancelada"], expirado: ["Prazo vencido", "cancelada"] };
+const NOME_EV_CT = { criado: "Documento criado", enviado: "Enviado para assinatura", email_enviado: "E-mail enviado", visualizou: "Abriu o link",
+  codigo_enviado: "Código de verificação enviado", identificou: "Confirmou a identidade (código)", codigo_errado: "Código errado", assinou: "Assinou",
+  recusou: "Recusou", lembrete: "Lembrete enviado", concluido: "Assinado por todos", cancelado: "Cancelado", expirado: "Prazo vencido",
+  final_gravado: "Via final gravada", arquivado: "Guardado no OneDrive", baixou_final: "Baixou a via final", abriu_documento: "Recebeu o documento",
+  recibo_enviado: "Recibo da assinatura enviado", email_falhou: "E-mail não enviado", email_final: "Via final enviada por e-mail", aviso_cancelamento: "Aviso de cancelamento enviado" };
+const dataHoraCt = (iso, seg) => iso ? new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", ...(seg ? { second: "2-digit" } : {}) }).replace(",", " às") : "";
+const dataCurtaCt = iso => iso ? new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "2-digit" }) : "";
+const sigsCt = e => (e.signatarios || []).slice().sort((a, b) => a.ordem - b.ordem);
+// a vez de assinar: todos ao mesmo tempo, ou (em ordem) o pendente com a menor ordem
+const naVezCt = (e, s) => e.status === "aguardando" && s.status === "pendente" && (!e.em_ordem || !sigsCt(e).some(o => o.status === "pendente" && o.ordem < s.ordem));
+const meuSigCt = e => sigsCt(e).find(s => s.modo === "app" && (s.email || "").toLowerCase() === emailDe());
+const minhaVezCt = e => { const s = meuSigCt(e); return !!s && naVezCt(e, s); };
+const contaCt = e => { const ss = e.signatarios || []; return [ss.filter(s => s.status === "assinado").length, ss.length]; };
+// fora da lista: o rascunho de um envio que parou antes de subir o PDF e o cancelado que nunca foi enviado (o app refez o rascunho)
+const visivelCt = e => !(e.status === "rascunho" && !e.pdf_ok) && !(e.status === "cancelado" && !e.enviado_em);
+// quem não tem a função vê só os contratos em que assina pelo app (ex.: testemunha da equipe)
+const listaCt = () => Object.values(ctDados.envs).filter(e => visivelCt(e) && (podeContratos() || !!meuSigCt(e)));
+const nParaMimCt = () => conta && ctBase() ? listaCt().filter(minhaVezCt).length : 0;
+const podeVerCt = () => !!conta && (podeContratos() || nParaMimCt() > 0 || listaCt().length > 0);
+function resumoCt() {
+  const m = nParaMimCt(); if (m) return `${m} esperando a sua assinatura`;
+  if (!ctBase()) return "Assinatura eletrônica (serviço ainda não configurado)";
+  const a = listaCt().filter(e => e.status === "aguardando").length;
+  return a ? `${a} aguardando assinaturas` : "Assinatura eletrônica de contratos";
+}
+function pintarQtdCt() {
+  const n = nParaMimCt(), q = $("nav-ct-qtd");
+  if (q) { q.hidden = !n; q.textContent = n; }
+  const m = (typeof esperandoMim === "function" ? esperandoMim() : 0) + n;   // barra de baixo do celular: o número do Mais soma os contratos para assinar
+  $("nav-fin-qtd").hidden = !m; $("nav-fin-qtd").textContent = m;
+}
+
+// sincronização: só o que mudou desde a última vez (o servidor manda a hora dele em "agora"); ao abrir o app, ao abrir a tela e a cada 60 s com ela aberta
+async function sincronizarContratos(forcar) {
+  if (!conta || !ctBase() || ehConvidado() || !navigator.onLine || sincronizarContratos.rodando) return;
+  if (!forcar && Date.now() - (sincronizarContratos.quando || 0) < 20000) return;
+  sincronizarContratos.rodando = true; sincronizarContratos.quando = Date.now();
+  if (ctDados.email !== emailDe()) ctDados = { email: emailDe(), agora: "", envs: {} };   // outra conta neste aparelho
+  let deNovo = false, recarregarDet = false;
+  try {
+    // "desde" com 5 min de folga: uma gravação que terminou depois da leitura anterior do servidor ainda entra (repetir não faz mal)
+    let desde = ctDados.agora ? new Date(Date.parse(ctDados.agora) - 5 * 60000).toISOString() : "", apos = "", agora = "", gestor;
+    for (let pag = 0; pag < 50; pag++) {            // a lista vem em páginas (o servidor manda "mais" enquanto houver)
+      const r = await ctApi("/api/envelopes" + (desde ? "?desde=" + encodeURIComponent(desde) + (apos ? "&apos=" + encodeURIComponent(apos) : "") : ""), { fundo: true });
+      if (!pag) { agora = r?.agora || ""; gestor = typeof r?.gestor === "boolean" ? r.gestor : podeContratos(); }
+      for (const e of r?.envelopes || []) {
+        const ant = ctDados.envs[e.id];
+        if (!ant || ant.atualizado_em !== e.atualizado_em) {
+          if (ctTela?.det === e.id) recarregarDet = true; else delete ctCompleto[e.id];   // o contrato aberto não perde a trilha: é relido
+        }
+        ctDados.envs[e.id] = leveCt(e);
+      }
+      if (!r?.mais) break;
+      desde = r.mais.desde; apos = r.mais.apos;
+    }
+    // quem passou a cuidar dos contratos precisa da lista inteira (antes o servidor mandava só os seus); quem deixou, fica só com os seus
+    if (gestor && ctDados.todos === false && ctDados.agora) { ctDados.agora = ""; deNovo = true; }
+    else if (agora) ctDados.agora = agora;
+    ctDados.todos = !!gestor;
+    if (!gestor) for (const [id, e] of Object.entries(ctDados.envs)) if (!meuSigCt(e) && e.criador_email !== emailDe()) delete ctDados.envs[id];
+    const limite = Date.now() - 3 * 864e5;           // rascunhos que o servidor já apagou (depois de 2 dias)
+    for (const [id, e] of Object.entries(ctDados.envs)) if (e.status === "rascunho" && Date.parse(e.criado_em) < limite) delete ctDados.envs[id];
+    gravarCt(); sincronizarContratos.erro = "";
+  } catch (e) { console.error("contratos:", e); sincronizarContratos.erro = e.message; }
+  finally { sincronizarContratos.rodando = false; }
+  aoMudarCt();
+  if (recarregarDet && ctTela?.det) carregarDetCt(ctTela.det);
+  if (deNovo) { sincronizarContratos.quando = 0; setTimeout(() => sincronizarContratos(true), 0); return; }
+  enviarGestoresCt();
+  finalizarPendentesCt();
+  fecharOportunidadesCt();
+}
+// quem cuida dos contratos no servidor = quem tem a função Contratos (ou é administrador) no permissoes.json. O servidor não lê o OneDrive:
+// o administrador fixo manda a lista quando as permissões são lidas ou salvas (só quando mudou). Sem estar na lista, o servidor recusa
+// criar, cancelar, reenviar, pegar links e montar a via final, e mostra a cada um só os contratos em que assina.
+async function enviarGestoresCt() {
+  if (!conta || !ehAdminFixo() || !perm || !ctBase() || !navigator.onLine) return;
+  const emails = Object.entries(perm.usuarios || {}).filter(([em, u]) => emailVpx(em) && !(perm.recusados || []).includes(em) && (u?.admin || u?.funcoes?.includes("contratos")))
+    .map(([em]) => em.toLowerCase()).sort();
+  const chave = ctBase() + "|" + emails.join(",");
+  if (lerLS("vpx_ct_gestores", "") === chave || enviarGestoresCt.rodando) return;
+  enviarGestoresCt.rodando = true;
+  try { await ctApi("/api/gestores", { method: "PUT", json: { emails }, fundo: true }); gravarLS("vpx_ct_gestores", chave); }
+  catch (x) { console.error("contratos: lista de quem cuida dos contratos", x); }
+  finally { enviarGestoresCt.rodando = false; }
+}
+const redesCt = redesenhoSeguro("tela-ct", () => desenharCt());
+function aoMudarCt() {
+  pintarQtdCt();
+  if (!conta) return;
+  if (!$("tela-ct").hidden) redesCt();
+  if (secao === "mais" && !$("tela-mais").hidden) desenharMais();
+  if (fuTela?.aberta) (redesenharFuSeguro ||= redesenhoSeguro("tela-funil", manterQuadro("tela-funil", desenharFunil)))();   // situação do contrato na oportunidade
+  atualizarNav();
+}
+
+/* ---------- tela: lista (tabela com os filtros no título das colunas) ---------- */
+const ABAS_CT = [["and", "Em andamento", e => e.status === "aguardando" || e.status === "rascunho"], ["conc", "Concluídos", e => e.status === "concluido"], ["todos", "Todos", () => true]];
+const ctSt = { f: {}, ordem: { col: "env", desc: true } };
+const mesCt = iso => iso ? new Date(iso).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" }).slice(0, 7) : "";
+const prazoVencidoCt = e => !!e.prazo && e.status === "aguardando" && e.prazo < dataISO();
+const FC_CT = {
+  id: "ct", st: ctSt, principal: "tit", redesenhar: () => desenharCt(),
+  filtros: {
+    cli: { rot: "Cliente", todos: "Todos", ok: (x, v) => (x.cliente || "") === v,
+      ops: l => [...new Set(l.map(x => x.cliente || ""))].sort((a, b) => a.localeCompare(b, "pt-BR")).map(c => [c, c || "(sem cliente)"]) },
+    criador: { rot: "Criado por", todos: "Todos", ok: (x, v) => (x.criador_email || "") === v,
+      ops: l => [...new Map(l.map(x => [x.criador_email || "", x.criador_nome || x.criador_email || "?"]))].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")) },
+    sit: { rot: "Situação", todos: "Todas", ok: (x, v) => v === "minha" ? minhaVezCt(x) : x.status === v,
+      ops: () => [["minha", "Esperando a sua assinatura"], ...Object.entries(SIT_CT).map(([k, [t]]) => [k, t])] },
+    env: { rot: "Enviado em", todos: "Todos os períodos", ok: (x, v) => mesCt(x.enviado_em || x.criado_em).startsWith(v),
+      ops: l => { const ms = [...new Set(l.map(x => mesCt(x.enviado_em || x.criado_em)).filter(Boolean))].sort().reverse(); return [...new Set(ms.map(m => m.slice(0, 4)))].map(a => [a, "Ano de " + a]).concat(ms.map(m => [m, nomeMesNf(m)])); } },
+    prazo: { rot: "Prazo", todos: "Todos", ok: (x, v) => v === "venc" ? prazoVencidoCt(x) : v === "sem" ? !x.prazo : !!x.prazo && x.status === "aguardando" && x.prazo >= dataISO() && x.prazo <= somaDias(dataISO(), 7),
+      ops: () => [["venc", "Vencido"], ["7", "Vence nos próximos 7 dias"], ["sem", "Sem prazo"]] }
+  },
+  colunas: [
+    { col: "tit", rot: "Contrato", cls: "ct-c-tit", filtros: ["criador"], ordenar: [["A → Z", false], ["Z → A", true]] },
+    { col: "cli", rot: "Cliente", cls: "ct-c-cli tar-so-pc", filtros: ["cli"], ordenar: [["A → Z", false], ["Z → A", true]] },
+    { col: "st", rot: "Situação", cls: "ct-c-st", filtros: ["sit"], ordenar: [["Menos assinaturas primeiro", false], ["Mais assinaturas primeiro", true]] },
+    { col: "env", rot: "Enviado em", cls: "ct-c-env tar-so-pc", filtros: ["env"], ordenar: [["Mais recente primeiro", true], ["Mais antigo primeiro", false]] },
+    { col: "prazo", rot: "Prazo", cls: "ct-c-prazo", filtros: ["prazo"], ordenar: [["Mais perto primeiro", false], ["Mais longe primeiro", true]] }
+  ]
+};
+const somaDias = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return dataISO(d); };
+const COLS_CT = { tit: e => e.titulo || "", cli: e => e.cliente || null, st: e => { const [a, t] = contaCt(e); return t ? a / t : 0; }, env: e => e.enviado_em || e.criado_em || null, prazo: e => e.prazo || null };
+function compCt(a, b) {
+  const o = ctSt.ordem, f = COLS_CT[o.col] || COLS_CT.env, x = f(a), y = f(b);
+  if ((x == null) !== (y == null)) return x == null ? 1 : -1;
+  let r = x == null ? 0 : typeof x === "number" ? x - y : String(x).localeCompare(String(y), "pt-BR");
+  if (o.desc) r = -r;
+  return r || (b.criado_em || "").localeCompare(a.criado_em || "");
+}
+function abrirContratos(op = {}) {
+  if (!conta) return;
+  if (!podeVerCt() && !op.det) { aviso("Os contratos são liberados pelo administrador (função Contratos).", true); return; }
+  const jaAberta = !$("tela-ct").hidden;           // de novo (ex.: pela oportunidade): começa do zero no mesmo passo do histórico
+  if (jaAberta) fecharCt(false);
+  // por cima de outra tela (oportunidade do Comercial): a tela do Comercial vem depois no HTML, então esta sobe (como os Orçamentos)
+  const porCima = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && t.id !== "tela-ct" && !t.classList.contains("como-secao"));
+  ctTela = { aba: op.aba || "and", det: null, novo: null, fim: null, assinar: null, trilha: false, direto: !!(op.det || op.novo), porCima };
+  $("tela-ct").style.zIndex = porCima ? "35" : "";
+  $("ct-busca").value = op.busca || "";
+  limparFC(FC_CT);
+  if (op.cli) escolherFC(FC_CT, "cli", op.cli);
+  $("tela-ct").hidden = false;
+  $("tela-ct").querySelector(".avcb-corpo").scrollTop = 0; delete rolLista["tela-ct"];
+  document.body.style.overflow = "hidden";
+  if (jaAberta && history.state?.ct) history.replaceState({ ct: true }, ""); else history.pushState({ ct: true }, "");   // o "voltar" do celular fecha a tela
+  if (op.det) abrirDetCt(op.det);
+  else if (op.novo) novoCt(op.novo);
+  else desenharCt(true);
+  sincronizarContratos(true);
+  clearInterval(ctTimer);
+  ctTimer = setInterval(() => { if ($("tela-ct").hidden) clearInterval(ctTimer); else sincronizarContratos(true); }, 60000);
+}
+function fecharCt(voltar = true) {
+  if ($("tela-ct").hidden) return;
+  $("tela-ct").hidden = true;
+  clearInterval(ctTimer);
+  if ($("menu-op")) $("menu-op").hidden = true;
+  ctTela = null;
+  document.body.style.overflow = [...document.querySelectorAll(".tela-avcb")].some(t => !t.hidden && !t.classList.contains("como-secao")) ? "hidden" : "";
+  if (voltar) { if (history.state?.ctSub) history.go(-2); else if (history.state?.ct) history.back(); }
+}
+// um contrato novo com algo escolhido (sair pergunta antes)
+const novoComAlgoCt = () => !!ctTela?.novo && !ctTela.novo.enviado && !!(ctTela.novo.arq || ctTela.novo.mod || ctTela.novo.revisar);
+function voltarListaCt() {
+  if (!ctTela) return;
+  if (ctEnviando) { aviso("Espere terminar o envio do contrato.", true); return; }
+  if (ctTela.direto) { fecharCt(); return; }
+  if (history.state?.ctSub) { history.back(); return; }   // o popstate volta para a lista
+  ctTela.det = ctTela.novo = ctTela.fim = ctTela.assinar = null; desenharCt(true); reporRol("tela-ct");
+}
+async function sairNovoCt() {
+  if (ctEnviando) { aviso("Espere terminar o envio do contrato.", true); return; }
+  if (novoComAlgoCt() && !(await confirmarApagar("Sair sem enviar o contrato?", "O que foi preenchido não fica guardado.", "Sair sem enviar", "Continuar"))) return;
+  descartarRascunhoCt();
+  voltarListaCt();
+}
+function desenharCt(forcar) {
+  pintarMenuSub();
+  if ($("tela-ct").hidden || !ctTela) return;
+  const sub = !!(ctTela.det || ctTela.novo || ctTela.fim);
+  $("ct-lista-tela").hidden = sub; $("ct-sub").hidden = !sub;
+  $("tela-ct").classList.toggle("com-nav", !sub && !ctTela.porCima);
+  $("ct-novo").hidden = sub || !podeContratos() || !ctBase();
+  $("ct-titulo").textContent = ctTela.novo ? (ctTela.novo.revisar ? "Revisar e enviar" : "Novo contrato") : ctTela.fim ? "Contrato enviado" : ctTela.assinar ? "Assinar" : ctTela.det ? "Contrato" : "Contratos";
+  $("tela-ct").classList.toggle("ct-estreita", sub);   // computador: contrato, novo e tela final numa coluna de 760 px (como os formulários)
+  $("ct-voltar").textContent = sub && !ctTela.direto ? "‹ Contratos" : "‹ Voltar";
+  $("ct-voltar").classList.toggle("voltar-lista", !sub);   // aberta pelo menu lateral do computador: sem "‹ Voltar" na lista (o "‹ Contratos" do contrato continua)
+  if (ctTela.novo) { if (forcar) desenharNovoCt(); return; }   // as sincronizações não refazem o formulário (o que está sendo digitado fica)
+  if (ctTela.fim) { desenharFimCt(); return; }
+  if (ctTela.det) { if (forcar || !ctTela.assinar) desenharDetCt(); return; }
+  // lista
+  const abas = $("ct-abas"); abas.innerHTML = "";
+  const base = listaCt();
+  for (const [k, rot, ok] of ABAS_CT) {
+    const b = el("button", "", `${rot} (${base.filter(ok).length})`); b.type = "button"; b.setAttribute("aria-pressed", String(ctTela.aba === k));
+    b.onclick = () => { ctTela.aba = k; desenharCt(); };
+    abas.appendChild(b);
+  }
+  const daAba = base.filter(ABAS_CT.find(a => a[0] === ctTela.aba)[2]);
+  const q = semAcento($("ct-busca").value.trim());
+  ctVisiveis = filtrarFC(FC_CT, daAba.filter(e => !q || semAcento([e.titulo, e.cliente, codCt(e.codigo), e.codigo, e.criador_nome, ...(e.signatarios || []).flatMap(s => [s.nome, s.email])].filter(Boolean).join(" ")).includes(q))).sort(compCt);
+  const n = ctVisiveis.length, meus = ctVisiveis.filter(minhaVezCt).length, res = $("ct-resumo");
+  res.innerHTML = "";
+  res.append(`${n} contrato${n === 1 ? "" : "s"}${n !== daAba.length ? ` de ${daAba.length}` : ""}`);
+  if (meus) res.append(" · ", el("b", "", `${meus} esperando a sua assinatura`));
+  const erro = sincronizarContratos.erro;
+  $("ct-estado").textContent = !ctBase() ? "O serviço de assinatura ainda não foi configurado. Quando o Gustavo publicar o servidor, o endereço dele entra em CONFIG.assinaturaUrl."
+    : sincronizarContratos.rodando && !ctDados.agora ? "Carregando…" : [erro, !navigator.onLine && "sem internet: mostrando a última cópia"].filter(Boolean).join(" · ");
+  const cab = $("ct-cab"), chave = JSON.stringify([ctSt.f, ctSt.ordem]);
+  if (cab.dataset.k !== chave || !cab.firstChild) { cab.replaceChildren(cabecalhoFC(FC_CT)); cab.dataset.k = chave; }
+  const at = etiquetasFC(FC_CT);
+  $("ct-fil-at").replaceChildren(...(at ? [at] : []));
+  $("ct-corpo").replaceChildren(...ctVisiveis.map(linhaCt));
+  const filtrando = !!at || !!q;
+  if (!n && filtrando && daAba.length) {
+    const tr = el("tr", "nf-vazia"), td = el("td", "", "Nenhum contrato com esses filtros.");
+    td.colSpan = [...cab.querySelectorAll("th")].filter(th => getComputedStyle(th).display !== "none").length || 1;
+    tr.appendChild(td); $("ct-corpo").appendChild(tr);
+  }
+  $("ct-tab").hidden = !n && !(filtrando && daAba.length);
+  const vz = $("ct-vazio"); vz.hidden = !!n || (filtrando && !!daAba.length) || !ctBase();
+  vz.replaceChildren(vazio("contrato", base.length ? "Nenhum contrato nesta lista" : "Nenhum contrato ainda",
+    podeContratos() ? "Toque em \"+ Novo\" para mandar um contrato para assinatura." : "Os contratos que você precisa assinar aparecem aqui."));
+  $("ct-exp").hidden = !n;
+}
+function linhaCt(e) {
+  const tr = el("tr", e.status === "cancelado" || e.status === "expirado" ? "ct-apag" : ""); tr.tabIndex = 0;
+  const t = el("td", "ct-c-tit");
+  t.appendChild(el("span", "orc-cli", e.titulo || "(sem título)"));
+  const sub = el("small", "orc-sub");
+  if (e.cliente) sub.append(e.cliente + " · ");
+  sub.appendChild(el("span", "ct-cod", codCt(e.codigo)));
+  t.appendChild(sub);
+  const [a, tot] = contaCt(e), sit = SIT_CT[e.status] || [e.status, "aberta"];
+  const st = el("td", "ct-c-st"); st.appendChild(el("span", "os-st " + sit[1], sit[0]));
+  if (minhaVezCt(e)) st.appendChild(el("small", "ct-sua-vez", "Falta a sua assinatura"));
+  else if (tot && (e.status === "aguardando" || e.status === "concluido")) st.appendChild(el("small", "orc-sub", `${a} de ${tot} assinaram`));
+  const pz = el("td", "ct-c-prazo" + (prazoVencidoCt(e) ? " ct-venc" : ""));
+  pz.append(el("span", "", e.prazo ? dataBRde(e.prazo).replace(/\d{2}(\d{2})$/, "$1") : "—"));
+  if (prazoVencidoCt(e)) pz.appendChild(el("small", "", "vencido"));
+  tr.append(t, el("td", "ct-c-cli tar-so-pc", e.cliente || "—"), st, el("td", "ct-c-env tar-so-pc", dataCurtaCt(e.enviado_em) || "—"), pz);
+  tr.onclick = () => abrirDetCt(e.id);
+  tr.onkeydown = ev => { if (ev.key === "Enter" && ev.target === tr) abrirDetCt(e.id); };
+  return tr;
+}
+function defPdfCt() {
+  desenharCt();
+  const aba = ABAS_CT.find(a => a[0] === ctTela.aba)[1], busca = $("ct-busca").value.trim();
+  const COR = { concluido: "ok", aguardando: "azul", rascunho: "warn", recusado: "crit", cancelado: "apag", expirado: "apag" };
+  return { titulo: "Contratos", nome: "Contratos", paisagem: true,
+    filtros: [aba !== "Todos" && "Lista: " + aba, busca && `Busca: "${busca}"`, ...textosFiltrosFC(FC_CT)],
+    resumo: [["Contratos", String(ctVisiveis.length)], ["Aguardando", String(ctVisiveis.filter(e => e.status === "aguardando").length), "azul"],
+      ["Assinados por todos", String(ctVisiveis.filter(e => e.status === "concluido").length), "ok"], ["Esperando a sua assinatura", String(ctVisiveis.filter(minhaVezCt).length), "warn"]],
+    colunas: [{ t: "Contrato", w: 3.2 }, { t: "Cliente", w: 2 }, { t: "Situação", w: 1.4 }, { t: "Assinaturas", w: 1, al: "c" }, { t: "Enviado em", w: 1 }, { t: "Prazo", w: 1 }, { t: "Código", w: 1.4 }],
+    linhas: ctVisiveis.map(e => { const [a, t] = contaCt(e); return { c: [e.titulo, e.cliente || "-", { t: (SIT_CT[e.status] || [e.status])[0], cor: COR[e.status] }, `${a} de ${t}`,
+      dataCurtaCt(e.enviado_em) || "-", e.prazo ? dataBRde(e.prazo) : "-", codCt(e.codigo)] }; }) };
+}
+const pdfCt = () => relatorioPDF(defPdfCt());
+
+/* ---------- um contrato: situação, quem assina, ações, trilha ---------- */
+function abrirDetCt(id) {
+  if (!ctTela) { abrirContratos({ det: id }); return; }
+  if (!ctTela.det && !ctTela.novo && !ctTela.fim && !ctTela.direto) guardarRol("tela-ct");
+  ctTela.det = id; ctTela.novo = ctTela.fim = ctTela.assinar = null; ctTela.trilha = false;
+  if (!ctTela.direto && !history.state?.ctSub) history.pushState({ ct: true, ctSub: true }, "");   // o "voltar" volta para a lista
+  desenharCt(true);
+  $("tela-ct").querySelector(".avcb-corpo").scrollTop = 0;
+  carregarDetCt(id);
+}
+// o envelope completo (com as imagens das assinaturas e os eventos); sem internet, fica o da lista
+async function carregarDetCt(id, avisar) {
+  if (!ctBase() || !navigator.onLine) return ctCompleto[id] || ctDados.envs[id] || null;
+  try {
+    const e = envCt(await ctApi("/api/envelopes/" + encodeURIComponent(id)));
+    if (e?.id) {
+      ctCompleto[e.id] = e;
+      ctDados.envs[e.id] = leveCt(e); gravarCt();
+    }
+    if (ctTela?.det === id && !ctTela.assinar) desenharCt(true);
+    pintarQtdCt();
+    return e;
+  } catch (x) { console.error(x); if (avisar) aviso("Não foi possível abrir o contrato: " + x.message, true); return ctCompleto[id] || ctDados.envs[id] || null; }
+}
+// o PDF (original ou final) do servidor; fica na memória enquanto o app está aberto
+// hashEsperado: o PDF baixado tem de ter esse SHA-256 (a via final é sempre conferida com o hash gravado no servidor antes de abrir,
+// compartilhar ou guardar no OneDrive: um arquivo trocado no caminho não passa)
+async function baixarPdfCt(id, final, hashEsperado) {
+  const k = id + (final ? ":final" : ":orig");
+  if (!ctBytes[k]) ctBytes[k] = await ctApi(`/api/envelopes/${encodeURIComponent(id)}/${final ? "final" : "pdf"}`, { bytes: true });
+  if (hashEsperado && await sha256Hex(ctBytes[k]) !== hashEsperado) {
+    delete ctBytes[k];
+    throw erroCt(final ? "o documento assinado do serviço não confere com o hash registrado (não foi aberto nem guardado)" : "o documento do serviço não confere com o código do contrato");
+  }
+  return ctBytes[k];
+}
+const nomeArqCt = (e, final) => limparNome(String(e.titulo || "Contrato").replace(/\//g, "-")).slice(0, 120) + (final ? " - assinado" : "") + ".pdf";
+async function verDocCt(e, final) {
+  try {
+    aviso(final ? "Abrindo o documento assinado…" : "Abrindo o documento…");
+    const b = await baixarPdfCt(e.id, final, final ? e.hash_final : e.hash_original);
+    fecharAviso();
+    abrirVisor(new File([b], nomeArqCt(e, final), { type: "application/pdf" }), final ? "Contrato assinado" : "Contrato", `${e.titulo} - VPX Engenharia`);
+    return true;
+  } catch (x) { aviso((x.status === 404 ? "O PDF não está mais no serviço de assinatura" : "Não foi possível abrir o documento") + ": " + x.message, true); return false; }
+}
+async function baixarFinalCt(e) {
+  try { const b = await baixarPdfCt(e.id, true, e.hash_final); compartilharArquivo(new File([b], nomeArqCt(e, true), { type: "application/pdf" }), e.titulo, `${e.titulo} - assinado - VPX Engenharia`); }
+  catch (x) { aviso("Não foi possível baixar o documento assinado: " + x.message, true); }
+}
+async function abrirOneDriveCt(e) {
+  if (!navigator.onLine) { aviso("O OneDrive abre com internet.", true); return; }
+  const g = lerLS("vpx_ct_arq", {})[e.id];
+  let web = g?.web;
+  if (!web && g?.pasta) try { web = (await graph(`/drives/${CONFIG.driveId}/items/${g.pasta}`)).webUrl; } catch {}
+  if (!web) {                                        // gravado em outro aparelho: a pasta do cliente (ou a dos contratos sem cliente)
+    try { web = (await graph(`${BASE()}:/${encPath(e.cliente ? caminhoCli(e.cliente) + "/" + CONFIG.pastaContrato : CONFIG.pastaContratosAssinados)}`)).webUrl; } catch {}
+  }
+  if (web) window.open(web, "_blank", "noopener"); else aviso("Não achei a pasta do contrato no OneDrive.", true);
+}
+async function linkDeCt(e, s) {
+  if (ctLinks[s.id]) return ctLinks[s.id];
+  const r = await ctApi(`/api/envelopes/${encodeURIComponent(e.id)}/link/${encodeURIComponent(s.id)}`);
+  return ctLinks[s.id] = r?.url || "";
+}
+const textoLinkCt = (e, s, url) => [`Olá, ${primeiroNome(s.nome)}! A VPX Engenharia enviou o documento "${e.titulo}" para você assinar eletronicamente:`, url, "",
+  `Para confirmar que é você, o link pede um código que chega no seu e-mail${s.email ? ` (${mascararEmail(s.email)})` : ""}.${e.prazo ? ` Prazo para assinar: ${dataBRde(e.prazo)}.` : ""}`, "", assinaturaVPX()].join("\n");
+async function whatsCt(e, s) {
+  // a janela abre já no toque (o navegador bloqueia janelas abertas depois de esperar a internet); o endereço entra quando o link chega
+  const j = ctLinks[s.id] ? null : window.open("", "_blank");
+  try {
+    const url = await linkDeCt(e, s);
+    const tel = telDig(s.telefone || ""), href = `https://wa.me/${tel.length >= 10 ? "55" + tel : ""}?text=${encodeURIComponent(textoLinkCt(e, s, url))}`;
+    if (j) j.location.href = href; else window.open(href, "_blank", "noopener");
+  } catch (x) { if (j) j.close(); aviso("Não foi possível pegar o link: " + x.message, true); }
+}
+async function copiarTextoCt(txt, rotulo = "Link copiado.") {
+  try { await navigator.clipboard.writeText(txt); aviso(rotulo); }
+  catch { await perguntar({ titulo: "Copie o link", texto: "Toque e segure no link para copiar.", campos: [{ id: "l", rotulo: "Link", tipo: "texto", valor: txt, max: 400 }], sim: "Pronto", nao: "Fechar" }); }
+}
+async function copiarLinkCt(e, s) { try { await copiarTextoCt(await linkDeCt(e, s)); } catch (x) { aviso("Não foi possível pegar o link: " + x.message, true); } }
+async function lembrarCt(e, s) {
+  try { await ctApi(`/api/envelopes/${encodeURIComponent(e.id)}/lembrar`, { method: "POST", json: s ? { sid: s.id } : {} }); aviso(s ? `E-mail enviado de novo para ${primeiroNome(s.nome)}.` : "E-mail enviado de novo para quem falta assinar."); carregarDetCt(e.id); }
+  catch (x) { aviso("Não foi possível reenviar: " + x.message, true); }
+}
+async function cancelarCt(e) {
+  const r = await perguntar({ titulo: `Cancelar o contrato "${e.titulo}"?`, texto: "Os links deixam de valer e quem já foi chamado recebe um e-mail avisando. Não dá para desfazer.",
+    campo: "Motivo (vai no e-mail)", sim: "Cancelar o contrato", nao: "Manter o contrato", perigo: true });
+  if (!r) return;
+  try {
+    const n = envCt(await ctApi(`/api/envelopes/${encodeURIComponent(e.id)}/cancelar`, { method: "POST", json: { motivo: r.valor || "" } }));
+    if (n?.id) { ctDados.envs[n.id] = leveCt(n); gravarCt(); }
+    aviso("Contrato cancelado."); await carregarDetCt(e.id); aoMudarCt();
+  } catch (x) { aviso("Não foi possível cancelar: " + x.message, true); }
+}
+async function enviarRascunhoCt(e) {             // o envio parou depois de subir o PDF: termina
+  try {
+    const r = await ctApi(`/api/envelopes/${encodeURIComponent(e.id)}/enviar`, { method: "POST", json: {} });
+    const n = envCt(r); if (n?.id) { ctDados.envs[n.id] = leveCt(n); gravarCt(); }
+    Object.assign(ctLinks, r?.links || {});
+    if (ctTela) { ctTela.det = null; ctTela.fim = { id: e.id }; desenharCt(true); }
+    aoMudarCt();
+  } catch (x) { aviso("Não foi possível enviar: " + x.message, true); }
+}
+function desenharDetCt() {
+  const id = ctTela.det, w = $("ct-sub"); w.innerHTML = "";
+  const e = ctCompleto[id] || ctDados.envs[id];
+  if (!e) { w.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando o contrato…" : "Este contrato não está no aparelho (sem internet).")); return; }
+  if (ctTela.assinar?.id === id) { w.appendChild(painelAssinarCt(e)); return; }
+  const [a, tot] = contaCt(e), sit = SIT_CT[e.status] || [e.status, "aberta"];
+  const card = el("div", "nf-card ct-card" + (e.status === "concluido" ? " ok" : e.status === "aguardando" ? "" : " canc"));
+  const l1 = el("span", "os-num", "Código " + codCt(e.codigo)); l1.appendChild(el("span", "os-st " + sit[1], sit[0])); card.appendChild(l1);
+  card.append(el("b", "", e.titulo || "(sem título)"));
+  if (e.cliente) card.appendChild(el("small", "", e.cliente));
+  if (tot) card.appendChild(el("small", "", `${a} de ${tot} assinaram` + (e.status === "aguardando" && e.em_ordem ? " · em ordem" : "")));
+  w.appendChild(card);
+  const ac = el("div", "os-acoes");
+  const bt = (cls, ico, txt, fn) => { const b = comIc(el("button", "btn " + cls), ico, txt); b.type = "button"; b.onclick = fn; ac.appendChild(b); return b; };
+  if (minhaVezCt(e)) bt("prim", "lapis", "Assinar agora", () => prepararAssinarCt(e.id));
+  if (e.status === "rascunho" && e.pdf_ok && e.criador_email === emailDe()) bt("prim", "enviar", "Terminar o envio", () => enviarRascunhoCt(e));
+  if (e.hash_final) { bt("sec", "doc", "Ver o documento assinado", () => verDocCt(e, true)); bt("sec", "compartilhar", "Baixar o assinado", () => baixarFinalCt(e)); }
+  bt("sec", "doc", e.hash_final ? "Ver o original" : "Ver o documento", () => verDocCt(e, false));
+  if (e.arquivado_em) bt("sec", "pasta", "Abrir no OneDrive", () => abrirOneDriveCt(e));
+  w.appendChild(ac);
+  if (e.status === "concluido" && !e.arquivado_em) {
+    const p = el("p", "laudo-dica ct-montando", podeContratos() ? "Todos assinaram. O app monta o documento final (com a folha de assinaturas) e guarda no OneDrive do cliente." : "Todos assinaram. O documento final é montado pelo app de quem cuida dos contratos.");
+    if (podeContratos()) { const b = el("button", "laudo-link", ctFinalizando.has(e.id) ? "Montando…" : "Montar agora"); b.type = "button"; b.disabled = ctFinalizando.has(e.id); b.onclick = () => finalizarAgoraCt(e.id); p.append(" ", b); }
+    w.appendChild(p);
+    if (podeContratos() && ctErroFinal[e.id] && !ctFinalizando.has(e.id)) w.appendChild(el("p", "avcb-nota ct-erro-final", "A última tentativa de montar o documento final não deu certo: " + ctErroFinal[e.id]));
+  }
+  // quem assina
+  w.appendChild(el("h2", "secao", "Quem assina"));
+  const ls = el("div", "ct-sigs");
+  for (const s of sigsCt(e)) {
+    const c = el("div", "ct-sig-l " + s.status + (naVezCt(e, s) ? " vez" : ""));
+    const tx = el("div", "ct-sig-tx");
+    tx.appendChild(el("b", "", (e.em_ordem ? s.ordem + ". " : "") + (s.nome || "(sem nome)")));
+    tx.appendChild(el("small", "", [PAPEL_CT[s.papel] || s.papel, s.modo === "app" ? "assina pelo app (conta Microsoft)" : "assina pelo link (código no e-mail)"].join(" · ")));
+    if (s.email) tx.appendChild(el("small", "", s.email));
+    const st = s.status === "assinado" ? `Assinou em ${dataHoraCt(s.assinado_em)}` : s.status === "recusado" ? "Recusou" + (s.recusa_motivo ? ": " + s.recusa_motivo : "")
+      : e.status !== "aguardando" ? "Não assinou" : naVezCt(e, s) ? "Pendente: é a vez de assinar" + (s.visto_em ? ` (abriu em ${dataHoraCt(s.visto_em)})` : "") : "Pendente: espera a vez";
+    tx.appendChild(el("span", "ct-sig-st", st));
+    c.appendChild(tx);
+    const b2 = el("div", "ct-sig-ac");
+    const lk = (ico, txt, fn) => { const b = el("button", "fc-bt"); b.type = "button"; b.append(ic(ico), txt); b.onclick = fn; b2.appendChild(b); };
+    if (e.status === "aguardando" && s.status === "pendente") {
+      if (s.modo === "link" && podeContratos()) { lk("conversa", "WhatsApp", () => whatsCt(e, s)); lk("copiar", "Copiar link", () => copiarLinkCt(e, s)); if (naVezCt(e, s)) lk("email", "Reenviar e-mail", () => lembrarCt(e, s)); }
+      if (s.modo === "app" && (s.email || "").toLowerCase() !== emailDe() && naVezCt(e, s) && podeContratos()) lk("email", "Lembrar por e-mail", () => lembrarCt(e, s));
+    }
+    if (b2.children.length) c.appendChild(b2);
+    ls.appendChild(c);
+  }
+  w.appendChild(ls);
+  // dados
+  w.appendChild(el("h2", "secao", "Detalhes"));
+  const det = el("div", "os-det"), dl = el("dl");
+  const par = (k, v) => { if (v) dl.append(el("dt", "", k), v instanceof Node ? v : el("dd", "", v)); };
+  par("Código", codCt(e.codigo));
+  par("Criado por", [e.criador_nome || e.criador_email, dataHoraCt(e.criado_em)].filter(Boolean).join(" · "));
+  par("Enviado em", dataHoraCt(e.enviado_em));
+  par("Prazo", e.prazo ? dataBRde(e.prazo) + (prazoVencidoCt(e) ? " (vencido)" : "") : "");
+  par("Ordem", e.em_ordem ? "Assinam em ordem" : "Todos ao mesmo tempo");
+  par("Lembretes", e.lembretes ? "A cada 3 dias, por e-mail" : "Sem lembretes");
+  par("Mensagem", e.mensagem);
+  par("Concluído em", dataHoraCt(e.concluido_em));
+  par("Guardado no OneDrive", dataHoraCt(e.arquivado_em));
+  par(e.status === "recusado" ? "Motivo da recusa" : "Motivo", e.motivo);
+  par("Verificação", urlVerifDeCt(e));
+  const hx = (h) => el("dd", "ct-hash", h);
+  if (e.hash_original) par("SHA-256 do original", hx(e.hash_original));
+  if (e.hash_final) par("SHA-256 do assinado", hx(e.hash_final));
+  det.appendChild(dl); w.appendChild(det);
+  const links = el("div", "tar-links");
+  const link = (txt, fn, cls = "") => { const b = el("button", "laudo-link " + cls, txt); b.type = "button"; b.onclick = fn; links.appendChild(b); };
+  if (e.status === "aguardando" && podeContratos() && sigsCt(e).some(s => naVezCt(e, s))) link("Reenviar o e-mail para quem falta assinar", () => lembrarCt(e, null));
+  link("Copiar o endereço de verificação", () => copiarTextoCt(urlVerifDeCt(e), "Endereço copiado."));
+  if (e.meta?.oport && pode("funil")) link("Abrir a oportunidade no Comercial", () => { const o = e.meta.oport; if (fecharTelasPorCima()) abrirFunil({ aberta: o }); });
+  if (e.cliente && todosClientes().includes(e.cliente)) link("Abrir a página do cliente", () => { const c = e.cliente; if (fecharTelasPorCima()) abrirCliente(c); });
+  if ((e.status === "aguardando" || e.status === "rascunho") && podeContratos() && (e.criador_email === emailDe() || ehAdmin())) link("Cancelar o contrato", () => cancelarCt(e), "perigo");
+  w.appendChild(links);
+  // trilha de eventos (a que vai no registro do documento final)
+  const evs = ctCompleto[id]?.eventos;
+  w.appendChild(el("h2", "secao", "Trilha de eventos"));
+  if (!evs) w.appendChild(el("p", "avcb-nota", navigator.onLine ? "Carregando…" : "A trilha aparece com internet."));
+  else {
+    const tb = el("button", "btn sec ct-trilha-bt", ctTela.trilha ? "Esconder a trilha" : `Ver a trilha de eventos (${evs.length})`); tb.type = "button";
+    tb.onclick = () => { ctTela.trilha = !ctTela.trilha; desenharCt(true); };
+    w.appendChild(tb);
+    if (ctTela.trilha) {
+      const ol = el("ol", "ct-eventos"), nomes = Object.fromEntries((e.signatarios || []).map(s => [s.id, s.nome]));
+      for (const v of evs) {
+        const li = el("li");
+        li.appendChild(el("span", "ct-ev-q", dataHoraCt(v.quando, true)));
+        li.appendChild(el("b", "", (NOME_EV_CT[v.tipo] || v.tipo) + (v.signatario_id && nomes[v.signatario_id] ? " · " + nomes[v.signatario_id] : "")));
+        const ex = [v.detalhe, v.ip && "IP " + v.ip, v.local, aparelhoCurtoCt(v.aparelho)].filter(Boolean).join(" · ");
+        if (ex) li.appendChild(el("small", "", ex));
+        li.appendChild(el("small", "ct-hash", v.hash));
+        ol.appendChild(li);
+      }
+      w.appendChild(ol);
+      w.appendChild(el("p", "laudo-dica", "Cada evento guarda o SHA-256 do anterior (o primeiro, um código ligado a este contrato e ao documento original): mudar um evento mudaria todos os seguintes. Hora, IP e local são do servidor (horário de Brasília). Quem assina pelo link recebe por e-mail um recibo com o registro da assinatura."));
+    }
+  }
+}
+
+/* ---------- assinar pelo app (signatário modo "app", a vez é da pessoa logada) ---------- */
+async function prepararAssinarCt(id) {
+  if (!navigator.onLine) { aviso("Para assinar, o app precisa de internet.", true); return; }
+  const e = await carregarDetCt(id, true); if (!e) return;
+  const s = meuSigCt(e);
+  if (!s || !naVezCt(e, s)) { aviso(e.status === "aguardando" ? "Ainda não é a sua vez de assinar este contrato." : "Este contrato não está mais esperando assinaturas.", true); desenharCt(true); return; }
+  let bytes;
+  try { aviso("Baixando o documento…"); delete ctBytes[id + ":orig"]; bytes = await baixarPdfCt(id, false); }
+  catch (x) { aviso("Não foi possível baixar o documento: " + x.message, true); return; }
+  const h = await sha256Hex(bytes);
+  if (h !== e.hash_original) { aviso("O documento baixado não confere com o original (código diferente). Tente de novo.", true); return; }
+  fecharAviso();
+  ctTela.det = id; ctTela.fim = ctTela.novo = null;   // da tela final ("Assinar agora") também
+  ctTela.assinar = { id, sid: s.id, hash: h, nome: s.nome || conta?.name || "", cpf: s.cpf ? fmtCpf(s.cpf) : lerLS("vpx_ct_cpf", {})[emailDe()] || "", imagem: "", aceite: false };
+  desenharCt(true);
+  $("tela-ct").querySelector(".avcb-corpo").scrollTop = 0;
+  verDocCt(e, false);                                // antes de assinar, o documento aparece no visualizador
+}
+function painelAssinarCt(e) {
+  const A = ctTela.assinar, s = sigsCt(e).find(x => x.id === A.sid) || {};
+  const w = el("div", "ct-assinar");
+  w.appendChild(el("h2", "secao", "Assinar o contrato"));
+  w.appendChild(el("p", "laudo-dica", `${e.titulo}${e.cliente ? " · " + e.cliente : ""} · código ${codCt(e.codigo)}. Você assina como ${PAPEL_CT[s.papel] || "signatário"}, com a sua conta Microsoft da VPX.`));
+  const ver = comIc(el("button", "btn sec"), "doc", "Ver o documento de novo"); ver.type = "button"; ver.onclick = () => verDocCt(e, false); w.appendChild(ver);
+  const campo = (rot, val, fn, op = {}) => { const l = el("label", "campo"); l.appendChild(el("span", "", rot)); const i = document.createElement("input"); i.type = "text"; i.autocomplete = "off"; i.value = val; if (op.modo) i.inputMode = op.modo; if (op.max) i.maxLength = op.max; i.oninput = () => fn(i); l.appendChild(i); w.appendChild(l); return i; };
+  campo("Nome completo *", A.nome, i => { A.nome = i.value; }, { max: 120 });
+  campo("CPF *", A.cpf, i => { const d = digitos(i.value).slice(0, 11); i.value = d.length === 11 ? fmtCpf(d) : d; A.cpf = i.value; }, { modo: "numeric", max: 14 });
+  w.appendChild(caixaAssinatura({ rotulo: "Sua assinatura *", id: "ct-assin", nome: nomeColaborador(), valor: A.imagem, aoMudar: url => { A.imagem = url; } }));
+  const ck = el("label", "nf-check ct-aceite"), c = document.createElement("input"); c.type = "checkbox"; c.checked = A.aceite;
+  c.onchange = () => { A.aceite = c.checked; };
+  ck.append(c, ACEITE_CT.texto);
+  w.appendChild(ck);
+  const ac = el("div", "os-acoes");
+  const b = el("button", "btn prim", ctEnviando ? "Assinando…" : "Assinar o documento"); b.type = "button"; b.disabled = ctEnviando; b.onclick = assinarAppCt;
+  const d = el("button", "btn sec", "Desistir"); d.type = "button"; d.onclick = () => { ctTela.assinar = null; desenharCt(true); };
+  ac.append(b, d); w.appendChild(ac);
+  w.appendChild(el("p", "avcb-nota", "Ficam registrados no documento final: nome, CPF, a assinatura, a hora e o IP do servidor e a conta Microsoft usada."));
+  return w;
+}
+async function assinarAppCt() {
+  const A = ctTela?.assinar; if (!A || ctEnviando) return;
+  const e = ctCompleto[A.id] || ctDados.envs[A.id], s = sigsCt(e).find(x => x.id === A.sid) || {};
+  const nome = A.nome.trim().replace(/\s+/g, " ");
+  if (nome.split(" ").length < 2) { aviso("Escreva o nome completo.", true); return; }
+  if (!nomeImprimivelCt(nome)) { aviso("O nome tem letras que o documento assinado não consegue mostrar. Escreva o nome sem elas (ex.: L no lugar de Ł).", true); return; }
+  if (!cpfValido(A.cpf)) { aviso("CPF inválido. Confira os números.", true); return; }
+  if (s.cpf && digitos(s.cpf) !== digitos(A.cpf)) { aviso("Este CPF é diferente do que foi informado para este signatário no contrato.", true); return; }
+  if (!A.imagem) { aviso("Faça a sua assinatura no quadro.", true); $("ct-assin")?.scrollIntoView({ block: "center" }); return; }
+  if (!A.aceite) { aviso("Marque que leu e concorda com o documento.", true); return; }
+  ctEnviando = true; desenharCt(true);
+  try {
+    const r = envCt(await ctApi(`/api/envelopes/${encodeURIComponent(A.id)}/assinar-app`, { method: "POST", json: { sid: A.sid, nome, cpf: digitos(A.cpf), imagem: A.imagem, hash_visto: A.hash, aceite: true, aceite_versao: ACEITE_CT.versao } }));
+    const cpfs = lerLS("vpx_ct_cpf", {}); cpfs[emailDe()] = fmtCpf(A.cpf); gravarLS("vpx_ct_cpf", cpfs);   // na próxima vez já vem preenchido (só neste aparelho)
+    if (r?.id) { ctDados.envs[r.id] = leveCt(r); gravarCt(); }
+    if (ctTela?.assinar === A) ctTela.assinar = null;   // a tela pode ter sido fechada enquanto o pedido ia (a assinatura vale do mesmo jeito)
+    aviso(r?.status === "concluido" ? "Assinatura registrada. Todos assinaram: o documento final está sendo montado." : "Assinatura registrada.");
+    vibrar(30);
+    await carregarDetCt(A.id);
+    aoMudarCt();
+    if (r?.status === "concluido") finalizarPendentesCt();
+  } catch (x) { aviso("Não foi possível assinar: " + x.message, true); }
+  finally { ctEnviando = false; if (ctTela?.det) desenharCt(true); }
+}
+
+/* ---------- contrato novo: cliente e título → documento (PDF ou modelo) → quem assina → opções → revisar e enviar ---------- */
+let ctSeq = 0;
+const sigCt = (o = {}) => ({ k: ++ctSeq, nome: "", email: "", telefone: "", cpf: "", papel: "contratante", modo: "link", auto: true, ...o });
+function contratanteSugCt(cli) {
+  const f = cli ? fichas[cli] : null, c = f?.contatos?.find(x => x.principal) || f?.contatos?.[0];
+  const tel = [c?.tel, c?.tel2].find(ehCelular) || c?.tel || "";
+  return sigCt({ papel: "contratante", nome: c?.nome || "", email: c?.email || "", telefone: tel ? telBR(tel) : "", modo: "link" });
+}
+function contratadaSugCt() {
+  const r = ctModelos?.contratada?.representante;
+  if (r?.email) return sigCt({ papel: "contratada", nome: r.nome || "", email: r.email.toLowerCase(), cpf: r.cpf ? digitos(r.cpf) : "", modo: emailVpx(r.email) ? "app" : "link" });
+  return sigCt({ papel: "contratada", nome: conta?.name || "", email: emailDe(), modo: emailVpx(emailDe()) ? "app" : "link" });
+}
+function novoCt(pre = {}) {
+  if (!podeContratos()) { aviso("Só quem tem a função Contratos cria contratos.", true); return; }
+  if (!ctBase()) { aviso("O serviço de assinatura ainda não foi configurado.", true); return; }
+  if (!ctTela.det && !ctTela.fim && !ctTela.direto) guardarRol("tela-ct");
+  const cli = pre.cliente || (ctSt.f.cli && todosClientes().includes(ctSt.f.cli) ? ctSt.f.cli : "");
+  ctTela.det = ctTela.fim = ctTela.assinar = null;
+  ctTela.novo = { cliente: cli, titulo: pre.titulo || (cli ? "Contrato " + cli : ""), tituloAuto: !pre.titulo, doc: "", arq: null, arqPags: 0, mod: null,
+    sigs: [contratanteSugCt(cli), contratadaSugCt()], emOrdem: false, prazo: somaDias(dataISO(), 15), lembretes: true, mensagem: "",
+    meta: pre.meta || {}, orcamento: pre.orcamento || {}, revisar: false };
+  if (!ctTela.direto && !history.state?.ctSub) history.pushState({ ct: true, ctSub: true }, "");
+  desenharCt(true);
+  $("tela-ct").querySelector(".avcb-corpo").scrollTop = 0;
+  if (cli && !fichas[cli]) sincronizarFichas().then(() => trocarContratanteCt());   // o contato principal da ficha
+  lerModelosCt().then(() => {                       // o representante da VPX vem do arquivo de modelos
+    const n = ctTela?.novo; if (!n) return;
+    const i = n.sigs.findIndex(s => s.papel === "contratada" && s.auto);
+    if (i >= 0) n.sigs[i] = contratadaSugCt();
+    if (!n.revisar) desenharCt(true);
+  });
+}
+function trocarContratanteCt() {
+  const n = ctTela?.novo; if (!n) return;
+  const i = n.sigs.findIndex(s => s.papel === "contratante" && s.auto);
+  if (i >= 0) n.sigs[i] = contratanteSugCt(n.cliente);
+  if (n.mod) preencherFixosCt(n, true);
+  if (!n.revisar) desenharCt(true);
+}
+// arquivo de modelos: VPX Visitas - Configuração/contratos-modelos.json (o texto dos contratos não vai para o GitHub: fica só no OneDrive)
+async function lerModelosCt() {
+  if (lerModelosCt.p) return lerModelosCt.p;
+  return lerModelosCt.p = (async () => {
+    lerModelosCt.carregando = true; lerModelosCt.erro = "";
+    try {
+      const pasta = await pastaConfig(false);
+      const item = await graph(`/drives/${CONFIG.driveId}/items/${pasta}:/contratos-modelos.json`);
+      if (item.eTag !== ctModelos?.etag || !ctModelos?.modelos) {
+        const d = await (await fetch(item["@microsoft.graph.downloadUrl"])).json();
+        ctModelos = { ...d, modelos: Array.isArray(d.modelos) ? d.modelos : [], etag: item.eTag };
+        gravarLS("vpx_ct_modelos", ctModelos);
+      }
+    } catch (e) {
+      if (e.status === 404) { ctModelos = { versao: 1, modelos: [], semArquivo: true }; gravarLS("vpx_ct_modelos", ctModelos); }
+      else { console.error("modelos de contrato:", e); lerModelosCt.erro = e.semAcesso ? `sem acesso à pasta "${CONFIG.pastaConfig}"` : e.message || "erro"; setTimeout(() => { lerModelosCt.p = null; }, 15000); }
+    }
+    lerModelosCt.carregando = false;
+    setTimeout(() => { lerModelosCt.p = null; }, 5 * 60000);   // relê depois de 5 min (o arquivo pode mudar)
+    return ctModelos;
+  })();
+}
+const defModeloCt = id => (ctModelos?.modelos || []).find(m => m.id === id) || null;
+const FUNCAO_CARGO_CT = { "Síndico(a)": "seu síndico", "Subsíndico(a)": "seu subsíndico", "Proprietário(a)": "seu proprietário", "Administradora": "sua administradora", "Gerente predial": "seu gerente predial" };
+// campos fixos do modelo: o que o app sabe do cliente (ficha), do contato principal e do orçamento da oportunidade
+function preencherFixosCt(n, soVazios) {
+  const fx = n.mod.fixos, f = n.cliente ? (fichas[n.cliente] || sugestaoFicha(n.cliente)) : {};
+  const c = f?.contatos?.find(x => x.principal) || f?.contatos?.[0], o = n.orcamento || {};
+  const sug = { "contratante.razao": f?.razao || n.cliente || "", "contratante.doc": f?.doc ? docBR(f.doc) : "", "contratante.endereco": f?.endereco || "",
+    "representante.nome": c?.nome || "", "representante.cpf": "", "representante.cargo": FUNCAO_CARGO_CT[c?.funcao] || (c?.funcao ? "seu representante" : ""),
+    "orcamento.numero": o.numero || "", "orcamento.data": o.data ? String(o.data).slice(0, 10) : "", data: dataISO() };
+  for (const [k, v] of Object.entries(sug)) if (!soVazios || !fx[k]) fx[k] = v;
+}
+function escolherModeloCt(id) {
+  const n = ctTela.novo, d = defModeloCt(id); if (!d) return;
+  const campos = {};
+  for (const c of d.campos || []) campos[c.id] = c.tipo === "lista" ? (Array.isArray(c.padrao) ? c.padrao.join("\n") : c.padrao || "") : c.padrao ?? "";
+  const v = n.orcamento?.valor;
+  if (v != null && (d.campos || []).some(c => c.id === "valor")) campos.valor = moedaBR(+v);
+  n.mod = { id, campos, fixos: {}, clausulas: JSON.parse(JSON.stringify(d.clausulas || [])), editadas: {} };
+  preencherFixosCt(n);
+  desenharCt(true);
+}
+// numeração como nos contratos da VPX: "n. TÍTULO"; nível 1 = n.1, n.2…; nível 2 = n.1.1…; nível 0 = parágrafo sem número;
+// um item com "lista": "<campo>" vira um subitem por linha do campo do tipo lista
+const listaCampoCt = (campos, id) => String(campos?.[id] ?? "").split("\n").map(s => s.trim()).filter(Boolean);
+function numerarClausulasCt(clausulas, campos) {
+  const out = [];
+  clausulas.forEach((c, i) => {
+    const n = i + 1; let m = 0, k = 0;
+    out.push({ tipo: "tit", num: n + ".", txt: c.titulo || "", ci: i });
+    (c.itens || []).forEach((it, j) => {
+      const nivel = it.nivel ?? (it.lista ? 2 : 1);
+      for (const t of it.lista ? listaCampoCt(campos, it.lista) : [it.texto || ""]) {
+        let num = "";
+        if (nivel === 1) { m++; k = 0; num = `${n}.${m}`; }
+        else if (nivel >= 2) { k++; num = m ? `${n}.${m}.${k}` : `${n}.${k}`; }
+        out.push({ tipo: "item", num, nivel, txt: t, ci: i, ij: j, lista: it.lista || null });
+      }
+    });
+  });
+  return out;
+}
+// variáveis do modelo ({{contratante.razao}}, {{valor.extenso}}, {{<id do campo>}}…)
+function varsCt(n) {
+  const fx = n.mod.fixos, C = ctModelos?.contratada || {}, R = C.representante || {}, d = defModeloCt(n.mod.id);
+  const v = { "contratante.razao": fx["contratante.razao"], "contratante.doc": docBR(fx["contratante.doc"]), "contratante.endereco": fx["contratante.endereco"],
+    "representante.nome": fx["representante.nome"], "representante.cpf": docBR(fx["representante.cpf"]), "representante.cargo": fx["representante.cargo"],
+    "contratada.razao": C.razao, "contratada.cnpj": C.cnpj, "contratada.endereco": C.endereco, "contratada.representante.nome": R.nome, "contratada.representante.cpf": R.cpf ? docBR(R.cpf) : "",
+    "orcamento.numero": fx["orcamento.numero"], "orcamento.data": fx["orcamento.data"] ? dataBRde(fx["orcamento.data"]) : "",
+    cidade: ctModelos?.cidade || "Salvador-BA", "data.extenso": dataPorExtenso(fx.data || dataISO()) };
+  for (const c of d?.campos || []) {
+    const x = n.mod.campos[c.id];
+    if (c.tipo === "valor") { const num = lerValor(x); v[c.id] = num != null ? "R$ " + moedaBR(num) : ""; v[c.id + ".extenso"] = num != null ? valorPorExtenso(num) : ""; }
+    else if (c.tipo === "lista") v[c.id] = listaCampoCt(n.mod.campos, c.id).join("; ");
+    else if (c.tipo === "data") v[c.id] = x ? dataBRde(x) : "";
+    else v[c.id] = String(x ?? "").trim();
+  }
+  return v;
+}
+const trocarVarsCt = (t, v) => String(t || "").replace(/\{\{\s*([\w.]+)\s*\}\}/g, (m, k) => v[k] != null && String(v[k]).trim() !== "" ? String(v[k]) : "________");
+const varsVaziasCt = (textos, v) => [...new Set(textos.flatMap(t => [...String(t || "").matchAll(/\{\{\s*([\w.]+)\s*\}\}/g)].map(m => m[1])))].filter(k => v[k] == null || String(v[k]).trim() === "");
+const ROT_VAR_CT = { "contratante.razao": "Razão social do contratante", "contratante.doc": "CNPJ/CPF do contratante", "contratante.endereco": "Endereço do contratante",
+  "representante.nome": "Nome do representante", "representante.cpf": "CPF do representante", "representante.cargo": "Cargo do representante",
+  "orcamento.numero": "Número do orçamento", "orcamento.data": "Data do orçamento", "contratada.cnpj": "CNPJ da VPX (arquivo de modelos)", "contratada.endereco": "Endereço da VPX (arquivo de modelos)" };
+// valor por extenso, com centavos: 1200 → "mil e duzentos reais"; 1234,5 → "mil duzentos e trinta e quatro reais e cinquenta centavos"
+function valorPorExtenso(valor) {
+  const U = ["", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove"];
+  const D = ["", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa"];
+  const C = ["", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos"];
+  const ate999 = x => { if (x === 100) return "cem"; const c = Math.floor(x / 100), r = x % 100, p = []; if (c) p.push(C[c]); if (r) p.push(r < 20 ? U[r] : D[Math.floor(r / 10)] + (r % 10 ? " e " + U[r % 10] : "")); return p.join(" e "); };
+  const NOMES = [["", ""], ["mil", "mil"], ["milhão", "milhões"], ["bilhão", "bilhões"]];
+  const inteiro = x => {
+    if (!x) return "zero";
+    const g = []; while (x > 0) { g.push(x % 1000); x = Math.floor(x / 1000); }
+    const ps = [];
+    for (let i = g.length - 1; i >= 0; i--) if (g[i]) ps.push({ g: g[i], t: i === 1 && g[i] === 1 ? "mil" : ate999(g[i]) + (i ? " " + NOMES[i][g[i] === 1 ? 0 : 1] : "") });
+    // "e" antes do último grupo quando ele é menor que 100 ou uma centena redonda ("mil e duzentos", "mil duzentos e trinta")
+    return ps.map((p, k) => !k ? p.t : (k === ps.length - 1 && (p.g < 100 || p.g % 100 === 0) ? " e " : " ") + p.t).join("");
+  };
+  const cents = Math.round(Math.abs(+valor || 0) * 100), r = Math.floor(cents / 100), c = cents % 100;
+  let t = r ? inteiro(r) + (r >= 1e6 && r % 1e6 === 0 ? " de" : "") + (r === 1 ? " real" : " reais") : "";
+  if (c) t += (t ? " e " : "") + inteiro(c) + (c === 1 ? " centavo" : " centavos");
+  return t || "zero reais";
+}
+const dataPorExtenso = iso => { const [a, m, d] = String(iso || dataISO()).slice(0, 10).split("-").map(Number); return `${d === 1 ? "1º" : d} de ${MESES[m - 1]} de ${a}`; };
+
+// formulário do contrato novo (uma página com os passos numerados; refeita só quando algo de cima muda)
+function desenharNovoCt() {
+  const n = ctTela.novo, w = $("ct-sub"); w.innerHTML = "";
+  if (n.revisar) { w.appendChild(revisaoCt(n)); return; }
+  const f = el("div", "ct-form");
+  const passo = (num, txt) => { const h = el("h2", "secao ct-passo"); h.append(el("span", "ct-passo-n", String(num)), txt); f.appendChild(h); };
+  const inp = (rot, val, fn, op = {}) => {
+    const l = el("label", "campo" + (op.cls ? " " + op.cls : "")); l.appendChild(el("span", "", rot));
+    const i = document.createElement(op.area ? "textarea" : "input"); if (!op.area) i.type = op.tipo || "text";
+    if (op.modo) i.inputMode = op.modo; if (op.ph) i.placeholder = op.ph; if (op.max) i.maxLength = op.max; if (op.rows) i.rows = op.rows;
+    i.autocomplete = "off"; i.value = val ?? ""; i.oninput = () => fn(i.value, i); if (op.fmt) i.onchange = () => { i.value = op.fmt(i.value); fn(i.value, i); };
+    l.appendChild(i); return l;
+  };
+  // 1. cliente e título
+  passo(1, "Cliente e título");
+  const wc = el("div", "campo"); wc.appendChild(el("span", "", "Cliente *"));
+  const bc = el("button", "cliente" + (n.cliente ? "" : " vazio")); bc.type = "button"; bc.appendChild(el("strong", "", n.cliente || "Escolher o cliente"));
+  bc.onclick = () => abrirDialogo(nome => {
+    if (!todosClientes().includes(nome)) { aviso("Escolha um cliente da lista.", true); return; }
+    n.cliente = nome; if (n.tituloAuto) n.titulo = "Contrato " + nome;
+    if (!fichas[nome]) sincronizarFichas().then(trocarContratanteCt);
+    trocarContratanteCt();
+  }, true);
+  wc.appendChild(bc); f.appendChild(wc);
+  f.appendChild(inp("Título *", n.titulo, v => { n.titulo = v; n.tituloAuto = false; }, { max: 140, ph: "Ex.: Contrato NAU Barra - Orçamento 1154/2026" }));
+  // 2. documento
+  passo(2, "Documento");
+  const op = el("div", "ct-escolha");
+  for (const [k, ico, t, sub] of [["pdf", "doc", "Escolher PDF", "Um contrato já pronto"], ["modelo", "contrato", "Usar um modelo", "Preencher um contrato-padrão da VPX"]]) {
+    const b = el("button", "ct-opcao"); b.type = "button"; b.setAttribute("aria-pressed", String(n.doc === k));
+    b.append(icCaixa(ico), el("b", "", t), el("small", "", sub));
+    b.onclick = () => { if (n.doc === k) return; n.doc = k; desenharCt(true); if (k === "pdf" && !n.arq) $("ct-in-pdf").click(); if (k === "modelo") lerModelosCt().then(() => { if (ctTela?.novo === n && !n.revisar) desenharCt(true); }); };
+    op.appendChild(b);
+  }
+  f.appendChild(op);
+  if (n.doc === "pdf") {
+    if (n.arq) {
+      const a = el("div", "ct-arq"); a.append(icCaixa("doc"));
+      const tx = el("div", "ct-arq-tx"); tx.append(el("b", "", n.arq.name), el("small", "", `${n.arqPags ? n.arqPags + (n.arqPags === 1 ? " página · " : " páginas · ") : ""}${tamCt(n.arq.size)}`));
+      a.appendChild(tx);
+      const v = el("button", "laudo-link", "Ver"); v.type = "button"; v.onclick = () => abrirVisor(n.arq, "Contrato", n.titulo);
+      const t = el("button", "laudo-link", "Trocar"); t.type = "button"; t.onclick = () => $("ct-in-pdf").click();
+      a.append(v, t); f.appendChild(a);
+    } else { const b = comIc(el("button", "btn sec ct-larga"), "doc", "Escolher o PDF do contrato"); b.type = "button"; b.onclick = () => $("ct-in-pdf").click(); f.appendChild(b); }
+    f.appendChild(el("p", "laudo-dica", "PDF de até 20 MB. Quem assina vê exatamente este arquivo; o app acrescenta no fim a folha de assinaturas."));
+  }
+  if (n.doc === "modelo") f.appendChild(formModeloCt(n));
+  // 3. quem assina
+  passo(3, "Quem assina");
+  f.appendChild(el("p", "laudo-dica", "Quem é de fora assina pelo link (o código chega no e-mail). Quem é da VPX pode assinar pelo app, com a conta Microsoft."));
+  const ls = el("div", "ct-sigs-ed");
+  n.sigs.forEach((s, i) => ls.appendChild(cartaoSigCt(n, s, i)));
+  f.appendChild(ls);
+  const add = el("div", "ct-add");
+  const nTest = n.sigs.filter(s => s.papel === "testemunha").length;
+  const ba = (txt, fn, dis) => { const b = el("button", "btn sec", txt); b.type = "button"; b.disabled = !!dis; b.onclick = fn; add.appendChild(b); return b; };
+  const bEq = ba("+ Testemunha da equipe", ev => {
+    const ja = new Set(n.sigs.map(s => s.email.toLowerCase()));
+    const ps = pessoasEquipe().filter(p => emailVpx(p.email) && !ja.has(p.email));
+    if (!ps.length) { aviso("Ninguém da equipe para escolher (todos já estão na lista).", true); return; }
+    menuOpcoes(ev.currentTarget, ps.map(p => [p.email, p.nome]), null, em => { const p = ps.find(x => x.email === em); n.sigs.push(sigCt({ papel: "testemunha", nome: p.nome, email: p.email, modo: "app", auto: false })); desenharCt(true); });
+  }, nTest >= 2 || n.sigs.length >= 10);
+  bEq.title = "Testemunha da VPX, que assina pelo app";
+  ba("+ Testemunha (digitar)", () => { n.sigs.push(sigCt({ papel: "testemunha", modo: "link", auto: false })); desenharCt(true); }, nTest >= 2 || n.sigs.length >= 10);
+  ba("+ Outro signatário", () => { n.sigs.push(sigCt({ papel: "contratante", modo: "link", auto: false })); desenharCt(true); }, n.sigs.length >= 10);
+  f.appendChild(add);
+  // 4. opções
+  passo(4, "Opções");
+  const chk = (txt, v, fn, dica) => { const l = el("label", "nf-check"), c = document.createElement("input"); c.type = "checkbox"; c.checked = v; c.onchange = () => fn(c.checked); l.append(c, txt); f.appendChild(l); if (dica) f.appendChild(el("p", "laudo-dica ct-dica-chk", dica)); };
+  chk("Assinam em ordem", n.emOrdem, v => { n.emOrdem = v; desenharCt(true); }, n.emOrdem ? "Cada um recebe o pedido só depois que o anterior assina (a ordem é a da lista acima)." : "Todos recebem o pedido ao mesmo tempo.");
+  f.appendChild(inp("Prazo para assinar", n.prazo, v => { n.prazo = v; }, { tipo: "date" }));
+  chk("Lembrete por e-mail a cada 3 dias para quem não assinou", n.lembretes, v => { n.lembretes = v; });
+  f.appendChild(inp("Mensagem para quem assina (opcional)", n.mensagem, v => { n.mensagem = v; }, { area: true, rows: 3, max: 600, ph: "Ex.: Segue o contrato conforme conversamos. Qualquer dúvida, estou à disposição." }));
+  const fim = el("div", "os-acoes ct-fim-form");
+  const r = el("button", "btn prim", "Revisar e enviar"); r.type = "button"; r.onclick = revisarCt;
+  fim.appendChild(r); f.appendChild(fim);
+  w.appendChild(f);
+}
+function cartaoSigCt(n, s, i) {
+  const c = el("div", "ct-sig-ed");
+  const topo = el("div", "ct-sig-topo");
+  if (n.emOrdem) topo.appendChild(el("span", "ct-ordem", String(i + 1)));
+  const sp = document.createElement("select"); sp.setAttribute("aria-label", "Papel");
+  for (const [k, t] of Object.entries(PAPEL_CT)) { const o = document.createElement("option"); o.value = k; o.textContent = t; sp.appendChild(o); }
+  sp.value = s.papel; sp.onchange = () => { s.papel = sp.value; s.auto = false; desenharCt(true); };
+  topo.appendChild(sp);
+  if (n.emOrdem && n.sigs.length > 1) {
+    const sobe = el("button", "tar-x", "↑"); sobe.type = "button"; sobe.title = "Mais cedo na ordem"; sobe.setAttribute("aria-label", "Mais cedo na ordem"); sobe.disabled = !i;
+    sobe.onclick = () => { [n.sigs[i - 1], n.sigs[i]] = [n.sigs[i], n.sigs[i - 1]]; desenharCt(true); };
+    topo.appendChild(sobe);
+  }
+  const x = el("button", "tar-x", "×"); x.type = "button"; x.title = "Tirar"; x.setAttribute("aria-label", "Tirar " + (s.nome || "este signatário"));
+  x.onclick = () => { n.sigs.splice(i, 1); desenharCt(true); };
+  topo.appendChild(x);
+  c.appendChild(topo);
+  const g = el("div", "tar-2col");
+  const campo = (rot, k, op = {}) => {
+    const l = el("label", "campo"); l.appendChild(el("span", "", rot));
+    const inp = document.createElement("input"); inp.type = op.tipo || "text"; inp.autocomplete = "off"; inp.value = s[k] || "";
+    if (op.modo) inp.inputMode = op.modo; if (op.max) inp.maxLength = op.max; if (op.ph) inp.placeholder = op.ph;
+    inp.oninput = () => { s[k] = op.ler ? op.ler(inp) : inp.value; s.auto = false; if (k === "email") pintarModo(); };
+    if (op.fmt) inp.onchange = () => { inp.value = op.fmt(inp.value); s[k] = inp.value; };
+    if (k === "email") inp.onchange = () => { if (mudouModo) { mudouModo = false; desenharCt(true); } };
+    l.appendChild(inp); g.appendChild(l); return inp;
+  };
+  campo("Nome completo *", "nome", { max: 120 });
+  campo("E-mail" + (s.modo === "link" ? " *" : " (da VPX) *"), "email", { tipo: "email", modo: "email", max: 120, ler: i => i.value.trim().toLowerCase() });
+  if (s.modo === "link") campo("Celular (para o WhatsApp)", "telefone", { tipo: "tel", modo: "tel", max: 20, fmt: v => v ? telBR(v) : "" });
+  campo("CPF (opcional)", "cpf", { modo: "numeric", max: 14, ler: i => { const d = digitos(i.value).slice(0, 11); i.value = d.length === 11 ? fmtCpf(d) : d; return d; } }).value = s.cpf ? (s.cpf.length === 11 ? fmtCpf(s.cpf) : s.cpf) : "";
+  c.appendChild(g);
+  const m = el("div", "chips peq ct-modo");
+  let mudouModo = false;
+  const pintarModo = () => {
+    m.innerHTML = "";
+    const vpx = emailVpx(s.email);
+    if (!vpx && s.modo === "app") { s.modo = "link"; mudouModo = true; }
+    if (!vpx) { m.appendChild(el("small", "ct-modo-tx", "Assina pelo link: o código de confirmação chega no e-mail. Com CPF, quem assina tem de digitar o mesmo.")); return; }
+    for (const [k, t] of [["link", "Assina pelo link"], ["app", "Assina pelo app"]]) {
+      const b = el("button", "", t); b.type = "button"; b.setAttribute("aria-pressed", String(s.modo === k));
+      b.onclick = () => { if (s.modo === k) return; s.modo = k; s.auto = false; desenharCt(true); };
+      m.appendChild(b);
+    }
+  };
+  pintarModo();
+  c.appendChild(m);
+  return c;
+}
+function formModeloCt(n) {
+  const w = el("div", "ct-mod");
+  const ms = ctModelos?.modelos || [];
+  if (!ms.length && (lerModelosCt.carregando || !ctModelos)) { w.appendChild(el("p", "avcb-nota", "Carregando os modelos…")); return w; }
+  if (!ms.length && lerModelosCt.erro) { w.appendChild(el("p", "avcb-nota ct-sem-mod", `Não foi possível ler os modelos (${lerModelosCt.erro}). Tente de novo com internet, ou use um PDF pronto.`)); return w; }
+  if (!ms.length) {
+    w.appendChild(el("p", "avcb-nota ct-sem-mod", `Não há modelos de contrato. Eles ficam no arquivo "contratos-modelos.json" da pasta "${CONFIG.pastaConfig}" no OneDrive${ctModelos.semArquivo ? ", que ainda não existe" : ""}. Use um PDF pronto.`));
+    return w;
+  }
+  const ch = el("div", "ct-mods");
+  for (const m of ms) {
+    const b = el("button", "ct-opcao ct-mod-op"); b.type = "button"; b.setAttribute("aria-pressed", String(n.mod?.id === m.id));
+    b.append(el("b", "", m.nome || m.id)); if (m.descricao) b.appendChild(el("small", "", m.descricao));
+    b.onclick = async () => { if (n.mod?.id === m.id) return; if (n.mod && Object.keys(n.mod.editadas).length && !(await confirmarApagar("Trocar de modelo?", "As cláusulas que você editou voltam ao texto do modelo novo.", "Trocar de modelo", "Manter"))) return; escolherModeloCt(m.id); };
+    ch.appendChild(b);
+  }
+  w.appendChild(ch);
+  if (!n.mod) return w;
+  const d = defModeloCt(n.mod.id);
+  if (!d) { w.appendChild(el("p", "avcb-nota", "Este modelo saiu do arquivo de modelos. Escolha outro.")); return w; }
+  const fx = n.mod.fixos;
+  const inp = (rot, val, fn, op = {}) => {
+    const l = el("label", "campo"); l.appendChild(el("span", "", rot));
+    const i = document.createElement(op.area ? "textarea" : "input"); if (!op.area) i.type = op.tipo || "text";
+    if (op.modo) i.inputMode = op.modo; if (op.ph) i.placeholder = op.ph; if (op.rows) i.rows = op.rows; i.autocomplete = "off"; i.value = val ?? "";
+    i.oninput = () => fn(i.value); if (op.fmt) i.onchange = () => { i.value = op.fmt(i.value); fn(i.value); };
+    l.appendChild(i); return l;
+  };
+  const fixo = (rot, k, op) => inp(rot, fx[k], v => { fx[k] = v; }, op);
+  w.appendChild(el("p", "rotulo ct-mod-rot", "Contratante"));
+  const g1 = el("div", "tar-2col");
+  g1.append(fixo("Razão social ou nome", "contratante.razao"), fixo("CNPJ/CPF", "contratante.doc", { modo: "numeric", fmt: v => docBR(v) }));
+  w.appendChild(g1);
+  w.appendChild(fixo("Endereço", "contratante.endereco"));
+  const g2 = el("div", "tar-2col");
+  g2.append(fixo("Representante (quem assina pelo contratante)", "representante.nome"), fixo("CPF do representante", "representante.cpf", { modo: "numeric", fmt: v => docBR(v) }),
+    fixo("Cargo no texto (ex.: seu síndico)", "representante.cargo"));
+  w.appendChild(g2);
+  w.appendChild(el("p", "rotulo ct-mod-rot", "Orçamento e data"));
+  const g3 = el("div", "tar-2col");
+  g3.append(fixo("Número do orçamento", "orcamento.numero", { ph: "Ex.: 1154/2026" }), fixo("Data do orçamento", "orcamento.data", { tipo: "date" }), fixo("Data do contrato", "data", { tipo: "date" }));
+  w.appendChild(g3);
+  if ((d.campos || []).length) {
+    w.appendChild(el("p", "rotulo ct-mod-rot", "Dados deste contrato"));
+    for (const c of d.campos) {
+      const v = n.mod.campos[c.id];
+      if (c.tipo === "lista") w.appendChild(inp(c.rotulo + " (um por linha)", v, x => { n.mod.campos[c.id] = x; }, { area: true, rows: 4 }));
+      else if (c.tipo === "textoLongo") w.appendChild(inp(c.rotulo, v, x => { n.mod.campos[c.id] = x; }, { area: true, rows: 3 }));
+      else if (c.tipo === "valor") {
+        const l = inp(c.rotulo, v, x => { n.mod.campos[c.id] = x; ext.textContent = lerValor(x) != null ? valorPorExtenso(lerValor(x)) : ""; }, { modo: "decimal", ph: "0,00", fmt: x => lerValor(x) != null ? moedaBR(lerValor(x)) : x });
+        const ext = el("small", "ct-extenso", lerValor(v) != null ? valorPorExtenso(lerValor(v)) : ""); l.appendChild(ext); w.appendChild(l);
+      }
+      else if (c.tipo === "data") w.appendChild(inp(c.rotulo, v, x => { n.mod.campos[c.id] = x; }, { tipo: "date" }));
+      else w.appendChild(inp(c.rotulo, v, x => { n.mod.campos[c.id] = x; }));
+    }
+  }
+  // cláusulas: cada uma pode ser aberta e editada só para este contrato (o arquivo de modelos não muda)
+  w.appendChild(el("p", "rotulo ct-mod-rot", "Cláusulas"));
+  w.appendChild(el("p", "laudo-dica", "Toque numa cláusula para conferir ou mudar o texto só neste contrato. Os {{campos}} são trocados pelos dados acima."));
+  const nums = numerarClausulasCt(n.mod.clausulas, n.mod.campos);
+  n.mod.clausulas.forEach((c, i) => {
+    const det = el("details", "ct-clau" + (n.mod.editadas[i] ? " editada" : ""));
+    if (n.mod.aberta === i) det.open = true;
+    det.ontoggle = () => { if (det.open) n.mod.aberta = i; else if (n.mod.aberta === i) n.mod.aberta = null; };
+    const sm = el("summary"); sm.append(el("b", "", `${i + 1}. ${c.titulo || ""}`)); if (n.mod.editadas[i]) sm.appendChild(el("span", "ct-tag", "editada"));
+    det.appendChild(sm);
+    const marcar = () => { if (!n.mod.editadas[i]) { n.mod.editadas[i] = true; det.classList.add("editada"); if (!sm.querySelector(".ct-tag")) sm.appendChild(el("span", "ct-tag", "editada")); } };
+    det.appendChild(inp("Título da cláusula", c.titulo, v => { c.titulo = v; sm.firstChild.textContent = `${i + 1}. ${v}`; marcar(); }));
+    (c.itens || []).forEach((it, j) => {
+      const num = nums.find(x => x.ci === i && x.ij === j)?.num;
+      const rot = num ? `Item ${num}` : it.lista ? "Itens" : "Parágrafo";
+      if (it.lista) { det.appendChild(el("p", "laudo-dica ct-lista-nota", `${rot}: um subitem por linha do campo "${(d.campos || []).find(x => x.id === it.lista)?.rotulo || it.lista}" (acima).`)); return; }
+      det.appendChild(inp(rot, it.texto, v => { it.texto = v; marcar(); }, { area: true, rows: Math.min(8, Math.max(2, Math.ceil(String(it.texto || "").length / 60))) }));
+    });
+    if (n.mod.editadas[i]) {
+      const rb = el("button", "laudo-link", "Restaurar o texto do modelo"); rb.type = "button";
+      rb.onclick = () => { const orig = (d.clausulas || [])[i]; if (orig) n.mod.clausulas[i] = JSON.parse(JSON.stringify(orig)); delete n.mod.editadas[i]; n.mod.aberta = i; desenharCt(true); };
+      det.appendChild(rb);
+    }
+    w.appendChild(det);
+  });
+  return w;
+}
+// devolve "" se o pdf-lib abre o PDF sem ignorar a proteção (como a montagem da via final fará); senão, o aviso para a pessoa
+async function conferirPdfLibCt(bytes) {
+  try { if (!window.PDFLib) await carregarScript(PDFLIB); }
+  catch { return "Não foi possível carregar a ferramenta de PDF. Confira a internet e tente de novo."; }
+  try { await PDFLib.PDFDocument.load(bytes.slice(), { updateMetadata: false }); return ""; }
+  catch (e) {
+    console.error("pdf-lib:", e);
+    return /encrypt/i.test((e?.name || "") + " " + (e?.message || "")) ? "Este PDF está protegido contra edição. Abra o arquivo, salve (ou \"imprima como PDF\") uma cópia sem proteção e escolha essa cópia."
+      : "O app não consegue preparar este PDF para as assinaturas. Abra o arquivo, salve (ou \"imprima como PDF\") uma cópia e escolha essa cópia.";
+  }
+}
+async function escolherPdfCt(arq) {
+  const n = ctTela?.novo; if (!n || !arq) return;
+  if (!/pdf$/i.test(arq.type) && !/\.pdf$/i.test(arq.name)) { aviso("Escolha um arquivo PDF.", true); return; }
+  if (arq.size > 20 * 1048576) { aviso("O PDF passa de 20 MB. Reduza o arquivo e tente de novo.", true); return; }
+  const b = new Uint8Array(await arq.arrayBuffer());
+  if (String.fromCharCode(...b.slice(0, 5)) !== "%PDF-") { aviso("Este arquivo não parece um PDF.", true); return; }
+  let pags = 0;
+  try { await carregarPdfjs(); pags = (await pdfjsLib.getDocument({ data: b.slice() }).promise).numPages; }
+  catch (e) { aviso(/password/i.test(e?.name || e?.message || "") ? "Este PDF tem senha. Tire a senha e escolha de novo." : "Não foi possível ler este PDF.", true); return; }
+  // PDF protegido contra edição (senha só de dono) abre sem pedir senha, mas a via final sairia com o rodapé e a folha de assinaturas
+  // ilegíveis: a ferramenta que monta a via final (pdf-lib) tem de conseguir abrir o arquivo como ele é
+  const falhaPdfLib = await conferirPdfLibCt(b);
+  if (falhaPdfLib) { aviso(falhaPdfLib, true); return; }
+  n.arq = arq; n.arqPags = pags; n.doc = "pdf";
+  if (n.tituloAuto && !n.cliente) n.titulo = arq.name.replace(/\.pdf$/i, "");
+  desenharCt(true);
+}
+function faltaNovoCt(n) {
+  if (!n.cliente) return "Escolha o cliente.";
+  if (!n.titulo.trim()) return "Escreva o título do contrato.";
+  if (!n.doc) return "Escolha o documento: um PDF pronto ou um modelo.";
+  if (n.doc === "pdf" && !n.arq) return "Escolha o PDF do contrato.";
+  if (n.doc === "modelo" && !n.mod) return "Escolha o modelo do contrato.";
+  if (!n.sigs.length) return "Acrescente quem assina.";
+  if (n.sigs.length > 10) return "No máximo 10 pessoas assinam um contrato.";
+  if (n.sigs.filter(s => s.papel === "testemunha").length > 2) return "No máximo 2 testemunhas.";
+  const vistos = new Set();
+  for (const s of n.sigs) {
+    const quem = s.nome.trim() || PAPEL_CT[s.papel];
+    if (s.nome.trim().split(/\s+/).length < 2) return `Escreva o nome completo de ${quem}.`;
+    if (!emailOk(s.email.trim())) return `Confira o e-mail de ${quem}.`;
+    if (s.modo === "app" && !emailVpx(s.email)) return `${quem} assina pelo app: precisa ser um e-mail @${CONFIG.dominio}.`;
+    if (s.cpf && !cpfValido(s.cpf)) return `Confira o CPF de ${quem}.`;
+    if (s.telefone && telDig(s.telefone).length < 10) return `Confira o celular de ${quem} (com DDD).`;
+    const k = s.email.trim().toLowerCase(); if (vistos.has(k)) return `O e-mail ${k} está repetido.`; vistos.add(k);
+  }
+  if (!n.sigs.some(s => s.papel === "contratante")) return "Falta o CONTRATANTE (quem contrata a VPX).";
+  if (n.prazo && n.prazo < dataISO()) return "O prazo para assinar já passou: escolha outra data.";
+  return "";
+}
+// revisar: monta o PDF (modelo) ou usa o escolhido, calcula o SHA-256 e as páginas e mostra o documento antes de enviar
+async function revisarCt() {
+  const n = ctTela?.novo; if (!n || revisarCt.rodando) return;
+  const falta = faltaNovoCt(n); if (falta) { aviso(falta, true); return; }
+  if (n.doc === "modelo") {
+    const v = varsCt(n), d = defModeloCt(n.mod.id);
+    const vaz = varsVaziasCt([d?.titulo, ...numerarClausulasCt(n.mod.clausulas, n.mod.campos).map(x => x.txt)], v);
+    if (vaz.length && !(await perguntar({ titulo: "Há campos em branco", texto: "Estes campos vão aparecer como \"________\" no contrato:\n" + vaz.map(k => "- " + (ROT_VAR_CT[k] || (d?.campos || []).find(c => c.id === k.replace(/\.extenso$/, ""))?.rotulo || k)).join("\n"),
+      sim: "Continuar assim", nao: "Voltar e preencher" }))) return;
+  }
+  revisarCt.rodando = true;
+  aviso("Preparando o documento…");
+  try {
+    const bytes = n.doc === "pdf" ? new Uint8Array(await n.arq.arrayBuffer()) : await gerarContratoModeloPDF(n);
+    if (bytes.length > 20 * 1048576) throw erroCt("o PDF passa de 20 MB");
+    await carregarPdfjs();
+    n.paginas = (await pdfjsLib.getDocument({ data: bytes.slice() }).promise).numPages;
+    n.bytes = bytes; n.tamanho = bytes.length; n.hash = await sha256Hex(bytes);
+    n.nomeArq = n.doc === "pdf" ? n.arq.name : limparNome(n.titulo) + ".pdf";
+    n.revisar = true; fecharAviso();
+    desenharCt(true); $("tela-ct").querySelector(".avcb-corpo").scrollTop = 0;
+    abrirVisor(new File([bytes], n.nomeArq, { type: "application/pdf" }), "Revisar o contrato", n.titulo);
+  } catch (e) { console.error(e); aviso("Não foi possível preparar o documento: " + e.message, true); }
+  finally { revisarCt.rodando = false; }
+}
+// o rascunho criado no servidor num envio que não terminou: voltou para corrigir, então ele é cancelado (some da lista)
+// "soRascunho": se o contrato já foi enviado (a resposta do envio se perdeu no caminho), o servidor NÃO cancela — ele continua valendo
+function descartarRascunhoCt() {
+  const n = ctTela?.novo; if (!n?.envId || n.enviado || ctEnviando) return;
+  const id = n.envId; n.envId = null; n.pdfOk = false;
+  delete ctDados.envs[id];
+  ctApi(`/api/envelopes/${encodeURIComponent(id)}/cancelar`, { method: "POST", json: { motivo: "Rascunho refeito no app", soRascunho: true }, fundo: true }).catch(async x => {
+    if (x.status !== 409) return;                  // sem internet: o servidor apaga o rascunho sozinho depois de 2 dias
+    try {
+      const e = envCt(await ctApi("/api/envelopes/" + encodeURIComponent(id), { fundo: true }));
+      if (e?.id && e.status !== "rascunho" && e.status !== "cancelado") {
+        ctDados.envs[e.id] = leveCt(e); gravarCt(); aoMudarCt();
+        aviso(`O contrato "${e.titulo}" já tinha sido enviado e continua valendo. Para desfazer, abra-o na lista e cancele.`, true);
+      }
+    } catch (y) { console.error(y); }
+  });
+}
+function revisaoCt(n) {
+  const w = el("div", "ct-rev");
+  const card = el("div", "nf-card ct-card");
+  card.append(el("span", "os-num", "Pronto para enviar"), el("b", "", n.titulo), el("small", "", n.cliente));
+  card.appendChild(el("small", "", `${n.nomeArq} · ${n.paginas} página${n.paginas === 1 ? "" : "s"} · ${tamCt(n.tamanho)}`));
+  w.appendChild(card);
+  const ver = comIc(el("button", "btn sec ct-larga"), "doc", "Ver o documento"); ver.type = "button";
+  ver.onclick = () => abrirVisor(new File([n.bytes], n.nomeArq, { type: "application/pdf" }), "Revisar o contrato", n.titulo);
+  w.appendChild(ver);
+  w.appendChild(el("h2", "secao", "Quem assina"));
+  const ls = el("div", "ct-sigs");
+  n.sigs.forEach((s, i) => {
+    const c = el("div", "ct-sig-l"), tx = el("div", "ct-sig-tx");
+    tx.append(el("b", "", (n.emOrdem ? i + 1 + ". " : "") + s.nome.trim()),
+      el("small", "", [PAPEL_CT[s.papel], s.modo === "app" ? "pelo app (conta Microsoft)" : "pelo link (código no e-mail)"].join(" · ")),
+      el("small", "", [s.email, s.telefone, s.cpf && "CPF " + fmtCpf(s.cpf)].filter(Boolean).join(" · ")));
+    c.appendChild(tx); ls.appendChild(c);
+  });
+  w.appendChild(ls);
+  const det = el("div", "os-det"), dl = el("dl");
+  const par = (k, v) => { if (v) dl.append(el("dt", "", k), el("dd", "", v)); };
+  par("Ordem", n.emOrdem ? "Assinam em ordem" : "Todos ao mesmo tempo");
+  par("Prazo", n.prazo ? dataBRde(n.prazo) : "Sem prazo");
+  par("Lembretes", n.lembretes ? "A cada 3 dias, por e-mail" : "Sem lembretes");
+  par("Mensagem", n.mensagem.trim());
+  par("Modelo", n.doc === "modelo" ? defModeloCt(n.mod.id)?.nome : "");
+  det.appendChild(dl);
+  det.appendChild(el("p", "ct-hash", "SHA-256: " + n.hash));
+  w.appendChild(det);
+  w.appendChild(el("p", "laudo-dica", "Ao enviar, cada pessoa recebe um e-mail com o pedido (quem assina pelo link recebe também o link, que você pode mandar pelo WhatsApp na próxima tela). O documento não muda mais depois de enviado."));
+  const ac = el("div", "os-acoes");
+  const e = comIc(el("button", "btn prim"), "enviar", ctEnviando ? "Enviando…" : "Enviar para assinatura"); e.type = "button"; e.disabled = ctEnviando; e.onclick = enviarNovoCt;
+  const v = el("button", "btn sec", "Voltar e corrigir"); v.type = "button"; v.disabled = ctEnviando;
+  v.onclick = () => { descartarRascunhoCt(); n.revisar = false; desenharCt(true); };
+  ac.append(e, v); w.appendChild(ac);
+  return w;
+}
+async function enviarNovoCt() {
+  const n = ctTela?.novo; if (!n?.revisar || ctEnviando) return;
+  if (!navigator.onLine) { aviso("Sem internet: o contrato é enviado quando houver conexão (tente de novo).", true); return; }
+  ctEnviando = true; desenharCt(true);
+  try {
+    if (!n.envId) {
+      const corpo = { titulo: n.titulo.trim(), cliente: n.cliente, mensagem: n.mensagem.trim(), em_ordem: n.emOrdem ? 1 : 0, prazo: n.prazo || null, lembretes: n.lembretes ? 1 : 0,
+        hash_original: n.hash, paginas: n.paginas, tamanho: n.tamanho, meta: { ...n.meta, modelo: n.doc === "modelo" ? n.mod.id : null, arquivo: n.nomeArq },
+        signatarios: n.sigs.map((s, i) => ({ nome: s.nome.trim().replace(/\s+/g, " "), email: s.email.trim().toLowerCase(), telefone: s.telefone ? telBR(s.telefone) : "", cpf: s.cpf ? digitos(s.cpf) : "", papel: s.papel, modo: s.modo, ordem: i + 1 })) };
+      const env = envCt(await ctApi("/api/envelopes", { method: "POST", json: corpo }));
+      if (!env?.id) throw erroCt("o serviço de assinatura não devolveu o contrato criado");
+      n.envId = env.id; n.pdfOk = false; ctDados.envs[env.id] = leveCt(env);
+    }
+    if (!n.pdfOk) { await ctApi(`/api/envelopes/${encodeURIComponent(n.envId)}/pdf`, { method: "PUT", body: n.bytes, headers: { "Content-Type": "application/pdf" } }); n.pdfOk = true; }
+    const r = await ctApi(`/api/envelopes/${encodeURIComponent(n.envId)}/enviar`, { method: "POST", json: {} });
+    concluirEnvioCt(n, envCt(r), r?.links);
+  } catch (e) {
+    console.error(e);
+    // a resposta pode ter se perdido no caminho (sinal fraco) com o contrato JÁ enviado: confere no servidor antes de dizer que não foi
+    if (n.envId && (!e.status || e.status === 409 || e.status >= 500)) {
+      try {
+        const srv = envCt(await ctApi("/api/envelopes/" + encodeURIComponent(n.envId)));
+        if (srv?.id && ["aguardando", "concluido", "recusado", "expirado"].includes(srv.status)) {
+          concluirEnvioCt(n, srv, null);
+          aviso("O contrato foi enviado (a resposta do serviço demorou a chegar).");
+          return;
+        }
+      } catch (y) { console.error(y); }
+    }
+    aviso("Não foi possível enviar: " + e.message, true);
+  }
+  finally { ctEnviando = false; if (ctTela?.novo) desenharCt(true); }
+}
+// envio terminado: a tela final aparece se a pessoa ainda está nela (os links vêm da resposta ou, depois, do servidor: linkDeCt)
+function concluirEnvioCt(n, env, links) {
+  if (env?.id) { ctDados.envs[env.id] = leveCt(env); gravarCt(); }
+  Object.assign(ctLinks, links || {});
+  ctBytes[n.envId + ":orig"] = n.bytes;
+  n.enviado = true;
+  if (ctTela && ctTela.novo === n) {
+    ctTela.novo = null; ctTela.fim = { id: n.envId };
+    vibrar(30);
+    desenharCt(true); $("tela-ct").querySelector(".avcb-corpo").scrollTop = 0;
+  }
+  aoMudarCt();
+}
+// tela final: cada signatário com "Enviar pelo WhatsApp" e "Copiar link" (o e-mail já foi pelo servidor)
+function desenharFimCt() {
+  const id = ctTela.fim.id, e = ctDados.envs[id], w = $("ct-sub"); w.innerHTML = "";
+  if (!e) { w.appendChild(el("p", "avcb-nota", "Contrato não encontrado.")); return; }
+  const ok = el("div", "ct-ok"); ok.append(icCaixa("contrato"), el("b", "", "Contrato enviado para assinatura"), el("small", "", `${e.titulo} · código ${codCt(e.codigo)}`));
+  w.appendChild(ok);
+  w.appendChild(el("p", "laudo-dica", e.em_ordem ? "Assinam em ordem: cada pessoa recebe o e-mail quando chega a vez dela. Mande o link pelo WhatsApp para agilizar." : "Todos receberam o pedido por e-mail. Mande o link pelo WhatsApp para agilizar."));
+  const ls = el("div", "ct-sigs");
+  for (const s of sigsCt(e)) {
+    const c = el("div", "ct-sig-l" + (naVezCt(e, s) ? " vez" : "")), tx = el("div", "ct-sig-tx");
+    tx.append(el("b", "", (e.em_ordem ? s.ordem + ". " : "") + s.nome), el("small", "", [PAPEL_CT[s.papel], s.email].filter(Boolean).join(" · ")));
+    c.appendChild(tx);
+    const ac = el("div", "ct-sig-ac");
+    const lk = (ico, txt, fn, cls = "fc-bt") => { const b = el("button", cls); b.type = "button"; b.append(ic(ico), txt); b.onclick = fn; ac.appendChild(b); };
+    if (s.modo === "link") {
+      if (e.em_ordem && !naVezCt(e, s)) tx.appendChild(el("span", "ct-sig-st", "Recebe o link quando chegar a vez"));
+      else { lk("conversa", "Enviar pelo WhatsApp", () => whatsCt(e, s)); lk("copiar", "Copiar link", () => copiarLinkCt(e, s)); }
+    } else if ((s.email || "").toLowerCase() === emailDe() && naVezCt(e, s)) lk("lapis", "Assinar agora", () => { ctTela.fim = null; ctTela.det = id; if (!ctTela.direto && history.state?.ctSub) history.replaceState({ ct: true, ctSub: true }, ""); prepararAssinarCt(id); });
+    else tx.appendChild(el("span", "ct-sig-st", "Assina pelo app (recebe um e-mail avisando)"));
+    if (ac.children.length) c.appendChild(ac);
+    ls.appendChild(c);
+  }
+  w.appendChild(ls);
+  const ac = el("div", "os-acoes");
+  const v = el("button", "btn sec", "Ver o contrato"); v.type = "button"; v.onclick = () => { ctTela.fim = null; ctTela.det = id; desenharCt(true); carregarDetCt(id); };
+  const l = el("button", "btn sec", ctTela.direto ? "Fechar" : "Voltar para a lista"); l.type = "button"; l.onclick = voltarListaCt;
+  ac.append(v, l); w.appendChild(ac);
+}
+
+/* ---------- PDF do modelo (jsPDF, A4): logo, título, texto justificado, numeração, partes sem linhas para assinar, rodapé ---------- */
+async function gerarContratoModeloPDF(n) {
+  const jsPDF = window.jspdf?.jsPDF;
+  if (!jsPDF) throw erroCt("a ferramenta de PDF não carregou (abra o app uma vez com internet)");
+  const d = defModeloCt(n.mod.id), v = varsCt(n), T = s => pdfLimpo(trocarVarsCt(s, v));
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const M = 22, W = 210, L = W - 2 * M, FIM = 297 - 20, FS = 10.5, LH = 5.05;
+  const AZUL = [28, 60, 97], LARANJA = [235, 157, 43], TINTA = [19, 37, 59], CINZA = [91, 107, 128];
+  let y = 14;
+  try { doc.addImage(await paraDataURL(await (await fetch("logo.png")).blob()), "PNG", M, y, 30, 17, "logo", "FAST"); } catch {}
+  y += 26;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(...AZUL);
+  for (const ln of doc.splitTextToSize(T(d?.titulo || n.titulo).toUpperCase(), L)) { doc.text(ln, W / 2, y, { align: "center" }); y += 6; }
+  y += 1; doc.setDrawColor(...LARANJA); doc.setLineWidth(0.8); doc.line(M + L * 0.3, y, M + L * 0.7, y); y += 9;
+  const cabe = h => { if (y + h > FIM) { doc.addPage(); y = 22; return true; } return false; };
+  // justificado linha por linha (o parágrafo pode passar de uma página para outra): a última linha de cada parágrafo fica à esquerda
+  const linhaJust = (ln, x, larg, ultima) => {
+    const ps = ln.trim().split(/\s+/);
+    if (ultima || ps.length < 2) { doc.text(ln.trim(), x, y); return; }
+    const soma = ps.reduce((s, p) => s + doc.getTextWidth(p), 0), gap = (larg - soma) / (ps.length - 1);
+    if (gap > doc.getTextWidth(" ") * 5) { doc.text(ln.trim(), x, y); return; }   // linha curta demais para esticar
+    doc.text([ln.trim(), ""], x, y, { align: "justify", maxWidth: larg + 0.01 });   // espaço entre as palavras pelo próprio PDF (Tw): fica certo também quando o leitor troca a letra
+  };
+  const paragrafo = (txt, x, larg, num, xNum) => {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(FS); doc.setTextColor(...TINTA);
+    const pars = String(txt).split("\n"); let primeira = true;
+    for (const par of pars) {
+      const ls = doc.splitTextToSize(par, larg);
+      ls.forEach((ln, i) => {
+        if (primeira && num) { doc.setFont("helvetica", "bold"); doc.text(num, xNum, y); doc.setFont("helvetica", "normal"); primeira = false; }
+        linhaJust(ln, x, larg, i === ls.length - 1);
+        y += LH;
+        if (i < ls.length - 1) cabe(LH);
+      });
+    }
+  };
+  let ultimoTxtCt = "";
+  for (const r of numerarClausulasCt(n.mod.clausulas, n.mod.campos)) {
+    if (r.tipo === "tit") {
+      y += 2.5; cabe(LH * 3);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(FS + 0.5); doc.setTextColor(...AZUL);
+      const ls = doc.splitTextToSize(`${r.num} ${T(r.txt).toUpperCase()}`, L);
+      for (const ln of ls) { doc.text(ln, M, y); y += LH; }
+      y += 1.2; continue;
+    }
+    const txt = T(r.txt); ultimoTxtCt = txt;
+    cabe(LH * 2);
+    if (!r.num) paragrafo(txt, M, L);
+    else { const ind = r.nivel >= 2 ? 9 : 0, wn = r.nivel >= 2 ? 13 : 10; paragrafo(txt, M + ind + wn, L - ind - wn, r.num, M + ind); }
+    y += 1.8;
+  }
+  // fecho: cidade e data, e as partes — sem linhas para assinar (as assinaturas ficam na folha de assinaturas do app)
+  y += 4; cabe(LH * 3);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(FS); doc.setTextColor(...TINTA);
+  if (!ultimoTxtCt.includes(v["data.extenso"])) { doc.text(pdfLimpo(`${v.cidade}, ${v["data.extenso"]}.`), M, y); y += LH * 2.2; }   // o modelo já termina com "cidade, data": não repete
+  else y += LH * 1.2;
+  const C = ctModelos?.contratada || {}, sigs = n.sigs;
+  const blocos = [
+    ["CONTRATANTE", v["contratante.razao"] || n.cliente, v["contratante.doc"] && "CNPJ/CPF " + v["contratante.doc"], v["representante.nome"] && "Representado(a) por " + v["representante.nome"]],
+    ["CONTRATADA", C.razao || "VPX Engenharia", C.cnpj && "CNPJ " + C.cnpj, (C.representante?.nome || sigs.find(s => s.papel === "contratada")?.nome) && "Representada por " + (C.representante?.nome || sigs.find(s => s.papel === "contratada").nome)],
+    ...sigs.filter(s => s.papel === "testemunha").map((s, i) => [`TESTEMUNHA ${i + 1}`, s.nome.trim(), s.cpf && "CPF " + fmtCpf(s.cpf)])
+  ];
+  const col = (L - 8) / 2;
+  // nomes longos (razão social, representante) quebram em mais linhas em vez de serem cortados
+  const linhasBloco = b => { doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); return b.slice(1).filter(Boolean).flatMap(t => doc.splitTextToSize(pdfLimpo(t), col - 4)); };
+  for (let i = 0; i < blocos.length; i += 2) {
+    const par = blocos.slice(i, i + 2), alt = Math.max(...par.map(b => linhasBloco(b).length + 1)) * 4.6 + 7;
+    cabe(alt);
+    par.forEach((b, j) => {
+      const x = M + j * (col + 8); let yy = y;
+      doc.setDrawColor(...LARANJA); doc.setLineWidth(0.6); doc.line(x, yy - 3.6, x, yy + alt - 8);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...AZUL); doc.text(b[0], x + 3, yy); yy += 4.6;
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(...TINTA);
+      for (const ln of linhasBloco(b)) { doc.text(ln, x + 3, yy); yy += 4.6; }
+      doc.setFont("helvetica", "italic"); doc.setFontSize(8.5); doc.setTextColor(...CINZA); doc.text("Assinado eletronicamente - ver folha de assinaturas", x + 3, yy);
+    });
+    y += alt + 2;
+  }
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p); doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...CINZA);
+    doc.text(doc.splitTextToSize(pdfLimpo(`${C.razao || "VPX Engenharia"} - ${n.titulo}`), L - 30)[0], M, 297 - 11);
+    doc.text(`página ${p} de ${total}`, W - M, 297 - 11, { align: "right" });
+  }
+  return new Uint8Array(doc.output("arraybuffer"));
+}
+
+/* ---------- documento final: o original com um rodapé em cada página + folha de assinaturas + registro de eventos (pdf-lib) ---------- */
+// largura e altura de uma imagem PNG em data URL, lidas do cabeçalho (IHDR) sem decodificar a imagem; null se não for PNG
+function dimImagemCt(url) {
+  if (!/^data:image\/png;base64,/.test(url)) return null;
+  try {
+    const b = Uint8Array.from(atob(url.slice(url.indexOf(",") + 1, url.indexOf(",") + 45)), c => c.charCodeAt(0));
+    const u32 = i => ((b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0;
+    return String.fromCharCode(b[12], b[13], b[14], b[15]) === "IHDR" ? { w: u32(16), h: u32(20) } : null;
+  } catch { return null; }
+}
+// comOriginal: o PDF original vai anexado dentro do final (sem isso, depois que o serviço apaga o original, ninguém consegue mais
+// mostrar um arquivo com o SHA-256 do original); fica de fora só quando o final passaria do limite do serviço (finalizarCt).
+async function montarFinalCt(e, orig, comOriginal = true) {
+  if (!window.PDFLib) await carregarScript(PDFLIB);
+  if (!window.qrcode) await carregarScript(QRCODE_LIB).catch(err => console.error(err));
+  const { PDFDocument, StandardFonts, rgb, degrees } = PDFLib;
+  // sem ignoreEncryption: um PDF protegido (senha de dono) daria uma via final ilegível — para aqui, antes de gravar o final no serviço
+  let doc;
+  try { doc = await PDFDocument.load(orig, { updateMetadata: false }); }
+  catch (x) { throw erroCt(/encrypt/i.test((x?.name || "") + (x?.message || "")) ? "o PDF original é protegido contra edição e a via final sairia ilegível. Cancele este contrato e envie de novo uma cópia sem proteção" : "não foi possível abrir o PDF original (" + (x?.message || x) + ")"); }
+  const F = await doc.embedFont(StandardFonts.Helvetica), FB = await doc.embedFont(StandardFonts.HelveticaBold), FM = await doc.embedFont(StandardFonts.Courier);
+  const cor = (r, g, b) => rgb(r / 255, g / 255, b / 255);
+  const AZUL = cor(28, 60, 97), LAR = cor(235, 157, 43), TINTA = cor(19, 37, 59), CINZA = cor(91, 107, 128), LINHA = cor(215, 222, 230), FUNDO = cor(244, 246, 249), OK = cor(31, 122, 69);
+  const T = s => pdfLimpo(s == null ? "" : s);
+  const cod = codCt(e.codigo), url = urlVerifDeCt(e);
+  // rodapé na borda de baixo de quem lê: respeita a área visível (CropBox, que pode não começar em 0,0) e a página girada (/Rotate)
+  const rodape = pg => {
+    const cb = pg.getCropBox(), ang = (((pg.getRotation().angle || 0) % 360) + 360) % 360, deitada = ang === 90 || ang === 270;
+    const txt = T(`Documento assinado eletronicamente · Código ${cod} · Verifique em ${url}`);
+    let s = 7; while (F.widthOfTextAtSize(txt, s) > (deitada ? cb.height : cb.width) - 24 && s > 4.5) s -= 0.25;
+    const w = F.widthOfTextAtSize(txt, s), m = 8;
+    const [x, y] = ang === 90 ? [cb.x + cb.width - m, cb.y + (cb.height - w) / 2] : ang === 180 ? [cb.x + (cb.width + w) / 2, cb.y + cb.height - m]
+      : ang === 270 ? [cb.x + m, cb.y + (cb.height + w) / 2] : [cb.x + (cb.width - w) / 2, cb.y + m];
+    pg.drawText(txt, { x, y, size: s, font: F, color: CINZA, rotate: degrees(ang) });
+  };
+  doc.getPages().forEach(rodape);
+  const W = 595.28, H = 841.89, M = 44, BAIXO = 46;
+  const folhas = []; let pg, y;
+  const nova = () => { pg = doc.addPage([W, H]); folhas.push(pg); y = H - M; };
+  const quebra = (txt, font, size, maxW) => {
+    const out = [];
+    for (const par of T(txt).split("\n")) {
+      let ln = "";
+      for (let w of par.split(/\s+/)) {
+        while (font.widthOfTextAtSize(w, size) > maxW && w.length > 1) {   // palavra comprida (hash, aparelho): quebra no meio
+          let k = w.length; while (k > 1 && font.widthOfTextAtSize(w.slice(0, k), size) > maxW) k--;
+          if (ln) { out.push(ln); ln = ""; } out.push(w.slice(0, k)); w = w.slice(k);
+        }
+        const t = ln ? ln + " " + w : w;
+        if (font.widthOfTextAtSize(t, size) <= maxW || !ln) ln = t; else { out.push(ln); ln = w; }
+      }
+      out.push(ln);
+    }
+    return out;
+  };
+  const cabe = h => { if (y - h < BAIXO) { nova(); return true; } return false; };
+  const escrever = (txt, x, size, op = {}) => {
+    const font = op.font || F, ls = quebra(txt, font, size, op.maxW || W - M - x), lh = size * (op.lh || 1.3);
+    for (const l of ls) { if (!op.semQuebra) cabe(lh); pg.drawText(l, { x, y: y - size, size, font, color: op.color || TINTA }); y -= lh; }
+  };
+  const qr = (txt, x, y0, tam) => {
+    if (!window.qrcode) return false;
+    try {
+      const q = qrcode(0, "M"); q.addData(txt); q.make();
+      const n = q.getModuleCount(), c = tam / n;
+      pg.drawRectangle({ x: x - 4, y: y0 - 4, width: tam + 8, height: tam + 8, color: rgb(1, 1, 1) });
+      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) pg.drawRectangle({ x: x + k * c, y: y0 + tam - (r + 1) * c, width: c + 0.15, height: c + 0.15, color: rgb(0, 0, 0) });
+      return true;
+    } catch (err) { console.error(err); return false; }
+  };
+  const titulo = (t, resto = 40) => { y -= 8; cabe(resto); pg.drawText(T(t), { x: M, y: y - 13, size: 13, font: FB, color: AZUL }); y -= 19; pg.drawLine({ start: { x: M, y }, end: { x: W - M, y }, thickness: 0.8, color: LAR }); y -= 10; };
+  // folha de assinaturas
+  nova();
+  let logoH = 0;
+  try { const png = await doc.embedPng(new Uint8Array(await (await fetch("logo.png")).arrayBuffer())); logoH = 44; const lw = logoH * png.width / png.height; pg.drawImage(png, { x: M, y: y - logoH, width: lw, height: logoH }); } catch {}
+  const tf = "Folha de assinaturas";
+  pg.drawText(tf, { x: W - M - FB.widthOfTextAtSize(tf, 18), y: y - 20, size: 18, font: FB, color: AZUL });
+  const st = T(`Código ${cod}`); pg.drawText(st, { x: W - M - F.widthOfTextAtSize(st, 10), y: y - 36, size: 10, font: F, color: CINZA });
+  y -= Math.max(logoH, 40) + 10;
+  pg.drawLine({ start: { x: M, y }, end: { x: W - M, y }, thickness: 1.2, color: LAR }); y -= 16;
+  // dados do documento, com o QR code da verificação à direita
+  const tq = 96, xq = W - M - tq, topo = y;
+  const temQr = qr(url, xq, topo - tq, tq);
+  if (temQr) {
+    const cap = quebra("Verifique a autenticidade: aponte a câmera ou acesse " + url, F, 7, tq + 6);
+    let yc = topo - tq - 12; for (const l of cap) { pg.drawText(l, { x: xq - 3, y: yc, size: 7, font: F, color: CINZA }); yc -= 8.6; }
+  }
+  const larg = (temQr ? xq - 16 : W - M) - M;
+  escrever(e.titulo || "Contrato", M, 13, { font: FB, maxW: larg, color: TINTA });
+  y -= 2;
+  const linhaDado = (rot, val, op = {}) => { if (!val) return; const yy = y; pg.drawText(T(rot), { x: M, y: yy - 9, size: 8.5, font: FB, color: CINZA }); escrever(val, M + 112, op.size || 9, { maxW: larg - 112, font: op.font, color: op.color }); if (y > yy - 13) y = yy - 13; y -= 1.5; };
+  linhaDado("Cliente", e.cliente);
+  linhaDado("Código", cod, { font: FB });
+  linhaDado("Páginas do original", e.paginas ? String(e.paginas) : "");
+  linhaDado("Criado por", [e.criador_nome || e.criador_email, dataHoraCt(e.criado_em)].filter(Boolean).join(" em "));
+  linhaDado("Enviado em", dataHoraCt(e.enviado_em));
+  linhaDado("Concluído em", e.concluido_em ? dataHoraCt(e.concluido_em, true) + " (horário de Brasília)" : "");
+  linhaDado("SHA-256 do original", e.hash_original, { font: FM, size: 7 });
+  linhaDado("Verificação", url, { size: 8.5 });
+  y = Math.min(y, topo - tq - 42);
+  // signatários
+  titulo("Assinaturas");
+  for (const s of sigsCt(e)) {
+    const linhas = [
+      ["Papel", PAPEL_CT[s.papel] || s.papel], ["CPF", s.cpf_assinado || s.cpf ? fmtCpf(digitos(s.cpf_assinado || s.cpf)) : ""], ["E-mail", s.email],
+      ["Assinou em", s.assinado_em ? dataHoraCt(s.assinado_em, true) + " (horário de Brasília)" : s.status === "recusado" ? "Recusou" : "Não assinou"],
+      ["Método", s.metodo === "microsoft" || s.modo === "app" ? `Conta Microsoft da VPX (${s.email})` : `Código enviado ao e-mail ${mascararEmail(s.email)}`],
+      ["IP", s.ip], ["Aparelho", s.aparelho ? String(s.aparelho).slice(0, 180) : ""], ["Local aproximado", s.local],
+      ["Localização", (() => { try { const g = typeof s.geo === "string" ? JSON.parse(s.geo) : s.geo; return g?.lat != null ? `${(+g.lat).toFixed(5)}, ${(+g.lon).toFixed(5)}${g.precisao ? ` (precisão de ${Math.round(g.precisao)} m)` : ""}` : ""; } catch { return ""; } })()]
+    ].filter(l => l[1]);
+    const xi = M + 172, lw = W - M - xi - 8;
+    const alt = Math.max(100, 34 + linhas.reduce((h, [, v]) => h + quebra(v, F, 8.3, lw - 78).length * 10.6 + 1.5, 0));
+    cabe(alt + 10);
+    const y0 = y;
+    pg.drawRectangle({ x: M, y: y0 - alt, width: W - 2 * M, height: alt, color: FUNDO, borderColor: LINHA, borderWidth: 0.8 });
+    pg.drawRectangle({ x: M, y: y0 - alt, width: 3, height: alt, color: s.status === "assinado" ? OK : CINZA });
+    // imagem da assinatura
+    const bx = M + 12, bw = 148, bh = 62, by = y0 - 16 - bh;
+    pg.drawRectangle({ x: bx, y: by, width: bw, height: bh, color: rgb(1, 1, 1), borderColor: LINHA, borderWidth: 0.6 });
+    const img = ctCompleto[e.id]?.signatarios?.find(x => x.id === s.id)?.imagem || s.imagem;
+    const dim = img ? dimImagemCt(img) : null;
+    if (img && dim && (dim.w > 2000 || dim.h > 1000)) console.error("assinatura com pixels demais: não entra na folha", dim);   // decodificar travaria o aparelho
+    else if (img) {
+      try {
+        const im = /^data:image\/jpe?g/i.test(img) ? await doc.embedJpg(img) : await doc.embedPng(img);
+        const k = Math.min((bw - 8) / im.width, (bh - 8) / im.height), iw = im.width * k, ih = im.height * k;
+        pg.drawImage(im, { x: bx + (bw - iw) / 2, y: by + (bh - ih) / 2, width: iw, height: ih });
+      } catch (err) { console.error("assinatura:", err); }
+    }
+    const nomeAss = T(s.nome_assinado || s.nome);
+    const ln = quebra(nomeAss, F, 7.5, bw)[0]; pg.drawText(ln, { x: bx + (bw - F.widthOfTextAtSize(ln, 7.5)) / 2, y: by - 10, size: 7.5, font: F, color: CINZA });
+    // dados de quem assinou
+    y = y0 - 12;
+    pg.drawText(quebra(nomeAss, FB, 11, lw)[0], { x: xi, y: y - 11, size: 11, font: FB, color: TINTA }); y -= 17;
+    for (const [rot, v] of linhas) {
+      const yy = y; pg.drawText(T(rot), { x: xi, y: yy - 8.3, size: 7.6, font: FB, color: CINZA });
+      for (const l of quebra(v, F, 8.3, lw - 78)) { pg.drawText(l, { x: xi + 78, y: y - 8.3, size: 8.3, font: F, color: TINTA }); y -= 10.6; }
+      y -= 1.5;
+    }
+    y = y0 - alt - 10;
+  }
+  // registro de eventos (trilha encadeada)
+  titulo("Registro de eventos", 130);           // o título não fica sozinho no pé da página
+  const evs = ctCompleto[e.id]?.eventos || e.eventos || [], cadeia = ctCompleto[e.id]?.cadeia || e.cadeia || {};
+  escrever("Hora, IP, aparelho e local registrados pelo servidor de assinatura (horário de Brasília). Cada evento guarda o SHA-256 do anterior (o primeiro parte de uma base ligada a este contrato e ao documento original): mudar um evento mudaria todos os seguintes.", M, 8, { color: CINZA });
+  escrever("Como conferir: " + (cadeia.formula || FORMULA_CT) + ". Os dados exatos de cada evento (hora com milissegundos, identificadores, texto completo) vão anexados a este PDF no arquivo trilha-de-eventos.json" + (comOriginal ? ", junto com o documento original (original.pdf)." : "."), M, 7.4, { color: CINZA });
+  y -= 4;
+  const nomes = Object.fromEntries((e.signatarios || []).map(s => [s.id, s.nome]));
+  for (const v of evs) {
+    const desc = (NOME_EV_CT[v.tipo] || v.tipo) + (v.signatario_id && nomes[v.signatario_id] ? " - " + nomes[v.signatario_id] : "");
+    const ex = [v.detalhe, v.ip && "IP " + v.ip, v.local, aparelhoCurtoCt(v.aparelho)].filter(Boolean).join(" · ");
+    const xd = M + 92, ld = W - M - xd;
+    const hl = quebra(desc, FB, 8.3, ld).length * 10 + (ex ? quebra(ex, F, 7.6, ld).length * 9.4 : 0) + 10;
+    cabe(hl + 6);
+    const y0 = y;
+    pg.drawText(T(dataHoraCt(v.quando, true)), { x: M, y: y0 - 8.3, size: 7.8, font: F, color: CINZA });
+    y = y0; escrever(desc, xd, 8.3, { font: FB, maxW: ld, semQuebra: true, lh: 1.2 });
+    if (ex) escrever(ex, xd, 7.6, { maxW: ld, color: CINZA, semQuebra: true, lh: 1.24 });
+    pg.drawText(String(v.hash || ""), { x: xd, y: y - 6.3, size: 6.3, font: FM, color: CINZA }); y -= 10;
+    pg.drawLine({ start: { x: M, y: y + 2 }, end: { x: W - M, y: y + 2 }, thickness: 0.4, color: LINHA }); y -= 4;
+  }
+  folhas.forEach((p, i) => {
+    rodape(p);
+    const t = `Folha de assinaturas - página ${i + 1} de ${folhas.length}`;
+    p.drawText(t, { x: W - M - F.widthOfTextAtSize(t, 7), y: 20, size: 7, font: F, color: CINZA });
+  });
+  // anexos: a trilha crua (para um perito refazer a conta dos hashes) e o documento original (para conferir o SHA-256 do original)
+  const quando = e.concluido_em ? new Date(e.concluido_em) : new Date();
+  const trilha = { versao: 2, contrato: e.id, codigo: e.codigo, titulo: e.titulo, hash_original: e.hash_original, base: cadeia.base || "", formula: cadeia.formula || FORMULA_CT,
+    signatarios: sigsCt(e).map(s => ({ id: s.id, nome: s.nome_assinado || s.nome, papel: s.papel, status: s.status, assinado_em: s.assinado_em || null })),
+    eventos: evs.map(v => ({ seq: v.seq, tipo: v.tipo, quando: v.quando, signatario_id: v.signatario_id || "", ip: v.ip || "", aparelho: v.aparelho || "", local: v.local || "", detalhe: v.detalhe || "", anterior: v.anterior || "", hash: v.hash })) };
+  await doc.attach(new TextEncoder().encode(JSON.stringify(trilha, null, 2)), "trilha-de-eventos.json",
+    { mimeType: "application/json", description: "Trilha de eventos do contrato " + cod + " (para conferir os hashes)", creationDate: quando, modificationDate: quando });
+  if (comOriginal) await doc.attach(orig, "original.pdf", { mimeType: "application/pdf", description: "Documento original assinado (SHA-256 " + e.hash_original + ")", creationDate: quando, modificationDate: quando });
+  doc.setTitle(T(e.titulo || "Contrato") + " - assinado"); doc.setProducer("VPX Engenharia"); doc.setCreator("VPX Engenharia");
+  return await doc.save();
+}
+
+/* ---------- finalização: quem tem a função e abre o app depois que todos assinaram monta o final, manda ao servidor e guarda no OneDrive ---------- */
+const ctFinalizando = new Set();
+async function finalizarPendentesCt() {
+  if (finalizarPendentesCt.rodando || !podeContratos() || !navigator.onLine || !ctBase()) return;
+  finalizarPendentesCt.rodando = true;
+  try {
+    for (const e of Object.values(ctDados.envs)) {
+      if (e.status !== "concluido" || e.arquivado_em || (ctFalhou[e.id] || 0) > Date.now() || ctFinalizando.has(e.id)) continue;
+      try { await finalizarCt(e.id); delete ctErroFinal[e.id]; }
+      catch (x) { console.error("contrato final:", x); ctFalhou[e.id] = Date.now() + 5 * 60000; finalizarCt.erro = ctErroFinal[e.id] = x.message; if (ctTela?.det === e.id) desenharCt(true); }
+    }
+  } finally { finalizarPendentesCt.rodando = false; }
+}
+async function finalizarAgoraCt(id) {
+  delete ctFalhou[id];
+  if (ctTela?.det === id) desenharCt(true);
+  try { await finalizarCt(id); delete ctErroFinal[id]; aviso("Documento final montado e guardado no OneDrive."); }
+  catch (x) { aviso("Não foi possível montar o documento final: " + x.message, true); ctFalhou[id] = Date.now() + 5 * 60000; ctErroFinal[id] = x.message; }
+  if (ctTela?.det === id) desenharCt(true);
+}
+const MAX_FINAL_CT = 24 * 1048576;                     // o serviço aceita a via final até 25 MB
+async function finalizarCt(id) {
+  if (ctFinalizando.has(id)) return;
+  ctFinalizando.add(id);
+  try {
+    await comGravacao(async () => {
+      let e = envCt(await ctApi("/api/envelopes/" + encodeURIComponent(id)));
+      if (!e?.id || e.status !== "concluido") return;
+      ctCompleto[e.id] = e;
+      if (e.arquivado_em) { atualizarEnvCt(e); return; }
+      // o original (conferido pelo hash) vai anexado à via final e é guardado também no OneDrive
+      const orig = await baixarPdfCt(id, false, e.hash_original);
+      let final = null;
+      if (!e.hash_final) {
+        final = await montarFinalCt(e, orig, true);
+        if (final.length > MAX_FINAL_CT) final = await montarFinalCt(e, orig, false);   // grande demais com o original dentro: vai sem (o original fica no OneDrive)
+        const hf = await sha256Hex(final);
+        try {
+          const r = await ctApi(`/api/envelopes/${encodeURIComponent(id)}/final`, { method: "PUT", body: final, headers: { "Content-Type": "application/pdf", "X-Hash-Final": hf } });
+          const n = envCt(r); if (n?.id) Object.assign(e, n); else e.hash_final = hf;
+        } catch (x) {
+          if (x.status !== 409) throw x;              // 409: outro aparelho montou antes; vale o dele (com o hash que ficou gravado)
+          final = null; delete ctBytes[id + ":final"];
+          e = envCt(await ctApi("/api/envelopes/" + encodeURIComponent(id))); ctCompleto[e.id] = e;
+        }
+      }
+      // a via final do serviço só é guardada se o SHA-256 for o gravado (um arquivo trocado no caminho não vai para o OneDrive)
+      if (!final) final = await baixarPdfCt(id, true, e.hash_final); else ctBytes[id + ":final"] = final;
+      const dest = await arquivarFinalCt(e, final, orig);
+      const r = envCt(await ctApi(`/api/envelopes/${encodeURIComponent(id)}/arquivado`, { method: "POST", json: { caminho: dest.caminho } }));
+      atualizarEnvCt(r?.id ? r : { ...e, arquivado_em: new Date().toISOString() });
+    });
+  } finally { ctFinalizando.delete(id); }
+  carregarDetCt(id);
+  aoMudarCt();
+  fecharOportunidadesCt();
+}
+function atualizarEnvCt(e) { ctDados.envs[e.id] = { ...ctDados.envs[e.id], ...leveCt(e) }; gravarCt(); }
+// grava "<título> - assinado.pdf" e "<título> - original.pdf" em 02 - Clientes › <cliente> › 01 - Contrato
+// (sem a pasta do cliente: 02 - Clientes › 00 - Contratos Assinados). O mesmo arquivo já lá (outro aparelho gravou) não é duplicado.
+async function arquivarFinalCt(e, bytes, orig) {
+  const guard = lerLS("vpx_ct_arq", {});
+  let res = guard[e.id];                              // já gravado por este aparelho (o "arquivado" é que falhou)
+  const gravar = async (pastaId, nome, b) => {
+    const blob = new Blob([b], { type: "application/pdf" });
+    let it = null;
+    try { it = await graph(`/drives/${CONFIG.driveId}/items/${pastaId}:/${encodeURIComponent(nome)}`); } catch (x) { if (x.status !== 404) throw x; }
+    if (!(it?.id && it.size === blob.size)) it = await enviarArquivo(pastaId, nome, blob);
+    return it;
+  };
+  if (!res) {
+    let pasta, caminho;
+    try {
+      if (!e.cliente) throw Object.assign(new Error("sem cliente"), { status: 404 });
+      pasta = await garantirPasta(`${caminhoCli(e.cliente)}/${CONFIG.pastaContrato}`);
+      caminho = `${CONFIG.pastaClientesNome}/${caminhoCli(e.cliente)}/${CONFIG.pastaContrato}`;
+    } catch (x) {
+      if (x.status !== 404) throw x;
+      pasta = await garantirFilhas(CONFIG.pastaClientesId, [CONFIG.pastaContratosAssinados]);
+      caminho = `${CONFIG.pastaClientesNome}/${CONFIG.pastaContratosAssinados}`;
+    }
+    const nome = nomeArqCt(e, true), it = await gravar(pasta.id, nome, bytes);
+    res = { caminho: `${caminho}/${it?.name || nome}`, web: it?.webUrl || "", pasta: pasta.id || "" };
+    guard[e.id] = res; gravarLS("vpx_ct_arq", guard);
+  }
+  if (orig && res.pasta && !res.orig) {               // o original ao lado (é o arquivo cujo SHA-256 a página de verificação reconhece como "original")
+    await gravar(res.pasta, nomeArqCt(e, false).replace(/\.pdf$/i, " - original.pdf"), orig);
+    res.orig = true; guard[e.id] = res; gravarLS("vpx_ct_arq", guard);
+  }
+  return res;
+}
+// contrato ligado a uma oportunidade em "Fechar contrato" (07): ela vai para Fechado (08). Devolve true quando não há mais nada a fazer
+// (fechou, ou a oportunidade não existe / já está em outra etapa) e false quando não deu (sem acesso, sem internet): tenta de novo depois.
+async function fecharOportCt(e) {
+  const id = e.meta?.oport; if (!id || !pode("funil")) return false;
+  if (!colFu.dados?.lido) await sincronizarCol(colFu, true);
+  if (!colFu.dados?.lido) return false;
+  const o = regsDe(colFu)[id]; if (!o || o.etapa !== "07") return true;
+  return !!(await mudarReg(colFu, id, r => { if (r.etapa !== "07") return "A oportunidade já tinha mudado de etapa."; r.etapa = "08"; r.etapaEm = new Date().toISOString(); r.fechadoEm = r.fechadoEm || dataISO(); },
+    "Contrato assinado por todos · Etapa: " + etapaTxt("08")));
+}
+// separado da via final (que pode ser montada por quem não tem o Comercial): quem tem o Comercial e abre o app fecha as oportunidades dos
+// contratos concluídos nos últimos 30 dias. Cada contrato é tratado uma vez por aparelho (vpx_ct_oport): uma oportunidade que alguém
+// voltou à mão para "Fechar contrato" depois não é fechada de novo.
+async function fecharOportunidadesCt() {
+  if (!conta || !pode("funil") || !navigator.onLine || fecharOportunidadesCt.rodando) return;
+  const feitos = lerLS("vpx_ct_oport", {}), limite = Date.now() - 30 * 864e5;
+  const pend = Object.values(ctDados.envs).filter(e => e.status === "concluido" && e.meta?.oport && !feitos[e.id] && Date.parse(e.concluido_em || e.atualizado_em || 0) > limite);
+  if (!pend.length) return;
+  fecharOportunidadesCt.rodando = true;
+  try {
+    for (const e of pend) {
+      try { if (await fecharOportCt(e)) { feitos[e.id] = Date.now(); gravarLS("vpx_ct_oport", feitos); } }
+      catch (x) { console.error("contrato: oportunidade", x); }
+    }
+  } finally { fecharOportunidadesCt.rodando = false; }
+}
+
+/* ---------- Comercial: na oportunidade em "Fechar contrato", gerar o contrato e ver a situação dele ---------- */
+const contratosDaOport = id => Object.values(ctDados.envs).filter(e => e.meta?.oport === id && visivelCt(e)).sort((a, b) => (b.criado_em || "").localeCompare(a.criado_em || ""));
+function blocoContratoFu(o) {
+  if (!o || !podeContratos()) return null;
+  const cts = contratosDaOport(o.id);
+  if (!cts.length && o.etapa !== "07") return null;
+  const w = el("div", "campo ct-fu"); w.appendChild(el("span", "", "Contrato para assinatura"));
+  const e = cts.find(x => x.status !== "cancelado") || cts[0];
+  if (e) {
+    const [a, t] = contaCt(e), sit = SIT_CT[e.status] || [e.status, "aberta"];
+    const b = el("button", "ct-fu-l"); b.type = "button";
+    const tx = el("span", "ct-fu-tx"); tx.append(el("b", "", e.titulo), el("small", "", `${a} de ${t} assinaram · código ${codCt(e.codigo)}`));
+    b.append(icCaixa("contrato"), tx, el("span", "os-st " + sit[1], sit[0]));
+    b.onclick = () => abrirContratos({ det: e.id });
+    w.appendChild(b);
+  }
+  if (o.etapa === "07" && (!e || ["cancelado", "recusado", "expirado"].includes(e.status))) {
+    const g = comIc(el("button", "btn sec"), "contrato", e ? "Gerar outro contrato para assinatura" : "Gerar contrato para assinatura"); g.type = "button";
+    g.onclick = () => gerarContratoFu(o);
+    w.appendChild(g);
+    if (!ctBase()) w.appendChild(el("small", "ct-fu-nota", "O serviço de assinatura ainda não foi configurado."));
+  }
+  return w;
+}
+function gerarContratoFu(o) {
+  if (!ctBase()) { aviso("O serviço de assinatura ainda não foi configurado.", true); return; }
+  const x = o.orc ? orcDoNumero(o.orc, o.cliente) : null;
+  const num = x ? numOrc(x) : o.orc ? String(o.orc) : "";
+  const cli = o.cliente && todosClientes().includes(o.cliente) ? o.cliente : "";
+  abrirContratos({ novo: { cliente: cli, titulo: `Contrato ${cli || o.nome}${num && num !== "Sem número" ? " - Orçamento " + num : ""}`,
+    meta: { oport: o.id, orc: num || null }, orcamento: { numero: num && num !== "Sem número" ? num : "", data: x ? String(dataOrc(x)).slice(0, 10) : "", valor: x ? valorOrc(x) : (typeof o.valor === "number" ? o.valor : null) } } });
+}
+
+/* ---------- ligações da tela ---------- */
+$("ct-voltar").onclick = () => { if (ctEnviando) { aviso("Espere terminar o envio do contrato.", true); return; } if (ctTela?.novo) sairNovoCt(); else if (ctTela?.assinar) { ctTela.assinar = null; desenharCt(true); } else if (ctTela?.det || ctTela?.fim) voltarListaCt(); else fecharCt(); };
+$("ct-novo").onclick = () => novoCt();
+$("ct-busca").oninput = () => { clearTimeout(desenharCt.t); desenharCt.t = setTimeout(() => desenharCt(), 200); };
+$("ct-pdf").onclick = pdfCt;
+$("ct-atualizar").onclick = () => { ctDados.agora = ""; sincronizarContratos(true); };   // tudo de novo (não só o que mudou)
+$("ct-in-pdf").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (f) escolherPdfCt(f); };
+// a tela de assinar abre por cima desta (vem depois no HTML); com esta subida para 35 (por cima do Comercial), a de assinar sobe junto
+new MutationObserver(() => {
+  const t = $("tela-assinar");
+  if (!t.hidden && !$("tela-ct").hidden) t.style.zIndex = "36";
+  else if (t.hidden) { t.style.zIndex = ""; if (!$("tela-ct").hidden) document.body.style.overflow = "hidden"; }   // fecharAssinar solta a rolagem; a tela dos contratos continua aberta
+}).observe($("tela-assinar"), { attributes: true, attributeFilter: ["hidden"] });
+window.addEventListener("online", () => sincronizarContratos());
+document.addEventListener("visibilitychange", () => { if (!document.hidden && conta) sincronizarContratos(); });
+
 async function iniciarApp() {
   // equipe de campo (convidado): só entra depois que o administrador libera o pedido de acesso
   if (ehConvidado()) {
@@ -19924,7 +21683,8 @@ async function iniciarApp() {
   sincronizarOS();                                // ordens de serviço (fila no Início) e baixas que ficaram sem internet
   sincronizarCol(colTar, true);                   // tarefas (cartão no Início e número no menu lateral); o funil só ao abrir (no celular)
   sincronizarCol(colCc, true);                    // centros de custo (listas do comprovante, das solicitações e das transações)
-  permOk.then(() => sincronizarCol(colFu, true), () => {});   // computador: número do funil no painel do Início, só depois de conferir as permissões (sincronizarCol confere pode("funil"))
+  permOk.then(() => sincronizarCol(colFu, true), () => {});
+  permOk.then(() => sincronizarContratos(true), () => {});   // contratos (assinatura eletrônica): número "esperando a sua assinatura" e o documento final dos que terminaram   // computador: número do funil no painel do Início, só depois de conferir as permissões (sincronizarCol confere pode("funil"))
   await restaurarItens();                         // fotos guardadas no celular da última vez
   if (secao === "inicio") redesenharInicio();     // "Continuar de onde parou" com o que foi recuperado
   tentarPendentes();
@@ -19994,7 +21754,7 @@ $("nav").querySelectorAll("button").forEach(b => b.onclick = () => {
 });
 // no computador o menu lateral marca as ITs e a Administração enquanto estão abertas
 for (const id of ["tela-os", "tela-avcb", "tela-eqv", "tela-nf", "tela-ch", "tela-orc"]) if ($(id)) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });   // a opção marcada no submenu acompanha
-for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil", "tela-pc", "tela-perfil"]) new MutationObserver(() => { if ($(id).hidden) $(id).classList.remove("pela-lateral"); if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
+for (const id of ["tela-its", "tela-admin", "tela-tar", "tela-funil", "tela-pc", "tela-perfil", "tela-ct"]) new MutationObserver(() => { if ($(id).hidden) $(id).classList.remove("pela-lateral"); if (conta) atualizarNav(); }).observe($(id), { attributes: true, attributeFilter: ["hidden"] });
 if ($("tela-tr")) new MutationObserver(() => { if (conta) atualizarNav(); }).observe($("tela-tr"), { attributes: true, attributeFilter: ["hidden"] });
 /* submenus do menu lateral do computador (pedido do Gustavo em 13/11/2026, como no Fin365): a setinha à direita do item e também o nome
    do item mostram ou escondem as opções embaixo (desde 13/11/2026 o nome não abre mais tela: a pessoa escolhe a opção). Cada opção: [chave, rótulo, quem vê, o que abre, seção de fundo].
@@ -20010,9 +21770,10 @@ const SUBMENUS_NAV = {
     ["avcb", "AVCB, extintores e mangueiras", () => pode("avcb") || pode("equip"), () => abrirAvcb(), "reg"]   // uma tela só (pedido do Gustavo em 13/11/2026)
   ],
   funil: [
-    ["vendas", "Vendas", () => true, () => abrirFunil()],   // os grupos (Em negociação, Prospecção, Encerradas, Todas) ficam na própria tela (pedido do Gustavo em 13/11/2026)
+    ["vendas", "Vendas", () => pode("funil"), () => abrirFunil()],   // os grupos (Em negociação, Prospecção, Encerradas, Todas) ficam na própria tela (pedido do Gustavo em 13/11/2026)
     ["orc", "Orçamentos", () => pode("orc"), () => { abrirFunil(); orcNoComercial(); }],
-    ["nova", "+ Nova oportunidade", () => true, () => abrirFunil({ nova: {} })]
+    ["nova", "+ Nova oportunidade", () => pode("funil"), () => abrirFunil({ nova: {} })],
+    ["ct", "Contratos", () => podeVerCt(), () => abrirContratos()]   // assinatura eletrônica (24/11/2026)
   ],
   fin: [
     ["resumo", "Visão geral", () => podeFin(), () => irPara("fin", true)],   // a tela do Financeiro com os resumos (antes abria pelo nome do item)
@@ -20050,13 +21811,13 @@ function abrirSoSubmenu(pai, suave = true) {
   });
 }
 // opção do submenu: os mesmos cuidados do clique no item (fecha o que está por cima, sai da Agenda) e marca a tela como aberta pela lateral
-function abrirDoSubmenu(pai, [, , , fn, fundo]) {
+function abrirDoSubmenu(pai, [chave, , , fn, fundo]) {
   if (!fecharTelasPorCima()) return;
   const ir = () => {
     if (fundo && secao !== fundo) irPara(fundo, true);
     else if (fundo === "fin" && finDe !== "fin") { finDe = "fin"; desenharFin(); }   // Financeiro já aberto pelo quadrado Comprovante: o "‹ Operacional" sai
     fn();
-    const tela = { tar: "tela-tar", funil: "tela-funil", sol: "tela-pc", op: "tela-tar" }[pai];
+    const tela = chave === "ct" ? "tela-ct" : { tar: "tela-tar", funil: "tela-funil", sol: "tela-pc", op: "tela-tar" }[pai];   // Contratos abre a própria tela (não a do Comercial)
     if (tela && !$(tela).hidden) $(tela).classList.add("pela-lateral");
   };
   if (secao === "agenda") {
@@ -20099,6 +21860,7 @@ function montarSubmenusNav() {
 // qual opção de submenu corresponde à tela que está à vista (a de cima, se houver telas por cima): [item, opção] ou null
 function opcaoNavAtual() {
   const ab = id => !!$(id) && !$(id).hidden;
+  if (ab("tela-ct")) return ["funil", "ct"];       // contratos (podem estar por cima do Comercial)
   if (ab("tela-ch")) return ["fin", "comph"];
   if (ab("tela-tr") && trTela) {
     const m = trTela.modo;
@@ -20284,7 +22046,7 @@ let saiuDoCampo = 0;
 // só quando o campo continua à vista (Enter, clique fora); quando a tela troca e o campo some, não conta
 document.addEventListener("focusout", e => { const c = e.target; if (c.matches?.(CAMPO_TEXTO)) setTimeout(() => { if (c.isConnected && c.offsetParent) saiuDoCampo = Date.now(); }, 0); }, true);
 const rascunhoAberto = () => !!(tarTela?.nova || fuTela?.nova || osTela?.nova || nfTela?.nova || trTela?.novo || trTela?.aberto || trTela?.cad?.edit
-  || (pcNovo && !$("tela-pc").hidden) || agForm || novoAvcb || eq?.editando || fichaTela?.editando);
+  || (pcNovo && !$("tela-pc").hidden) || agForm || novoAvcb || eq?.editando || fichaTela?.editando || !!ctTela?.novo || !!ctTela?.assinar);
 // no computador: Ctrl+K abre "Escolher cliente" e vai para a página dele; "/" põe o cursor na busca da tela;
 // Esc fecha a tela aberta por cima (o mesmo que "‹ Voltar"); num campo de texto, só sai do campo; Backspace = "voltar" (fora dos campos de texto)
 document.addEventListener("keydown", e => {
@@ -20542,6 +22304,16 @@ window.addEventListener("popstate", () => {
       fichaTela.editando = null; fichaTela.mudou = false; desenharFicha(); return;
     }
     if (!history.state?.ficha) { fecharFicha(false); return; }
+  }
+  // contratos (podem estar por cima do Comercial): "voltar" num contrato, no novo ou na tela final volta para a lista; na lista, fecha
+  if (!$("tela-ct").hidden) {
+    const sub = !!(ctTela?.det || ctTela?.novo || ctTela?.fim);
+    const sair = !history.state?.ct || (sub && !ctTela.direto && !history.state?.ctSub);
+    if (sair && ctEnviando) { history.pushState(ctTela.direto || !sub ? { ct: true } : { ct: true, ctSub: true }, ""); aviso("Espere terminar o envio do contrato.", true); return; }
+    if (sair && novoComAlgoCt() && !confirm("Sair sem enviar o contrato?")) { history.pushState(ctTela.direto ? { ct: true } : { ct: true, ctSub: true }, ""); return; }
+    if (!history.state?.ct) { descartarRascunhoCt(); fecharCt(false); return; }
+    if (sub && !ctTela.direto && !history.state?.ctSub) { descartarRascunhoCt(); ctTela.det = ctTela.novo = ctTela.fim = ctTela.assinar = null; desenharCt(true); reporRol("tela-ct"); return; }
+    return;                                        // voltou do visualizador ou da assinatura para o contrato
   }
   // tarefas e funil: "voltar" no detalhe volta para a lista; na lista, fecha (as tarefas podem estar por cima do funil)
   if (!$("tela-tar").hidden) {

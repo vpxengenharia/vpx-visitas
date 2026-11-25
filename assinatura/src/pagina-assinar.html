@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1C3C61">
+<title>Assinar documento · VPX Engenharia</title>
+<link rel="icon" href="https://vpxengenharia.github.io/vpx-visitas/icone-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&family=Dancing+Script:wght@600&display=swap">
+<style>
+:root{--azul:#1C3C61;--titulo:#1C3C61;--num:#1C3C61;--laranja:#EB9D2B;--fundo:#EDF0F4;--cartao:#fff;--tinta:#1d2733;--suave:#5b6675;--linha:#d6dce4;--campo:#b9c3cf;--ok:#1f7a45;--ok-bg:#e3f4ea;--erro:#b3261e;--erro-bg:#fde8e6;--aviso-bg:#fff4e0;--aviso:#8a5300;--sel:#e8eef6}
+@media (prefers-color-scheme:dark){:root{--fundo:#0f1722;--cartao:#18222f;--tinta:#e7edf4;--suave:#a5b1bf;--linha:#2b3848;--campo:#43536a;--ok:#7fd3a0;--ok-bg:#16301f;--erro:#ff9b92;--erro-bg:#3a1714;--aviso-bg:#33270f;--aviso:#f4c46d;--sel:#223146;--titulo:#cfe0f5;--num:#3a6aa3}}
+*{box-sizing:border-box;touch-action:manipulation}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:16px/1.5 Barlow,system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+.topo{background:var(--azul);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px}
+.topo img{height:34px;display:block}
+.topo span{font:600 15px/1.2 "Barlow Semi Condensed",Barlow,sans-serif;opacity:.9;margin-left:auto;text-align:right}
+main{max-width:760px;margin:0 auto;padding:16px}
+.cartao{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:18px 16px;margin:0 0 14px;box-shadow:0 1px 2px rgba(16,30,50,.06)}
+h1{font:700 23px/1.2 "Barlow Semi Condensed",Barlow,sans-serif;color:var(--titulo);margin:0 0 6px}
+h2{font:700 19px/1.25 "Barlow Semi Condensed",Barlow,sans-serif;color:var(--titulo);margin:0 0 10px;display:flex;align-items:center;gap:10px}
+h1:focus,h2:focus{outline:none}
+.num{width:28px;height:28px;border-radius:50%;background:var(--num);color:#fff;display:inline-grid;place-items:center;font-size:15px;flex:none}
+.feito .num{background:var(--ok)}
+.feito h2::after{content:"✓ feito";font:600 14px Barlow,sans-serif;color:var(--ok);margin-left:auto}
+p{margin:0 0 10px}
+.suave{color:var(--suave);font-size:14.5px}
+.msg{background:var(--sel);border-left:4px solid var(--laranja);padding:10px 12px;border-radius:8px;margin:10px 0;white-space:pre-wrap}
+.pessoas{list-style:none;padding:0;margin:8px 0 0}
+.pessoas li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--linha);font-size:15px}
+.selo{font-size:13px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap;align-self:center}
+.selo.assinado{background:var(--ok-bg);color:var(--ok)}.selo.pendente{background:var(--aviso-bg);color:var(--aviso)}.selo.recusado{background:var(--erro-bg);color:var(--erro)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border-radius:12px;border:0;font:700 17px Barlow,sans-serif;cursor:pointer;padding:10px 16px;margin:8px 0 0}
+.btn.prim{background:var(--laranja);color:#13253B}
+.btn.sec{background:transparent;color:var(--tinta);border:1.5px solid var(--campo)}
+.btn[disabled]{opacity:.55;cursor:default}
+.link{background:none;border:0;color:var(--suave);font:600 15px Barlow,sans-serif;text-decoration:underline;padding:12px 4px;cursor:pointer;min-height:44px}
+label.campo{display:block;margin:12px 0 0}
+label.campo>span,.rotulo{display:block;font-weight:600;font-size:15px;margin:0 0 4px}
+.rotulo{margin-top:12px}
+input[type=text],input[type=tel],textarea{width:100%;font:17px Barlow,sans-serif;color:var(--tinta);background:var(--cartao);border:1.5px solid var(--campo);border-radius:12px;padding:12px 14px;min-height:50px}
+input:focus,textarea:focus{outline:none;border-color:var(--laranja);box-shadow:0 0 0 3px rgba(235,157,43,.25)}
+#codigo{font-size:26px;letter-spacing:10px;text-align:center;font-weight:700}
+.erro{background:var(--erro-bg);color:var(--erro);border-radius:10px;padding:10px 12px;margin:10px 0 0;font-weight:600}
+.ok{background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:10px 12px;margin:10px 0 0;font-weight:600}
+.aviso{background:var(--aviso-bg);color:var(--aviso);border-radius:10px;padding:12px;margin:0;font-weight:600}
+#cod-aviso{margin:0 0 10px}
+.doc-info{font-size:13.5px;color:var(--suave);word-break:break-all;margin:8px 0 0}
+.doc-info b{color:var(--tinta)}
+#paginas{background:#7d8794;border-radius:10px;padding:8px;max-height:72vh;overflow:auto;margin-top:10px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* cada página é uma caixa do tamanho dela; só as perto da tela são desenhadas (documentos longos não estouram a memória do celular) */
+#paginas .vpag{margin:0 auto 8px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);max-width:none}
+#paginas .vpag canvas{display:block;width:100%;height:100%}
+.zoom{display:flex;gap:8px;align-items:center;margin-top:8px}
+.zoom button{width:48px;height:44px;border-radius:10px;border:1.5px solid var(--campo);background:var(--cartao);color:var(--tinta);font:700 22px Barlow,sans-serif;cursor:pointer}
+.zoom span{font-size:14px;color:var(--suave);margin-left:auto}
+.pad-caixa{position:relative;margin-top:6px;border:1.5px dashed var(--campo);border-radius:12px;background:#fff;height:190px;overflow:hidden}
+#pad{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.pad-linha{position:absolute;left:18px;right:18px;bottom:46px;border-bottom:1.5px solid #c7ced8;pointer-events:none}
+.pad-dica{position:absolute;left:0;right:0;bottom:16px;text-align:center;color:#8893a1;font-size:14px;pointer-events:none}
+.pad-acoes{display:flex;gap:6px;flex-wrap:wrap}
+.check{display:flex;gap:12px;align-items:flex-start;margin:14px 0 0;font-size:15.5px;cursor:pointer}
+.check input{width:24px;height:24px;margin:1px 0 0;flex:none;accent-color:var(--azul)}
+.fim{text-align:center;padding:26px 16px}
+.fim .selo-ok{width:70px;height:70px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;margin:0 auto 12px;font-size:38px}
+.rodape{text-align:center;color:var(--suave);font-size:13px;padding:6px 16px 24px}
+.rodape a{color:inherit}
+[hidden]{display:none!important}
+.carregando{text-align:center;padding:40px 0;color:var(--suave)}
+@media (min-width:700px){main{padding:24px}.cartao{padding:22px 24px}.duas{display:grid;grid-template-columns:1fr 1fr;gap:12px}.duas label.campo{margin-top:12px}}
+</style>
+</head>
+<body>
+<header class="topo"><img src="https://vpxengenharia.github.io/vpx-visitas/logo-branco.png" alt="VPX Engenharia"><span>Assinatura eletrônica</span></header>
+<main>
+  <div id="carregando" class="carregando" role="status">Carregando o documento…</div>
+  <section id="sec-info" class="cartao" hidden>
+    <p class="suave" id="info-de"></p>
+    <h1 id="info-titulo"></h1>
+    <p class="suave" id="info-sub"></p>
+    <div id="info-msg" class="msg" hidden></div>
+    <ul class="pessoas" id="info-pessoas"></ul>
+  </section>
+  <section id="sec-estado" class="cartao" hidden><p class="aviso" id="estado-txt" role="alert"></p></section>
+
+  <section id="sec-codigo" class="cartao" hidden>
+    <h2 tabindex="-1"><span class="num">1</span>Confirme que é você</h2>
+    <div id="cod-pedir">
+      <p class="aviso" id="cod-aviso" role="alert" hidden></p>
+      <p>Vamos mandar um código de 6 números para o seu e-mail <b id="cod-email"></b>.</p>
+      <button class="btn prim" id="btn-codigo" type="button">Enviar o código</button>
+    </div>
+    <div id="cod-digitar" hidden>
+      <p>Digite o código que chegou em <b id="cod-email2"></b>. Ele vale 10 minutos. Confira também a caixa de spam.</p>
+      <label class="campo"><span>Código</span><input id="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="40" placeholder="000000"></label>
+      <button class="btn prim" id="btn-verificar" type="button">Confirmar</button>
+      <button class="link" id="btn-reenviar" type="button" disabled>Mandar outro código</button>
+    </div>
+    <p class="erro" id="cod-erro" role="alert" hidden></p>
+  </section>
+
+  <section id="sec-doc" class="cartao" hidden>
+    <h2 tabindex="-1" id="doc-tit"><span class="num">2</span>Leia o documento</h2>
+    <p class="suave">Role para ler todas as páginas. Use + e − para aumentar.</p>
+    <div id="paginas"><p class="carregando" style="color:#fff">Baixando o documento…</p></div>
+    <div class="zoom"><button type="button" id="z-menos" aria-label="Diminuir">−</button><button type="button" id="z-mais" aria-label="Aumentar">+</button><span id="z-txt"></span></div>
+    <p class="doc-info">Código do documento: <b id="doc-cod"></b><br>Hash SHA-256: <span id="doc-hash"></span></p>
+    <p class="erro" id="doc-erro" role="alert" hidden></p>
+  </section>
+
+  <section id="sec-assinar" class="cartao" hidden>
+    <h2 tabindex="-1" id="ass-tit"><span class="num">3</span>Assine</h2>
+    <div class="duas">
+      <label class="campo"><span>Nome completo</span><input id="nome" type="text" autocomplete="name" maxlength="120"></label>
+      <label class="campo"><span>CPF</span><input id="cpf" type="text" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00"></label>
+    </div>
+    <p class="rotulo" id="rot-ass">Sua assinatura</p>
+    <div class="pad-caixa" id="pad-caixa"><canvas id="pad" role="img" aria-labelledby="rot-ass" aria-describedby="pad-dica"></canvas><div class="pad-linha"></div><div class="pad-dica" id="pad-dica">Assine aqui com o dedo</div></div>
+    <div class="pad-acoes"><button class="link" type="button" id="pad-limpar">Limpar</button><button class="link" type="button" id="pad-nome">Usar meu nome digitado</button></div>
+    <label class="check"><input type="checkbox" id="aceite"><span id="aceite-txt">Li e concordo com o documento e com a assinatura eletrônica (MP 2.200-2/2001, art. 10, § 2º).</span></label>
+    <label class="check"><input type="checkbox" id="geo"><span>Registrar minha localização (opcional)</span></label>
+    <button class="btn prim" id="btn-assinar" type="button">Assinar o documento</button>
+    <p class="erro" id="ass-erro" role="alert" hidden></p>
+    <p class="suave" style="margin-top:12px">Ficam registrados no documento: seu nome, CPF, a assinatura, a data e a hora, o endereço IP e o aparelho usado.</p>
+    <button class="link" type="button" id="btn-recusar">Não concordo: recusar o documento</button>
+    <div id="recusa" hidden>
+      <label class="campo"><span>Por que você recusa?</span><textarea id="motivo" rows="3" maxlength="500"></textarea></label>
+      <button class="btn sec" id="btn-recusar-ok" type="button">Recusar o documento</button>
+    </div>
+  </section>
+
+  <section id="sec-fim" class="cartao fim" role="status" hidden>
+    <div class="selo-ok" aria-hidden="true">✓</div>
+    <h1 id="fim-titulo" tabindex="-1">Assinatura registrada</h1>
+    <p id="fim-txt">Quando todos assinarem, você recebe o documento assinado por e-mail.</p>
+    <p class="suave" id="fim-cod"></p>
+  </section>
+</main>
+<p class="rodape">VPX Engenharia · <a id="lnk-verif" href="/v">verificar um documento</a></p>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous" defer></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const token = new URLSearchParams(location.hash.slice(1)).get("t") || "";
+let info = null, sessao = "", hashVisto = "", bytesPdf = null, zoom = 1, ultimoCodigo = 0, pendente = null;
+const PAPEL = { contratante: "Contratante", contratada: "Contratada", testemunha: "Testemunha" };
+const SIT = { assinado: "Assinou", pendente: "Pendente", recusado: "Recusou" };
+const dataBR = iso => iso ? iso.slice(0, 10).split("-").reverse().join("/") : "";
+const digitos = s => String(s || "").replace(/\D/g, "");
+function cpfValido(c) {
+  c = digitos(c); if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  const dv = n => { let s = 0; for (let i = 0; i < n; i++) s += +c[i] * (n + 1 - i); const r = (s * 10) % 11; return r === 10 ? 0 : r; };
+  return dv(9) === +c[9] && dv(10) === +c[10];
+}
+// a folha de assinaturas usa a fonte padrão do PDF (só Latin-1): o nome tem de sair igual ao registrado
+const nomeImprimivel = n => !/[^\x20-\x7e -ÿ]/.test(String(n || "").normalize("NFC"));
+function mostrarErro(id, msg) { const e = $(id); e.textContent = msg || ""; e.hidden = !msg; if (msg) e.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+async function api(rota, corpo, bytes) {
+  let r;
+  try { r = await fetch("/api/s/" + rota, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token, ...corpo }) }); }
+  catch { throw new Error("Sem conexão com a internet. Confira o sinal e tente de novo."); }
+  if (!r.ok) { let m = ""; try { m = (await r.json()).erro; } catch {} throw Object.assign(new Error(m || "O serviço não respondeu (código " + r.status + "). Tente de novo."), { status: r.status }); }
+  return bytes ? new Uint8Array(await r.arrayBuffer()) : r.json();
+}
+function estado(msg) { $("estado-txt").textContent = msg; $("sec-estado").hidden = false; }
+// guardado nesta aba (sobrevive a recarregar a página ou voltar do app de e-mail): quando o código foi pedido e a confirmação
+const CHAVE_SS = "vpx-ass:" + token.slice(0, 24);
+function lerSS() { try { return JSON.parse(sessionStorage.getItem(CHAVE_SS) || "{}") || {}; } catch { return {}; } }
+function gravarSS(o) { try { sessionStorage.setItem(CHAVE_SS, JSON.stringify({ ...lerSS(), ...o })); } catch {} }
+
+async function iniciar() {
+  if (!token) { $("carregando").hidden = true; estado("Este link não é válido. Abra o endereço completo que chegou no seu e-mail."); return; }
+  try { info = await api("info", {}); }
+  catch (e) { $("carregando").hidden = true; estado(e.message); return; }
+  $("carregando").hidden = true;
+  $("info-de").textContent = `${info.remetente}, da VPX Engenharia, enviou um documento para você assinar.`;
+  $("info-titulo").textContent = info.titulo;
+  $("info-sub").textContent = [`Você assina como ${(PAPEL[info.eu.papel] || "signatário").toLowerCase()}`, info.prazo ? `prazo até ${dataBR(info.prazo)}` : "", info.paginas ? `${info.paginas} página(s)` : ""].filter(Boolean).join(" · ");
+  if (info.mensagem) { $("info-msg").textContent = info.mensagem; $("info-msg").hidden = false; }
+  if (info.aceite?.texto) $("aceite-txt").textContent = info.aceite.texto;
+  const ul = $("info-pessoas");
+  for (const p of [{ ...info.eu, eu: true }, ...info.outros]) {
+    const li = document.createElement("li"), a = document.createElement("span"), b = document.createElement("span");
+    a.textContent = `${p.nome}${p.eu ? " (você)" : ""} · ${PAPEL[p.papel] || ""}`; b.className = "selo " + p.status; b.textContent = SIT[p.status] || p.status;
+    li.append(a, b); ul.appendChild(li);
+  }
+  $("sec-info").hidden = false;
+  $("lnk-verif").href = "/v/" + info.codigo;
+  if (info.estado !== "assinar") { estado(info.mensagem_estado); return; }
+  $("cod-email").textContent = $("cod-email2").textContent = info.eu.email;
+  $("sec-codigo").hidden = false;
+  const ss = lerSS();
+  if (ss.sessao && ss.sessaoAte > Date.now() + 60000) { sessao = ss.sessao; identidadeConfirmada(); return; }   // já confirmou nesta aba: segue direto para o documento
+  if (ss.codigoEm && Date.now() - ss.codigoEm < 10 * 60000) { ultimoCodigo = ss.codigoEm; mostrarCampoCodigo(); }   // pediu o código e saiu para ler o e-mail
+}
+
+/* passo 1: código por e-mail */
+function mostrarCampoCodigo() {
+  $("cod-pedir").hidden = true; $("cod-digitar").hidden = false; $("codigo").focus();
+  contarReenvio();
+}
+async function pedirCodigo() {
+  mostrarErro("cod-erro", "");
+  const b = $("btn-codigo"), r2 = $("btn-reenviar"); b.disabled = r2.disabled = true; b.textContent = "Enviando…";
+  try {
+    const r = await api("codigo", {});
+    if (r.codigo_teste) window.__codigoTeste = r.codigo_teste;   // só no modo de teste do servidor
+    ultimoCodigo = Date.now(); gravarSS({ codigoEm: ultimoCodigo });
+    $("cod-aviso").hidden = true;
+    mostrarCampoCodigo();
+  } catch (e) {
+    if (e.status === 429) {                        // já há um código no e-mail (pedido há pouco, talvez noutra aba): o campo aparece mesmo assim
+      ultimoCodigo = Math.max(ultimoCodigo, lerSS().codigoEm || 0, Date.now() - 60000 + 15000);
+      mostrarCampoCodigo();
+      mostrarErro("cod-erro", "Já mandamos um código há pouco. Digite o que chegou no seu e-mail; se não chegou, peça outro daqui a pouco.");
+    } else { mostrarErro("cod-erro", e.message); b.disabled = false; r2.disabled = false; }
+  }
+  b.textContent = "Enviar o código";
+}
+function contarReenvio() {
+  clearTimeout(contarReenvio.t);
+  const r = $("btn-reenviar"), falta = Math.ceil((ultimoCodigo + 60000 - Date.now()) / 1000);
+  if (falta > 0) { r.disabled = true; r.textContent = `Mandar outro código (em ${falta} s)`; contarReenvio.t = setTimeout(contarReenvio, 1000); }
+  else { r.disabled = false; r.textContent = "Mandar outro código"; }
+}
+async function verificar() {
+  const c = digitos($("codigo").value);
+  if (c.length !== 6) { mostrarErro("cod-erro", "Digite os 6 números do código."); return; }
+  mostrarErro("cod-erro", "");
+  const b = $("btn-verificar"); b.disabled = true; b.textContent = "Confirmando…";
+  try {
+    const r = await api("verificar", { codigo: c });
+    sessao = r.sessao;
+    gravarSS({ sessao, sessaoAte: Date.parse(r.expira) || Date.now() + 2 * 3600000 - 60000, codigoEm: 0 });
+    identidadeConfirmada();
+  } catch (e) { mostrarErro("cod-erro", e.message); $("codigo").select(); }
+  b.disabled = false; b.textContent = "Confirmar";
+}
+function identidadeConfirmada() {
+  const sc = $("sec-codigo");
+  sc.classList.add("feito"); $("cod-digitar").hidden = true; $("cod-pedir").hidden = true; $("codigo").value = "";
+  sc.querySelector(".ok")?.remove();
+  const p = document.createElement("p"); p.className = "ok"; p.setAttribute("role", "status"); p.textContent = "Identidade confirmada."; sc.appendChild(p);
+  if (hashVisto) {                                 // a confirmação tinha vencido: o documento e o que foi preenchido continuam; volta para o passo 3
+    $("sec-assinar").scrollIntoView({ behavior: "smooth", block: "start" }); $("ass-tit").focus({ preventScroll: true });
+    const acao = pendente; pendente = null;
+    if (acao) acao();                              // repete o "Assinar" (ou "Recusar") que estava esperando
+    return;
+  }
+  $("sec-doc").hidden = false; $("sec-doc").scrollIntoView({ behavior: "smooth", block: "start" }); $("doc-tit").focus({ preventScroll: true });
+  carregarDocumento();
+}
+// a confirmação venceu (2 h) no meio do caminho: volta ao passo 1 sem perder o documento, o nome, o CPF e a assinatura
+function pedirConfirmacaoDeNovo(acao) {
+  sessao = ""; gravarSS({ sessao: "", sessaoAte: 0 }); pendente = acao || null;
+  const sc = $("sec-codigo"); sc.classList.remove("feito"); sc.querySelector(".ok")?.remove();
+  $("cod-aviso").textContent = "A confirmação venceu. Peça um novo código para continuar: o que você preencheu continua aqui."; $("cod-aviso").hidden = false;
+  $("cod-pedir").hidden = false; $("cod-digitar").hidden = true; $("btn-codigo").disabled = false;
+  sc.scrollIntoView({ behavior: "smooth", block: "start" }); sc.querySelector("h2").focus({ preventScroll: true });
+}
+
+/* passo 2: o documento (hash calculado aqui, no aparelho) */
+async function carregarDocumento() {
+  try {
+    bytesPdf = await api("pdf", { sessao }, true);
+    const h = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytesPdf))].map(b => b.toString(16).padStart(2, "0")).join("");
+    $("doc-cod").textContent = info.codigo; $("doc-hash").textContent = h;
+    if (h !== info.hash) { mostrarErro("doc-erro", "O documento recebido não confere com o código registrado. Não assine e avise a VPX Engenharia."); return; }
+    hashVisto = h;
+    $("sec-assinar").hidden = false;               // o passo 3 aparece já: as páginas vão sendo desenhadas enquanto a pessoa rola
+    $("nome").value = info.eu.nome || "";
+    ajustarPad();
+    await abrirPdf();
+  } catch (e) {
+    if (e.status === 401 && !hashVisto) { pedirConfirmacaoDeNovo(); $("sec-doc").hidden = true; return; }
+    mostrarErro("doc-erro", e.message);
+  }
+}
+// só as páginas perto da tela ficam desenhadas (caixas do tamanho de cada página; as que se afastam são apagadas), como no visualizador do app
+let pdfDoc = null, tamPags = [], geracao = 0, observador = null, larguraAntes = 0;
+const desenhos = new Map();
+async function abrirPdf() {
+  for (let i = 0; !window.pdfjsLib && i < 100; i++) await new Promise(r => setTimeout(r, 100));
+  if (!window.pdfjsLib) throw new Error("Não foi possível abrir o leitor de PDF. Recarregue a página.");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+  pdfDoc ||= await pdfjsLib.getDocument({ data: bytesPdf.slice() }).promise;
+  tamPags = [];
+  for (let n = 1; n <= pdfDoc.numPages; n++) { const v = (await pdfDoc.getPage(n)).getViewport({ scale: 1 }); tamPags.push({ w: v.width, h: v.height }); }
+  montarPaginas();
+}
+function montarPaginas() {
+  if (!pdfDoc || !tamPags.length) return;
+  const ger = ++geracao, caixa = $("paginas");
+  for (const m of desenhos.values()) m.cancel();   // zoom ou largura nova: os desenhos antigos param (cliques seguidos no + não desenham em paralelo)
+  desenhos.clear(); observador?.disconnect();
+  // o ponto que a pessoa está lendo continua no meio da tela depois do zoom
+  const temAntes = !!caixa.querySelector(".vpag");
+  const fy = temAntes && caixa.scrollHeight ? (caixa.scrollTop + caixa.clientHeight / 2) / caixa.scrollHeight : 0;
+  const fx = temAntes && caixa.scrollWidth ? (caixa.scrollLeft + caixa.clientWidth / 2) / caixa.scrollWidth : 0.5;
+  larguraAntes = caixa.clientWidth;
+  const larg = caixa.clientWidth - 16;
+  const divs = tamPags.map((t, i) => {
+    const d = document.createElement("div"), w = Math.floor(larg * zoom);
+    d.className = "vpag"; d.dataset.n = i + 1; d.setAttribute("role", "img"); d.setAttribute("aria-label", `Página ${i + 1} de ${tamPags.length}`);
+    d.style.width = w + "px"; d.style.height = Math.floor(w * t.h / t.w) + "px";
+    return d;
+  });
+  caixa.replaceChildren(...divs);
+  if (temAntes) { caixa.scrollTop = Math.max(0, fy * caixa.scrollHeight - caixa.clientHeight / 2); caixa.scrollLeft = Math.max(0, fx * caixa.scrollWidth - caixa.clientWidth / 2); }
+  observador = new IntersectionObserver(ents => { for (const en of ents) en.isIntersecting ? desenharPagina(en.target, ger) : apagarPagina(en.target); }, { root: caixa, rootMargin: "100% 0px" });
+  divs.forEach(d => observador.observe(d));
+  $("z-txt").textContent = `${pdfDoc.numPages} página(s) · ${Math.round(zoom * 100)}%`;
+}
+async function desenharPagina(div, ger) {
+  if (div.firstChild || desenhos.has(div)) return;
+  const marca = { parou: false, tarefa: null, cancel() { this.parou = true; try { this.tarefa?.cancel(); } catch {} } };
+  desenhos.set(div, marca);
+  let cv = null;
+  try {
+    const pg = await pdfDoc.getPage(+div.dataset.n);
+    if (marca.parou || ger !== geracao || !div.isConnected) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), w = parseFloat(div.style.width), base = pg.getViewport({ scale: 1 });
+    const vp = pg.getViewport({ scale: w / base.width * dpr });
+    cv = document.createElement("canvas"); cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+    marca.tarefa = pg.render({ canvasContext: cv.getContext("2d"), viewport: vp });
+    await marca.tarefa.promise;
+    if (!marca.parou && ger === geracao && div.isConnected) { div.replaceChildren(cv); cv = null; }
+  } catch (e) { if (e?.name !== "RenderingCancelledException") console.error(e); }
+  finally { if (cv) cv.width = cv.height = 0; if (desenhos.get(div) === marca) desenhos.delete(div); }
+}
+function apagarPagina(div) {
+  const m = desenhos.get(div); if (m) { desenhos.delete(div); m.cancel(); }
+  const cv = div.querySelector("canvas"); if (cv) { cv.width = cv.height = 0; cv.remove(); }
+}
+function mudarZoom(f) { if (!pdfDoc) return; const z = Math.min(3, Math.max(1, Math.round((zoom * f) * 100) / 100)); if (z === zoom) return; zoom = z; montarPaginas(); }
+
+/* passo 3: assinatura com o dedo (vale com 120 px riscados e 40 px de largura) */
+const pad = $("pad"), g = pad.getContext("2d");
+let riscado = 0, minX = Infinity, maxX = -Infinity, ultimo = null, porNome = false, desenhando = false;
+function ajustarPad() {
+  const r = pad.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  pad.width = Math.round(r.width * dpr); pad.height = Math.round(r.height * dpr);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); limparPad();
+}
+// a tela girou (ou mudou de largura) depois de assinar: o desenho continua, sem esticar (só diminui se não couber)
+function reajustarPad() {
+  const r = pad.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if (!r.width || (Math.round(r.width * dpr) === pad.width && Math.round(r.height * dpr) === pad.height)) return;
+  if (porNome) { ajustarPad(); usarNome(); return; }
+  if (!riscado) { ajustarPad(); return; }
+  const copia = document.createElement("canvas"); copia.width = pad.width; copia.height = pad.height; copia.getContext("2d").drawImage(pad, 0, 0);
+  const antes = { riscado, minX, maxX };
+  ajustarPad();
+  const k = Math.min(1, pad.width / copia.width, pad.height / copia.height);
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(copia, 0, 0, copia.width * k, copia.height * k); g.restore();
+  riscado = antes.riscado * k; minX = antes.minX * k; maxX = antes.maxX * k; $("pad-dica").hidden = true;
+}
+function limparPad() { g.clearRect(0, 0, pad.width, pad.height); riscado = 0; minX = Infinity; maxX = -Infinity; porNome = false; $("pad-dica").hidden = false; }
+function ponto(ev) { const r = pad.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; }
+pad.addEventListener("pointerdown", ev => {
+  if (porNome) limparPad();
+  desenhando = true; ultimo = ponto(ev); pad.setPointerCapture(ev.pointerId); $("pad-dica").hidden = true;
+  g.strokeStyle = "#13253B"; g.lineWidth = 2.6; g.lineCap = g.lineJoin = "round";
+  minX = Math.min(minX, ultimo[0]); maxX = Math.max(maxX, ultimo[0]); ev.preventDefault();
+});
+pad.addEventListener("pointermove", ev => {
+  if (!desenhando) return;
+  const p = ponto(ev);
+  g.beginPath(); g.moveTo(...ultimo); g.lineTo(...p); g.stroke();
+  riscado += Math.hypot(p[0] - ultimo[0], p[1] - ultimo[1]); minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]); ultimo = p; ev.preventDefault();
+});
+const soltar = () => { desenhando = false; ultimo = null; };
+pad.addEventListener("pointerup", soltar); pad.addEventListener("pointercancel", soltar);
+const assinaturaValida = () => porNome || (riscado >= 120 && maxX - minX >= 40);
+async function usarNome() {
+  const nome = $("nome").value.trim();
+  if (!nome) { mostrarErro("ass-erro", "Escreva o seu nome completo primeiro."); $("nome").focus(); return; }
+  try { await document.fonts.load('600 48px "Dancing Script"'); } catch {}
+  limparPad(); $("pad-dica").hidden = true;
+  const w = pad.getBoundingClientRect().width, h = pad.getBoundingClientRect().height;
+  let tam = 56; g.font = `600 ${tam}px "Dancing Script", cursive`;
+  while (g.measureText(nome).width > w - 40 && tam > 22) { tam -= 2; g.font = `600 ${tam}px "Dancing Script", cursive`; }
+  g.fillStyle = "#13253B"; g.textAlign = "center"; g.textBaseline = "alphabetic"; g.fillText(nome, w / 2, h - 56);
+  porNome = true; mostrarErro("ass-erro", "");
+}
+// a imagem enviada: só a área riscada, com até 600 px de largura e fundo transparente
+function imagemAssinatura() {
+  const W = pad.width, H = pad.height, d = g.getImageData(0, 0, W, H).data;
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 20) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) return "";
+  const m = 12; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(W, x1 + m); y1 = Math.min(H, y1 + m);
+  const esc = Math.min(1, 600 / (x1 - x0)), c = document.createElement("canvas");
+  c.width = Math.round((x1 - x0) * esc); c.height = Math.round((y1 - y0) * esc);
+  c.getContext("2d").drawImage(pad, x0, y0, x1 - x0, y1 - y0, 0, 0, c.width, c.height);
+  return c.toDataURL("image/png");
+}
+function pegarGeo() {
+  return new Promise(ok => {
+    if (!navigator.geolocation) return ok(null);
+    navigator.geolocation.getCurrentPosition(p => ok({ lat: p.coords.latitude, lon: p.coords.longitude, precisao: p.coords.accuracy }), () => ok(null), { timeout: 10000, maximumAge: 60000 });
+  });
+}
+function mostrarFim(titulo, texto, recusou) {
+  for (const id of ["sec-info", "sec-codigo", "sec-doc", "sec-assinar", "sec-estado"]) $(id).hidden = true;
+  observador?.disconnect(); for (const d of document.querySelectorAll("#paginas .vpag")) apagarPagina(d);
+  $("fim-titulo").textContent = titulo; $("fim-txt").textContent = texto;
+  if (recusou) { const s = $("sec-fim").querySelector(".selo-ok"); s.textContent = "×"; s.style.background = "var(--erro)"; }
+  $("fim-cod").textContent = "Código do documento: " + info.codigo;
+  $("sec-fim").hidden = false; window.scrollTo({ top: 0 }); $("fim-titulo").focus({ preventScroll: true });
+  gravarSS({ sessao: "", sessaoAte: 0, codigoEm: 0 });
+}
+async function assinar() {
+  mostrarErro("ass-erro", "");
+  const nome = $("nome").value.trim().replace(/\s+/g, " "), cpf = digitos($("cpf").value);
+  if (nome.split(" ").length < 2) return mostrarErro("ass-erro", "Escreva o seu nome completo.");
+  if (!nomeImprimivel(nome)) return mostrarErro("ass-erro", "O nome tem letras que o documento assinado não consegue mostrar. Escreva o nome sem elas (ex.: L no lugar de Ł).");
+  if (!cpfValido(cpf)) return mostrarErro("ass-erro", "CPF inválido. Confira os números.");
+  if (!assinaturaValida()) return mostrarErro("ass-erro", "Faça a sua assinatura no quadro (ou toque em \"Usar meu nome digitado\").");
+  if (!$("aceite").checked) return mostrarErro("ass-erro", "Marque que leu e concorda com o documento.");
+  if (!sessao) { pedirConfirmacaoDeNovo(assinar); return; }
+  const b = $("btn-assinar"); b.disabled = true; b.textContent = "Assinando…";
+  try {
+    const geo = $("geo").checked ? await pegarGeo() : null;
+    const r = await api("assinar", { sessao, nome, cpf, imagem: imagemAssinatura(), hash_visto: hashVisto, aceite: true, aceite_versao: info.aceite?.versao || "aceite-v1", ...(geo ? { geo } : {}) });
+    mostrarFim("Assinatura registrada", r.todos
+      ? "Todos assinaram. A VPX Engenharia vai mandar a via assinada para o seu e-mail em breve. Você também recebe agora um recibo da sua assinatura."
+      : "Quando todos assinarem, você recebe o documento assinado por e-mail. Você também recebe agora um recibo da sua assinatura.");
+  } catch (e) {
+    if (e.status === 401) pedirConfirmacaoDeNovo(assinar);
+    else mostrarErro("ass-erro", e.message);
+  }
+  b.disabled = false; b.textContent = "Assinar o documento";
+}
+async function recusar(semPergunta) {
+  const motivo = $("motivo").value.trim();
+  if (!motivo) { mostrarErro("ass-erro", "Escreva o motivo da recusa."); $("motivo").focus(); return; }
+  if (semPergunta !== true && !confirm("Recusar este documento? A VPX Engenharia será avisada e o documento deixa de valer para assinatura.")) return;
+  if (!sessao) { pedirConfirmacaoDeNovo(() => recusar(true)); return; }
+  try {
+    await api("recusar", { sessao, motivo });
+    mostrarFim("Documento recusado", "A VPX Engenharia foi avisada da sua recusa.", true);
+  } catch (e) {
+    if (e.status === 401) pedirConfirmacaoDeNovo(() => recusar(true));
+    else mostrarErro("ass-erro", e.message);
+  }
+}
+$("btn-codigo").onclick = pedirCodigo; $("btn-reenviar").onclick = pedirCodigo; $("btn-verificar").onclick = verificar;
+// o código colado do e-mail pode vir com espaços ou quebra de linha: ficam só os números (o campo aceita o texto inteiro)
+$("codigo").addEventListener("input", ev => { ev.target.value = digitos(ev.target.value).slice(0, 6); if (ev.target.value.length === 6) verificar(); });
+$("z-mais").onclick = () => mudarZoom(1.25); $("z-menos").onclick = () => mudarZoom(0.8);
+$("pad-limpar").onclick = limparPad; $("pad-nome").onclick = usarNome;
+$("cpf").addEventListener("input", ev => { const d = digitos(ev.target.value).slice(0, 11); ev.target.value = d.length === 11 ? `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}` : d; });
+$("btn-assinar").onclick = assinar; $("btn-recusar").onclick = () => { $("recusa").hidden = !$("recusa").hidden; if (!$("recusa").hidden) $("motivo").focus(); };
+$("btn-recusar-ok").onclick = () => recusar();
+// redimensionar: espera parar (girar o celular dispara vários) e só redesenha o documento se a LARGURA mudou (a barra do Safari e o teclado mudam só a altura)
+addEventListener("resize", () => {
+  clearTimeout(reajustar.t); reajustar.t = setTimeout(reajustar, 250);
+});
+function reajustar() {
+  if (pdfDoc && Math.abs($("paginas").clientWidth - larguraAntes) > 40) montarPaginas();
+  if (!$("sec-assinar").hidden) reajustarPad();
+}
+iniciar();
+</script>
+</body>
+</html>

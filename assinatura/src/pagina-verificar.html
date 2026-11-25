@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1C3C61">
+<title>Verificar documento · VPX Engenharia</title>
+<link rel="icon" href="https://vpxengenharia.github.io/vpx-visitas/icone-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap">
+<style>
+:root{--azul:#1C3C61;--laranja:#EB9D2B;--fundo:#EDF0F4;--cartao:#fff;--tinta:#1d2733;--suave:#5b6675;--linha:#d6dce4;--campo:#b9c3cf;--ok:#1f7a45;--ok-bg:#e3f4ea;--erro:#b3261e;--erro-bg:#fde8e6;--aviso-bg:#fff4e0;--aviso:#8a5300}
+@media (prefers-color-scheme:dark){:root{--fundo:#0f1722;--cartao:#18222f;--tinta:#e7edf4;--suave:#a5b1bf;--linha:#2b3848;--campo:#43536a;--ok:#7fd3a0;--ok-bg:#16301f;--erro:#ff9b92;--erro-bg:#3a1714;--aviso-bg:#33270f;--aviso:#f4c46d}}
+*{box-sizing:border-box;touch-action:manipulation}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:16px/1.5 Barlow,system-ui,sans-serif}
+.topo{background:var(--azul);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px}
+.topo img{height:34px;display:block}
+.topo span{font:600 15px/1.2 "Barlow Semi Condensed",Barlow,sans-serif;opacity:.9;margin-left:auto}
+main{max-width:760px;margin:0 auto;padding:16px}
+.cartao{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:18px 16px;margin:0 0 14px}
+h1{font:700 23px/1.2 "Barlow Semi Condensed",Barlow,sans-serif;color:var(--azul);margin:0 0 8px}
+h2{font:700 18px/1.25 "Barlow Semi Condensed",Barlow,sans-serif;color:var(--azul);margin:0 0 8px}
+@media (prefers-color-scheme:dark){h1,h2{color:#cfe0f5}}
+p{margin:0 0 10px}
+.suave{color:var(--suave);font-size:14.5px}
+.linha{display:flex;gap:8px}
+input[type=text]{flex:1;min-width:0;font:600 19px Barlow,sans-serif;letter-spacing:2px;text-transform:uppercase;color:var(--tinta);background:var(--cartao);border:1.5px solid var(--campo);border-radius:12px;padding:10px 14px;min-height:50px}
+input:focus{outline:none;border-color:var(--laranja);box-shadow:0 0 0 3px rgba(235,157,43,.25)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;border-radius:12px;border:0;font:700 17px Barlow,sans-serif;cursor:pointer;padding:10px 18px;background:var(--laranja);color:#13253B}
+.btn.sec{background:transparent;color:var(--tinta);border:1.5px solid var(--campo);width:100%;margin-top:6px}
+.sit{display:inline-block;font-weight:700;font-size:14px;padding:3px 11px;border-radius:999px;margin-bottom:10px}
+.sit.concluido{background:var(--ok-bg);color:var(--ok)}.sit.aguardando{background:var(--aviso-bg);color:var(--aviso)}.sit.outro{background:var(--erro-bg);color:var(--erro)}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px}
+dt{color:var(--suave)}dd{margin:0;word-break:break-all}
+.hash{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+ul{list-style:none;padding:0;margin:0}
+li{padding:9px 0;border-top:1px solid var(--linha);display:flex;justify-content:space-between;gap:10px;font-size:15px}
+li small{display:block;color:var(--suave);font-size:13.5px}
+.selo{font-size:13px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap;align-self:center}
+.selo.assinado{background:var(--ok-bg);color:var(--ok)}.selo.pendente{background:var(--aviso-bg);color:var(--aviso)}.selo.recusado{background:var(--erro-bg);color:var(--erro)}
+.res{border-radius:10px;padding:12px;margin-top:10px;font-weight:600}
+.res.ok{background:var(--ok-bg);color:var(--ok)}.res.nao{background:var(--erro-bg);color:var(--erro)}
+[hidden]{display:none!important}
+.rodape{text-align:center;color:var(--suave);font-size:13px;padding:6px 16px 24px}
+</style>
+</head>
+<body>
+<header class="topo"><img src="https://vpxengenharia.github.io/vpx-visitas/logo-branco.png" alt="VPX Engenharia"><span>Verificação de documento</span></header>
+<main>
+  <section class="cartao" id="sec-busca">
+    <h1>Verificar um documento assinado</h1>
+    <p class="suave">Digite o código que aparece no rodapé do documento (ex.: K7QH-3MZD-P2XA).</p>
+    <form class="linha" id="form"><input id="cod" type="text" autocomplete="off" maxlength="40" placeholder="XXXX-XXXX-XXXX" aria-label="Código do documento"><button class="btn" type="submit">Verificar</button></form>
+    <p class="res nao" id="erro" role="alert" hidden></p>
+  </section>
+  <section class="cartao" id="sec-doc" hidden>
+    <span class="sit" id="d-sit"></span>
+    <h1 id="d-titulo"></h1>
+    <dl>
+      <dt>Código</dt><dd id="d-cod"></dd>
+      <dt>Emitido por</dt><dd>VPX Engenharia</dd>
+      <dt>Enviado em</dt><dd id="d-env"></dd>
+      <dt>Concluído em</dt><dd id="d-conc"></dd>
+      <dt>Original</dt><dd class="hash" id="d-ho"></dd>
+      <dt>Assinado</dt><dd class="hash" id="d-hf"></dd>
+      <dt>Trilha</dt><dd class="hash" id="d-tr"></dd>
+    </dl>
+  </section>
+  <section class="cartao" id="sec-sig" hidden>
+    <h2>Assinaturas</h2>
+    <ul id="d-sigs"></ul>
+  </section>
+  <section class="cartao" id="sec-arq" hidden>
+    <h2>Conferir um arquivo</h2>
+    <p class="suave">Escolha o PDF que você recebeu. O arquivo é conferido aqui no seu aparelho e não é enviado a ninguém.</p>
+    <input type="file" id="arq" accept="application/pdf,.pdf" hidden>
+    <button class="btn sec" type="button" id="btn-arq">Escolher o arquivo</button>
+    <p class="res" id="arq-res" role="status" hidden></p>
+  </section>
+</main>
+<p class="rodape">VPX Engenharia · assinatura eletrônica de documentos</p>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const PAPEL = { contratante: "Contratante", contratada: "Contratada", testemunha: "Testemunha" };
+const SIT = { aguardando: "Aguardando assinaturas", concluido: "Assinado por todos", recusado: "Recusado", cancelado: "Cancelado", expirado: "Prazo vencido" };
+const SIT_S = { assinado: "Assinou", pendente: "Pendente", recusado: "Recusou" };
+const dh = iso => iso ? new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" }) + " (Brasília)" : "—";
+let doc = null;
+async function buscar(cod) {
+  $("erro").hidden = true;
+  const limpo = cod.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (limpo.length !== 12) { $("erro").textContent = "O código tem 12 letras e números (ex.: K7QH-3MZD-P2XA)."; $("erro").hidden = false; return; }
+  const c = limpo.match(/.{4}/g).join("-");
+  $("cod").value = c;
+  if (location.pathname !== "/v/" + c) history.replaceState(null, "", "/v/" + c);
+  let r;
+  try { r = await fetch("/api/v/" + c); } catch { $("erro").textContent = "Sem conexão com a internet."; $("erro").hidden = false; return; }
+  if (!r.ok) { let m = ""; try { m = (await r.json()).erro; } catch {} $("erro").textContent = m || "Não foi possível verificar agora."; $("erro").hidden = false; for (const s of ["sec-doc", "sec-sig", "sec-arq"]) $(s).hidden = true; return; }
+  doc = await r.json();
+  $("d-sit").textContent = SIT[doc.situacao] || doc.situacao; $("d-sit").className = "sit " + (doc.situacao === "concluido" ? "concluido" : doc.situacao === "aguardando" ? "aguardando" : "outro");
+  $("d-titulo").textContent = doc.titulo; $("d-cod").textContent = doc.codigo; $("d-env").textContent = dh(doc.enviado_em); $("d-conc").textContent = dh(doc.concluido_em);
+  $("d-ho").textContent = doc.hash_original; $("d-hf").textContent = doc.hash_final || "ainda não gerado";
+  $("d-tr").textContent = doc.trilha ? doc.trilha.eventos + " eventos; último registro (SHA-256): " + doc.trilha.ultimo_hash : "—";
+  const ul = $("d-sigs"); ul.replaceChildren();
+  for (const s of doc.signatarios) {
+    const li = document.createElement("li"), a = document.createElement("span"), b = document.createElement("span"), sm = document.createElement("small");
+    a.textContent = s.nome; sm.textContent = [PAPEL[s.papel], s.assinado_em ? "assinou em " + dh(s.assinado_em) : "", s.metodo ? "por " + s.metodo : ""].filter(Boolean).join(" · "); a.appendChild(sm);
+    b.className = "selo " + s.status; b.textContent = SIT_S[s.status] || s.status; li.append(a, b); ul.appendChild(li);
+  }
+  for (const s of ["sec-doc", "sec-sig", "sec-arq"]) $(s).hidden = false;
+  $("arq-res").hidden = true;
+}
+$("form").onsubmit = ev => { ev.preventDefault(); buscar($("cod").value); };
+$("btn-arq").onclick = () => $("arq").click();
+$("arq").onchange = async () => {
+  const f = $("arq").files[0]; if (!f || !doc) return;
+  const h = [...new Uint8Array(await crypto.subtle.digest("SHA-256", await f.arrayBuffer()))].map(b => b.toString(16).padStart(2, "0")).join("");
+  const r = $("arq-res"); r.hidden = false;
+  if (h === doc.hash_final) { r.className = "res ok"; r.textContent = "Este arquivo é a via ASSINADA deste documento, sem nenhuma alteração."; }
+  else if (h === doc.hash_original) { r.className = "res ok"; r.textContent = "Este arquivo é o documento ORIGINAL (antes das assinaturas), sem nenhuma alteração."; }
+  else { r.className = "res nao"; r.textContent = "Este arquivo NÃO confere com este documento: ele é outro arquivo ou foi alterado."; }
+  r.dataset.hash = h; $("arq").value = "";
+};
+const doCaminho = decodeURIComponent(location.pathname.replace(/^\/v\/?/, ""));
+if (doCaminho) buscar(doCaminho); else $("cod").focus();
+</script>
+</body>
+</html>

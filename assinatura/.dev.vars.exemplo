@@ -1,0 +1,8 @@
+# Variáveis do modo de teste (só para o "wrangler dev" no computador; nunca em produção).
+# Copiado para .dev.vars pelo "npm test" / "npm run dev" se ainda não existir.
+MODO_TESTE="1"
+URL_PUBLICA="http://localhost:8787"
+# Chave de TESTE para cifrar os links (a de produção é outra, gerada pelo configurar.mjs).
+CHAVE_LINKS="37XNDQyzS9OcAr+h4Yets40Xqob3lIMCy8mdo+yiX5o="
+# Chave pública de teste: o par está em test/chave-teste.json.
+JWKS_TESTE='{"keys":[{"kty":"RSA","n":"0ztfPMGODz6e6K2xgofMx04vH1NhQ6Pbk0xNCRI7DIsdVT-Dim9Fe6QtggfUULISDybAXZ58XsepDYOA0Cwd8aCaUnhELOjQw2BOEHnBhfzqOhe_TtVfP-tO0bzxHbHfajwfD8XkUFLw4vjlBjtfSPDLgLdSREupIq_D5AbGyS-qg-MtgOHX_5VfB2FPUzQrsFBA-kw9Ifk6pxk_LFEqU-9nGiTi9jBC64uvqe5DGs0dsoAxzfowp97ETC_x-o6AS_MZzIkIG7xyPP5F6lhUtEpatnYzoh2ZOLk7qyeZ88ny8rpeGzaJ6Xv2JeFPdsWRN8yvsfnPg5Oe_kd2Yhq5WQ","e":"AQAB","kid":"vpx-teste-1","alg":"RS256","use":"sig"}]}'

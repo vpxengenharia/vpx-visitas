@@ -1,0 +1,46 @@
+# Servidor de assinatura de contratos da VPX Engenharia (Cloudflare Worker).
+# Referência: docs/assinatura-contratos.md. Nada de segredo aqui: os segredos
+# (RESEND_KEY e CHAVE_LINKS) ficam com "npx wrangler secret put".
+
+name = "vpx-assinatura"
+main = "src/worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+# As páginas (.html) e o schema.sql entram no Worker como texto.
+[[rules]]
+type = "Text"
+globs = ["**/*.html", "**/*.sql"]
+fallthrough = true
+
+# Banco D1. O "database_id" provisório é trocado pelo id real quando o
+# "node configurar.mjs" cria o banco na conta da Cloudflare.
+[[d1_databases]]
+binding = "DB"
+database_name = "vpx-assinatura"
+database_id = "583ea373-7b12-472e-95d5-fbe3c3ef3fca"
+
+# Espaço KV onde ficam os PDFs (orig:<id> e final:<id>). O "id" provisório
+# também é trocado pelo "node configurar.mjs".
+[[kv_namespaces]]
+binding = "PDFS"
+id = "f694112779984bb0b1d4ed03c6e3974c"
+
+[vars]
+TENANT_ID = "923857d2-a4ca-4360-a259-69078844e9d2"
+CLIENT_ID = "76fc51aa-584c-443a-9170-bf123e698cfe"
+APP_ORIGENS = "https://vpxengenharia.github.io"
+APP_URL = "https://vpxengenharia.github.io/vpx-visitas/"
+# Administradores do serviço (vírgula entre os e-mails): mudam a lista de quem cuida dos contratos (o app manda quem tem a função Contratos)
+# e cancelam contratos de outras pessoas.
+ADMINS = "gustavoponchio@vpxengenharia.com.br"
+REMETENTE = "VPX Engenharia <assinaturas@vpxengenharia.com.br>"
+# Endereço publicado (25/11/2026)
+URL_PUBLICA = "https://vpx-assinatura.vpx-assinatura.workers.dev"
+
+# Tarefa diária: 12:00 UTC = 9h de Brasília (prazos, lembretes e limpeza).
+[triggers]
+crons = ["0 12 * * *"]
+
+[observability]
+enabled = true

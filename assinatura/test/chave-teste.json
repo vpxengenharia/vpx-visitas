@@ -1,0 +1,17 @@
+{
+  "aviso": "Chave SO DE TESTE: vale apenas com MODO_TESTE=1 no wrangler dev. Nunca usar em producao.",
+  "kid": "vpx-teste-1",
+  "privada": {
+    "kty": "RSA",
+    "n": "0ztfPMGODz6e6K2xgofMx04vH1NhQ6Pbk0xNCRI7DIsdVT-Dim9Fe6QtggfUULISDybAXZ58XsepDYOA0Cwd8aCaUnhELOjQw2BOEHnBhfzqOhe_TtVfP-tO0bzxHbHfajwfD8XkUFLw4vjlBjtfSPDLgLdSREupIq_D5AbGyS-qg-MtgOHX_5VfB2FPUzQrsFBA-kw9Ifk6pxk_LFEqU-9nGiTi9jBC64uvqe5DGs0dsoAxzfowp97ETC_x-o6AS_MZzIkIG7xyPP5F6lhUtEpatnYzoh2ZOLk7qyeZ88ny8rpeGzaJ6Xv2JeFPdsWRN8yvsfnPg5Oe_kd2Yhq5WQ",
+    "e": "AQAB",
+    "d": "DjEsxKz_gbQ0Io96__lmT5TH8zubqxsBB3xGp7-fEohtQ9tE2AICYdyFxzkF8ZcJQhXZMmER259gEx2dA7-XEnM3MyfL8tWAo0Pe8tnvX_R-e0E5tA7_e5CwhsSCUbuv9lgMQTfLT39HGoTdBGZsUD8HeUI354lK158GExXGeOFY8lKWjvMKqUoYonncMpbVzP9KizawvqE52gSrToMUcVBwEABOE1BG6wK74gqKfCAyzFgJBSS5OMOj7ECYNZ2RcF1WVvKemee6CS1gX0d6FG6u1QdEfbTDVE0j4TyNzSTUftzi2gLcK5vhsZ4U3yxTDEI3DawKe12N3VkRPxah5Q",
+    "p": "9L8RD1Qh2ksscB0C5n3IqIcbH9PDQx6_63ftqTH1ZyBpk-LuD7Zh9YVzCBEC1IjAy5tK_iTNAXBFi9QQE6Vk0D8IQvEtQcnwyOk8uYq_EhYr0o6IUGqv8X7Ik7NgTS5mF-eY4k1ROAwXWgNg0Eann5fOtSJs5wNGz-DJr_UCCj0",
+    "q": "3PHNv_VlXFIvD3gVJPlZD0VXZmTGDc4HS-KdW_lRjBd-AzZ-wMiDcxmEwWyQaft8ooX42NZortF033cBGcgwYpHdaW_-Lssrozppn_x7DP1kw0VbM7nRrlm1HIOxjcJB6LHk_f9q9LpnqLyGXpYYfrki7CJjopvxZr9AjKQ_iU0",
+    "dp": "lO5Pq0w-7V8hQ3fj8-5G1IaictOh1o43q0nnTTYhZwfKNzu4MceCBK2YOihf2IT_DOcK02wBdAaly1jYD5xtpGs208V_DLGd3CRR13Yenxruv8oMGSNSvVmxJG_bAhxh89nypoL2EW0KKLQ1jYfxKKRwHLk-G7VaudTH5lLpUuE",
+    "dq": "2_yydM-8RYjarJdOzkqrHyZWmG_8NuCNqUQQk_QQ-uClKkPHPuIm56Jf6UrUG4I4HYYxOI17G50XtixCX05QxsQfZY0J08OdRl-xrYbxagSeoELdRQpeOS--wY5qahAiGbOOokv_TX6QGZTkYScnan2hxOWUuOJ2IGyKs74SOP0",
+    "qi": "Y_YC8zlwCaEynmtO0lJ8U-TAVzERVZ4H5hevYU-b1nMpmc5H4CXNe4kSToSgz-kfHZc3imGdJK0SNhB-k-cnycW-6BJ8HZstK_MUDMCvmfoy38VqxiTi0ueF6sKy-uEmJnraGeY7HuUGmc_7yIcWp7vrDevXfGzNUBqW6FyGa8w",
+    "kid": "vpx-teste-1",
+    "alg": "RS256"
+  }
+}

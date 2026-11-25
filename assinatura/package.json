@@ -1,0 +1,16 @@
+{
+  "name": "vpx-assinatura",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Servidor de assinatura eletrônica de contratos da VPX Engenharia (Cloudflare Worker + D1 + KV)",
+  "scripts": {
+    "dev": "wrangler dev --port 8787 --local",
+    "test": "node test/rodar-testes.mjs",
+    "deploy": "wrangler deploy",
+    "configurar": "node configurar.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.159.0"
+  }
+}
