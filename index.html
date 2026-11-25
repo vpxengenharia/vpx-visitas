@@ -20051,7 +20051,7 @@ function mostrarEspera() {
    (idTokenAssinatura); toda gravação conta como gravação (comGravacao + graph.escrevendo). O hash SHA-256 é sempre calculado no aparelho. */
 const podeContratos = () => ehAdmin() || (!!perm && !ehConvidado() && !!perm.usuarios?.[emailDe()]?.funcoes?.includes("contratos"));   // como o podeTrans: só quem o Gustavo marcar
 const ctBase = () => String(CONFIG.assinaturaUrl || "").trim().replace(/\/+$/, "");
-const QRCODE_LIB = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";   // QR code da verificação (folha de assinaturas), carregado só quando usado
+const QRCODE_LIB = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";   // QR code da verificação (tarja lateral de cada página e folha de assinaturas), carregado só quando usado
 let ctDados = lerLS("vpx_ct", null) || { email: "", agora: "", envs: {} };   // cópia dos envelopes (sem as imagens das assinaturas)
 let ctTela = null, ctModelos = lerLS("vpx_ct_modelos", null), ctEnviando = false, ctTimer = 0, ctVisiveis = [];
 const ctCompleto = {}, ctBytes = {}, ctLinks = {}, ctFalhou = {};   // detalhe com eventos e imagens; PDFs baixados; links dos signatários; finalização que falhou (tenta de novo depois)
@@ -21308,7 +21308,7 @@ async function gerarContratoModeloPDF(n) {
   return new Uint8Array(doc.output("arraybuffer"));
 }
 
-/* ---------- documento final: o original com um rodapé em cada página + folha de assinaturas + registro de eventos (pdf-lib) ---------- */
+/* ---------- documento final: o original + folha de assinaturas + registro de eventos, com a tarja lateral (QR, página, código) em todas as páginas (pdf-lib) ---------- */
 // largura e altura de uma imagem PNG em data URL, lidas do cabeçalho (IHDR) sem decodificar a imagem; null se não for PNG
 function dimImagemCt(url) {
   if (!/^data:image\/png;base64,/.test(url)) return null;
@@ -21333,18 +21333,81 @@ async function montarFinalCt(e, orig, comOriginal = true) {
   const AZUL = cor(28, 60, 97), LAR = cor(235, 157, 43), TINTA = cor(19, 37, 59), CINZA = cor(91, 107, 128), LINHA = cor(215, 222, 230), FUNDO = cor(244, 246, 249), OK = cor(31, 122, 69);
   const T = s => pdfLimpo(s == null ? "" : s);
   const cod = codCt(e.codigo), url = urlVerifDeCt(e);
-  // rodapé na borda de baixo de quem lê: respeita a área visível (CropBox, que pode não começar em 0,0) e a página girada (/Rotate)
-  const rodape = pg => {
+  // tarja lateral em TODAS as páginas (como o carimbo do Autentique; pedido do Gustavo em 25/11/2026): na borda direita de quem lê,
+  // QR code da verificação no canto de baixo e, em pé, "Página X de N" (em destaque, logo acima do QR) e quem assinou, o código e o
+  // endereço de verificação, o SHA-256 do original. Desenhada no "papel de quem lê" (u da esquerda para a direita, v de baixo para cima)
+  // e levada para a página de verdade respeitando a área visível (CropBox, que pode não começar em 0,0) e a página girada (/Rotate).
+  // A página assinada não é diminuída nem alargada (mudaria o que foi assinado): a tarja fica POR CIMA da borda direita. Para continuar
+  // legível sobre faixas e desenhos que vão até a borda, o QR (com a margem branca dele) e cada linha de texto têm um fundo branco do
+  // próprio tamanho — o que o original tiver exatamente ali fica coberto (num PDF de margem estreita, o canto de baixo à direita e
+  // a ponta das linhas à direita). Tudo fica a MARG da borda: as impressoras não imprimem os 4 a 6 mm da beira do papel.
+  // Sem o gerador de QR a via final sairia para sempre sem QR (o hash_final não muda mais): para aqui e tenta de novo depois.
+  if (!window.qrcode) throw erroCt("o gerador de QR code não carregou; tente de novo com internet");
+  const qrImg = await (async () => {
+    try {
+      // nível L: o endereço de produção (66 letras) cabe na versão 4 (33 módulos), módulos maiores; margem branca de 3 módulos no desenho
+      const q = qrcode(0, "L"); q.addData(url); q.make();
+      const n = q.getModuleCount(), px = 6, z = 3, cv = document.createElement("canvas"); cv.width = cv.height = (n + 2 * z) * px;
+      const g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height); g.fillStyle = "#000";
+      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) g.fillRect((k + z) * px, (r + z) * px, px, px);
+      return await doc.embedPng(cv.toDataURL("image/png"));
+    } catch (err) { console.error("QR da tarja:", err); return null; }
+  })();
+  if (!qrImg) throw erroCt("não foi possível desenhar o QR code da verificação; tente de novo");
+  const nomesAss = sigsCt(e).filter(s => s.status === "assinado").map(s => T(s.nome_assinado || s.nome).trim()).filter(Boolean);
+  const MARG = 16;
+  const quem = n => n === nomesAss.length ? nomesAss.join(", ") : nomesAss.slice(0, n).join(", ") + ` e mais ${nomesAss.length - n}`;
+  // o que vem depois de "Página X de N" na 1ª linha, do mais completo ao mais curto
+  const restos = [];
+  for (let n = nomesAss.length; n >= 0; n--) restos.push(T(` · Documento assinado eletronicamente${nomesAss.length ? " por " + (n ? quem(n) : `${nomesAss.length} pessoa${nomesAss.length > 1 ? "s" : ""}`) : ""}`));
+  restos.push(T(" · Assinado eletronicamente"), "");
+  // as outras linhas, da opção preferida à última: o código nunca sai (em página pequena o endereço vai para a linha de baixo)
+  const ln = (t, f = F, k = 1) => ({ t: T(t), f, k });
+  const opcoes = [
+    [ln(`Código ${cod} · Verifique a autenticidade em ${url}`), ln(`SHA-256 do original: ${e.hash_original}`, FM, 0.92)],
+    [ln(`Código ${cod} · Verifique a autenticidade em ${url}`)],
+    [ln(`Código ${cod}`), ln(`Verifique em ${url}`)],
+    [ln(`Código ${cod}`)]
+  ];
+  const largura = (l, s) => l.f.widthOfTextAtSize(l.t, s * l.k);
+  const carimbo = (pg, i, total) => {
     const cb = pg.getCropBox(), ang = (((pg.getRotation().angle || 0) % 360) + 360) % 360, deitada = ang === 90 || ang === 270;
-    const txt = T(`Documento assinado eletronicamente · Código ${cod} · Verifique em ${url}`);
-    let s = 7; while (F.widthOfTextAtSize(txt, s) > (deitada ? cb.height : cb.width) - 24 && s > 4.5) s -= 0.25;
-    const w = F.widthOfTextAtSize(txt, s), m = 8;
-    const [x, y] = ang === 90 ? [cb.x + cb.width - m, cb.y + (cb.height - w) / 2] : ang === 180 ? [cb.x + (cb.width + w) / 2, cb.y + cb.height - m]
-      : ang === 270 ? [cb.x + m, cb.y + (cb.height + w) / 2] : [cb.x + (cb.width - w) / 2, cb.y + m];
-    pg.drawText(txt, { x, y, size: s, font: F, color: CINZA, rotate: degrees(ang) });
+    const Wr = deitada ? cb.height : cb.width, Hr = deitada ? cb.width : cb.height;
+    const P = (u, v) => ang === 90 ? { x: cb.x + cb.width - v, y: cb.y + u } : ang === 180 ? { x: cb.x + cb.width - u, y: cb.y + cb.height - v }
+      : ang === 270 ? { x: cb.x + v, y: cb.y + cb.height - u } : { x: cb.x + u, y: cb.y + v };
+    const branco = (u, v, du, dv) => pg.drawRectangle({ ...P(u, v), width: du, height: dv, color: rgb(1, 1, 1), rotate: degrees(ang) });
+    const pag = { t: T(`Página ${i + 1} de ${total}`), f: FB, k: 1 };
+    // escolhe o QR, as linhas e o maior tamanho de letra (7 a 4,5) em que tudo cabe no comprimento livre acima do QR
+    const q0 = Math.max(36, Math.min(46, Wr * 0.075));
+    const tenta = (q, ops) => {
+      const v0 = MARG + q + 8, L = Hr - v0 - 10;
+      for (const op of ops) for (let s = 7; s >= 4.5; s -= 0.25) {
+        if (largura(pag, s) > L || op.some(l => largura(l, s) > L)) continue;
+        // a 1ª linha não passa de ~60% da altura (nem da linha mais comprida de baixo): os nomes não chegam ao cabeçalho da página
+        const lim = Math.min(L, Math.max(0.6 * L, largura(pag, s), ...op.map(l => largura(l, s))));
+        const r = restos.find(t => largura(pag, s) + F.widthOfTextAtSize(t, s) <= lim) ?? "";
+        return { q, v0, s, resto: r, linhas: op };
+      }
+      return null;
+    };
+    const lay = tenta(q0, opcoes.slice(0, 3)) || tenta(24, opcoes.slice(0, 3)) || tenta(q0, opcoes.slice(3)) || tenta(24, opcoes.slice(3))
+      || { q: 24, v0: MARG + 32, s: 4.5, resto: "", linhas: opcoes[3] };
+    const { q, v0, s, resto, linhas } = lay, lh = s * 1.4;
+    const todas = [{ ...pag, extra: resto }, ...linhas];
+    const ub = todas.map((_, k) => Wr - MARG - 2 - k * lh);     // linhas de base (o texto em pé cresce para a esquerda de quem lê)
+    const comp = todas.map(l => largura(l, s) + (l.extra ? F.widthOfTextAtSize(l.extra, s) : 0));
+    // fundos brancos (antes de todo o texto, para um não cobrir o outro)
+    branco(Wr - MARG - q - 2, MARG - 2, q + 4, q + 4);
+    todas.forEach((l, k) => branco(ub[k] - 0.85 * s * l.k - 1, v0 - 1.5, (0.85 + 0.22) * s * l.k + 2, comp[k] + 3));
+    pg.drawImage(qrImg, { ...P(Wr - MARG - q, MARG), width: q, height: q, rotate: degrees(ang) });
+    const rot = degrees(ang + 90);
+    pg.drawText(pag.t, { ...P(ub[0], v0), size: s, font: FB, color: AZUL, rotate: rot });
+    if (resto) pg.drawText(resto, { ...P(ub[0], v0 + largura(pag, s)), size: s, font: F, color: CINZA, rotate: rot });
+    linhas.forEach((l, k) => pg.drawText(l.t, { ...P(ub[k + 1], v0), size: s * l.k, font: l.f, color: CINZA, rotate: rot }));
+    const ul = ub[ub.length - 1] - s - 2.5;                     // fio laranja ao lado do texto (a "tarja"), só do comprimento dele
+    pg.drawLine({ start: P(ul, v0), end: P(ul, Math.min(Hr - 10, v0 + Math.max(...comp) + 6)), thickness: 0.7, color: LAR });
   };
-  doc.getPages().forEach(rodape);
-  const W = 595.28, H = 841.89, M = 44, BAIXO = 46;
+  const W = 595.28, H = 841.89, M = 44, BAIXO = 46, MD = M + 22;   // MD: margem direita da folha, que deixa a borda para a tarja lateral
   const folhas = []; let pg, y;
   const nova = () => { pg = doc.addPage([W, H]); folhas.push(pg); y = H - M; };
   const quebra = (txt, font, size, maxW) => {
@@ -21365,7 +21428,7 @@ async function montarFinalCt(e, orig, comOriginal = true) {
   };
   const cabe = h => { if (y - h < BAIXO) { nova(); return true; } return false; };
   const escrever = (txt, x, size, op = {}) => {
-    const font = op.font || F, ls = quebra(txt, font, size, op.maxW || W - M - x), lh = size * (op.lh || 1.3);
+    const font = op.font || F, ls = quebra(txt, font, size, op.maxW || W - MD - x), lh = size * (op.lh || 1.3);
     for (const l of ls) { if (!op.semQuebra) cabe(lh); pg.drawText(l, { x, y: y - size, size, font, color: op.color || TINTA }); y -= lh; }
   };
   const qr = (txt, x, y0, tam) => {
@@ -21378,24 +21441,24 @@ async function montarFinalCt(e, orig, comOriginal = true) {
       return true;
     } catch (err) { console.error(err); return false; }
   };
-  const titulo = (t, resto = 40) => { y -= 8; cabe(resto); pg.drawText(T(t), { x: M, y: y - 13, size: 13, font: FB, color: AZUL }); y -= 19; pg.drawLine({ start: { x: M, y }, end: { x: W - M, y }, thickness: 0.8, color: LAR }); y -= 10; };
+  const titulo = (t, resto = 40) => { y -= 8; cabe(resto); pg.drawText(T(t), { x: M, y: y - 13, size: 13, font: FB, color: AZUL }); y -= 19; pg.drawLine({ start: { x: M, y }, end: { x: W - MD, y }, thickness: 0.8, color: LAR }); y -= 10; };
   // folha de assinaturas
   nova();
   let logoH = 0;
   try { const png = await doc.embedPng(new Uint8Array(await (await fetch("logo.png")).arrayBuffer())); logoH = 44; const lw = logoH * png.width / png.height; pg.drawImage(png, { x: M, y: y - logoH, width: lw, height: logoH }); } catch {}
   const tf = "Folha de assinaturas";
-  pg.drawText(tf, { x: W - M - FB.widthOfTextAtSize(tf, 18), y: y - 20, size: 18, font: FB, color: AZUL });
-  const st = T(`Código ${cod}`); pg.drawText(st, { x: W - M - F.widthOfTextAtSize(st, 10), y: y - 36, size: 10, font: F, color: CINZA });
+  pg.drawText(tf, { x: W - MD - FB.widthOfTextAtSize(tf, 18), y: y - 20, size: 18, font: FB, color: AZUL });
+  const st = T(`Código ${cod}`); pg.drawText(st, { x: W - MD - F.widthOfTextAtSize(st, 10), y: y - 36, size: 10, font: F, color: CINZA });
   y -= Math.max(logoH, 40) + 10;
-  pg.drawLine({ start: { x: M, y }, end: { x: W - M, y }, thickness: 1.2, color: LAR }); y -= 16;
+  pg.drawLine({ start: { x: M, y }, end: { x: W - MD, y }, thickness: 1.2, color: LAR }); y -= 16;
   // dados do documento, com o QR code da verificação à direita
-  const tq = 96, xq = W - M - tq, topo = y;
+  const tq = 96, xq = W - MD - tq, topo = y;
   const temQr = qr(url, xq, topo - tq, tq);
   if (temQr) {
     const cap = quebra("Verifique a autenticidade: aponte a câmera ou acesse " + url, F, 7, tq + 6);
     let yc = topo - tq - 12; for (const l of cap) { pg.drawText(l, { x: xq - 3, y: yc, size: 7, font: F, color: CINZA }); yc -= 8.6; }
   }
-  const larg = (temQr ? xq - 16 : W - M) - M;
+  const larg = (temQr ? xq - 16 : W - MD) - M;
   escrever(e.titulo || "Contrato", M, 13, { font: FB, maxW: larg, color: TINTA });
   y -= 2;
   const linhaDado = (rot, val, op = {}) => { if (!val) return; const yy = y; pg.drawText(T(rot), { x: M, y: yy - 9, size: 8.5, font: FB, color: CINZA }); escrever(val, M + 112, op.size || 9, { maxW: larg - 112, font: op.font, color: op.color }); if (y > yy - 13) y = yy - 13; y -= 1.5; };
@@ -21418,11 +21481,11 @@ async function montarFinalCt(e, orig, comOriginal = true) {
       ["IP", s.ip], ["Aparelho", s.aparelho ? String(s.aparelho).slice(0, 180) : ""], ["Local aproximado", s.local],
       ["Localização", (() => { try { const g = typeof s.geo === "string" ? JSON.parse(s.geo) : s.geo; return g?.lat != null ? `${(+g.lat).toFixed(5)}, ${(+g.lon).toFixed(5)}${g.precisao ? ` (precisão de ${Math.round(g.precisao)} m)` : ""}` : ""; } catch { return ""; } })()]
     ].filter(l => l[1]);
-    const xi = M + 172, lw = W - M - xi - 8;
+    const xi = M + 172, lw = W - MD - xi - 8;
     const alt = Math.max(100, 34 + linhas.reduce((h, [, v]) => h + quebra(v, F, 8.3, lw - 78).length * 10.6 + 1.5, 0));
     cabe(alt + 10);
     const y0 = y;
-    pg.drawRectangle({ x: M, y: y0 - alt, width: W - 2 * M, height: alt, color: FUNDO, borderColor: LINHA, borderWidth: 0.8 });
+    pg.drawRectangle({ x: M, y: y0 - alt, width: W - M - MD, height: alt, color: FUNDO, borderColor: LINHA, borderWidth: 0.8 });
     pg.drawRectangle({ x: M, y: y0 - alt, width: 3, height: alt, color: s.status === "assinado" ? OK : CINZA });
     // imagem da assinatura
     const bx = M + 12, bw = 148, bh = 62, by = y0 - 16 - bh;
@@ -21459,7 +21522,7 @@ async function montarFinalCt(e, orig, comOriginal = true) {
   for (const v of evs) {
     const desc = (NOME_EV_CT[v.tipo] || v.tipo) + (v.signatario_id && nomes[v.signatario_id] ? " - " + nomes[v.signatario_id] : "");
     const ex = [v.detalhe, v.ip && "IP " + v.ip, v.local, aparelhoCurtoCt(v.aparelho)].filter(Boolean).join(" · ");
-    const xd = M + 92, ld = W - M - xd;
+    const xd = M + 92, ld = W - MD - xd;
     const hl = quebra(desc, FB, 8.3, ld).length * 10 + (ex ? quebra(ex, F, 7.6, ld).length * 9.4 : 0) + 10;
     cabe(hl + 6);
     const y0 = y;
@@ -21467,13 +21530,14 @@ async function montarFinalCt(e, orig, comOriginal = true) {
     y = y0; escrever(desc, xd, 8.3, { font: FB, maxW: ld, semQuebra: true, lh: 1.2 });
     if (ex) escrever(ex, xd, 7.6, { maxW: ld, color: CINZA, semQuebra: true, lh: 1.24 });
     pg.drawText(String(v.hash || ""), { x: xd, y: y - 6.3, size: 6.3, font: FM, color: CINZA }); y -= 10;
-    pg.drawLine({ start: { x: M, y: y + 2 }, end: { x: W - M, y: y + 2 }, thickness: 0.4, color: LINHA }); y -= 4;
+    pg.drawLine({ start: { x: M, y: y + 2 }, end: { x: W - MD, y: y + 2 }, thickness: 0.4, color: LINHA }); y -= 4;
   }
   folhas.forEach((p, i) => {
-    rodape(p);
     const t = `Folha de assinaturas - página ${i + 1} de ${folhas.length}`;
-    p.drawText(t, { x: W - M - F.widthOfTextAtSize(t, 7), y: 20, size: 7, font: F, color: CINZA });
+    p.drawText(t, { x: M, y: 20, size: 7, font: F, color: CINZA });   // à esquerda: o canto de baixo à direita é do QR da tarja
   });
+  const todas = doc.getPages();
+  todas.forEach((p, i) => carimbo(p, i, todas.length));
   // anexos: a trilha crua (para um perito refazer a conta dos hashes) e o documento original (para conferir o SHA-256 do original)
   const quando = e.concluido_em ? new Date(e.concluido_em) : new Date();
   const trilha = { versao: 2, contrato: e.id, codigo: e.codigo, titulo: e.titulo, hash_original: e.hash_original, base: cadeia.base || "", formula: cadeia.formula || FORMULA_CT,
