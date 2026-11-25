@@ -2296,6 +2296,11 @@ html.duo-col body.hub-on .versao-nova{bottom:calc(16px + env(safe-area-inset-bot
   .df-aba[aria-current="page"]{background:rgba(255,255,255,.14);color:#fff}
 }
 @media (prefers-reduced-transparency:reduce){.df-btn,.df-abas{background:var(--papel);-webkit-backdrop-filter:none;backdrop-filter:none}}
+/* Orçamentos: próximo número sem a planilha de numeração lida (pedido do Gustavo em 24/11/2026) */
+.orc-ult-p.sem-planilha{border-color:var(--linha-cartao,var(--linha))}
+.orc-ult-p.sem-planilha b{color:var(--suave)}
+.orc-ult-b .orc-ult-erro{white-space:normal;color:var(--suave);line-height:1.3}
+.orc-ult-b[hidden]{display:none}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -13168,6 +13173,7 @@ function abrirOrcamentos(busca = "") {
   document.body.style.overflow = "hidden";
   history.pushState({ orc: true }, "");            // o "voltar" do celular fecha a tela
   desenharOrc();
+  if (navigator.onLine && conta) atualizarNumeracaoOrc().then(() => { if (!$("tela-orc").hidden) desenharOrc(); });   // último e próximo número pela planilha de numeração
   if (!orc || Date.now() - orc.quando > 10 * 60000) atualizarOrc();
   else if (navigator.onLine && conta) lerIndiceOrc().then(() => { if (!$("tela-orc").hidden) { desenharOrc(); lerPdfsOrc(); } });
 }
@@ -13232,6 +13238,183 @@ function compOrc(a, b) {
   if (orcOrdem.desc) r = -r;
   return r || dataOrc(b).localeCompare(dataOrc(a)) || (COLS_ORC.num(b) || 0) - (COLS_ORC.num(a) || 0);
 }
+/* NUMERAÇÃO DOS ORÇAMENTOS (pedido do Gustavo em 24/11/2026): o número de todo orçamento novo sai da planilha
+   "06 - Comercial › 05 - Acompanhamento › Controle de Numeração de Orçamentos.xlsx", aba REGISTRO (uma linha por número: Nº, Ano, Data, Cliente,
+   Serviço / descrição, Valor (R$), Responsável, Origem do registro, Observação). Próximo = maior Nº da REGISTRO + 1 (a aba CONTADOR mostra o mesmo
+   com fórmulas). Reservar = ler a planilha, acrescentar a linha no fim da REGISTRO e só então usar o número; nunca reutilizar número.
+   Lida e gravada pela parte do Excel da Graph (workbook), numa sessão, sem baixar nem regravar o arquivo (formatação e fórmulas ficam como estão;
+   a mesma permissão Files.ReadWrite.All de sempre). Quem não é o Gustavo precisa da planilha compartilhada com edição. */
+const NUM_ORC_CAMINHO = "VPX Engenharia - AVCB/06 - Comercial/05 - Acompanhamento/Controle de Numeração de Orçamentos.xlsx";
+const NUM_ORC_ABA = "REGISTRO";
+let numeracaoOrc = lerLS("vpx_num_orc", null);   // { max, ult: { num, ano, data, cliente, servico, resp }, quando } — última leitura da planilha
+let numeracaoOrcErro = "";                         // por que a última leitura falhou (aparece na caixa "Próximo número")
+function erroNumOrc(e) {
+  if (e?.semAcesso || e?.numOrc) return e;
+  const x = e?.status === 423 || e?.status === 409 || /lock|conflict/i.test(e?.message || "")   // a Graph responde 409 (accessConflict) com o arquivo aberto no Excel do computador
+    ? new Error("A planilha de numeração está aberta e travada no Excel de alguém. Feche o arquivo (ou abra pelo Excel Online) e tente de novo.")
+    : e?.status === 403 || e?.status === 404
+      ? new Error("Sem acesso à planilha de numeração dos orçamentos (Comercial › Acompanhamento). Peça ao Gustavo para compartilhar com você, com edição.")
+      : e instanceof Error ? e : new Error(String(e));
+  x.numOrc = true; if (e?.status === 403 || e?.status === 404) x.semAcesso = true;
+  return x;
+}
+async function arqNumeracaoOrc() {
+  if (arqNumeracaoOrc.id) return arqNumeracaoOrc.id;
+  let id = null;
+  try { id = (await graph(`/drives/${CONFIG.driveId}/root:/${encPath(NUM_ORC_CAMINHO)}`)).id; }
+  catch (e) { if (e.status !== 403 && e.status !== 404) throw e; }
+  if (!id) {                                       // compartilhada direto com a pessoa: acha em "Compartilhados comigo"
+    const nome = NUM_ORC_CAMINHO.split("/").pop();
+    try { id = (await graph("/me/drive/sharedWithMe")).value.find(i => i.name === nome && i.remoteItem?.parentReference?.driveId === CONFIG.driveId)?.remoteItem?.id || null; } catch {}
+  }
+  if (!id) { const e = new Error("sem acesso"); e.status = 404; throw e; }
+  return arqNumeracaoOrc.id = id;
+}
+// colunas da aba REGISTRO, achadas pelo título (a ordem pode mudar)
+const COLS_NUM_ORC = { num: /^(n[ºo°.]?|numero)$/, ano: /^ano$/, data: /^data$/, cliente: /^cliente/, servico: /^servi/, valor: /^valor/, resp: /^respons/, origem: /^origem/, obs: /^observ/ };
+const letraCol = n => { let s = ""; n++; while (n) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };   // 0 → A
+const indiceCol = s => [...s].reduce((t, c) => t * 26 + c.charCodeAt(0) - 64, 0) - 1;   // A → 0
+const serialData = iso => { const [a, m, d] = iso.split("-").map(Number); return Math.round((Date.UTC(a, m - 1, d) - Date.UTC(1899, 11, 30)) / 864e5); };
+const dataDeSerial = v => typeof v === "number" && v > 20000 ? new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 864e5).toISOString().slice(0, 10)
+  : typeof v === "string" && /^\d{4}-\d\d-\d\d/.test(v) ? v.slice(0, 10) : "";
+// Nº da célula: número, ou o 1º grupo de dígitos de um texto digitado à mão ("1167/2026", "1154 RV01" → 1167, 1154; antes "1167/2026" virava 11672026
+// e estragava o próximo número de todos — revisão de 24/11/2026); fora de 1 a 999999 não conta
+const numDaCelula = v => { const n = typeof v === "number" ? Math.floor(v) : parseInt((/^\D*(\d{1,6})(?!\d)/.exec(String(v ?? "")) || [])[1] || "", 10) || 0; return n > 0 && n < 1e6 ? n : 0; };
+// lê a aba REGISTRO: maior número, o registro dele (número repetido: a linha mais de baixo), a última linha usada e as colunas
+async function lerRegistroNumOrc(id, sessao) {
+  const r = await graph(`/drives/${CONFIG.driveId}/items/${id}/workbook/worksheets('${NUM_ORC_ABA}')/usedRange(valuesOnly=true)?$select=address,values`,
+    sessao ? { headers: { "workbook-session-id": sessao } } : {});
+  const m = /\$?([A-Z]+)\$?(\d+)(?::\$?([A-Z]+)\$?(\d+))?$/.exec(r?.address || "");
+  const vals = r?.values || [];
+  if (!m || !vals.length) { const e = new Error("A aba REGISTRO da planilha de numeração está vazia."); e.numOrc = true; throw e; }
+  const col0 = indiceCol(m[1]), lin0 = +m[2];
+  const cab = vals[0].map(v => semAcento(String(v ?? "")).trim());
+  const pos = {};
+  for (const [k, re] of Object.entries(COLS_NUM_ORC)) { const i = cab.findIndex(c => re.test(c)); if (i >= 0) pos[k] = i; }
+  if (pos.num == null) { const e = new Error('Não achei a coluna "Nº" na aba REGISTRO da planilha de numeração.'); e.numOrc = true; throw e; }
+  let max = 0, ult = null, fim = lin0;
+  vals.forEach((l, i) => {
+    if (i === 0) return;
+    if (l.some(v => v !== "" && v != null)) fim = lin0 + i;
+    const n = numDaCelula(l[pos.num]);
+    if (n && n >= max) {
+      max = n;
+      const tx = k => pos[k] == null ? "" : String(l[pos[k]] ?? "").trim();
+      ult = { num: n, ano: numDaCelula(l[pos.ano]) || "", data: pos.data == null ? "" : dataDeSerial(l[pos.data]), cliente: tx("cliente"), servico: tx("servico"), resp: tx("resp"), linha: lin0 + i };
+    }
+  });
+  return { max, ult, fim, col0, lin0, larg: cab.length, pos, vals };
+}
+// lê a planilha e guarda no aparelho (caixas da tela de Orçamentos)
+async function atualizarNumeracaoOrc() {
+  if (!navigator.onLine || !conta) return numeracaoOrc;
+  const t0 = Date.now();
+  try {
+    const r = await lerRegistroNumOrc(await arqNumeracaoOrc());
+    if ((numeracaoOrc?.quando || 0) > t0) return numeracaoOrc;   // uma reserva terminou durante esta leitura: a dela é mais nova
+    numeracaoOrc = { max: r.max, ult: r.ult, quando: Date.now() };
+    gravarLS("vpx_num_orc", numeracaoOrc);
+    numeracaoOrcErro = "";
+  } catch (e) { numeracaoOrcErro = erroNumOrc(e).message; }
+  return numeracaoOrc;
+}
+/* reserva o próximo número: numa sessão do Excel, lê a REGISTRO, grava a linha nova logo depois da última usada e confere DUAS vezes
+   (logo depois e 2,5 s depois). Cada tentativa leva uma marca própria no fim da "Origem do registro" (ex.: "Aplicativo VPX (Orçamentos) · k3f9"),
+   para reconhecer a própria linha mesmo com a mesma pessoa em dois aparelhos. Duas pessoas reservando ao mesmo tempo: se a nossa linha foi escrita
+   por cima pela outra (a gravação no Excel não tem trava), ela some da 2ª conferência e o app tenta de novo mais embaixo; se as duas pegaram o mesmo
+   número em linhas diferentes, fica com ele quem está na linha de cima e a outra apaga a sua linha (só se ainda tiver a sua marca) e tenta o seguinte.
+   Revisão de 24/11/2026: antes havia uma conferência só, e quem gravava por último, logo depois, ficava com o mesmo número de quem já tinha saído. */
+let ESPERA_CONF_NUM_ORC = 2500;   // os testes encurtam
+async function reservarNumeroOrc({ cliente, servico = "", valor = null, origem = "Aplicativo VPX", obs = "" }) {
+  if (!navigator.onLine) { const e = new Error("Para reservar o número do orçamento, conecte o aparelho à internet."); e.numOrc = true; throw e; }
+  return comGravacao(async () => {
+    let sessao = null, base = "";
+    try {
+      const id = await arqNumeracaoOrc();
+      base = `/drives/${CONFIG.driveId}/items/${id}/workbook`;
+      sessao = (await graph(base + "/createSession", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ persistChanges: true }) }))?.id || null;
+      const h = { "Content-Type": "application/json", ...(sessao ? { "workbook-session-id": sessao } : {}) };
+      const hoje = dataISO(), resp = nomeColaborador(), ano = new Date().getFullYear();
+      const gravarLinha = (r, linha, valores, fmt) => graph(`${base}/worksheets('${NUM_ORC_ABA}')/range(address='${letraCol(r.col0)}${linha}:${letraCol(r.col0 + r.larg - 1)}${linha}')`,
+        { method: "PATCH", headers: h, body: JSON.stringify(fmt ? { values: [valores], numberFormat: [fmt] } : { values: [valores] }) });
+      for (let tent = 0; tent < 5; tent++) {
+        const r = await lerRegistroNumOrc(id, sessao);
+        const num = r.max + 1, linha = r.fim + 1, pos = r.pos;
+        const marca = [...crypto.getRandomValues(new Uint8Array(3))].map(b => b.toString(36).padStart(2, "0")).join("").slice(0, 5);
+        const kMarca = pos.origem != null ? "origem" : pos.obs != null ? "obs" : null;   // onde vai a marca
+        const valores = Array(r.larg).fill(""), fmt = Array(r.larg).fill("General");
+        const por = (k, v, f) => { if (pos[k] != null) { valores[pos[k]] = v; fmt[pos[k]] = f; } };
+        por("num", num, "0"); por("ano", ano, "0"); por("data", serialData(hoje), "dd/mm/yyyy");
+        por("cliente", cliente, "@"); por("servico", servico || cliente, "@");
+        if (valor != null && valor !== "") por("valor", Number(valor), "#,##0.00");
+        por("resp", resp, "@"); por("origem", origem, "@"); por("obs", obs, "@");
+        if (kMarca) valores[pos[kMarca]] = [valores[pos[kMarca]], marca].filter(Boolean).join(" · ");
+        await gravarLinha(r, linha, valores, fmt);
+        // a nossa linha: o número e a marca (sem coluna para a marca, o responsável); procura em toda a aba (alguém pode ter inserido linhas)
+        const acharMinha = c => {
+          const i = c.vals.findIndex((l, j) => j > 0 && numDaCelula(l[pos.num]) === num
+            && (kMarca ? String(l[pos[kMarca]] ?? "").endsWith(marca) : pos.resp == null || String(l[pos.resp] ?? "") === resp));
+          return i > 0 ? c.lin0 + i : 0;
+        };
+        // "minha" = a linha é nossa e é a de cima entre as que têm este número; "perdeu" = outra linha de cima ficou com ele; "sumiu" = escrita por cima
+        const conferir = async () => {
+          let c;
+          try { c = await lerRegistroNumOrc(id, sessao); }
+          catch { await espera(2000); c = await lerRegistroNumOrc(id); }   // a leitura falhou: tenta uma vez sem a sessão
+          const minha = acharMinha(c);
+          if (!minha) return { est: "sumiu", c };
+          const linhasDoNum = c.vals.map((l, i) => i > 0 && numDaCelula(l[pos.num]) === num ? c.lin0 + i : 0).filter(Boolean);
+          return { est: Math.min(...linhasDoNum) === minha ? "minha" : "perdeu", c, minha };
+        };
+        let v = await conferir();
+        if (v.est === "minha") { await espera(ESPERA_CONF_NUM_ORC); v = await conferir(); }   // quem grava por cima logo depois aparece aqui
+        if (v.est === "minha") {
+          numeracaoOrc = { max: Math.max(v.c.max, num), ult: { num, ano, data: hoje, cliente, servico: servico || cliente, resp, linha: v.minha }, quando: Date.now() };
+          gravarLS("vpx_num_orc", numeracaoOrc); numeracaoOrcErro = "";
+          return { num, ano, texto: num + "/" + ano };
+        }
+        if (v.est === "perdeu") await gravarLinha(v.c, v.minha, Array(v.c.larg).fill(""));   // o número ficou com a linha de cima: apaga a nossa (com a nossa marca)
+      }
+      const e = new Error("Não consegui reservar o número: a planilha estava sendo mudada por outras pessoas ao mesmo tempo. Tente de novo."); e.numOrc = true; throw e;
+    } catch (e) { throw erroNumOrc(e); }
+    finally { if (sessao) graph(base + "/closeSession", { method: "POST", headers: { "workbook-session-id": sessao } }).catch(() => {}); }
+  });
+}
+// janela "Reservar o próximo número": cliente e serviço (com sugestões dos clientes), reserva, mostra o número e copia
+async function reservarNumeroOrcUI(op = {}) {
+  if (reservarNumeroOrcUI.rodando) { aviso("Já estou reservando um número…"); return null; }
+  if (!navigator.onLine) { aviso("Para reservar o número do orçamento, conecte o aparelho à internet.", true); return null; }
+  const prox = numeracaoOrc ? `O próximo deve ser o nº ${numeracaoOrc.max + 1}/${new Date().getFullYear()} (confiro na planilha na hora de reservar). ` : "";
+  const p = perguntar({ titulo: "Reservar o próximo número de orçamento",
+    texto: prox + "O número fica registrado na planilha de numeração (Comercial › Acompanhamento) com o seu nome, antes de você montar o orçamento.",
+    campos: [{ id: "cliente", rotulo: "Cliente", tipo: "texto", valor: op.cliente || "", max: 120 }, { id: "servico", rotulo: "Serviço / descrição", tipo: "texto", valor: op.servico || "", max: 160, dica: "Ex.: AVCB, PSCIP, recarga de extintores" }],
+    sim: "Reservar", nao: "Cancelar" });
+  let dl = $("num-orc-clis");                       // sugestões no campo Cliente
+  if (!dl) { dl = document.createElement("datalist"); dl.id = "num-orc-clis"; document.body.appendChild(dl); }
+  dl.replaceChildren(...todosClientes().map(c => { const o = document.createElement("option"); o.value = c; return o; }));
+  $("perg-campos").querySelector('[data-id="cliente"]')?.setAttribute("list", "num-orc-clis");
+  const r = await p;
+  if (!r) return null;
+  const cliente = String(r.campos?.cliente || "").trim(), servico = String(r.campos?.servico || "").trim();
+  if (!cliente) { aviso("Escreva o cliente para reservar o número.", true); return null; }
+  reservarNumeroOrcUI.rodando = true;
+  aviso("Reservando o número na planilha…");
+  try {
+    const x = await reservarNumeroOrc({ cliente, servico, origem: op.origem || "Aplicativo VPX" });
+    if (!$("tela-orc").hidden) desenharOrc();
+    if (op.aoReservar) op.aoReservar(x);
+    // "Copiar o número": a cópia é feita no próprio toque (o iPhone só deixa copiar dentro do toque); o ouvinte sai quando a janela fecha
+    const copiar = () => navigator.clipboard.writeText(x.texto).then(() => aviso("Copiado: " + x.texto), () => aviso("O número reservado é o " + x.texto));
+    const p2 = perguntar({ titulo: "Nº " + x.texto + " reservado",
+      texto: `Registrado na planilha de numeração para ${cliente}, em seu nome. Use este número no orçamento novo (VPX ENGENHARIA-ORÇ-<TIPO>-${x.num}_${x.ano}-<CLIENTE>).`,
+      sim: "Copiar o número", nao: "Fechar" });
+    $("perg-sim").addEventListener("click", copiar, { once: true });
+    await p2;
+    $("perg-sim").removeEventListener("click", copiar);
+    return x;
+  } catch (e) { aviso(erroNumOrc(e).message, true); return null; }
+  finally { reservarNumeroOrcUI.rodando = false; }
+}
 /* último orçamento gerado e o próximo número (pedido do Gustavo em 13/11/2026: "para toda vez que fizer um novo, dar sequência ao número"):
    o maior número entre todos os orçamentos da lista (o lido de dentro do PDF, senão o do nome; a numeração segue de um ano para o outro);
    empate (número repetido): o mais novo. O próximo é esse + 1, com o ano atual. */
@@ -13239,20 +13422,42 @@ function ultimoOrc(todos) {
   const n = o => Number(pdfOrc(o)?.num || o.num) || 0;
   return todos.filter(o => (o.ext === "pdf" || o.soPlan) && n(o)).sort((a, b) => n(b) - n(a) || dataOrc(b).localeCompare(dataOrc(a)))[0] || null;
 }
+// desde 24/11/2026 as duas caixas vêm da planilha de numeração (o último registrado e o próximo, que se reserva com um toque);
+// sem a planilha lida neste aparelho, a caixa do último usa a lista dos PDFs, como antes, e a do próximo diz por que não leu
 function desenharUltimoOrc(todos) {
-  const w = $("orc-ultimo"), u = ultimoOrc(todos);
-  w.hidden = !u; w.innerHTML = "";
-  if (!u) return;
-  const d = dataOrc(u), prox = (Number(pdfOrc(u)?.num || u.num) + 1) + "/" + new Date().getFullYear();
-  const a = el("button", "orc-ult-b orc-ult-a"); a.type = "button"; a.title = "Abrir o último orçamento";
-  a.append(el("small", "", "Último orçamento"), el("b", "", "Nº " + numOrc(u)), el("span", "", [u.cli, d && dataBRde(d)].filter(Boolean).join(" · ")));
-  a.onclick = () => abrirArqOrc(u);
-  const p = el("button", "orc-ult-b orc-ult-p"); p.type = "button"; p.title = "Copiar o próximo número";
-  p.append(el("small", "", "Próximo número"), el("b", "", prox), el("span", "", "Toque para copiar"));
-  p.onclick = async () => {
-    try { await navigator.clipboard.writeText(prox); aviso("Copiado: " + prox); }
-    catch { aviso("O próximo orçamento é o nº " + prox); }
-  };
+  const w = $("orc-ultimo"); w.innerHTML = "";
+  const n = numeracaoOrc, ano = new Date().getFullYear(), uPdf = n ? null : ultimoOrc(todos);
+  w.hidden = !n && !uPdf && !numeracaoOrcErro;
+  if (w.hidden) return;
+  const a = el("button", "orc-ult-b orc-ult-a"); a.type = "button";
+  if (n?.ult) {
+    const u = n.ult, pdf = orcDoNumero(u.num + (u.ano ? "/" + u.ano : ""), u.cliente);
+    a.title = pdf ? "Abrir o último orçamento" : "Último número registrado na planilha de numeração";
+    a.append(el("small", "", "Último orçamento"), el("b", "", "Nº " + u.num + (u.ano ? "/" + u.ano : "")),
+      el("span", "", [u.cliente, u.data && dataBRde(u.data), u.resp && primeiroNome(u.resp)].filter(Boolean).join(" · ")));
+    a.onclick = () => pdf ? abrirArqOrc(pdf) : aviso(`O PDF do orçamento nº ${u.num} ainda não está na pasta 02 - Orçamento do cliente.`);
+  } else if (uPdf) {
+    const d = dataOrc(uPdf);
+    a.title = "Abrir o último orçamento (pela lista dos PDFs)";
+    a.append(el("small", "", "Último orçamento (pelos PDFs)"), el("b", "", "Nº " + numOrc(uPdf)), el("span", "", [uPdf.cli, d && dataBRde(d)].filter(Boolean).join(" · ")));
+    a.onclick = () => abrirArqOrc(uPdf);
+  } else a.hidden = true;
+  const p = el("button", "orc-ult-b orc-ult-p"); p.type = "button";
+  if (n) {
+    // leitura de agora (até 5 min e sem erro): número em laranja; senão a cópia do aparelho aparece em cinza, com a hora em que foi lida
+    // (para ninguém usar um número velho sem reservar — a reserva sempre lê a planilha de novo)
+    const fresca = Date.now() - (n.quando || 0) < 5 * 60000 && !numeracaoOrcErro;
+    const quando = new Date(n.quando || 0).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    p.title = "Reservar o próximo número na planilha de numeração";
+    if (!fresca) p.classList.add("sem-planilha");
+    p.append(el("small", "", "Próximo número"), el("b", "", (n.max + 1) + "/" + ano),
+      el("span", fresca ? "" : "orc-ult-erro", fresca ? "Toque para reservar" : (numeracaoOrcErro ? numeracaoOrcErro + " " : "") + `Lido em ${quando}. Toque para reservar (confiro na planilha).`));
+    p.onclick = () => reservarNumeroOrcUI({ origem: "Aplicativo VPX (Orçamentos)" });
+  } else {
+    p.classList.add("sem-planilha"); p.title = numeracaoOrcErro || "Lendo a planilha de numeração…";
+    p.append(el("small", "", "Próximo número"), el("b", "", "—"), el("span", "orc-ult-erro", numeracaoOrcErro || (navigator.onLine ? "Lendo a planilha de numeração…" : "Sem internet: a planilha de numeração não foi lida")));
+    p.onclick = () => { if (!navigator.onLine) { aviso("Sem internet.", true); return; } atualizarNumeracaoOrc().then(() => { if (!$("tela-orc").hidden) desenharOrc(); if (numeracaoOrcErro) aviso(numeracaoOrcErro, true); }); };
+  }
   w.append(a, p);
 }
 function desenharOrc() {
@@ -17965,10 +18170,15 @@ function escolherOrcFu(o, alvo) {
     grupo("Orçamentos de " + o.cliente, doCli.slice(0, 12));
     grupo(doCli.length ? "Outros orçamentos recentes" : "Orçamentos mais recentes", todos.filter(x => !doCli.includes(x)).slice(0, 20));
   }
-  ops.push([null, "Outro", "menu-tit"], ["digitar", "Digitar o número…"]);
+  ops.push([null, "Outro", "menu-tit"], ["reservar", "Reservar um número novo…"], ["digitar", "Digitar o número…"]);
   if (o.orc) ops.push(["tirar", "Tirar o orçamento"]);
   menuOpcoes(alvo, ops, "x:" + (orcDoNumero(o.orc, o.cliente)?.id || ""), async v => {
     if (v === "tirar") { mudarReg(colFu, o.id, r => { r.orc = ""; }, "Tirou o orçamento"); return; }
+    if (v === "reservar") {                        // número novo da planilha de numeração, já ligado a esta oportunidade
+      await reservarNumeroOrcUI({ cliente: o.cliente || String(o.nome || "").split(/\s+-\s+/)[0].trim(), servico: o.nome || "", origem: "Aplicativo VPX (Comercial)",
+        aoReservar: x => mudarReg(colFu, o.id, r => { r.orc = x.texto; }, "Orçamento: " + x.texto + " (número reservado na planilha de numeração)") });
+      return;
+    }
     if (v === "digitar") {
       const r = await perguntar({ titulo: "Número do orçamento", campos: [{ id: "n", rotulo: "Número (ex.: 1154 ou 1154/2026)", tipo: "texto", valor: o.orc || "" }], sim: "Ligar", nao: "Cancelar" });
       const t = String(r?.campos?.n || "").trim();
