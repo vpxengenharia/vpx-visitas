@@ -87,8 +87,12 @@ async function cspDe(html) {
   cspCache.set(html, csp);
   return csp;
 }
-const pagina = async html => new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Content-Security-Policy": await cspDe(html), "Referrer-Policy": "no-referrer",
-  "X-Content-Type-Options": "nosniff", "Cache-Control": "no-cache" } });
+// A página sai sempre com quebras de linha LF: o navegador troca CRLF por LF antes de calcular o SHA-256 do script, e uma cópia
+// do arquivo com CRLF (o git do Windows faz isso ao baixar) dava um hash diferente — a CSP bloqueava o script e a página ficava
+// em "Carregando o documento…" (aconteceu na publicação de 25/11/2026).
+const lf = s => String(s).replace(/\r\n?/g, "\n");
+const pagina = async html0 => { const html = lf(html0); return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Content-Security-Policy": await cspDe(html), "Referrer-Policy": "no-referrer",
+  "X-Content-Type-Options": "nosniff", "Cache-Control": "no-cache" } }); };
 
 /* ---------- banco ---------- */
 let bancoPronto = false;

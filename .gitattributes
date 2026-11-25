@@ -1,0 +1,3 @@
+assinatura/src/*.html text eol=lf
+assinatura/src/*.js text eol=lf
+assinatura/schema.sql text eol=lf
