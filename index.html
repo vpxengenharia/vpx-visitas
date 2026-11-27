@@ -2416,6 +2416,16 @@ html.duo-col body.hub-on .versao-nova{bottom:calc(16px + env(safe-area-inset-bot
   .ct-mods{grid-template-columns:1fr 1fr}
   .ct-sig-l:hover,.ct-opcao:hover,.ct-fu-l:hover{border-color:var(--suave)}
 }
+/* ---------- Agenda: convidar pelo nome (pedido do Gustavo em 27/11/2026) — lista de sugestões embaixo do campo ---------- */
+.ag-form .ag-conv-busca{position:relative;flex-wrap:wrap}
+.ag-sug{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;display:flex;flex-direction:column;max-height:min(330px,46vh);overflow-y:auto;overscroll-behavior:contain;padding:4px;border:1px solid var(--linha-cartao);border-radius:var(--r-m);background:var(--papel);box-shadow:0 10px 28px rgba(19,37,59,.18)}
+.ag-sug[hidden]{display:none}
+.ag-sug-it{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 10px;border:0;border-radius:10px;background:none;color:var(--tinta);font:inherit;text-align:left;cursor:pointer}
+.ag-sug-it .tx{display:flex;flex-direction:column;min-width:0;flex:1}
+.ag-sug-it .tx b{font-size:16px;color:var(--tinta);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-sug-it .tx small{font-size:13px;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-sug-it.marcada,.ag-sug-it:hover{background:rgba(127,127,127,.12)}
+.ag-sug-tag{flex:none;padding:2px 8px;border-radius:999px;background:rgba(127,127,127,.14);color:var(--suave);font-size:12px;font-weight:600}
 </style>
 <script id="tema-app">
 /* Modo noturno / modo dia escolhido no app (pedido do Gustavo em 11/11/2026). O modo escuro do app é todo feito com
@@ -12613,6 +12623,7 @@ async function abrirFormAgenda(e, rascunho, base) {
   desenharFormAgenda();
   $("agenda-corpo").scrollTop = 0;
   if (!lerLS("vpx_usuarios_app", []).length) carregarUsuariosApp().then(l => { if (l.length && agForm) desenharFormAgenda(); });
+  const dir = lerLS("vpx_dir_vpx", null); if (!dir || Date.now() - dir.quando > 864e5) carregarDiretorioVPX();   // quem é da VPX, para convidar pelo nome
 }
 function fecharFormAgenda(voltar = true) {
   if (!agForm) return;
@@ -12624,6 +12635,51 @@ function fecharFormAgenda(voltar = true) {
   if (voltar && history.state?.agform) { agVoltando = true; history.back(); }
 }
 
+// quem dá para convidar pelo nome: quem usa o app (VPX e equipe de campo), quem é da VPX no Microsoft 365 (lido da Graph com a
+// permissão User.Read.All, que já tem o consentimento do administrador; sem ela, fica de fora sem avisar) e quem já foi convidado
+// nos compromissos que o aparelho conhece (clientes, síndicos…). Um e-mail só aparece uma vez, com o nome mais completo.
+function pessoasConvite() {
+  const m = new Map(), eu = emailDe();
+  const por = (email, nome, tag, peso) => {
+    email = String(email || "").trim().toLowerCase(); nome = String(nome || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email === eu) return;
+    const v = m.get(email);
+    if (!v || peso > v.peso) m.set(email, { email, nome: nome || v?.nome || "", tag, peso });
+    else if (!v.nome && nome) v.nome = nome;
+  };
+  for (const e of eventosConhecidos()) for (const c of e.conv || []) por(c.email, c.nome, "Já convidado", 1);
+  for (const u of lerLS("vpx_dir_vpx", null)?.lista || []) por(u.email, u.nome, "VPX", 2);
+  for (const p of pessoasEquipe()) por(p.email, p.nome, emailEquipeCampo(p.email) ? "Equipe de campo" : "Usa o app", 3);
+  return [...m.values()];
+}
+// sugestões para o que foi digitado: cada palavra digitada tem de começar uma palavra do nome ou do e-mail (sem acento);
+// primeiro quem usa o app, depois a VPX, depois quem já foi convidado; os que já estão no compromisso ficam de fora
+function sugerirConvidados(txt, jaTem = []) {
+  const termos = semAcento(String(txt || "").trim().toLowerCase()).split(/[\s@._-]+/).filter(Boolean);
+  if (!termos.length) return [];
+  return pessoasConvite().filter(p => !jaTem.includes(p.email)).filter(p => {
+    const palavras = semAcento(`${p.nome} ${p.email}`.toLowerCase()).split(/[\s@._-]+/).filter(Boolean);
+    return termos.every(t => palavras.some(w => w.startsWith(t)));
+  }).sort((a, b) => b.peso - a.peso || (a.nome || a.email).localeCompare(b.nome || b.email, "pt-BR")).slice(0, 6);
+}
+async function carregarDiretorioVPX() {
+  if (!conta || ehConvidado() || !navigator.onLine || carregarDiretorioVPX.em) return;
+  carregarDiretorioVPX.em = true;
+  try {
+    const tk = (await msalApp.acquireTokenSilent({ scopes: ESCOPOS_USUARIOS, account: conta })).accessToken;
+    let url = GRAPH + "/users?$filter=" + encodeURIComponent("userType eq 'Member' and accountEnabled eq true") + "&$select=displayName,mail,userPrincipalName&$count=true&$top=999";
+    const lista = [];
+    while (url) {
+      const r = await fetch(url, { headers: { Authorization: "Bearer " + tk, ConsistencyLevel: "eventual" } });
+      if (!r.ok) throw new Error("Erro " + r.status);
+      const j = await r.json();
+      for (const u of j.value) { const email = (u.mail || "").toLowerCase(); if (email) lista.push({ email, nome: u.displayName || "" }); }   // sem caixa de e-mail (salas, contas de serviço) não entra
+      url = j["@odata.nextLink"];
+    }
+    gravarLS("vpx_dir_vpx", { quando: Date.now(), lista });
+  } catch (e) { console.warn("diretório da VPX:", e.message || e); gravarLS("vpx_dir_vpx", { quando: Date.now() - 864e5 + 36e5, lista: lerLS("vpx_dir_vpx", null)?.lista || [] }); }   // sem a permissão: tenta de novo em 1 h
+  finally { carregarDiretorioVPX.em = false; }
+}
 function desenharFormAgenda() {
   const f = agForm, c = $("agenda-form");
   c.innerHTML = "";
@@ -12690,17 +12746,56 @@ function desenharFormAgenda() {
   });
   if (!ch.children.length) ch.appendChild(el("small", "laudo-dica", navigator.onLine ? "Carregando a equipe…" : "Digite o e-mail de quem convidar."));
   wc.appendChild(ch);
-  const mais = el("div", "ag-mais"); mais.style.marginTop = "8px";
-  const im = document.createElement("input"); im.type = "email"; im.placeholder = "Outro e-mail"; im.autocomplete = "off"; im.setAttribute("aria-label", "Outro e-mail para convidar");
+  // convidar pelo nome (pedido do Gustavo em 27/11/2026: "às vezes o e-mail eu não vou saber de cabeça, mas o nome da pessoa eu sei"):
+  // ao digitar, o app sugere quem usa o app (VPX e equipe de campo), quem é da VPX no Microsoft 365 e quem já foi convidado antes
+  const mais = el("div", "ag-mais ag-conv-busca"); mais.style.marginTop = "8px";
+  const im = document.createElement("input"); im.type = "text"; im.id = "ag-conv-in"; im.placeholder = "Nome ou e-mail"; im.autocomplete = "off"; im.spellcheck = false;
+  im.setAttribute("aria-label", "Convidar: escreva o nome ou o e-mail"); im.setAttribute("role", "combobox"); im.setAttribute("aria-autocomplete", "list"); im.setAttribute("aria-expanded", "false");
   const ba = el("button", "btn sec", "Adicionar"); ba.type = "button";
-  ba.onclick = () => {
-    const em = im.value.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { aviso("Digite um e-mail válido.", true); return; }
-    if (!tem(em)) f.conv.push({ nome: "", email: em });
+  const sug = el("div", "ag-sug"); sug.id = "ag-sug"; sug.setAttribute("role", "listbox"); sug.hidden = true;
+  let marcada = 0, achados = [];
+  const adicionarConv = p => {
+    if (!tem(p.email)) f.conv.push({ nome: p.nome || "", email: p.email });
     desenharFormAgenda();
+    const novo = $("ag-conv-in"); if (novo) { novo.focus({ preventScroll: true }); novo.scrollIntoView({ block: "nearest" }); }   // continua convidando
   };
-  im.onkeydown = ev => { if (ev.key === "Enter") { ev.preventDefault(); ba.click(); } };
-  mais.append(im, ba); wc.appendChild(mais); c.appendChild(wc);
+  const pintarSug = () => {
+    achados = sugerirConvidados(im.value, f.conv.map(x => x.email));
+    sug.innerHTML = "";
+    sug.hidden = !achados.length || !im.value.trim();
+    im.setAttribute("aria-expanded", String(!sug.hidden));
+    if (marcada >= achados.length) marcada = 0;
+    achados.forEach((p, i) => {
+      const b = el("button", "ag-sug-it" + (i === marcada ? " marcada" : "")); b.type = "button"; b.setAttribute("role", "option"); b.setAttribute("aria-selected", String(i === marcada));
+      const tx = el("span", "tx"); tx.append(el("b", "", p.nome || p.email), el("small", "", p.nome ? p.email : ""));
+      b.append(tx, el("span", "ag-sug-tag", p.tag));
+      b.onpointerdown = ev => ev.preventDefault();   // não tira o foco do campo
+      b.onclick = () => adicionarConv(p);
+      sug.appendChild(b);
+    });
+  };
+  im.oninput = () => { marcada = 0; pintarSug(); };
+  im.onfocus = () => { if (!lerLS("vpx_dir_vpx", null) || Date.now() - lerLS("vpx_dir_vpx", null).quando > 864e5) carregarDiretorioVPX().then(() => { if (document.activeElement === im) pintarSug(); }); };
+  im.onblur = () => setTimeout(() => { sug.hidden = true; im.setAttribute("aria-expanded", "false"); }, 150);
+  ba.onclick = () => {
+    const txt = im.value.trim(), em = txt.toLowerCase();
+    if (!txt) { im.focus(); return; }
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {   // e-mail escrito inteiro: usa o nome de quem o app conhece
+      const conhecido = pessoasConvite().find(p => p.email === em);
+      adicionarConv(conhecido || { nome: "", email: em }); return;
+    }
+    const lista = sugerirConvidados(txt, f.conv.map(x => x.email));
+    if (lista.length) { adicionarConv(lista[marcada] || lista[0]); return; }
+    aviso(`Não achei ninguém com "${txt}". Escreva o e-mail completo da pessoa.`, true);
+  };
+  im.onkeydown = ev => {
+    if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { if (!achados.length) return; ev.preventDefault(); marcada = (marcada + (ev.key === "ArrowDown" ? 1 : achados.length - 1)) % achados.length; pintarSug(); return; }
+    if (ev.key === "Escape" && !sug.hidden) { ev.preventDefault(); ev.stopPropagation(); sug.hidden = true; return; }
+    if (ev.key === "Enter") { ev.preventDefault(); ba.click(); }
+  };
+  mais.append(im, ba, sug); wc.appendChild(mais);
+  wc.appendChild(el("small", "laudo-dica", "Escreva o nome: o app sugere quem usa o app, quem é da VPX e quem você já convidou. Para outra pessoa, escreva o e-mail."));
+  c.appendChild(wc);
   c.appendChild(chips("Lembrete", LEMBRETES_AG.some(([m]) => m === f.lembrete) ? LEMBRETES_AG : [...LEMBRETES_AG, [f.lembrete, `${f.lembrete} min antes`]], "lembrete"));
   // observação longa ou com o bloco do Teams: o app só vê o começo do texto, então não deixa reescrever (apagaria o resto)
   if (f.id && (f.eraTeams || (f.obsOrig || "").length >= 240)) c.appendChild(el("p", "laudo-dica", "Para mudar as observações deste compromisso, use o Outlook."));
