@@ -9571,10 +9571,11 @@ let pedidosAcesso = lerLS("vpx_pedidos_acesso", []);   // [{ nome, email, funcao
 let cadastrosCampo = [];                                // todos os cadastros feitos pelo "Pedir acesso" (inclui os já respondidos)
 // e-mail do convidado: o que ele usou no cadastro (no "userPrincipalName" vem como nome_dominio.com#EXT#@…)
 const emailDoConvidado = u => (u.mail || u.otherMails?.[0] || (u.userPrincipalName || "").split("#EXT#")[0].replace(/_([^_]*)$/, "@$1")).toLowerCase();
+const cadastroDoApp = u => { const t = String(u.creationType || "").toLowerCase(); return t === "selfservicesignup" || (!t && !/pending/i.test(u.externalUserState || "")); };
 async function carregarPedidosAcesso() {
   if (!conta || !navigator.onLine || !ehAdmin()) return;
   const tk = (await msalApp.acquireTokenSilent({ scopes: ESCOPOS_USUARIOS, account: conta })).accessToken;
-  let url = GRAPH + "/users?$filter=" + encodeURIComponent("userType eq 'Guest'") + "&$select=displayName,mail,otherMails,userPrincipalName,jobTitle,createdDateTime,creationType&$count=true&$top=999";
+  let url = GRAPH + "/users?$filter=" + encodeURIComponent("userType eq 'Guest'") + "&$select=displayName,mail,otherMails,userPrincipalName,jobTitle,createdDateTime,creationType,externalUserState&$count=true&$top=999";
   const lista = [];
   while (url) {
     const r = await fetch(url, { headers: { Authorization: "Bearer " + tk, ConsistencyLevel: "eventual" } });
@@ -9583,7 +9584,10 @@ async function carregarPedidosAcesso() {
     lista.push(...j.value);
     url = j["@odata.nextLink"];
   }
-  cadastrosCampo = lista.filter(u => /^selfservicesignup$/i.test(u.creationType || ""))   // só quem se cadastrou pelo app (não os convidados de outros jeitos); a Graph manda "SelfServiceSignup"
+  // só quem se cadastrou pelo "Primeiro acesso" (não os convidados por convite). Até out/2026 a Graph marcava esses cadastros com
+  // creationType "SelfServiceSignup"; os de 24/11/2026 em diante vieram SEM creationType (vazio) — o filtro antigo os escondia e o
+  // pedido nunca aparecia (relatado pelo Gustavo em 27/11/2026). Agora vale o carimbo antigo ou o vazio; convite ("Invitation") fica de fora.
+  cadastrosCampo = lista.filter(cadastroDoApp)
     .map(u => ({ nome: u.displayName || "", email: emailDoConvidado(u), funcao: u.jobTitle || "", quando: u.createdDateTime || "" }))
     .filter(x => x.email).sort((a, b) => b.quando.localeCompare(a.quando));
   atualizarPedidosAcesso();
