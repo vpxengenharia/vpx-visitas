@@ -6309,7 +6309,7 @@ function atualizar() {
   $("nome-cliente").textContent = cliente || (comp ? "Nenhum" : "Escolher cliente");
   $("btn-cliente").classList.toggle("vazio", !cliente);
   // aviso da validade do AVCB/CLCB do cliente escolhido (visita e comercial)
-  const av = modo !== "comp" ? avcbDoCliente(cliente) : null;
+  const av = modo !== "comp" && pode("avcb") ? avcbDoCliente(cliente) : null;   // só para quem vê a validade do AVCB (o instrutor só de Brigada não vê)
   $("avcb-aviso").hidden = !av;
   if (av) { const s = situacaoAvcb(av); $("avcb-aviso").className = "avcb-aviso " + s.cls; $("avcb-aviso").textContent = (s.cls === "ok" ? "✓ " : "⚠ ") + s.texto; }
   $("destino").textContent = comp
@@ -9267,6 +9267,7 @@ function pintarFaixaOS() {
 const FUNCOES = [
   ["visita", "Visita técnica", "aba"], ["com", "Visita comercial", "aba"], ["laudo", "Laudos", "aba"], ["insp", "Inspeções", "aba"],
   ["trein", "Brigada", "aba"], ["serv", "Relatório de serviço", "aba"], ["comp", "Comprovantes e reembolsos", "aba"],
+  ["clientes", "Clientes (lista com CNPJ e AVCB e a página de cada cliente)"],
   ["avcb", "Validade AVCB"], ["avcbFoto", "Fotografar AVCB"], ["agenda", "Agenda"], ["arquivos", "Arquivos do cliente"], ["hist", "Histórico do cliente"], ["pastaTec", "Pasta técnica CBM-BA"], ["equip", "Extintores e mangueiras"], ["os", "Ordens de serviço (ver e executar)"], ["osCriar", "Criar ordens de serviço"], ["normas", "ITs do CBM-BA"], ["pedidos", "Solicitações de compra"], ["pagamentos", "Solicitações de pagamento"], ["pagar", "Realizar pagamentos"], ["comprar", "Realizar compras"], ["orc", "Orçamentos"], ["nf", "Notas fiscais"], ["ficha", "Ficha do cliente (dados e contatos)"],
   ["tarefas", "Tarefas (ver e criar as de todos)"], ["funil", "Comercial (oportunidades e propostas)"], ["trans", "Transações (receitas e despesas)"],
   ["contratos", "Contratos (assinatura eletrônica)"]   // fora do perfil padrão: só quem o Gustavo marcar (podeContratos)
@@ -9281,18 +9282,24 @@ let perm = lerLS("vpx_perm", null);                // última cópia do arquivo 
 const ehAdmin = () => ehAdminFixo() || !!perm?.usuarios?.[emailDe()]?.admin;
 // funções criadas depois que o arquivo de permissões foi salvo entram liberadas no perfil padrão
 // (o arquivo passa a guardar "funcoesConhecidas"; o que não estiver lá é novo). Decisão do Gustavo para o Relatório de serviço.
-const NOVAS_NO_PADRAO = ["serv", "equip", "os", "ficha", "tarefas"];   // "osCriar", "pagar", "comprar", "orc" (orçamentos, com preços), "nf" (notas fiscais) e "funil" (valores das propostas) não: só quem o Gustavo liberar
+const NOVAS_NO_PADRAO = ["serv", "equip", "os", "ficha", "tarefas", "clientes"];   // "osCriar", "pagar", "comprar", "orc" (orçamentos, com preços), "nf" (notas fiscais) e "funil" (valores das propostas) não: só quem o Gustavo liberar
 const padraoDe = p => p?.padrao ? [...p.padrao, ...NOVAS_NO_PADRAO.filter(f => !(p.funcoesConhecidas || []).includes(f) && !p.padrao.includes(f))] : null;
+/* aba Clientes com permissão própria (pedido do Gustavo em 27/11/2026: o instrutor de brigada, liberado só para Brigada, via a aba
+   Clientes com todos os clientes, CNPJ e validade do AVCB). Antes a aba aparecia para todo mundo. Quem tinha funções próprias salvas
+   antes desta permissão existir continua vendo a aba se tiver alguma função que trabalha com a página do cliente (CLIENTE_JUNTO); quem
+   só tinha Brigada, Comprovantes, ITs, Agenda ou financeiro deixa de ver. Ao abrir a Administração, a caixa já vem marcada assim. */
+const CLIENTE_JUNTO = ["visita", "com", "laudo", "insp", "serv", "avcb", "avcbFoto", "arquivos", "hist", "pastaTec", "equip", "os", "osCriar", "orc", "nf", "ficha", "tarefas", "funil", "contratos"];
+const comClientes = (lista, p) => lista && !lista.includes("clientes") && !(p?.funcoesConhecidas || []).includes("clientes") && lista.some(f => CLIENTE_JUNTO.includes(f)) ? [...lista, "clientes"] : lista;
 function funcoesDoUsuario() {
   // convidado: nada sem a liberação (sem acesso à pasta de configuração, ou recusado/retirado); nunca a Agenda (não tem Outlook da VPX)
   if (ehConvidado()) {
     if (!perm || perm.recusados?.includes(emailDe())) return [];
     const u = perm.usuarios?.[emailDe()];
-    return (u?.admin ? TODAS_FUNCOES : u?.funcoes || padraoDe(perm) || TODAS_FUNCOES).filter(f => f !== "agenda");
+    return (u?.admin ? TODAS_FUNCOES : comClientes(u?.funcoes, perm) || padraoDe(perm) || TODAS_FUNCOES).filter(f => f !== "agenda");
   }
   if (ehAdmin() || !perm) return TODAS_FUNCOES;    // arquivo nunca carregado neste celular: tudo liberado (como antes)
   const u = perm.usuarios?.[emailDe()];
-  return u?.funcoes || padraoDe(perm) || TODAS_FUNCOES;
+  return comClientes(u?.funcoes, perm) || padraoDe(perm) || TODAS_FUNCOES;
 }
 const pode = f => funcoesDoUsuario().includes(f);
 const liberado = () => !ehConvidado() || funcoesDoUsuario().length > 0;
@@ -9396,7 +9403,11 @@ async function registrarUsuario() {
 
 /* tela de administração */
 let adm = null;                                    // { perm (cópia editável), lista: [{ email, nome, ultimo }], aberto, mudou }
-const copiaPerm = p => { const c = JSON.parse(JSON.stringify(p || { versao: 1, padrao: TODAS_FUNCOES.slice(), usuarios: {} })); c.padrao = padraoDe(c) || c.padrao; return c; };
+const copiaPerm = p => {
+  const c = JSON.parse(JSON.stringify(p || { versao: 1, padrao: TODAS_FUNCOES.slice(), usuarios: {} }));
+  for (const u of Object.values(c.usuarios || {})) if (u?.funcoes) u.funcoes = comClientes(u.funcoes, c);   // antes do padrão (que muda as conhecidas só ao salvar)
+  c.padrao = padraoDe(c) || c.padrao; return c;
+};
 
 async function abrirAdmin() {
   if (!ehAdmin()) return;
@@ -11656,7 +11667,7 @@ function detalheAvcb(x, zebra) {
     }
   }
   const pasta = x.cli && todosClientes().includes(x.cli) ? x.cli : pastaDoAvcb(v);
-  if (pasta) {                                     // página do cliente: contatos, arquivos, avisar o cliente…
+  if (pasta && pode("clientes")) {                 // página do cliente: contatos, arquivos, avisar o cliente…
     const b = comIc(el("button", "btn sec avcb-ir"), "predio", `Abrir a página de ${pasta}`); b.type = "button";
     b.onclick = () => irClienteDoAvcb(pasta);
     ac.appendChild(b);
@@ -12888,6 +12899,7 @@ const podeSol = () => Object.keys(TIPOS_PED).some(podeTipo);
 function atualizarNav() {
   const nav = $("nav");
   nav.querySelector('[data-s="agenda"]').hidden = !pode("agenda");
+  nav.querySelector('[data-s="clientes"]').hidden = !pode("clientes");   // aba Clientes só com a permissão (27/11/2026)
   // menu lateral do computador: Financeiro, ITs e Administração direto (no celular ficam no Mais), com os contadores
   nav.querySelector('[data-s="fin"]').hidden = !podeFin();
   nav.querySelector('[data-acao="its"]').hidden = !pode("normas");
@@ -12931,6 +12943,11 @@ const SECOES_SUB = ["cliente", "mod", "fin"];
 const voltarSub = () => history.go(history.state?.dup ? -2 : -1);   // o "voltar" da tela numa página interna (pula o passo repetido)
 function irPara(s, deMenu) {                       // deMenu: tocado na barra de baixo / no menu lateral
   if (enviando) return;
+  if ((s === "clientes" || s === "cliente") && conta && !pode("clientes")) {   // sem a permissão Clientes: nem a lista nem a página do cliente
+    aviso("Sem acesso à lista de clientes. Peça ao administrador.", true);
+    if ([...Object.values(TELA_SECAO), "tela-app"].some(id => !$(id).hidden)) return;   // fica onde está
+    s = "inicio";                                  // nada à vista ainda (abrindo o app): vai para o Início
+  }
   if (s === "agenda") {                            // abre por cima da seção atual, mas com a barra de baixo visível
     if (secao === "agenda") return;
     agendaDe = TELA_SECAO[secao] || secao === "trabalho" ? secao : "inicio";   // computador: a Agenda pode abrir por cima de um formulário
@@ -15908,7 +15925,7 @@ function listaProjOp(lista, alvo) {
   const res = el("div", "op-resumo");
   res.append(barraOp(nF, todas.length), el("span", "orc-resumo tar-resumo", `${todas.length - nF} aberta${todas.length - nF === 1 ? "" : "s"}` + (atr ? ` · ${atr} atrasada${atr === 1 ? "" : "s"}` : "")));
   alvo.appendChild(res);
-  if (todosClientes().includes(tarTela.proj)) {
+  if (pode("clientes") && todosClientes().includes(tarTela.proj)) {
     const lk = el("button", "laudo-link op-pag", "Abrir a página do cliente"); lk.type = "button";
     lk.onclick = () => { const c = tarTela.proj; if (fecharTelasPorCima()) abrirCliente(c); };
     alvo.appendChild(lk);
@@ -16101,7 +16118,7 @@ function abrirCliTar(t, b) {
   const escolher = () => abrirDialogo(nome => { if (nome && nome !== t.cliente) mudarCliTar(t.id, nome); });
   if (!t.cliente) return escolher();
   const ops = [["trocar", "Escolher outro cliente"]];
-  if (todosClientes().includes(t.cliente)) ops.push(["pagina", "Abrir a página do cliente"]);
+  if (pode("clientes") && todosClientes().includes(t.cliente)) ops.push(["pagina", "Abrir a página do cliente"]);
   ops.push(["tirar", "Tirar o cliente"]);
   menuOpcoes(b, ops, null, v => {
     if (v === "trocar") escolher();
@@ -16565,7 +16582,7 @@ function detalheTar(t) {
   // atalhos: página do cliente, oportunidade do funil
   const lk = el("div", "tar-links");
   const link = (txt, fn) => { const b = el("button", "laudo-link", txt); b.type = "button"; b.onclick = fn; lk.appendChild(b); };
-  if (t.cliente && todosClientes().includes(t.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(t.cliente); });
+  if (t.cliente && pode("clientes") && todosClientes().includes(t.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(t.cliente); });
   if (t.cliente && tudo) link("Tirar o cliente", () => salvar(r => { r.cliente = ""; }, "Tirou o cliente"));
   const op = t.funil && pode("funil") ? regsDe(colFu)[t.funil] : null;
   if (op) link("Oportunidade no Comercial: " + op.nome, () => { const id = t.funil, ir = () => fuTela ? abrirOport(id) : abrirFunil({ aberta: id }); if (fecharTar()) depoisVoltar = ir; else ir(); });
@@ -18801,7 +18818,7 @@ function detalheFu(o) {
   const link = (txt, fn) => { const b = el("button", "laudo-link", txt); b.type = "button"; b.onclick = fn; links.appendChild(b); };
   if (o.orc && pode("orc")) link("Ver o orçamento " + o.orc, () => abrirOrcFu(o));   // abre o PDF (sem ele na lista, os Orçamentos por cima do Comercial)
   if (pode("orc")) { const bo = el("button", "laudo-link", o.orc ? "Trocar o orçamento" : "Escolher o orçamento na lista"); bo.type = "button"; bo.dataset.orcDe = o.id; bo.onclick = () => escolherOrcFu(o, bo); links.appendChild(bo); }
-  if (o.cliente && todosClientes().includes(o.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(o.cliente); });
+  if (o.cliente && pode("clientes") && todosClientes().includes(o.cliente)) link("Abrir a página do cliente", () => { if (fecharTelasPorCima()) abrirCliente(o.cliente); });
   if (o.cliente && pode("ficha")) link("Contatos do cliente", () => abrirFicha(o.cliente));
   if (o.cliente) link("Tirar o cliente", () => salvar(r => { r.cliente = ""; }, "Tirou o cliente"));
   if (links.children.length) w.appendChild(links);
@@ -19434,6 +19451,7 @@ function defPdfClientes() {
 }
 const pdfClientes = () => relatorioPDF(defPdfClientes());
 function abrirCliente(c, de = null) {
+  if (conta && !pode("clientes")) { aviso("Sem acesso à página do cliente. Peça ao administrador.", true); return; }
   cliPagina = c; cliDe = de;
   if (clientes.includes(c)) gravarLS("vpx_recentes", [c, ...lerLS("vpx_recentes", []).filter(x => x !== c)].slice(0, 8));
   irPara("cliente");
@@ -19821,7 +19839,7 @@ const TELAS_INICIAIS = [["inicio", "Início"], ["clientes", "Clientes"], ["reg",
 let perfilLocal = lerLS("vpx_perfil", null);      // { email, dados, etag, pend, v }
 const meuPerfil = () => perfilLocal?.email && perfilLocal.email === emailDe() ? perfilLocal.dados || {} : {};
 const iniciaisDe = n => String(n || "").split(/[\s@._-]+/).filter(Boolean).map(p => p[0]).slice(0, 2).join("").toUpperCase() || "?";
-const telaInicialPerfil = () => { const t = meuPerfil().telaInicial; return TELAS_INICIAIS.some(x => x[0] === t) ? t : "inicio"; };
+const telaInicialPerfil = () => { const t = meuPerfil().telaInicial; return TELAS_INICIAIS.some(x => x[0] === t) && (t !== "clientes" || pode("clientes")) ? t : "inicio"; };
 const minhaAssinatura = () => { const a = lerLS("vpx_minha_assin", null); return a?.email === emailDe() ? a.url || "" : ""; };
 // só os campos conhecidos (o arquivo do OneDrive pode ter sido mexido à mão)
 function limparPerfil(d) {
@@ -20022,7 +20040,7 @@ function desenharPerfil() {
     w.appendChild(g); if (nota) w.appendChild(el("small", "pf-nota", nota));
     return w;
   };
-  c.appendChild(grupo("Abrir o app em", TELAS_INICIAIS, telaInicialPerfil(), v => mudarPerfil({ telaInicial: v }), "A tela que aparece ao abrir o app."));
+  c.appendChild(grupo("Abrir o app em", TELAS_INICIAIS.filter(([t]) => t !== "clientes" || pode("clientes")), telaInicialPerfil(), v => mudarPerfil({ telaInicial: v }), "A tela que aparece ao abrir o app."));
   c.appendChild(grupo("Aparência", [["", "Igual ao aparelho"], ["claro", "Modo dia"], ["escuro", "Modo noturno"]], temaApp() || "", escolherTema, "Vale só neste aparelho."));
 
   // conta
@@ -20588,7 +20606,7 @@ function desenharDetCt() {
   if (e.status === "aguardando" && podeContratos() && sigsCt(e).some(s => naVezCt(e, s))) link("Reenviar o e-mail para quem falta assinar", () => lembrarCt(e, null));
   link("Copiar o endereço de verificação", () => copiarTextoCt(urlVerifDeCt(e), "Endereço copiado."));
   if (e.meta?.oport && pode("funil")) link("Abrir a oportunidade no Comercial", () => { const o = e.meta.oport; if (fecharTelasPorCima()) abrirFunil({ aberta: o }); });
-  if (e.cliente && todosClientes().includes(e.cliente)) link("Abrir a página do cliente", () => { const c = e.cliente; if (fecharTelasPorCima()) abrirCliente(c); });
+  if (e.cliente && pode("clientes") && todosClientes().includes(e.cliente)) link("Abrir a página do cliente", () => { const c = e.cliente; if (fecharTelasPorCima()) abrirCliente(c); });
   if ((e.status === "aguardando" || e.status === "rascunho") && podeContratos() && (e.criador_email === emailDe() || ehAdmin())) link("Cancelar o contrato", () => cancelarCt(e), "perigo");
   w.appendChild(links);
   // trilha de eventos (a que vai no registro do documento final)
@@ -22347,6 +22365,7 @@ document.addEventListener("keydown", e => {
   if (ctrlK && computador.matches && document.body.classList.contains("logado")) e.preventDefault();
   if (computador.matches && document.body.classList.contains("logado") && !document.querySelector("dialog[open]") && !cam && $("visor-pdf").hidden && $("tela-assinar").hidden && !enviando) {
     if (ctrlK) {
+      if (!pode("clientes")) { aviso("Sem acesso à lista de clientes. Peça ao administrador.", true); return; }   // Ctrl+K abre a página do cliente
       abrirDialogo(c => {
         if (!todosClientes().includes(c)) { aviso("Escolha um cliente da lista.", true); return; }
         if (!fecharTelasPorCima()) return;       // fecha o que estiver aberto por cima (pergunta antes se houver algo não salvo)
