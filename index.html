@@ -3294,7 +3294,7 @@ const CONFIG = {
   responsaveis: [["Eng. Gustavo Ponchio", "CREA-BA 0518099830"], ["Eng. William Reis", "CREA-BA 0519955552"]],
   subpasta: "06 - Fotos e Visitas Técnicas",                         // onde as fotos ficam dentro do cliente ({data} = AAAA-MM-DD, se quiser)
   pastaArquivado: "01 - Arquivado",            // dentro de 02 - Clientes: pastas dos clientes arquivados (aparecem na aba Clientes com o filtro Arquivados)
-  ignorar: [/^01 - Arquivado$/i, /^Nova pasta/i,/-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i, /^00 - Tarefas$/i, /^00 - Funil Comercial$/i, /^00 - Centros de Custo$/i, /^00 - Contratos Assinados$/i],
+  ignorar: [/^01 - Arquivado$/i, /^Nova pasta/i,/-DESKTOP-/i, /^00 - Validade AVCB$/i, /^00 - Usuários do app$/i, /^00 - Extintores e Mangueiras$/i, /^00 - Ordens de Serviço$/i, /^00 - Fichas dos Clientes$/i, /^00 - Tarefas$/i, /^00 - Funil Comercial$/i, /^00 - Centros de Custo$/i, /^00 - Contratos Assinados$/i, /^00 - Agenda da Equipe$/i],
   // contratos com assinatura eletrônica (24/11/2026; plano em docs/assinatura-contratos.md): endereço do servidor de assinatura
   // (Cloudflare Worker, sem barra no fim); vazio = ainda não configurado (a tela Contratos avisa e não deixa criar)
   assinaturaUrl: "https://vpx-assinatura.vpx-assinatura.workers.dev",   // publicado em 25/11/2026 na conta Cloudflare da VPX
@@ -3303,6 +3303,7 @@ const CONFIG = {
   pastaOS: "00 - Ordens de Serviço",           // dentro de 02 - Clientes: um .json por ordem de serviço (OS-0001.json…)
   pastaEquip: "00 - Extintores e Mangueiras",  // dentro de 02 - Clientes: um .json por cliente com os grupos de extintores e mangueiras
   pastaFichas: "00 - Fichas dos Clientes",     // dentro de 02 - Clientes: um .json por cliente com os dados e os contatos (ficha do cliente)
+  pastaAgendaEquipe: "00 - Agenda da Equipe",   // dentro de 02 - Clientes: cópias dos compromissos com gente da equipe de campo (e-mail pessoal), para eles verem na Agenda do app
   pastaTarefas: "00 - Tarefas",                // dentro de 02 - Clientes: tarefas da equipe, em 8 arquivos (tarefas-00.json … tarefas-07.json)
   pastaCentros: "00 - Centros de Custo",       // dentro de 02 - Clientes: cadastro de centros de custo (centros-00/01.json; 13/11/2026)
   pastaFunil: "00 - Funil Comercial",          // dentro de 02 - Clientes: oportunidades do funil comercial, em 32 arquivos (funil-00.json …)
@@ -9295,7 +9296,7 @@ function funcoesDoUsuario() {
   if (ehConvidado()) {
     if (!perm || perm.recusados?.includes(emailDe())) return [];
     const u = perm.usuarios?.[emailDe()];
-    return (u?.admin ? TODAS_FUNCOES : comClientes(u?.funcoes, perm) || padraoDe(perm) || TODAS_FUNCOES).filter(f => f !== "agenda");
+    return u?.admin ? TODAS_FUNCOES : comClientes(u?.funcoes, perm) || padraoDe(perm) || TODAS_FUNCOES;   // a Agenda vale desde 27/11/2026: mostra os compromissos marcados para a pessoa (Agenda da equipe de campo)
   }
   if (ehAdmin() || !perm) return TODAS_FUNCOES;    // arquivo nunca carregado neste celular: tudo liberado (como antes)
   const u = perm.usuarios?.[emailDe()];
@@ -9450,13 +9451,13 @@ function fecharAdmin(voltar = true) {
   return true;
 }
 
-function chipsFuncoes(lista, aoMudar, convidado) {   // convidado: sem a Agenda (não tem Outlook da VPX)
+function chipsFuncoes(lista, aoMudar, convidado) {   // convidado: a Agenda dele é a dos compromissos marcados para ele (não tem Outlook da VPX)
   const w = el("div", "adm-funcoes");
   for (const [grupo, filtro] of [["Abas", f => f[2] === "aba"], ["Outras funções", f => f[2] !== "aba"]]) {
     w.appendChild(el("p", "adm-grupo", grupo));
     const ch = el("div", "chips");
-    FUNCOES.filter(filtro).filter(([id]) => !(convidado && id === "agenda")).forEach(([id, rot]) => {
-      const b = el("button", "", rot); b.type = "button"; b.setAttribute("aria-pressed", String(lista.includes(id)));
+    FUNCOES.filter(filtro).forEach(([id, rot]) => {
+      const b = el("button", "", convidado && id === "agenda" ? "Agenda (compromissos marcados para a pessoa)" : rot); b.type = "button"; b.setAttribute("aria-pressed", String(lista.includes(id)));
       b.onclick = () => {
         const i = lista.indexOf(id);
         if (i >= 0) lista.splice(i, 1); else lista.push(id);
@@ -12103,9 +12104,21 @@ function horarioAgenda(t, diaTodo) {
   return new Date(t.timeZone === "UTC" ? s + "Z" : s).getTime();
 }
 
+// sem período: meses inteiros, do dia 1º do mês passado ao fim do mês que vem
+const periodoAgenda = () => { const h = new Date(); return [new Date(h.getFullYear(), h.getMonth() - 1, 1).getTime(), new Date(h.getFullYear(), h.getMonth() + 2, 1).getTime()]; };
 async function buscarAgenda(ini, fim) {
-  const h = new Date();                            // sem período: meses inteiros, do dia 1º do mês passado ao fim do mês que vem
-  if (!ini) { ini = new Date(h.getFullYear(), h.getMonth() - 1, 1); fim = new Date(h.getFullYear(), h.getMonth() + 2, 1); }
+  const padrao = !ini;
+  if (padrao) [ini, fim] = periodoAgenda().map(t => new Date(t));
+  if (ehConvidado()) {                             // equipe de campo (e-mail pessoal): os compromissos marcados para ela pela VPX
+    await sincronizarCol(colAgEq, true);
+    if (colAgEq.erro && !colAgEq.dados.lido) throw colAgEq.erro;
+    return eventosDaEquipe(ini.getTime(), fim.getTime());
+  }
+  const eventos = await buscarAgendaOutlook(ini, fim);
+  if (padrao) espelharAgenda(eventos, ini.getTime(), fim.getTime());   // as cópias para a equipe de campo (sem esperar)
+  return eventos;
+}
+async function buscarAgendaOutlook(ini, fim) {
   const tk = await tokenAgenda(false);
   let url = `${GRAPH}/me/calendarView?startDateTime=${ini.toISOString()}&endDateTime=${fim.toISOString()}`
     + "&$select=id,type,isOrganizer,subject,start,end,isAllDay,location,bodyPreview,organizer,attendees,webLink,isCancelled,onlineMeeting,isOnlineMeeting,isReminderOn,reminderMinutesBeforeStart&$orderby=start/dateTime&$top=200";
@@ -12470,7 +12483,7 @@ function cartaoEvento(e) {
     const ac = el("div", "ag-acoes");
     const bt = (rot, fn, cls, i) => { const x = el("button", cls || ""); i ? comIc(x, i, rot) : x.textContent = rot; x.type = "button"; x.onclick = fn; ac.appendChild(x); };
     if (!e.cancelado) bt("Compartilhar", () => compartilharEvento(e), "", "compartilhar");
-    if (!e.cancelado && pode("agenda")) bt("Duplicar", () => abrirFormAgenda(null, null, formDuplicado(e)), "", "copiar");
+    if (!e.cancelado && pode("agenda") && !ehConvidado()) bt("Duplicar", () => abrirFormAgenda(null, null, formDuplicado(e)), "", "copiar");
     if (e.meu && e.id && !e.cancelado && pode("agenda")) {
       if (e.unico) { bt("Editar", () => abrirFormAgenda(e), "", "lapis"); bt("Cancelar compromisso", () => cancelarEvento(e), "perigo"); }
       else det.appendChild(el("p", "", "Compromisso que se repete: para alterar, use o Outlook."));
@@ -12492,7 +12505,7 @@ async function abrirAgenda(comoSecao) {
   document.body.style.overflow = "hidden";
   if (!comoSecao) history.pushState({ agenda: true }, "");   // o "voltar" do Android fecha a tela
   fecharFormAgenda(false);
-  $("agenda-novo").hidden = !pode("agenda");
+  $("agenda-novo").hidden = !pode("agenda") || ehConvidado();
   agBase = null; agMes = 0; agSel = chaveDia(Date.now());   // abre no mês de hoje, com hoje escolhido
   limparBuscaAgenda();
   const rasc = lerLS("vpx_ag_rasc", null);               // voltou da autorização: continua o compromisso que estava preenchendo
@@ -12514,10 +12527,10 @@ async function carregarAgenda() {
     const eventos = await buscarAgenda();
     gravarLS(chaveAgenda(), { quando: Date.now(), eventos });
     desenharAgenda(eventos);
-    estado.textContent = `Sua agenda do Outlook. Atualizada às ${horaMin(Date.now())}.`;
+    estado.textContent = ehConvidado() ? `Compromissos marcados para você pela VPX. Atualizada às ${horaMin(Date.now())}.` : `Sua agenda do Outlook. Atualizada às ${horaMin(Date.now())}.`;
   } catch (e) {
     console.error(e);
-    const semPermissao = e instanceof msal.InteractionRequiredAuthError || e.status === 401 || e.status === 403 || /consent|AADSTS65001/i.test(e.message);
+    const semPermissao = !ehConvidado() && (e instanceof msal.InteractionRequiredAuthError || e.status === 401 || e.status === 403 || /consent|AADSTS65001/i.test(e.message));   // equipe de campo: não há Outlook para autorizar
     estado.textContent = semPermissao
       ? "Para mostrar sua agenda, o app precisa da sua autorização para ler o calendário do Outlook."
       : "Não foi possível carregar a agenda agora." + (guardada ? " Mostrando a última salva no celular." : "");
@@ -12606,7 +12619,7 @@ function fecharFormAgenda(voltar = true) {
   agForm = null;
   $("agenda-form").hidden = true; $("agenda-form").innerHTML = "";
   ["agenda-estado", "agenda-busca", "agenda-lista", "agenda-hoje"].forEach(id => $(id).hidden = false);
-  $("agenda-novo").hidden = !pode("agenda");
+  $("agenda-novo").hidden = !pode("agenda") || ehConvidado();
   if (abrirFormAgenda.rol) { $("agenda-corpo").scrollTop = abrirFormAgenda.rol; abrirFormAgenda.rol = 0; }
   if (voltar && history.state?.agform) { agVoltando = true; history.back(); }
 }
@@ -12666,7 +12679,7 @@ function desenharFormAgenda() {
   const tem = em => f.conv.some(x => x.email === em);
   const equipe = lerLS("vpx_usuarios_app", []).filter(u => u.email && u.email !== emailDe());
   equipe.forEach(u => {
-    const b = el("button", "", u.nome || u.email); b.type = "button"; b.setAttribute("aria-pressed", String(tem(u.email)));
+    const b = el("button", "", (u.nome || u.email) + (emailEquipeCampo(u.email) ? " (equipe de campo)" : "")); b.type = "button"; b.setAttribute("aria-pressed", String(tem(u.email)));   // equipe de campo: vê o compromisso na Agenda do app
     b.onclick = () => { if (tem(u.email)) f.conv = f.conv.filter(x => x.email !== u.email); else f.conv.push({ nome: u.nome || "", email: u.email }); desenharFormAgenda(); };   // redesenha: o botão final muda para "enviar convites"
     ch.appendChild(b);
   });
@@ -17645,6 +17658,66 @@ function aoMudarCad() {
 }
 const colCc = colecao({ chave: "vpx_cc", pasta: CONFIG.pastaCentros, prefixo: "centros", n: 2, pode: () => liberado(), aoMudar: aoMudarCad });
 const colPa = colecao({ chave: "vpx_par", prefixo: "parceiros", n: 4, base: baseParceiros, pode: () => podeTipo("pag") || podeTrans(), aoMudar: aoMudarCad });
+/* ---------- Agenda da equipe de campo (pedido do Gustavo em 27/11/2026: "a opção de liberar a agenda para a pessoa", para o instrutor de
+   brigada que entra com e-mail pessoal) ----------
+   Quem entra com e-mail pessoal (convidado) não tem Outlook da VPX. Quando alguém da VPX marca um compromisso pelo app (ou pelo Outlook)
+   e convida uma pessoa da equipe de campo, o próprio aparelho de quem marcou guarda uma CÓPIA do compromisso em
+   02 - Clientes › 00 - Agenda da Equipe (agenda-00…03.json, o mesmo sistema de baldes das tarefas): título, quando, local, observações,
+   link da reunião, convidados e "para" (os e-mails da equipe de campo convidados). A cópia é refeita sempre que a agenda de quem marcou é
+   lida com internet (abrir a Agenda, criar, editar, cancelar, o Início a cada 15 min): muda o que mudou e apaga o que saiu da agenda
+   (cancelado, apagado ou sem convidado da equipe de campo) — só dentro do mês passado, este e o próximo, que é o que foi lido.
+   A pessoa da equipe de campo, com a função Agenda, vê na Agenda do app os compromissos em que está em "para" (sem criar nem editar);
+   o convite também chega no e-mail dela, pelo Outlook. Equipe de campo = e-mail fora da VPX marcado como convidado nas permissões ou na
+   lista de quem usa o app. */
+const colAgEq = colecao({ chave: "vpx_ag_eq", pasta: CONFIG.pastaAgendaEquipe, prefixo: "agenda", n: 4, pode: () => liberado() && pode("agenda"), aoMudar: () => aoMudarAgEq() });
+const emailEquipeCampo = em => { em = String(em || "").toLowerCase(); return !!em && !em.endsWith("@" + CONFIG.dominio) && (!!perm?.usuarios?.[em]?.convidado || lerLS("vpx_usuarios_app", []).some(u => u.email === em)); };
+const idEspelhoAg = evId => "ag" + hashId(evId).toString(36) + hashId(evId + "|vpx").toString(36);
+// a cópia de um compromisso (só os campos que a pessoa vê) ou null se não tem ninguém da equipe de campo
+function espelhoDeEvento(e) {
+  const para = [...new Set((e.conv || []).map(c => c.email).filter(emailEquipeCampo))];
+  if (!para.length || e.cancelado) return null;
+  return { id: idEspelhoAg(e.id), ev: e.id, org: emailDe(), orgNome: conta?.name || emailDe(), titulo: e.titulo, ini: e.ini, fim: e.fim, diaTodo: !!e.diaTodo,
+    local: e.local || "", resumo: e.resumo || "", online: e.online || "", teams: !!e.teams, conv: (e.conv || []).map(c => ({ nome: c.nome, email: c.email, resp: c.resp })), para };
+}
+const CAMPOS_ESP_AG = ["titulo", "ini", "fim", "diaTodo", "local", "resumo", "online", "teams", "conv", "para", "orgNome"];
+const mesmoEspelho = (a, b) => CAMPOS_ESP_AG.every(k => JSON.stringify(a?.[k] ?? null) === JSON.stringify(b?.[k] ?? null));
+// quem marcou (conta da VPX): acerta as cópias dos compromissos dele com gente da equipe de campo, dentro do período lido (ini a fim)
+async function espelharAgenda(eventos, ini, fim) {
+  if (!conta || ehConvidado() || !navigator.onLine || !pode("agenda") || espelharAgenda.rodando) return;
+  espelharAgenda.rodando = true;
+  try {
+    await sincronizarCol(colAgEq, true);
+    if (colAgEq.erro || !colAgEq.dados.lido) return;   // sem ler as cópias atuais, não mexe (apagaria ou duplicaria por engano)
+    const atuais = regsDe(colAgEq), vistos = new Set();
+    for (const e of eventos) {
+      if (!e.meu || !e.id) continue;               // só os compromissos que a própria pessoa marcou
+      const esp = espelhoDeEvento(e);
+      if (!esp) continue;
+      vistos.add(esp.id);
+      const velho = atuais[esp.id];
+      if (velho && mesmoEspelho(velho, esp)) continue;
+      const reg = { ...esp, atualizado: new Date().toISOString(), atualizadoPor: nomeColaborador(), criado: velho?.criado || new Date().toISOString() };
+      await gravarReg(colAgEq, esp.id, reg, itens => { itens[esp.id] = JSON.parse(JSON.stringify(reg)); });
+    }
+    // as cópias dele que sumiram da agenda lida (cancelado, apagado, sem convidado da equipe de campo) saem
+    for (const r of Object.values(atuais))
+      if (r.org === emailDe() && !vistos.has(r.id) && r.ini >= ini && r.ini < fim) await apagarReg(colAgEq, r.id);
+  } catch (e) { console.error("agenda da equipe:", e); }
+  finally { espelharAgenda.rodando = false; }
+}
+// quem é da equipe de campo: os compromissos marcados para ela, no formato da agenda do Outlook (para o mesmo calendário)
+function eventosDaEquipe(ini, fim) {
+  const eu = emailDe();
+  return Object.values(regsDe(colAgEq)).filter(r => (r.para || []).includes(eu) && Math.max(r.ini, r.fim - 1) >= ini && r.ini < fim)
+    .map(r => ({ id: r.ev || r.id, meu: false, unico: true, equipe: true, titulo: r.titulo || "(sem título)", diaTodo: !!r.diaTodo, ini: r.ini, fim: r.fim,
+      local: r.local || "", resumo: r.resumo || "", org: r.orgNome || "", link: "", online: r.online || "", teams: !!r.teams, cancelado: false, lembrete: -1, conv: r.conv || [] }))
+    .sort((a, b) => a.ini - b.ini);
+}
+function aoMudarAgEq() {
+  if (!ehConvidado() || !pode("agenda")) return;
+  if (!$("tela-agenda").hidden && !agForm) carregarAgenda();
+  else if (secao === "inicio" && !$("tela-inicio").hidden) { gravarLS(chaveAgenda(), { quando: Date.now(), eventos: eventosDaEquipe(...periodoAgenda()) }); redesenharInicio(); }
+}
 const centrosCad = () => Object.values(regsDe(colCc));
 const parceiros = () => Object.values(regsDe(colPa));
 const ordemCc = (a, b) => String(a[0]).localeCompare(String(b[0]), "pt-BR", { numeric: true });
