@@ -1675,6 +1675,17 @@ select,textarea{font-family:inherit}              /* as caixas de escolha saíam
 .ag-px-ev:focus-visible,.ag-px-data:focus-visible{outline:3px solid var(--laranja);outline-offset:-3px}
 @media (hover:hover) and (pointer:fine){.ag-px-ev:hover,.ag-px-data:hover{background:var(--fundo)}}
 @media (hover:none){.ag-px-ev:active,.ag-px-data:active{background:var(--fundo)}}
+/* cliente do compromisso em destaque (27/11/2026): prédio + nome em negrito azul-marinho acima do título */
+.ag-cli{display:flex;align-items:center;gap:6px;min-width:0;font-weight:700;color:var(--marinho);line-height:1.25}
+.ag-cli > span{overflow-wrap:anywhere}
+.ag-cli .ic{width:18px;height:18px;flex:none}
+.ag-ev .ag-cli{font-size:18px;margin-top:3px}
+.ag-ev .tit.com-cli{font-size:15.5px;font-weight:500;margin-top:1px}
+.ag-px-ev .t .ag-cli{font-size:16.5px}
+.ag-px-ev .t .ag-cli .ic{width:16px;height:16px}
+.ag-px-ev .t .tt{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere}
+.hub-card b.ag-ini-ev .ag-ini-cli{color:var(--marinho);font-weight:800}
+@media (prefers-color-scheme:dark){.ag-cli,.hub-card b.ag-ini-ev .ag-ini-cli{color:var(--laranja)}}
 .ag-busca-nota{margin:0 2px 4px}
 .ag-res + .ag-res{margin-top:10px}
 @media (prefers-color-scheme:dark){.ag-cal button[aria-pressed="true"] .n{background:var(--laranja);color:var(--marinho)}.ag-cal button[aria-pressed="true"].hoje .n{box-shadow:0 0 0 2px var(--tinta)}}
@@ -12116,6 +12127,12 @@ function horarioAgenda(t, diaTodo) {
 
 // sem período: meses inteiros, do dia 1º do mês passado ao fim do mês que vem
 const periodoAgenda = () => { const h = new Date(); return [new Date(h.getFullYear(), h.getMonth() - 1, 1).getTime(), new Date(h.getFullYear(), h.getMonth() + 2, 1).getTime()]; };
+// Cliente do compromisso (pedido do Gustavo em 27/11/2026: "quando eu bato o olho, ver logo o nome do cliente"): o cliente
+// escolhido no formulário fica guardado no próprio compromisso, numa propriedade escondida do Outlook (não aparece no Outlook
+// nem para os convidados; vale em todos os aparelhos). Compromisso sem ela (criado no Outlook, antigo, convite de outra pessoa)
+// usa o cliente achado no título (clienteDeNome, o mesmo das notas fiscais). Valor "" = a pessoa tirou o cliente de propósito.
+const PROP_CLI_AG = "String {6f2a9c41-7b3e-4d58-9e1a-3c8b5d27f064} Name VpxCliente";
+const EXPAND_CLI_AG = "&$expand=" + encodeURIComponent(`singleValueExtendedProperties($filter=id eq '${PROP_CLI_AG}')`);
 async function buscarAgenda(ini, fim) {
   const padrao = !ini;
   if (padrao) [ini, fim] = periodoAgenda().map(t => new Date(t));
@@ -12128,16 +12145,30 @@ async function buscarAgenda(ini, fim) {
   if (padrao) espelharAgenda(eventos, ini.getTime(), fim.getTime());   // as cópias para a equipe de campo (sem esperar)
   return eventos;
 }
-async function buscarAgendaOutlook(ini, fim) {
+// semProp: busca sem a propriedade do cliente. Se a Microsoft responder 400 com ela, tenta sem; dando certo, passa 30 min sem
+// pedir a propriedade (depois tenta de novo: um 400 passageiro não a desliga até fechar o app). Os compromissos lidos assim
+// vêm com semLer (não se sabe o cliente guardado): editar não grava o cliente se a pessoa não mexeu nele.
+async function buscarAgendaOutlook(ini, fim, semProp) {
   const tk = await tokenAgenda(false);
+  const comProp = !semProp && !(buscarAgendaOutlook.semPropAte > Date.now());
   let url = `${GRAPH}/me/calendarView?startDateTime=${ini.toISOString()}&endDateTime=${fim.toISOString()}`
-    + "&$select=id,type,isOrganizer,subject,start,end,isAllDay,location,bodyPreview,organizer,attendees,webLink,isCancelled,onlineMeeting,isOnlineMeeting,isReminderOn,reminderMinutesBeforeStart&$orderby=start/dateTime&$top=200";
+    + "&$select=id,type,isOrganizer,subject,start,end,isAllDay,location,bodyPreview,organizer,attendees,webLink,isCancelled,onlineMeeting,isOnlineMeeting,isReminderOn,reminderMinutesBeforeStart&$orderby=start/dateTime&$top=200"
+    + (comProp ? EXPAND_CLI_AG : "");
   const eventos = [];
   while (url) {
     const r = await fetch(url, { headers: { Authorization: "Bearer " + tk } });
-    if (!r.ok) { const e = new Error("Erro " + r.status); e.status = r.status; throw e; }
+    if (!r.ok) {
+      if (r.status === 400 && comProp) {
+        console.warn("Agenda: 400 com a propriedade do cliente; tentando sem ela");
+        const sem = await buscarAgendaOutlook(ini, fim, true);   // se também falhar, o erro sobe como antes
+        buscarAgendaOutlook.semPropAte = Date.now() + 30 * 60000;
+        return sem;
+      }
+      const e = new Error("Erro " + r.status); e.status = r.status; throw e;
+    }
     const j = await r.json();
     for (const e of j.value) eventos.push({
+      ...(!comProp ? { semLer: true } : e.singleValueExtendedProperties?.length ? { cli: String(e.singleValueExtendedProperties[0].value ?? "") } : {}),
       id: e.id, meu: !!e.isOrganizer, unico: e.type === "singleInstance",
       titulo: e.subject || "(sem título)", diaTodo: !!e.isAllDay,
       ini: horarioAgenda(e.start, e.isAllDay), fim: horarioAgenda(e.end, e.isAllDay),
@@ -12347,10 +12378,12 @@ function proximosDiasAgenda(hoje, esperandoMes) {
       if (e.diaTodo || (e.ini <= d0 && e.fim >= d1)) h.textContent = "Dia todo";
       else if (e.ini < d0) { h.textContent = "até"; h.appendChild(el("small", "", horaMin(e.fim))); }
       else { h.textContent = horaMin(e.ini); h.appendChild(el("small", "", e.fim <= d1 ? horaMin(e.fim) : "→")); }
-      const t = el("span", "t"); t.appendChild(el("b", "", e.titulo));
+      const cli = clienteDoEvento(e), t = el("span", "t");
+      if (cli) t.appendChild(linhaCliAg(cli, "span"));   // o cliente em destaque, com o título sem o nome dele embaixo
+      t.appendChild(el(cli ? "span" : "b", cli ? "tt" : "", cli ? tituloSemCli(e.titulo, cli) : e.titulo));
       if (e.local) t.appendChild(el("small", "", e.local));
       b.append(h, t);
-      b.setAttribute("aria-label", `${nomeDia(k)}, ${h.textContent.replace(/(\d\d:\d\d)(\d\d:\d\d)/, "$1 às $2").replace(/^até(?=\d)/, "até ").replace("→", " em diante")}: ${e.titulo}${e.local ? ", " + e.local : ""}`);
+      b.setAttribute("aria-label", `${nomeDia(k)}, ${h.textContent.replace(/(\d\d:\d\d)(\d\d:\d\d)/, "$1 às $2").replace(/^até(?=\d)/, "até ").replace("→", " em diante")}: ${cli ? `cliente ${cli}, ` : ""}${e.titulo}${e.local ? ", " + e.local : ""}`);
       b.onclick = () => irDiaDosProximos(k, e);
       itens.appendChild(b);
     }
@@ -12387,7 +12420,50 @@ async function buscarTodosAgenda() {
 }
 function esquecerBuscaAgenda() { agTodos = null; buscarTodosAgenda.em = false; buscarTodosAgenda.erro = false; buscarTodosAgenda.gen = (buscarTodosAgenda.gen || 0) + 1; }
 function limparBuscaAgenda() { agBusca = ""; $("agenda-busca").value = ""; }
-const textoBuscaEv = e => semAcento([e.titulo, e.local, e.resumo, e.org, ...(e.conv || []).flatMap(c => [c.nome, c.email])].join(" "));
+const textoBuscaEv = e => semAcento([e.titulo, clienteDoEvento(e), e.local, e.resumo, e.org, ...(e.conv || []).flatMap(c => [c.nome, c.email])].join(" "));
+// cliente do compromisso: o guardado nele (e.cli, "" = tirado de propósito) ou, sem nada guardado, o achado no título
+function clienteDoEvento(e) {
+  if (typeof e.cli === "string") return e.cli;
+  return clienteNoTitulo(e.titulo);
+}
+// cliente cujo nome aparece INTEIRO no título, palavra por palavra, sem acento ("Visita técnica - Solar da Lagoa" → "Solar da Lagoa").
+// Mais rígido que o clienteDeNome das notas fiscais, que aceita metade das palavras e uma letra de diferença: num título
+// de agenda isso ligava "Visita técnica - Shopping Bela Vista" ao cliente "Vista Patamares" ("visita" ≈ "vista").
+// Nome de uma palavra só comum ("Comercial", "Centro") ou curta não conta; havendo vários, vale o nome mais comprido
+// (os ativos antes dos arquivados).
+const memoCliAg = new Map();
+function clienteNoTitulo(titulo) {
+  if (!titulo || !clientes.length) return "";
+  const k = clientes.length + "|" + clientesArq.length + "|" + titulo;   // a busca chama para cada compromisso: o guardado vem antes de montar a lista
+  if (memoCliAg.has(k)) return memoCliAg.get(k);
+  if (memoCliAg.size > 3000) memoCliAg.clear();
+  const lista = clientes.concat(clientesArq);       // clientesArq só tem os que não estão entre os ativos
+  const t = " " + palavrasNome(titulo).join(" ") + " ";
+  let melhor = "", tam = 0;
+  for (const c of lista) {
+    const p = palavrasNome(c);
+    if (!p.length || (p.length === 1 && (PAL_COMUNS.has(p[0]) || p[0].length < 4))) continue;
+    const frase = p.join(" ");
+    if (frase.length > tam && t.includes(" " + frase + " ")) { melhor = c; tam = frase.length; }
+  }
+  memoCliAg.set(k, melhor);
+  return melhor;
+}
+// título sem o nome do cliente no começo ou no fim ("Visita técnica - Tribeca" → "Visita técnica"), porque o cliente
+// já aparece em destaque logo acima; sem sobrar nada, fica o título inteiro
+function tituloSemCli(titulo, cli) {
+  const t = (titulo || "").normalize("NFC"), n = semAcento(t), k = semAcento(cli || "").trim();
+  if (!k || n.trim() === k) return t;
+  const sep = /^[\s\-–—:|·,]+|[\s\-–—:|·,]+$/g;
+  if (n.endsWith(k) && /[\s\-–—:|·,(]/.test(n[n.length - k.length - 1] || "")) { const r = t.slice(0, t.length - k.length).replace(sep, "").trim(); if (r) return r; }
+  if (n.startsWith(k) && /[\s\-–—:|·,)]/.test(n[k.length] || "")) { const r = t.slice(k.length).replace(sep, "").trim(); if (r) return r; }
+  return t;
+}
+// linha do cliente nos cartões da Agenda: ícone de prédio e o nome em destaque
+function linhaCliAg(cli, tag = "div") {
+  const d = el(tag, "ag-cli"); d.appendChild(ic("predio")); d.appendChild(el("span", "", cli));
+  return d;
+}
 const mesAno = d => d.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }).replace(/\./g, "").replace(" de ", "/");
 function desenharBuscaAgenda(lista) {
   if (!agTodos && !buscarTodosAgenda.em && !buscarTodosAgenda.erro) buscarTodosAgenda();
@@ -12461,8 +12537,9 @@ function cartaoEvento(e) {
   b.dataset.ev = (e.id || "") + "|" + e.ini;        // para os próximos dias acharem o cartão no dia
   const hora = document.createElement("div"); hora.className = "hora";
   hora.textContent = (e.diaTodo ? "Dia todo" : `${horaMin(e.ini)} – ${horaMin(e.fim)}`) + (e.cancelado ? " · cancelado" : "");
-  const tit = document.createElement("div"); tit.className = "tit"; tit.textContent = e.titulo;
-  b.append(hora, tit);
+  const cli = clienteDoEvento(e);                   // o cliente em destaque logo abaixo do horário (o título não repete o nome dele)
+  const tit = document.createElement("div"); tit.className = "tit" + (cli ? " com-cli" : ""); tit.textContent = cli ? tituloSemCli(e.titulo, cli) : e.titulo;
+  b.append(hora, ...(cli ? [linhaCliAg(cli)] : []), tit);
   if (e.local) { const l = document.createElement("div"); l.className = "loc"; comIc(l, "pin", e.local); b.appendChild(l); }
   b.setAttribute("aria-expanded", "false");
   b.onclick = ev => {
@@ -12473,6 +12550,14 @@ function cartaoEvento(e) {
     const linha = (rotulo, texto) => { const p = document.createElement("p"); const s = document.createElement("strong"); s.textContent = rotulo + ": "; p.append(s, texto); det.appendChild(p); return p; };
     const quando = new Date(e.ini).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
     linha("Quando", e.diaTodo ? `${quando}, dia todo` : `${quando}, ${horaMin(e.ini)} às ${horaMin(e.fim)}`);
+    if (cli) {
+      const p = linha("Cliente", cli);
+      if (pode("clientes") && todosClientes().includes(cli)) {
+        const a = document.createElement("a"); a.href = "#"; a.textContent = "abrir a página do cliente";
+        a.onclick = ev => { ev.preventDefault(); abrirCliente(cli); };
+        p.append(" ", a);
+      }
+    }
     if (e.local) {
       const p = linha("Local", e.local + " ");
       if (!/teams|zoom|meet|online|reuni[aã]o/i.test(e.local)) {
@@ -12581,7 +12666,11 @@ function novoFormAgenda() {
   return { titulo: "", cliente: "", data: chaveDia(d.getTime()), diaTodo: false, hIni, hFim: somaHora(hIni, 60), local: "", teams: false, conv: [], lembrete: 15, obs: "" };
 }
 function formDeEvento(e) {
-  return { id: e.id, titulo: e.titulo === "(sem título)" ? "" : e.titulo, cliente: "", data: chaveDia(e.ini), diaTodo: e.diaTodo,
+  // cliente: o guardado no compromisso ou o achado no título; cliOrig: o guardado (null = nenhum); cliAuto: o achado no título
+  // (quando não há nada guardado: salvar grava o cliente confirmado, ou "" se a pessoa o tirou)
+  const guardado = typeof e.cli === "string";
+  return { id: e.id, titulo: e.titulo === "(sem título)" ? "" : e.titulo, cliente: clienteDoEvento(e), cliOrig: guardado ? e.cli : null, cliAuto: guardado ? "" : clienteDoEvento(e),
+    ...(e.semLer ? { semLer: true, cliIni: clienteDoEvento(e) } : {}), data: chaveDia(e.ini), diaTodo: e.diaTodo,
     hIni: e.diaTodo ? "08:00" : horaMin(e.ini), hFim: e.diaTodo ? "09:00" : horaMin(e.fim), local: e.local, teams: e.teams, eraTeams: e.teams,
     conv: (e.conv || []).map(c => ({ nome: c.nome, email: c.email })), lembrete: e.lembrete ?? 15, obs: e.resumo, obsOrig: e.resumo };
 }
@@ -12590,7 +12679,8 @@ function formDeEvento(e) {
 // Convidados só vêm de compromisso criado pela própria pessoa (num convite recebido, os convidados são de quem convidou).
 function formDuplicado(e) {
   const f = formDeEvento(e);
-  delete f.id; delete f.obsOrig;
+  delete f.id; delete f.obsOrig; delete f.cliOrig; delete f.cliAuto; delete f.semLer; delete f.cliIni;   // a cópia leva o cliente (gravado no compromisso novo)
+  if (e.cli === "") f.semCli = true;               // o original teve o cliente tirado de propósito: a cópia também fica sem
   f.dup = e.titulo; f.data = ""; f.eraTeams = false;   // reunião do Teams: o compromisso novo ganha um link novo
   f.conv = e.meu ? f.conv.filter(c => c.email && c.email !== emailDe()) : [];
   // observações: sem o texto do convite do Teams (o link antigo não vale para o novo); só vem o começo do texto do Outlook
@@ -12693,17 +12783,25 @@ function desenharFormAgenda() {
     i.oninput = () => { f[chave] = i.value; };
     w.appendChild(i); return w;
   };
-  // cliente (opcional): preenche o local com o endereço do AVCB e sugere o título
-  if (!f.id) {
-    const bc = el("button", "cliente" + (f.cliente ? "" : " vazio")); bc.type = "button"; bc.style.marginBottom = "12px";
+  // cliente (opcional): fica guardado no compromisso e aparece em destaque na Agenda; preenche o local com o endereço do
+  // AVCB e sugere o título. Também ao editar (27/11/2026): dá para escolher, trocar ou tirar.
+  {
+    const bc = el("button", "cliente" + (f.cliente ? "" : " vazio")); bc.type = "button"; bc.style.marginBottom = f.cliente ? "4px" : "12px";
     bc.append(el("small", "", "Cliente (opcional)"), el("strong", "", f.cliente || "Escolher cliente"));
     bc.onclick = () => abrirDialogo(nome => {
-      f.cliente = nome;
-      if (!f.titulo.trim()) f.titulo = `Visita técnica - ${nome}`;
-      if (!f.local.trim()) f.local = avcbDoCliente(nome)?.endereco || "";
+      const ant = f.cliente, sugAnt = ant ? (avcbDoCliente(ant)?.endereco || "").trim() : "";
+      f.cliente = nome; delete f.semCli;
+      if (!f.titulo.trim() || (ant && f.titulo.trim() === `Visita técnica - ${ant}`)) f.titulo = `Visita técnica - ${nome}`;   // o título sugerido acompanha a troca
+      // o local sugerido também (o endereço do cliente anterior nunca fica no compromisso do novo; um digitado à mão fica)
+      if (!f.local.trim() || (sugAnt && f.local.trim() === sugAnt)) f.local = avcbDoCliente(nome)?.endereco || "";
       desenharFormAgenda();
     });
     c.appendChild(bc);
+    if (f.cliente) {
+      const tira = el("button", "laudo-link ag-tira-cli", "Tirar o cliente deste compromisso"); tira.type = "button"; tira.style.marginBottom = "12px";
+      tira.onclick = () => { f.cliente = ""; f.semCli = true; desenharFormAgenda(); };   // semCli: no novo, grava "" se o título traria o cliente de volta
+      c.appendChild(tira);
+    }
   }
   c.appendChild(campo("Título *", "input", "titulo", { ph: "Ex.: Visita técnica - Tribeca", max: 200 }));
   c.appendChild(campo("Data *", "input", "data", { tipo: "date" }));
@@ -12833,6 +12931,14 @@ function corpoEvento(f) {
   }
   if (f.teams && !f.eraTeams) { ev.isOnlineMeeting = true; ev.onlineMeetingProvider = "teamsForBusiness"; }
   if (!f.id || f.obs !== f.obsOrig) ev.body = { contentType: "text", content: f.obs || "" };
+  // cliente: guardado numa propriedade escondida do Outlook (PROP_CLI_AG); no novo só com cliente; na edição só se mudou
+  // do guardado, ou se tirou o cliente achado no título (grava "" para o título não trazer o cliente de volta)
+  const cli = (f.cliente || "").trim();
+  // lido sem a propriedade (semLer: não se sabe o guardado) e a pessoa não mexeu no cliente: não grava (não troca o guardado)
+  const grava = f.id
+    ? !(f.semLer && cli === (f.cliIni || "")) && (cli !== (f.cliOrig ?? "") || (f.cliOrig == null && f.cliAuto && !cli))
+    : cli || (f.semCli && clienteNoTitulo(f.titulo.trim()));
+  if (grava) ev.singleValueExtendedProperties = [{ id: PROP_CLI_AG, value: cli }];
   return ev;
 }
 async function salvarEvento(botao) {
@@ -12892,7 +12998,8 @@ async function cancelarEvento(e) {
 // compartilhar os dados do compromisso (WhatsApp ou outro app), inclusive para quem não é da VPX
 function textoEvento(e) {
   const quando = new Date(e.ini).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
-  const l = [`📅 ${e.titulo}`, `🗓️ ${quando.charAt(0).toUpperCase() + quando.slice(1)}${e.diaTodo ? ", dia todo" : `, ${horaMin(e.ini)} às ${horaMin(e.fim)}`}`];
+  const cli = clienteDoEvento(e);
+  const l = [`📅 ${e.titulo}`, ...(cli ? [`🏢 Cliente: ${cli}`] : []), `🗓️ ${quando.charAt(0).toUpperCase() + quando.slice(1)}${e.diaTodo ? ", dia todo" : `, ${horaMin(e.ini)} às ${horaMin(e.fim)}`}`];
   if (e.local) {
     l.push(`📍 ${e.local}`);
     if (!/teams|zoom|meet|online|reuni[aã]o/i.test(e.local)) l.push("Mapa: https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(e.local));
@@ -17772,9 +17879,10 @@ function espelhoDeEvento(e) {
   const para = [...new Set((e.conv || []).map(c => c.email).filter(emailEquipeCampo))];
   if (!para.length || e.cancelado) return null;
   return { id: idEspelhoAg(e.id), ev: e.id, org: emailDe(), orgNome: conta?.name || emailDe(), titulo: e.titulo, ini: e.ini, fim: e.fim, diaTodo: !!e.diaTodo,
-    local: e.local || "", resumo: e.resumo || "", online: e.online || "", teams: !!e.teams, conv: (e.conv || []).map(c => ({ nome: c.nome, email: c.email, resp: c.resp })), para };
+    local: e.local || "", resumo: e.resumo || "", online: e.online || "", teams: !!e.teams, conv: (e.conv || []).map(c => ({ nome: c.nome, email: c.email, resp: c.resp })), para,
+    ...(typeof e.cli === "string" ? { cli: e.cli } : {}) };   // o cliente guardado no compromisso (sem ele, quem vê acha pelo título)
 }
-const CAMPOS_ESP_AG = ["titulo", "ini", "fim", "diaTodo", "local", "resumo", "online", "teams", "conv", "para", "orgNome"];
+const CAMPOS_ESP_AG = ["titulo", "ini", "fim", "diaTodo", "local", "resumo", "online", "teams", "conv", "para", "orgNome", "cli"];
 const mesmoEspelho = (a, b) => CAMPOS_ESP_AG.every(k => JSON.stringify(a?.[k] ?? null) === JSON.stringify(b?.[k] ?? null));
 // quem marcou (conta da VPX): acerta as cópias dos compromissos dele com gente da equipe de campo, dentro do período lido (ini a fim)
 async function espelharAgenda(eventos, ini, fim) {
@@ -17790,6 +17898,7 @@ async function espelharAgenda(eventos, ini, fim) {
       if (!esp) continue;
       vistos.add(esp.id);
       const velho = atuais[esp.id];
+      if (e.semLer && velho && typeof velho.cli === "string") esp.cli = velho.cli;   // lido sem a propriedade do cliente: fica o que a cópia já tinha
       if (velho && mesmoEspelho(velho, esp)) continue;
       const reg = { ...esp, atualizado: new Date().toISOString(), atualizadoPor: nomeColaborador(), criado: velho?.criado || new Date().toISOString() };
       await gravarReg(colAgEq, esp.id, reg, itens => { itens[esp.id] = JSON.parse(JSON.stringify(reg)); });
@@ -17805,7 +17914,7 @@ function eventosDaEquipe(ini, fim) {
   const eu = emailDe();
   return Object.values(regsDe(colAgEq)).filter(r => (r.para || []).includes(eu) && Math.max(r.ini, r.fim - 1) >= ini && r.ini < fim)
     .map(r => ({ id: r.ev || r.id, meu: false, unico: true, equipe: true, titulo: r.titulo || "(sem título)", diaTodo: !!r.diaTodo, ini: r.ini, fim: r.fim,
-      local: r.local || "", resumo: r.resumo || "", org: r.orgNome || "", link: "", online: r.online || "", teams: !!r.teams, cancelado: false, lembrete: -1, conv: r.conv || [] }))
+      local: r.local || "", resumo: r.resumo || "", org: r.orgNome || "", link: "", online: r.online || "", teams: !!r.teams, cancelado: false, lembrete: -1, conv: r.conv || [], ...(typeof r.cli === "string" ? { cli: r.cli } : {}) }))
     .sort((a, b) => a.ini - b.ini);
 }
 function aoMudarAgEq() {
@@ -19249,7 +19358,11 @@ function desenharInicio() {
         const dia = chaveDia(t0), evs = ag.eventos.filter(e => !e.cancelado && chaveDia(e.ini) === dia);
         b.appendChild(el("small", "ag-dia-rot", `${rot} · ${new Date(t0).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" }).replace(".", "")}`));
         if (!evs.length) b.appendChild(el("span", "ag-vazio-ini", vazio));
-        else evs.slice(0, 4).forEach(e => b.appendChild(el("b", "", `${e.diaTodo ? "Dia todo" : horaMin(e.ini)} · ${e.titulo}`)));
+        else evs.slice(0, 4).forEach(e => {   // o cliente na frente, em destaque (27/11/2026), e o título sem repetir o nome dele
+          const cli = clienteDoEvento(e), x = el("b", "ag-ini-ev", `${e.diaTodo ? "Dia todo" : horaMin(e.ini)} · `);
+          if (cli) { x.appendChild(el("span", "ag-ini-cli", cli)); x.append(" · " + tituloSemCli(e.titulo, cli)); } else x.append(e.titulo);
+          b.appendChild(x);
+        });
         if (evs.length > 4) b.appendChild(el("small", "", `+ ${evs.length - 4} compromisso(s)`));
       }
     }
